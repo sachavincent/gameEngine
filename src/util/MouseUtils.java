@@ -2,14 +2,14 @@ package util;
 
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 
-import java.nio.DoubleBuffer;
-import java.util.List;
 import guis.Gui;
 import guis.GuiComponent;
-import renderEngine.DisplayManager;
-import util.vector.Vector2f;
+import java.nio.DoubleBuffer;
+import java.util.List;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
+import renderEngine.DisplayManager;
+import util.vector.Vector2f;
 
 public class MouseUtils {
 
@@ -23,7 +23,6 @@ public class MouseUtils {
     }
 
     public static boolean isCursorInGui(Vector2f cursorPos, Gui gui) {
-        System.out.println(gui);
         return isPosInBounds(cursorPos, gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 
@@ -51,24 +50,39 @@ public class MouseUtils {
                 cursorPos.y /= DisplayManager.HEIGHT;
                 cursorPos.y *= -2;
                 cursorPos.y += 1;
-                System.out.println(cursorPos);
-                guis.stream().filter(gui -> isCursorInGui(cursorPos, gui)).forEach(
-                        gui -> gui.getComponents().stream()
+
+                guis.stream()
+                        .filter(Gui::isDisplayed)
+                        .filter(gui -> isCursorInGui(cursorPos, gui))
+                        .forEach(gui -> gui.getComponents().stream()
                                 .filter(guiComponent -> isCursorInGuiComponent(cursorPos, guiComponent))
                                 .forEach(GuiComponent::onClick));
             }
         });
 
         GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
+            Vector2f cursorPos = getCursorPos();
 
         });
 
         GLFW.glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
+            Vector2f cursorPos = getCursorPos();
 
         });
 
-        GLFW.glfwSetCursorPosCallback(DisplayManager.getWindow(), (w, button, action) -> {
+        GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
+            Vector2f cursorPos = getCursorPos();
 
+            guis.stream().filter(Gui::isDisplayed)
+                    .forEach(gui -> {
+                        if (isCursorInGui(cursorPos, gui)) {
+                            gui.getComponents().stream()
+                                    .filter(guiComponent -> isCursorInGuiComponent(cursorPos, guiComponent))
+                                    .forEach(GuiComponent::onHover);
+                        }
+
+                        gui.setFocused(isCursorInGui(cursorPos, gui));
+                    });
         });
     }
 }

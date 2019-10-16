@@ -5,34 +5,44 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.SideConstraint;
 import guis.presets.GuiPreset;
+import guis.transitions.Transition;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
 public class Gui {
 
-    public final static float CORNER_RADIUS = 9f;
+    public final static float CORNER_RADIUS = 8f;
+    public final static float SPEED         = 0.0015f; //TODO: W/ time not distance
 
     private GuiTexture         background;
     private List<GuiComponent> components;
 
-    private Animation        animation;
-    private AnimationDetails animationDetails;
+    private List<Transition> transitions;
 
     private float x, y;
     private float width, height;
+
+    private float startX, startY;
+    private float finalX, finalY;
+
+    private float finalWidth, finalHeight;
+
+    private boolean focused, displayed;
 
     public Gui(String texture) {
         this.background = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
                 height));
 
         this.components = new ArrayList<>();
+        this.transitions = new LinkedList<>();
     }
 
-    public void setAnimation(Animation animation, AnimationDetails animationDetails) {
-        this.animation = animation;
-        this.animationDetails = animationDetails;
+    public void setTransitions(Transition... transitions) {
+        this.transitions = new LinkedList<>(Arrays.asList(transitions));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -41,7 +51,6 @@ public class Gui {
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();
         final GuiConstraints heightConstraint = constraints.getHeightConstraint();
 
-//        System.out.println(constraints.getOrder());
         constraints.getOrder().forEach(s -> {
             float width = 1.1f;
             float height = 1.1f;
@@ -141,7 +150,7 @@ public class Gui {
         updateTexturePosition();
     }
 
-    private void updateTexturePosition() {
+    public void updateTexturePosition() {
         this.background.getScale().x = this.width;
         this.background.getScale().y = this.height;
         this.background.getPosition().x = this.x;
@@ -156,12 +165,8 @@ public class Gui {
         return this.components;
     }
 
-    public Animation getAnimation() {
-        return this.animation;
-    }
-
-    public AnimationDetails getAnimationDetails() {
-        return this.animationDetails;
+    public List<Transition> getTransitions() {
+        return this.transitions;
     }
 
     public float getX() {
@@ -190,11 +195,121 @@ public class Gui {
                 '}';
     }
 
+    public boolean isFocused() {
+        return this.focused;
+    }
+
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    public boolean isDisplayed() {
+        return this.displayed;
+    }
+
+    public void show() {
+        if (isDisplayed())
+            return;
+
+        this.transitions.forEach(transition -> transition.showTransition(this));
+        updateTexturePosition();
+
+        this.displayed = true;
+    }
+
+    public void hide() {
+        if (!isDisplayed())
+            return;
+
+        this.transitions.forEach(transition -> transition.setDone(false));
+
+        this.displayed = false;
+    }
+
     public void addComponent(GuiComponent guiComponent) {
         this.components.add(guiComponent);
     }
 
     public void addComponent(GuiPreset guiPreset) {
         this.components.add(guiPreset);
+    }
+
+    void animate() {
+        if (!isDisplayed())
+            return;
+
+        this.transitions.forEach(transition -> transition.animate(this));
+
+        updateTexturePosition();
+    }
+
+    public void setAlphaToGui(float alpha) {
+        this.background.setAlpha(alpha);
+
+        this.components.forEach(guiComponent -> guiComponent.getTexture().setAlpha(alpha));
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    public void setWidth(float width) {
+        this.width = width;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    public float getStartX() {
+        return this.startX;
+    }
+
+    public void setStartX(float startX) {
+        this.startX = startX;
+    }
+
+    public float getStartY() {
+        return this.startY;
+    }
+
+    public void setStartY(float startY) {
+        this.startY = startY;
+    }
+
+    public float getFinalX() {
+        return this.finalX;
+    }
+
+    public void setFinalX(float finalX) {
+        this.finalX = finalX;
+    }
+
+    public float getFinalY() {
+        return this.finalY;
+    }
+
+    public void setFinalY(float finalY) {
+        this.finalY = finalY;
+    }
+
+    public float getFinalWidth() {
+        return this.finalWidth;
+    }
+
+    public void setFinalWidth(float finalWidth) {
+        this.finalWidth = finalWidth;
+    }
+
+    public float getFinalHeight() {
+        return this.finalHeight;
+    }
+
+    public void setFinalHeight(float finalHeight) {
+        this.finalHeight = finalHeight;
     }
 }

@@ -22,6 +22,8 @@ public abstract class GuiComponent {
     private HoverCallback  onHoverCallback;
     private ScrollCallback onScrollCallback;
 
+    private boolean displayed;
+
     public GuiComponent(Gui parent, String texture) {
         this.parent = parent;
         this.width = parent.getWidth();
@@ -31,6 +33,8 @@ public abstract class GuiComponent {
 
         this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
                 height));
+
+        this.displayed = false;
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -77,7 +81,7 @@ public abstract class GuiComponent {
                     if (height <= parent.getHeight())
                         this.height = height;
 
-                    System.out.println("H: " + this.height);
+//                    System.out.println("H: " + this.height);
 
                     break;
                 case "X":
@@ -108,7 +112,7 @@ public abstract class GuiComponent {
                                 break;
                         }
                     }
-                    System.out.println("X: " + x);
+//                    System.out.println("X: " + x);
                     if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
                             (x + this.width) > (parent.getX() + parent.getWidth()))
                         this.x = parent.getX();
@@ -120,7 +124,7 @@ public abstract class GuiComponent {
                             case RELATIVE:
                                 GuiComponent relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
                                 if (relativeTo != null) { // Relatif à un autre élément
-                                    System.out.println("RelativeTo: " + relativeTo.getY());
+//                                    System.out.println("RelativeTo: " + relativeTo.getY());
 
                                     this.y = relativeTo.getY() - this.height -
                                             (parent.getHeight() / 2 + this.height) * constraint * 2;
@@ -129,7 +133,7 @@ public abstract class GuiComponent {
                                     this.y = parent.getY() + parent.getHeight() - this.height -
                                             (parent.getHeight() - this.height) * constraint * 2;
                                 }
-                                System.out.println("YY: " + y);
+//                                System.out.println("YY: " + y);
                                 break;
                             case SIDE:
                                 switch (((SideConstraint) yConstraint).getSide()) {
@@ -157,7 +161,7 @@ public abstract class GuiComponent {
                                 ((y + this.height) > parent.getY() + parent.getHeight()))
                             this.y = parent.getY();
 
-                        System.out.println("Y=>" + y);
+//                        System.out.println("Y=>" + y);
                     }
                     break;
                 default:
@@ -178,21 +182,21 @@ public abstract class GuiComponent {
     }
 
     public void onClick() {
-        if(onClickCallback == null)
+        if (onClickCallback == null)
             return;
 
         onClickCallback.onClick();
     }
 
     public void onHover() {
-        if(onHoverCallback == null)
+        if (onHoverCallback == null)
             return;
 
         onHoverCallback.onHover();
     }
 
     public void onScroll() {
-        if(onScrollCallback == null)
+        if (onScrollCallback == null)
             return;
 
         onScrollCallback.onScroll();
@@ -252,6 +256,14 @@ public abstract class GuiComponent {
 
     public Gui getParent() {
         return this.parent;
+    }
+
+    public void setDisplayed(boolean displayed) {
+        this.displayed = displayed;
+    }
+
+    public boolean isDisplayed() {
+        return this.displayed;
     }
 
     @Override

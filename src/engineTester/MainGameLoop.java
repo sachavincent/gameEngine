@@ -1,5 +1,6 @@
 package engineTester;
 
+import static guis.transitions.Slider.LEFT;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
@@ -8,8 +9,6 @@ import entities.Entity;
 import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
-import guis.Animation;
-import guis.AnimationDetails;
 import guis.Gui;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -17,6 +16,9 @@ import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiPreset;
 import guis.presets.GuiSquare;
+import guis.transitions.FadeTransition;
+import guis.transitions.SliderTransition;
+import inputs.callbacks.KeyboardUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -189,7 +191,8 @@ public class MainGameLoop {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
 
-        right_gui.setAnimation(Animation.SLIDER, AnimationDetails.RIGHT_TO_LEFT);
+        right_gui.setTransitions( new FadeTransition(3));
+
         constraints.setHeightConstraint(new RelativeConstraint(0.7f));
         constraints.setWidthConstraint(new RelativeConstraint(0.11f));
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
@@ -211,6 +214,8 @@ public class MainGameLoop {
         guis.add(right_gui);
 
         MouseUtils.setupListeners(guis);
+        KeyboardUtils.setupListeners(guis);
+
         while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
             camera.move();
 

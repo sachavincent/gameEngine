@@ -14,6 +14,7 @@ public class GuiShader extends ShaderProgram {
     private int location_guiWidth;
     private int location_guiHeight;
     private int location_radius;
+    private int location_alpha;
 
     public GuiShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -31,12 +32,17 @@ public class GuiShader extends ShaderProgram {
         }
     }
 
+    public void loadAlpha(float alpha) {
+        super.loadFloat(location_alpha, alpha);
+    }
+
     @Override
     protected void getAllUniformLocations() {
         location_transformationMatrix = super.getUniformLocation("transformationMatrix");
         location_guiWidth = super.getUniformLocation("guiWidth");
         location_guiHeight = super.getUniformLocation("guiHeight");
         location_radius = super.getUniformLocation("radius");
+        location_alpha = super.getUniformLocation("alpha");
     }
 
     @Override

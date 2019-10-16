@@ -33,10 +33,16 @@ public class GuiRenderer {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-        guis.forEach(gui -> {
-            renderTexture(gui.getBackground());
-            gui.getComponents().forEach(guiComponent -> renderTexture(guiComponent.getTexture()));
-        });
+        guis.stream()
+                .filter(Gui::isDisplayed)
+                .forEach(gui -> {
+                    renderTexture(gui.getBackground());
+                    gui.getComponents().stream()
+//                            .filter(GuiComponent::isDisplayed)
+                            .forEach(guiComponent -> renderTexture(guiComponent.getTexture()));
+
+                    gui.animate();
+                });
 
         shader.loadGuis(guis);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -52,6 +58,8 @@ public class GuiRenderer {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, guiTexture.getTextureID());
         shader.loadTransformation(
                 Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
+        shader.loadAlpha(guiTexture.getAlpha());
+//        System.out.println(guiTexture.getAlpha());
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
     }
 }
