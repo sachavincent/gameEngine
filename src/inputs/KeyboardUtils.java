@@ -1,4 +1,4 @@
-package inputs.callbacks;
+package inputs;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_H;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
