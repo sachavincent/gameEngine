@@ -1,5 +1,7 @@
-package guis;
+package guis.components;
 
+import guis.Gui;
+import guis.GuiTexture;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;

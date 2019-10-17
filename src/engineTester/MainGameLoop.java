@@ -1,8 +1,12 @@
 package engineTester;
 
-import static guis.transitions.Slider.LEFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
 import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static renderEngine.DisplayManager.FPS;
 
 import entities.Camera;
 import entities.Entity;
@@ -17,8 +21,9 @@ import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiPreset;
 import guis.presets.GuiSquare;
 import guis.transitions.FadeTransition;
+import guis.transitions.Slider;
 import guis.transitions.SliderTransition;
-import inputs.callbacks.KeyboardUtils;
+import inputs.KeyboardUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +45,7 @@ import textures.TerrainTexture;
 import textures.TerrainTexturePack;
 import util.MousePicker;
 import util.MouseUtils;
+import util.Timer;
 import util.vector.Vector3f;
 import util.vector.Vector4f;
 import water.WaterFrameBuffers;
@@ -51,6 +57,7 @@ public class MainGameLoop {
     public static void main(String[] args) {
         glfwInit();
         DisplayManager.createDisplay();
+        glfwSwapInterval(0);
         GL.createCapabilities();
         GL11.glEnable(GL13.GL_MULTISAMPLE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -191,8 +198,9 @@ public class MainGameLoop {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
 
-        right_gui.setTransitions( new FadeTransition(3));
-
+//        right_gui.setTransitions(new SliderTransition(400, Slider.LEFT));
+//        right_gui.setTransitions(new FadeTransition(400));
+        right_gui.setTransitions(new SliderTransition(400, Slider.LEFT), new FadeTransition(400));
         constraints.setHeightConstraint(new RelativeConstraint(0.7f));
         constraints.setWidthConstraint(new RelativeConstraint(0.11f));
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
@@ -216,12 +224,46 @@ public class MainGameLoop {
         MouseUtils.setupListeners(guis);
         KeyboardUtils.setupListeners(guis);
 
+        double frameCap = 1.0 / FPS;
+        double time = Timer.getTime();
+        double unprocessed = 0;
+
+        double frameTime = 0;
+        int frames = 0;
+
         while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
-            camera.move();
+            boolean canRender = false;
 
-            picker.update();
+            double time2 = Timer.getTime();
+            double diff = time2 - time;
+            unprocessed += diff;
+            frameTime += diff;
+            time = time2;
 
-            GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
+            while (unprocessed >= frameCap) {
+                unprocessed -= frameCap;
+                canRender = true;
+
+                if (glfwGetKey(DisplayManager.getWindow(), GLFW_KEY_ESCAPE) == GL_TRUE)
+                    DisplayManager.closeDisplay();
+
+
+                DisplayManager.updateDisplay();
+
+                if (frameTime >= 1.0) {
+                    frameTime = 0;
+
+                    System.out.println("FPS: " + frames);
+                    frames = 0;
+                }
+            }
+
+            if (canRender) {
+                camera.move();
+
+                picker.update();
+
+                GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
 
 //            Vector3f terrainPoint = picker.getCurrentTerrainPoint();
 //            if(!terrain.isPointOnTerrain(terrainPoint.x, terrainPoint.z))
@@ -271,31 +313,32 @@ public class MainGameLoop {
 //            }
 
 
-            buffers.bindReflectionFrameBuffer();
+                buffers.bindReflectionFrameBuffer();
 
-            float distance = 2 * (camera.getPosition().y - water.getHeight());
-            camera.getPosition().y -= distance;
-            camera.invertPitch();
+                float distance = 2 * (camera.getPosition().y - water.getHeight());
+                camera.getPosition().y -= distance;
+                camera.invertPitch();
 
-            renderer.renderScene(entities, Collections.singletonList(terrain), lights, guis, camera,
-                    new Vector4f(0, 1, 0, -water.getHeight() + 1f));
+                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
+                        new Vector4f(0, 1, 0, -water.getHeight() + 1f));
 
-            camera.getPosition().y += distance;
-            camera.invertPitch();
+                camera.getPosition().y += distance;
+                camera.invertPitch();
 
-            buffers.bindRefractionFrameBuffer();
-            renderer.renderScene(entities, Collections.singletonList(terrain), lights, guis, camera,
-                    new Vector4f(0, -1, 0, water.getHeight() + 1f));
+                buffers.bindRefractionFrameBuffer();
+                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
+                        new Vector4f(0, -1, 0, water.getHeight() + 1f));
 
-            buffers.unbindCurrentFrameBuffer();
-            renderer.renderScene(entities, Collections.singletonList(terrain), lights, guis, camera,
-                    new Vector4f(0, -1, 0, 1000000));
+                buffers.unbindCurrentFrameBuffer();
+                renderer.renderScene(entities, Collections.singletonList(terrain), lights, guis, camera,
+                        new Vector4f(0, -1, 0, 1000000));
 
-            waterRenderer.render(waters, camera, sun);
+                waterRenderer.render(waters, camera, sun);
 
-            TextMaster.render();
+                TextMaster.render();
 
-            DisplayManager.updateDisplay();
+                frames++;
+            }
         }
 
         buffers.cleanUp();

@@ -55,6 +55,14 @@ public class MasterRenderer {
         guiRenderer = new GuiRenderer(guiShader, loader);
     }
 
+    public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights,
+            Camera camera, Vector4f clipPlane) {
+        terrains.forEach(this::processTerrain);
+        entities.forEach(this::processEntity);
+
+        render(lights, camera, clipPlane);
+    }
+
     public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights, List<Gui> guis,
             Camera camera, Vector4f clipPlane) {
         terrains.forEach(this::processTerrain);

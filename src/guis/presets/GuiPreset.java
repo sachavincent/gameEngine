@@ -1,7 +1,7 @@
 package guis.presets;
 
 import guis.Gui;
-import guis.GuiComponent;
+import guis.components.GuiComponent;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 

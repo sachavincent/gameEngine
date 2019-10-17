@@ -43,7 +43,7 @@ void main(void){
     out_Color = texture(guiTexture, textureCoords);
     out_Color.a = calcRoundedCorners();
 
-    if (out_Color.a == 1) {
+    if (out_Color.a > 0) {
         out_Color.a = alpha;
     }
 }

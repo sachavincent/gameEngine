@@ -1,10 +1,12 @@
 package guis.transitions;
 
+import static renderEngine.DisplayManager.FPS;
+
 import guis.Gui;
 
 public class FadeTransition extends Transition {
 
-    public FadeTransition(double length) {
+    public FadeTransition(int length) {
         super(length);
     }
 
@@ -15,6 +17,7 @@ public class FadeTransition extends Transition {
 
     @Override
     public void animate(Gui gui) {
-        gui.setAlphaToGui(Math.abs(gui.getStartX() - gui.getX()) * gui.getStartX() / (gui.getStartX() - gui.getFinalX())); //TODO W/ time
+        gui.setAlphaToGui(gui.getBackground().getAlpha() + 1 / (length / 1000f) / FPS);
+//        gui.setAlphaToGui(0f);
     }
 }

@@ -51,7 +51,7 @@ public class DisplayManager {
 
         int screen = 1; //TODO temp
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                fullscreen ? glfwGetPrimaryMonitor() : screens.get(screen), 0);
+                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
         glfwMaximizeWindow(window);
 
         if (window == 0)
@@ -80,13 +80,13 @@ public class DisplayManager {
             return; //TODO: raise exception
 
         int i = 0;
-        boucle:
+
         while (true) {
             try {
                 screens.add(pointerBuffer.get(i));
                 i++;
             } catch (IndexOutOfBoundsException e) {
-                break boucle;
+                break;
             }
         }
     }
@@ -105,7 +105,7 @@ public class DisplayManager {
     }
 
     public static void closeDisplay() {
-        glfwDestroyWindow(window);
+        glfwSetWindowShouldClose(window, true);
     }
 
     private static double getCurrentTime() {

@@ -4,21 +4,25 @@ import guis.Gui;
 
 public abstract class Transition {
 
-    private double length;
+    // in milliseconds
+    protected int length;
 
     private boolean done;
 
-    public Transition(double length) {
+    public Transition(int length) {
+        if (length < 100)
+            return; //TODO: Exception
+
         this.length = length;
 
         this.done = false;
     }
 
-    public double getLength() {
+    public int getLength() {
         return this.length;
     }
 
-    public void setLength(double length) {
+    public void setLength(int length) {
         this.length = length;
     }
 

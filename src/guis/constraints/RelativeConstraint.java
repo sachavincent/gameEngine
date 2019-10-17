@@ -1,6 +1,6 @@
 package guis.constraints;
 
-import guis.GuiComponent;
+import guis.components.GuiComponent;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 

@@ -1,14 +1,17 @@
 package guis.transitions;
 
+import static renderEngine.DisplayManager.FPS;
+
 import guis.Gui;
+import util.Timer;
 
 public class SliderTransition extends Transition {
 
-    private final static float DISTANCE = 0.15f;
+    private final static float DISTANCE = 0.25f;
 
     private Slider direction;
 
-    public SliderTransition(double length, Slider direction) {
+    public SliderTransition(int length, Slider direction) {
         super(length);
 
         this.direction = direction;
@@ -31,7 +34,6 @@ public class SliderTransition extends Transition {
                 gui.setFinalX(gui.getX());
                 gui.setX(gui.getX() + DISTANCE);
                 gui.setStartX(gui.getX());
-
                 break;
             case BOTTOM:
                 gui.setFinalY(gui.getY());
@@ -59,7 +61,7 @@ public class SliderTransition extends Transition {
                 break;
             case LEFT:
                 if (gui.getX() > gui.getFinalX()) {
-                    gui.setX(gui.getX() - Gui.SPEED);
+                    gui.setX(gui.getX() - DISTANCE / (length / 1000f) / FPS);
 
                     if (gui.getX() < gui.getFinalX())
                         gui.setX(gui.getFinalX());

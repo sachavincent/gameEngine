@@ -3,7 +3,7 @@ package util;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 
 import guis.Gui;
-import guis.GuiComponent;
+import guis.components.GuiComponent;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import org.lwjgl.BufferUtils;

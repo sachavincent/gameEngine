@@ -1,4 +1,6 @@
-package guis;
+package guis.components;
+
+import guis.Gui;
 
 public class GuiTestComponent extends GuiComponent {
 

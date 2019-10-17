@@ -1,5 +1,6 @@
 package guis;
 
+import guis.components.GuiComponent;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
@@ -16,7 +17,6 @@ import util.vector.Vector2f;
 public class Gui {
 
     public final static float CORNER_RADIUS = 8f;
-    public final static float SPEED         = 0.0015f; //TODO: W/ time not distance
 
     private GuiTexture         background;
     private List<GuiComponent> components;
