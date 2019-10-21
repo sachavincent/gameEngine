@@ -1,6 +1,5 @@
 package guis;
 
-import guis.components.GuiComponent;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
@@ -231,7 +230,7 @@ public class Gui {
     }
 
     public void addComponent(GuiPreset guiPreset) {
-        this.components.add(guiPreset);
+        guiPreset.getBasics().forEach(this::addComponent);
     }
 
     void animate() {

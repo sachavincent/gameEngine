@@ -84,7 +84,8 @@ public class GuiConstraintsManager {
         ASPECT,
         CENTER,
         RELATIVE,
-        SIDE
+        SIDE,
+        PIXEL
     }
 
     public enum ConstraintsType {

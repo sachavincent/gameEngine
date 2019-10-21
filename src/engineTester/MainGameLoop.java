@@ -14,12 +14,15 @@ import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
+import guis.GuiComponent;
+import guis.basics.GuiBasics;
+import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiPreset;
-import guis.presets.GuiSquare;
+import guis.presets.GuiSlider;
 import guis.transitions.FadeTransition;
 import guis.transitions.Slider;
 import guis.transitions.SliderTransition;
@@ -206,17 +209,18 @@ public class MainGameLoop {
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
         right_gui.setConstraints(constraints);
 
-        GuiPreset square = new GuiSquare(right_gui, "blue.png", new RelativeConstraint(0.24f));
+        GuiBasics square = new GuiSquare(right_gui, "blue.png", new RelativeConstraint(0.24f));
         square.setYPreset(new RelativeConstraint(0f));
         square.setOnClick(() -> {
             System.out.println("test");
         });
 
-        GuiPreset square2 = new GuiSquare(right_gui, "grass.png", new RelativeConstraint(0.24f));
-        square2.setYPreset(new RelativeConstraint(.75f, square));
+        GuiPreset slider = new GuiSlider(right_gui, "grass.png");
+        constraints.setDefault();
+        slider.setConstraints(constraints);
 
         right_gui.addComponent(square);
-        right_gui.addComponent(square2);
+        right_gui.addComponent(slider);
 
 
         guis.add(right_gui);

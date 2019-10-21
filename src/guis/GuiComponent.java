@@ -1,7 +1,5 @@
-package guis.components;
+package guis;
 
-import guis.Gui;
-import guis.GuiTexture;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -61,6 +59,12 @@ public abstract class GuiComponent {
                             case ASPECT:
                                 width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
                                 break;
+                            case PIXEL:
+                                if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
+                                    return; //TODO: Exception
+
+                                width = constraint / DisplayManager.WIDTH;
+                                break;
                         }
                     }
 
@@ -77,6 +81,12 @@ public abstract class GuiComponent {
                                 break;
                             case ASPECT:
                                 height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
+                                break;
+                            case PIXEL:
+                                if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
+                                    return; //TODO: Exception
+
+                                height = constraint / DisplayManager.HEIGHT;
                                 break;
                         }
                     }
@@ -108,6 +118,12 @@ public abstract class GuiComponent {
                                         this.x = constraint;
                                         break;
                                 }
+                                break;
+                            case PIXEL:
+                                if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
+                                    return; //TODO: Exception
+
+                                this.x = constraint / DisplayManager.WIDTH;
                                 break;
                             default:
                                 this.x = constraint;
@@ -153,6 +169,12 @@ public abstract class GuiComponent {
                                 }
                                 System.out.println("Relative: " + parent.getY() + ", " + parent.getHeight());
                                 System.out.println("Y: " + y);
+                                break;
+                            case PIXEL:
+                                if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
+                                    return; //TODO: Exception
+
+                                this.y = constraint / DisplayManager.HEIGHT;
                                 break;
                             default:
                                 this.y = constraint;

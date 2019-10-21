@@ -1,18 +1,19 @@
-package guis.presets;
+package guis.basics;
 
 import guis.Gui;
 import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
+import guis.presets.GuiPreset;
 
-public class GuiSquare extends GuiPreset {
+public class GuiRectangle extends GuiBasics {
 
-    public GuiSquare(Gui gui, String texture, GuiConstraints dimension) {
+    public GuiRectangle(Gui gui, String texture, GuiConstraints width, GuiConstraints height) {
         super(gui, texture);
 
         GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setHeightConstraint(dimension);
-        constraints.setWidthConstraint(new AspectConstraint(1f));
+        constraints.setHeightConstraint(height);
+        constraints.setWidthConstraint(width);
 
         setConstraints(constraints);
 
@@ -39,7 +40,6 @@ public class GuiSquare extends GuiPreset {
     public void setWidthPreset(GuiConstraints widthConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setWidthConstraint(widthConstraint);
-        constraints.setHeightConstraint(new AspectConstraint(1f));
 
         update(constraints);
     }
@@ -48,7 +48,6 @@ public class GuiSquare extends GuiPreset {
     public void setHeightPreset(GuiConstraints heightConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setHeightConstraint(heightConstraint);
-        constraints.setWidthConstraint(new AspectConstraint(1f));
 
         update(constraints);
     }
