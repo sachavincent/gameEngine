@@ -10,11 +10,11 @@ import inputs.callbacks.ScrollCallback;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
-public abstract class GuiComponent {
+public abstract class GuiComponent implements GuiInterface {
 
     private float x, y, width, height;
 
-    private Gui parent;
+    private GuiInterface parent;
 
     private GuiTexture texture;
 
@@ -24,7 +24,7 @@ public abstract class GuiComponent {
 
     private boolean displayed;
 
-    public GuiComponent(Gui parent, String texture) {
+    public GuiComponent(GuiInterface parent, String texture) {
         this.parent = parent;
         this.width = parent.getWidth();
         this.height = parent.getHeight();
@@ -50,22 +50,23 @@ public abstract class GuiComponent {
             float height = 1.1f;
             switch (s) {
                 case "W":
-                    if (widthConstraint != null) {
-                        float constraint = widthConstraint.constraint();
-                        switch (widthConstraint.getConstraint()) {
-                            case RELATIVE:
-                                width = constraint * parent.getWidth();
-                                break;
-                            case ASPECT:
-                                width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
-                                break;
-                            case PIXEL:
-                                if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
-                                    return; //TODO: Exception
+                    if (widthConstraint == null)
+                        break;
 
-                                width = constraint / DisplayManager.WIDTH;
-                                break;
-                        }
+                    float constraint = widthConstraint.constraint();
+                    switch (widthConstraint.getConstraint()) {
+                        case RELATIVE:
+                            width = constraint * parent.getWidth();
+                            break;
+                        case ASPECT:
+                            width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
+                            break;
+                        case PIXEL:
+                            if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
+                                return; //TODO: Exception
+
+                            width = constraint / DisplayManager.WIDTH;
+                            break;
                     }
 
                     if (width <= parent.getWidth())
@@ -73,22 +74,23 @@ public abstract class GuiComponent {
 
                     break;
                 case "H":
-                    if (heightConstraint != null) {
-                        float constraint = heightConstraint.constraint();
-                        switch (heightConstraint.getConstraint()) {
-                            case RELATIVE:
-                                height = constraint * parent.getHeight();
-                                break;
-                            case ASPECT:
-                                height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
-                                break;
-                            case PIXEL:
-                                if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
-                                    return; //TODO: Exception
+                    if (heightConstraint == null)
+                        break;
 
-                                height = constraint / DisplayManager.HEIGHT;
-                                break;
-                        }
+                    constraint = heightConstraint.constraint();
+                    switch (heightConstraint.getConstraint()) {
+                        case RELATIVE:
+                            height = constraint * parent.getHeight();
+                            break;
+                        case ASPECT:
+                            height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
+                            break;
+                        case PIXEL:
+                            if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
+                                return; //TODO: Exception
+
+                            height = constraint / DisplayManager.HEIGHT;
+                            break;
                     }
                     if (height <= parent.getHeight())
                         this.height = height;
@@ -97,38 +99,39 @@ public abstract class GuiComponent {
 
                     break;
                 case "X":
-                    if (xConstraint != null) {
-                        float constraint = xConstraint.constraint();
-                        switch (xConstraint.getConstraint()) {
-                            case RELATIVE:
-                                this.x = parent.getX() + parent.getWidth() - this.width +
-                                        (this.width - parent.getWidth()) * (2 - constraint * 2);
-                                break;
-                            case SIDE:
-                                switch (((SideConstraint) xConstraint).getSide()) {
-                                    case LEFT:
-                                        this.x = parent.getX() - parent.getWidth() + this.width +
-                                                constraint * parent.getWidth();
-                                        break;
-                                    case RIGHT:
-                                        this.x = parent.getX() + parent.getWidth() - this.width -
-                                                constraint * parent.getWidth();
-                                        break;
-                                    default: //TODO: Raise exception
-                                        this.x = constraint;
-                                        break;
-                                }
-                                break;
-                            case PIXEL:
-                                if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
-                                    return; //TODO: Exception
+                    if (xConstraint == null)
+                        break;
 
-                                this.x = constraint / DisplayManager.WIDTH;
-                                break;
-                            default:
-                                this.x = constraint;
-                                break;
-                        }
+                    constraint = xConstraint.constraint();
+                    switch (xConstraint.getConstraint()) {
+                        case RELATIVE:
+                            this.x = parent.getX() + parent.getWidth() - this.width +
+                                    (this.width - parent.getWidth()) * (2 - constraint * 2);
+                            break;
+                        case SIDE:
+                            switch (((SideConstraint) xConstraint).getSide()) {
+                                case LEFT:
+                                    this.x = parent.getX() - parent.getWidth() + this.width +
+                                            constraint * parent.getWidth();
+                                    break;
+                                case RIGHT:
+                                    this.x = parent.getX() + parent.getWidth() - this.width -
+                                            constraint * parent.getWidth();
+                                    break;
+                                default: //TODO: Raise exception
+                                    this.x = constraint;
+                                    break;
+                            }
+                            break;
+                        case PIXEL:
+                            if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
+                                return; //TODO: Exception
+
+                            this.x = constraint / DisplayManager.WIDTH;
+                            break;
+                        default:
+                            this.x = constraint;
+                            break;
                     }
 //                    System.out.println("X: " + x);
                     if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
@@ -136,57 +139,58 @@ public abstract class GuiComponent {
                         this.x = parent.getX();
                     break;
                 case "Y":
-                    if (yConstraint != null) {
-                        float constraint = yConstraint.constraint();
-                        switch (yConstraint.getConstraint()) {
-                            case RELATIVE:
-                                GuiComponent relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
-                                if (relativeTo != null) { // Relatif à un autre élément
+                    if (yConstraint == null)
+                        break;
+
+                    constraint = yConstraint.constraint();
+                    switch (yConstraint.getConstraint()) {
+                        case RELATIVE:
+                            GuiComponent relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
+                            if (relativeTo != null) { // Relatif à un autre élément
 //                                    System.out.println("RelativeTo: " + relativeTo.getY());
 
-                                    this.y = relativeTo.getY() - this.height -
-                                            (parent.getHeight() / 2 + this.height) * constraint * 2;
-                                } else {
-                                    // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
-                                    this.y = parent.getY() + parent.getHeight() - this.height -
-                                            (parent.getHeight() - this.height) * constraint * 2;
-                                }
+                                this.y = relativeTo.getY() - this.height -
+                                        (parent.getHeight() / 2 + this.height) * constraint * 2;
+                            } else {
+                                // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
+                                this.y = parent.getY() + parent.getHeight() - this.height -
+                                        (parent.getHeight() - this.height) * constraint * 2;
+                            }
 //                                System.out.println("YY: " + y);
-                                break;
-                            case SIDE:
-                                switch (((SideConstraint) yConstraint).getSide()) {
-                                    case BOTTOM:
-                                        this.y = parent.getY() - parent.getHeight() + this.height +
-                                                constraint * parent.getHeight();
-                                        break;
-                                    case TOP:
-                                        this.y = parent.getY() + parent.getHeight() - this.height -
-                                                constraint * parent.getHeight();
-                                        break;
-                                    default: //TODO: Raise exception
-                                        this.y = constraint;
-                                        break;
-                                }
-                                System.out.println("Relative: " + parent.getY() + ", " + parent.getHeight());
-                                System.out.println("Y: " + y);
-                                break;
-                            case PIXEL:
-                                if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
-                                    return; //TODO: Exception
+                            break;
+                        case SIDE:
+                            switch (((SideConstraint) yConstraint).getSide()) {
+                                case BOTTOM:
+                                    this.y = parent.getY() - parent.getHeight() + this.height +
+                                            constraint * parent.getHeight();
+                                    break;
+                                case TOP:
+                                    this.y = parent.getY() + parent.getHeight() - this.height -
+                                            constraint * parent.getHeight();
+                                    break;
+                                default: //TODO: Raise exception
+                                    this.y = constraint;
+                                    break;
+                            }
+                            System.out.println("Relative: " + parent.getY() + ", " + parent.getHeight());
+                            System.out.println("Y: " + y);
+                            break;
+                        case PIXEL:
+                            if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
+                                return; //TODO: Exception
 
-                                this.y = constraint / DisplayManager.HEIGHT;
-                                break;
-                            default:
-                                this.y = constraint;
-                                break;
-                        }
+                            this.y = constraint / DisplayManager.HEIGHT;
+                            break;
+                        default:
+                            this.y = constraint;
+                            break;
+                    }
 
-                        if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
-                                ((y + this.height) > parent.getY() + parent.getHeight()))
-                            this.y = parent.getY();
+                    if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
+                            ((y + this.height) > parent.getY() + parent.getHeight()))
+                        this.y = parent.getY();
 
 //                        System.out.println("Y=>" + y);
-                    }
                     break;
                 default:
                     System.err.println("Erreur GuiComponents.class");
@@ -260,25 +264,33 @@ public abstract class GuiComponent {
 
     public void setX(float x) {
         this.x = x;
+
+        updateTexturePosition();
     }
 
     public void setY(float y) {
         this.y = y;
+
+        updateTexturePosition();
     }
 
     public void setWidth(float width) {
         this.width = width;
+
+        updateTexturePosition();
     }
 
     public void setHeight(float height) {
         this.height = height;
+
+        updateTexturePosition();
     }
 
     public GuiTexture getTexture() {
         return this.texture;
     }
 
-    public Gui getParent() {
+    public GuiInterface getParent() {
         return this.parent;
     }
 

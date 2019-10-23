@@ -14,7 +14,6 @@ import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
-import guis.GuiComponent;
 import guis.basics.GuiBasics;
 import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
@@ -201,8 +200,6 @@ public class MainGameLoop {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
 
-//        right_gui.setTransitions(new SliderTransition(400, Slider.LEFT));
-//        right_gui.setTransitions(new FadeTransition(400));
         right_gui.setTransitions(new SliderTransition(400, Slider.LEFT), new FadeTransition(400));
         constraints.setHeightConstraint(new RelativeConstraint(0.7f));
         constraints.setWidthConstraint(new RelativeConstraint(0.11f));
@@ -216,8 +213,8 @@ public class MainGameLoop {
         });
 
         GuiPreset slider = new GuiSlider(right_gui, "grass.png");
-        constraints.setDefault();
-        slider.setConstraints(constraints);
+
+        slider.setScale(3f);
 
         right_gui.addComponent(square);
         right_gui.addComponent(slider);
@@ -257,7 +254,7 @@ public class MainGameLoop {
                 if (frameTime >= 1.0) {
                     frameTime = 0;
 
-                    System.out.println("FPS: " + frames);
+//                    System.out.println("FPS: " + frames);
                     frames = 0;
                 }
             }

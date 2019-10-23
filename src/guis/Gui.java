@@ -13,7 +13,7 @@ import java.util.List;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
-public class Gui {
+public class Gui implements GuiInterface {
 
     public final static float CORNER_RADIUS = 8f;
 

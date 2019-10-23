@@ -1,14 +1,12 @@
 package guis.basics;
 
-import guis.Gui;
-import guis.constraints.AspectConstraint;
+import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.presets.GuiPreset;
 
 public class GuiRectangle extends GuiBasics {
 
-    public GuiRectangle(Gui gui, String texture, GuiConstraints width, GuiConstraints height) {
+    public GuiRectangle(GuiInterface gui, String texture, GuiConstraints width, GuiConstraints height) {
         super(gui, texture);
 
         GuiConstraintsManager constraints = new GuiConstraintsManager();
@@ -17,6 +15,12 @@ public class GuiRectangle extends GuiBasics {
 
         setConstraints(constraints);
 
+
+        baseHeight = getHeight();
+        baseWidth = getWidth();
+
+        System.out.println("Base : " + baseWidth);
+        
         update(constraints);
     }
 

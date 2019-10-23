@@ -37,7 +37,7 @@ public class GuiConstraintsManager {
     }
 
     public void setxConstraint(GuiConstraints xConstraint) {
-        if (xConstraint.getConstraintType() == ConstraintsType.DIMENSION)
+        if (xConstraint == null || xConstraint.getConstraintType() == ConstraintsType.DIMENSION)
             throw new IllegalGuiConstraintException();
 
         this.xConstraint = xConstraint;
@@ -47,7 +47,7 @@ public class GuiConstraintsManager {
     }
 
     public void setyConstraint(GuiConstraints yConstraint) {
-        if (yConstraint.getConstraintType() == ConstraintsType.DIMENSION)
+        if (yConstraint == null || yConstraint.getConstraintType() == ConstraintsType.DIMENSION)
             throw new IllegalGuiConstraintException();
 
         this.yConstraint = yConstraint;
@@ -57,7 +57,7 @@ public class GuiConstraintsManager {
     }
 
     public void setWidthConstraint(GuiConstraints widthConstraint) {
-        if (widthConstraint.getConstraintType() == ConstraintsType.POSITION)
+        if (widthConstraint == null || widthConstraint.getConstraintType() == ConstraintsType.POSITION)
             throw new IllegalGuiConstraintException();
 
         this.widthConstraint = widthConstraint;
@@ -67,7 +67,7 @@ public class GuiConstraintsManager {
     }
 
     public void setHeightConstraint(GuiConstraints heightConstraint) {
-        if (heightConstraint.getConstraintType() == ConstraintsType.POSITION)
+        if (heightConstraint == null || heightConstraint.getConstraintType() == ConstraintsType.POSITION)
             throw new IllegalGuiConstraintException();
 
         this.heightConstraint = heightConstraint;

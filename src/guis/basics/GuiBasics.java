@@ -1,13 +1,23 @@
 package guis.basics;
 
-import guis.Gui;
 import guis.GuiComponent;
+import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 
 public abstract class GuiBasics extends GuiComponent {
 
-    public GuiBasics(Gui parent, String texture) {
+    float baseWidth, baseHeight;
+
+    public float getBaseWidth() {
+        return this.baseWidth;
+    }
+
+    public float getBaseHeight() {
+        return this.baseHeight;
+    }
+
+    public GuiBasics(GuiInterface parent, String texture) {
         super(parent, texture);
     }
 
@@ -19,7 +29,7 @@ public abstract class GuiBasics extends GuiComponent {
 
     public abstract void setHeightPreset(GuiConstraints heightConstraint);
 
-    void update(GuiConstraintsManager constraints) {
+    public void update(GuiConstraintsManager constraints) {
         setConstraints(constraints);
     }
 }
