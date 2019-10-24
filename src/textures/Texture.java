@@ -1,5 +1,9 @@
 package textures;
 
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
+
+import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
@@ -9,10 +13,21 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
+import util.vector.Vector;
+import util.vector.Vector3f;
 
 public abstract class Texture {
 
     private int textureID, width, height;
+
+    private Vector3f color;
+
+    public Texture(Color color) {
+        this.width = 8;
+        this.height = 8;
+
+        this.color = new Vector3f(color.getRed(), color.getGreen(), color.getBlue());
+    }
 
     public Texture(String fileName) {
 
@@ -29,25 +44,29 @@ public abstract class Texture {
         this.width = width.get();
         this.height = height.get();
 
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID);
+        GL11.glBindTexture(GL_TEXTURE_2D, textureID);
 
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, this.width, this.height, 0, GL11.GL_RGBA,
+        GL11.glTexParameterf(GL_TEXTURE_2D, GL14.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameterf(GL_TEXTURE_2D, GL14.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexImage2D(GL_TEXTURE_2D, 0, GL11.GL_RGBA, this.width, this.height, 0, GL11.GL_RGBA,
                 GL11.GL_UNSIGNED_BYTE, byteBuffer);
 
-        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,
+        GL30.glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,
                 GL11.GL_LINEAR_MIPMAP_LINEAR);
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
+        GL11.glTexParameterf(GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
 
         if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
             float amount = Math.min(4f, GL11.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
-            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+            GL11.glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
         } else {
 
         }
         STBImage.stbi_image_free(byteBuffer);
+    }
+
+    public Vector3f getColor() {
+        return this.color;
     }
 
     public int getTextureID() {

@@ -3,24 +3,30 @@ package guis.presets;
 import guis.GuiInterface;
 import guis.basics.GuiRectangle;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
+import java.awt.Color;
 
 public class GuiSlider extends GuiPreset {
 
-    public GuiSlider(GuiInterface parent, String texture) {
-        super(parent, texture);
+    public GuiSlider(GuiInterface parent, String texture, GuiConstraintsManager constraintsManager) {
+        super(parent);
 
-
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setDefault();
-        constraints.setWidthConstraint(new PixelConstraint(100));
-        constraints.setHeightConstraint(new PixelConstraint(25));
-        setConstraints(constraints);
+        setConstraints(constraintsManager);
 
         this.getBasics().add(new GuiRectangle(this, texture, new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this)));
         this.getBasics().add(new GuiRectangle(this, texture, new RelativeConstraint(.08f, this),
+                new RelativeConstraint(1, this)));
+    }
+
+    public GuiSlider(GuiInterface parent, GuiConstraintsManager constraintsManager, Color colorMovable, Color color) {
+        super(parent);
+
+        setConstraints(constraintsManager);
+
+        this.getBasics().add(new GuiRectangle(this, colorMovable, new RelativeConstraint(1f, this),
+                new RelativeConstraint(.32f, this)));
+        this.getBasics().add(new GuiRectangle(this, color, new RelativeConstraint(.08f, this),
                 new RelativeConstraint(1, this)));
     }
 

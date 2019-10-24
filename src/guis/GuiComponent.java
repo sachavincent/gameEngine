@@ -7,6 +7,7 @@ import guis.constraints.SideConstraint;
 import inputs.callbacks.ClickCallback;
 import inputs.callbacks.HoverCallback;
 import inputs.callbacks.ScrollCallback;
+import java.awt.Color;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -24,6 +25,16 @@ public abstract class GuiComponent implements GuiInterface {
 
     private boolean displayed;
 
+    public GuiComponent(GuiInterface parent) {
+        this.parent = parent;
+        this.width = parent.getWidth();
+        this.height = parent.getHeight();
+        this.x = parent.getX();
+        this.y = parent.getY();
+
+        this.displayed = false;
+    }
+
     public GuiComponent(GuiInterface parent, String texture) {
         this.parent = parent;
         this.width = parent.getWidth();
@@ -32,6 +43,19 @@ public abstract class GuiComponent implements GuiInterface {
         this.y = parent.getY();
 
         this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
+                height));
+
+        this.displayed = false;
+    }
+
+    public GuiComponent(GuiInterface parent, Color color) {
+        this.parent = parent;
+        this.width = parent.getWidth();
+        this.height = parent.getHeight();
+        this.x = parent.getX();
+        this.y = parent.getY();
+
+        this.texture = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width,
                 height));
 
         this.displayed = false;
@@ -203,6 +227,9 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     private void updateTexturePosition() {
+        if (this.texture == null)
+            return;
+
         this.texture.getScale().x = this.width;
         this.texture.getScale().y = this.height;
         this.texture.getPosition().x = this.x;

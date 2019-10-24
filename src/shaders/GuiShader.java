@@ -4,6 +4,8 @@ import guis.Gui;
 import java.util.List;
 import renderEngine.DisplayManager;
 import util.vector.Matrix4f;
+import util.vector.Vector;
+import util.vector.Vector3f;
 
 public class GuiShader extends ShaderProgram {
 
@@ -15,6 +17,7 @@ public class GuiShader extends ShaderProgram {
     private int location_guiHeight;
     private int location_radius;
     private int location_alpha;
+    private int location_color;
 
     public GuiShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -36,6 +39,10 @@ public class GuiShader extends ShaderProgram {
         super.loadFloat(location_alpha, alpha);
     }
 
+    public void loadColor(Vector3f color) {
+        super.loadVector(location_color, color == null ? new Vector3f(-1, -1, -1) : color);
+    }
+
     @Override
     protected void getAllUniformLocations() {
         location_transformationMatrix = super.getUniformLocation("transformationMatrix");
@@ -43,6 +50,7 @@ public class GuiShader extends ShaderProgram {
         location_guiHeight = super.getUniformLocation("guiHeight");
         location_radius = super.getUniformLocation("radius");
         location_alpha = super.getUniformLocation("alpha");
+        location_color = super.getUniformLocation("color");
     }
 
     @Override

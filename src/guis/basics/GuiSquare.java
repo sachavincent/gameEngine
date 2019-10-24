@@ -4,21 +4,18 @@ import guis.Gui;
 import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.presets.GuiPreset;
+import java.awt.Color;
 
 public class GuiSquare extends GuiBasics {
 
     public GuiSquare(Gui gui, String texture, GuiConstraints dimension) {
-        super(gui, texture);
-
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setHeightConstraint(dimension);
-        constraints.setWidthConstraint(new AspectConstraint(1f));
-
-        setConstraints(constraints);
-
-        update(constraints);
+        super(gui, texture, new AspectConstraint(1f), dimension);
     }
+
+    public GuiSquare(Gui gui, Color color, GuiConstraints dimension) {
+        super(gui, color, new AspectConstraint(1f), dimension);
+    }
+
 
     @Override
     public void setXPreset(GuiConstraints xConstraint) {

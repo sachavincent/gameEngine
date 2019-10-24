@@ -12,6 +12,8 @@ uniform float radius;
 
 uniform float alpha;
 
+uniform vec3 color;
+
 const float cornerSmooth = 0.55f;
 
 float square(float val) {
@@ -40,7 +42,13 @@ float calcRoundedCorners() {
 }
 
 void main(void){
-    out_Color = texture(guiTexture, textureCoords);
+    // Si color = (-1,-1,-1) -> texture sinon couleur
+    if (color.x == -1 && color.y == -1 && color.z == -1) {
+        out_Color = texture(guiTexture, textureCoords);
+    } else {
+        out_Color = vec4(color.x, color.y, color.z, 1);
+    }
+
     out_Color.a = calcRoundedCorners();
 
     if (out_Color.a > 0) {

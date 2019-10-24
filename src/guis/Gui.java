@@ -6,6 +6,7 @@ import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.SideConstraint;
 import guis.presets.GuiPreset;
 import guis.transitions.Transition;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -38,6 +39,23 @@ public class Gui implements GuiInterface {
 
         this.components = new ArrayList<>();
         this.transitions = new LinkedList<>();
+    }
+
+
+    public Gui(Color color) {
+        this.background = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width,
+                height));
+
+        this.components = new ArrayList<>();
+        this.transitions = new LinkedList<>();
+    }
+
+    public Gui(int r, int g, int b) {
+        this(new Color(r, g, b));
+    }
+
+    public Gui(float r, float g, float b) {
+        this(new Color(r, g, b));
     }
 
     public void setTransitions(Transition... transitions) {

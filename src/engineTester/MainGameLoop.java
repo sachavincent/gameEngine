@@ -17,6 +17,7 @@ import guis.Gui;
 import guis.basics.GuiBasics;
 import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
@@ -26,6 +27,7 @@ import guis.transitions.FadeTransition;
 import guis.transitions.Slider;
 import guis.transitions.SliderTransition;
 import inputs.KeyboardUtils;
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -195,7 +197,7 @@ public class MainGameLoop {
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
 
-        Gui right_gui = new Gui("green.png");
+        Gui right_gui = new Gui(Color.GREEN);
 
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
@@ -206,15 +208,18 @@ public class MainGameLoop {
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
         right_gui.setConstraints(constraints);
 
-        GuiBasics square = new GuiSquare(right_gui, "blue.png", new RelativeConstraint(0.24f));
+        GuiBasics square = new GuiSquare(right_gui, Color.BLUE, new RelativeConstraint(0.24f));
         square.setYPreset(new RelativeConstraint(0f));
         square.setOnClick(() -> {
             System.out.println("test");
         });
 
-        GuiPreset slider = new GuiSlider(right_gui, "grass.png");
 
-        slider.setScale(3f);
+        GuiConstraintsManager constraints2 = new GuiConstraintsManager();
+        constraints2.setWidthConstraint(new PixelConstraint(100));
+        constraints2.setHeightConstraint(new PixelConstraint(25));
+
+        GuiPreset slider = new GuiSlider(right_gui, constraints2, Color.RED, Color.WHITE);
 
         right_gui.addComponent(square);
         right_gui.addComponent(slider);

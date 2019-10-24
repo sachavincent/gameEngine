@@ -1,5 +1,6 @@
 package guis;
 
+import java.awt.Color;
 import textures.Texture;
 import util.vector.Vector2f;
 
@@ -11,6 +12,15 @@ public class GuiTexture extends Texture {
 
     public GuiTexture(String file, Vector2f position, Vector2f scale) {
         super(file);
+
+        this.position = position;
+        this.scale = scale;
+        this.alpha = 1f;
+    }
+
+    public GuiTexture(Color color, Vector2f position, Vector2f scale) {
+        super(color);
+
         this.position = position;
         this.scale = scale;
         this.alpha = 1f;

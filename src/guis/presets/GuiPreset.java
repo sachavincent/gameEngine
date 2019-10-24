@@ -3,6 +3,7 @@ package guis.presets;
 import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,8 @@ public abstract class GuiPreset extends GuiComponent {
 
     private float scale;
 
-    GuiPreset(GuiInterface parent, String texture) {
-        super(parent, texture);//TODO: Handle colors
+    GuiPreset(GuiInterface parent) {
+        super(parent);
 
         this.basics = new ArrayList<>();
     }

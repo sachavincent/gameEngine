@@ -3,26 +3,18 @@ package guis.basics;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
+import java.awt.Color;
 
 public class GuiRectangle extends GuiBasics {
 
     public GuiRectangle(GuiInterface gui, String texture, GuiConstraints width, GuiConstraints height) {
-        super(gui, texture);
-
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setHeightConstraint(height);
-        constraints.setWidthConstraint(width);
-
-        setConstraints(constraints);
-
-
-        baseHeight = getHeight();
-        baseWidth = getWidth();
-
-        System.out.println("Base : " + baseWidth);
-        
-        update(constraints);
+        super(gui, texture, width, height);
     }
+
+    public GuiRectangle(GuiInterface gui, Color color, GuiConstraints width, GuiConstraints height) {
+        super(gui, color, width, height);
+    }
+
 
     @Override
     public void setXPreset(GuiConstraints xConstraint) {
