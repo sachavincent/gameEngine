@@ -3,6 +3,7 @@ package guis.presets;
 import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
+import guis.constraints.GuiConstraintsManager;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,18 +12,23 @@ public abstract class GuiPreset extends GuiComponent {
 
     private List<GuiBasics> basics;
 
+    @Deprecated
     private float scale;
 
-    GuiPreset(GuiInterface parent) {
+    GuiPreset(GuiInterface parent, GuiConstraintsManager constraintsManager) {
         super(parent);
+
+        setConstraints(constraintsManager);
 
         this.basics = new ArrayList<>();
     }
 
+    @Deprecated
     public float getScale() {
         return this.scale;
     }
 
+    @Deprecated
     public void setScale(float scale) {
         if (scale < 0)
             return; //todo raise esc

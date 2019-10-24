@@ -5,10 +5,14 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import inputs.callbacks.ClickCallback;
+import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
+import inputs.callbacks.LeaveCallback;
+import inputs.callbacks.ReleaseCallback;
 import inputs.callbacks.ScrollCallback;
 import java.awt.Color;
 import renderEngine.DisplayManager;
+import util.MouseUtils;
 import util.vector.Vector2f;
 
 public abstract class GuiComponent implements GuiInterface {
@@ -19,9 +23,12 @@ public abstract class GuiComponent implements GuiInterface {
 
     private GuiTexture texture;
 
-    private ClickCallback  onClickCallback;
-    private HoverCallback  onHoverCallback;
-    private ScrollCallback onScrollCallback;
+    private ClickCallback   onClickCallback;
+    private ReleaseCallback onReleaseCallback;
+    private EnterCallback   onEnterCallback;
+    private LeaveCallback   onLeaveCallback;
+    private HoverCallback   onHoverCallback;
+    private ScrollCallback  onScrollCallback;
 
     private boolean displayed;
 
@@ -243,6 +250,39 @@ public abstract class GuiComponent implements GuiInterface {
         onClickCallback.onClick();
     }
 
+    public void onRelease() {
+        if (onReleaseCallback == null)
+            return;
+
+        onReleaseCallback.onRelease();
+    }
+
+    private boolean cursorInComponent;
+
+    public void onEnter() {
+        if (onEnterCallback == null || cursorInComponent)
+            return;
+
+        if (MouseUtils.isCursorInGuiComponent(this)) {
+            cursorInComponent = true;
+
+            onEnterCallback.onEnter();
+        }
+    }
+
+
+    public void onLeave() {
+        if (onLeaveCallback == null || !cursorInComponent)
+            return;
+
+        if (!MouseUtils.isCursorInGuiComponent(this)) {
+            cursorInComponent = false;
+
+            onLeaveCallback.onLeave();
+        }
+    }
+
+
     public void onHover() {
         if (onHoverCallback == null)
             return;
@@ -265,8 +305,20 @@ public abstract class GuiComponent implements GuiInterface {
         this.onClickCallback = onClickCallback;
     }
 
+    public void setOnRelease(ReleaseCallback onReleaseCallback) {
+        this.onReleaseCallback = onReleaseCallback;
+    }
+
     public void setOnHover(HoverCallback onHoverCallback) {
         this.onHoverCallback = onHoverCallback;
+    }
+
+    public void setOnLeave(LeaveCallback onLeaveCallback) {
+        this.onLeaveCallback = onLeaveCallback;
+    }
+
+    public void setOnEnter(EnterCallback onEnterCallback) {
+        this.onEnterCallback = onEnterCallback;
     }
 
     public void setOnScroll(ScrollCallback onScrollCallback) {

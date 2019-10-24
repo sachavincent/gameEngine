@@ -21,7 +21,6 @@ import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
-import guis.presets.GuiPreset;
 import guis.presets.GuiSlider;
 import guis.transitions.FadeTransition;
 import guis.transitions.Slider;
@@ -219,7 +218,7 @@ public class MainGameLoop {
         constraints2.setWidthConstraint(new PixelConstraint(100));
         constraints2.setHeightConstraint(new PixelConstraint(25));
 
-        GuiPreset slider = new GuiSlider(right_gui, constraints2, Color.RED, Color.WHITE);
+        GuiSlider slider = new GuiSlider(right_gui, constraints2, Color.RED, Color.WHITE);
 
         right_gui.addComponent(square);
         right_gui.addComponent(slider);
@@ -318,6 +317,7 @@ public class MainGameLoop {
 //                });
 //            }
 
+                System.out.println(slider.getValue());
 
                 buffers.bindReflectionFrameBuffer();
 
@@ -344,6 +344,7 @@ public class MainGameLoop {
                 TextMaster.render();
 
                 frames++;
+
             }
         }
 
