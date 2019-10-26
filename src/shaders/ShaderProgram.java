@@ -55,7 +55,8 @@ public abstract class ShaderProgram {
     }
 
     void load2DVector(int location, Vector2f vector) {
-        GL20.glUniform2f(location, vector.x, vector.y);
+        if (vector != null)
+            GL20.glUniform2f(location, vector.x, vector.y);
     }
 
     void loadInt(int location, int value) {

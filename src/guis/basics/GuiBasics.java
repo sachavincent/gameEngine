@@ -19,6 +19,9 @@ public abstract class GuiBasics extends GuiComponent {
     }
 
     private void initConstraints(GuiConstraints width, GuiConstraints height) {
+        if (width == null || height == null)
+            return;
+
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setHeightConstraint(height);
         constraints.setWidthConstraint(width);
@@ -43,13 +46,33 @@ public abstract class GuiBasics extends GuiComponent {
         initConstraints(width, height);
     }
 
-    public abstract void setXPreset(GuiConstraints xConstraint);
+    public void setXPreset(GuiConstraints xConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setxConstraint(xConstraint);
 
-    public abstract void setYPreset(GuiConstraints yConstraint);
+        update(constraints);
+    }
 
-    public abstract void setWidthPreset(GuiConstraints widthConstraint);
+    public void setYPreset(GuiConstraints yConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setyConstraint(yConstraint);
 
-    public abstract void setHeightPreset(GuiConstraints heightConstraint);
+        update(constraints);
+    }
+
+    public void setWidthPreset(GuiConstraints widthConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setWidthConstraint(widthConstraint);
+
+        update(constraints);
+    }
+
+    public void setHeightPreset(GuiConstraints heightConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setHeightConstraint(heightConstraint);
+
+        update(constraints);
+    }
 
     public void update(GuiConstraintsManager constraints) {
         setConstraints(constraints);

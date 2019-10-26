@@ -12,19 +12,22 @@ import entities.Camera;
 import entities.Entity;
 import entities.Light;
 import fontMeshCreator.FontType;
+import fontMeshCreator.Text;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.basics.GuiBasics;
+import guis.basics.GuiCircle;
 import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
+import guis.presets.GuiRectangleButton;
 import guis.presets.GuiSlider;
 import guis.transitions.FadeTransition;
-import guis.transitions.Slider;
-import guis.transitions.SliderTransition;
+import guis.transitions.SlidingDirection;
+import guis.transitions.SlidingTransition;
 import inputs.KeyboardUtils;
 import java.awt.Color;
 import java.io.File;
@@ -49,6 +52,7 @@ import textures.TerrainTexturePack;
 import util.MousePicker;
 import util.MouseUtils;
 import util.Timer;
+import util.vector.Vector2f;
 import util.vector.Vector3f;
 import util.vector.Vector4f;
 import water.WaterFrameBuffers;
@@ -201,7 +205,7 @@ public class MainGameLoop {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
 
-        right_gui.setTransitions(new SliderTransition(400, Slider.LEFT), new FadeTransition(400));
+        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(400));
         constraints.setHeightConstraint(new RelativeConstraint(0.7f));
         constraints.setWidthConstraint(new RelativeConstraint(0.11f));
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
@@ -218,10 +222,16 @@ public class MainGameLoop {
         constraints2.setWidthConstraint(new PixelConstraint(100));
         constraints2.setHeightConstraint(new PixelConstraint(25));
 
-        GuiSlider slider = new GuiSlider(right_gui, constraints2, Color.RED, Color.WHITE);
+//        GuiSlider slider = new GuiSlider(right_gui, Color.RED, Color.WHITE, constraints2);
 
+//        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
+//                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
+//        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui, "green.png", constraints2);
+
+//        GuiCircle guiRectangleButton = new GuiCircle(right_gui, Color.BLACK, new RelativeConstraint(0.24f));
         right_gui.addComponent(square);
-        right_gui.addComponent(slider);
+//        right_gui.addComponent(guiRectangleButton);
+//        right_gui.addComponent(slider);
 
 
         guis.add(right_gui);
@@ -292,7 +302,7 @@ public class MainGameLoop {
 //
 //                                TextMaster.removeText();
 //                                TextMaster.loadText(
-//                                        new GUIText("" + v, 1, font, new Vector2f(0, 0.5f), 1f, true));
+//                                        new Text("tttt", 1, font, new Vector2f(0, 0.5f), 1f, true));
 //
 //                                Entity e1 = new Entity(cube, v, 0, 0, 0);
 //                                entities.add(e1);
@@ -317,7 +327,7 @@ public class MainGameLoop {
 //                });
 //            }
 
-                System.out.println(slider.getValue());
+//                System.out.println(slider.getValue());
 
                 buffers.bindReflectionFrameBuffer();
 

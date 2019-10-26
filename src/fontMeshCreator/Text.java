@@ -1,6 +1,7 @@
 package fontMeshCreator;
 
 import fontRendering.TextMaster;
+import java.awt.Color;
 import util.vector.Vector2f;
 import util.vector.Vector3f;
 
@@ -9,14 +10,14 @@ import util.vector.Vector3f;
  *
  * @author Karl
  */
-public class GUIText {
+public class Text {
 
     private String textString;
     private float  fontSize;
 
     private int      textMeshVao;
     private int      vertexCount;
-    private Vector3f colour = new Vector3f(0f, 0f, 0f);
+    private Vector3f color = new Vector3f(0f, 0f, 0f);
 
     private Vector2f position;
     private float    lineMaxSize;
@@ -45,14 +46,24 @@ public class GUIText {
      * the line, based on this line length value.
      * @param centered - whether the text should be centered or not.
      */
-    public GUIText(String text, float fontSize, FontType font, Vector2f position, float maxLineLength,
-            boolean centered) {
+    public Text(String text, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
         this.textString = text;
         this.fontSize = fontSize;
         this.font = font;
         this.position = position;
         this.lineMaxSize = maxLineLength;
         this.centerText = centered;
+
+        TextMaster.loadText(this);
+    }
+
+    public Text(String text, float fontSize, FontType font, Color color) {
+        this.textString = text;
+        this.fontSize = fontSize;
+        this.font = font;
+
+        setColor(color);
+
         TextMaster.loadText(this);
     }
 
@@ -71,21 +82,55 @@ public class GUIText {
     }
 
     /**
-     * Set the colour of the text.
+     * Set the color of the text.
      *
      * @param r - red value, between 0 and 1.
      * @param g - green value, between 0 and 1.
      * @param b - blue value, between 0 and 1.
      */
-    public void setColour(float r, float g, float b) {
-        colour.set(r, g, b);
+    public void setColor(float r, float g, float b) {
+        color.set(r, g, b);
     }
 
     /**
-     * @return the colour of the text.
+     * Set the color of the text.
+     *
+     * @param color - color of the value
      */
-    public Vector3f getColour() {
-        return colour;
+    public void setColor(Color color) {
+        this.color = new Vector3f(color.getRed(), color.getGreen(), color.getBlue());
+    }
+
+    /**
+     * Set whether the text should be centered or not
+     *
+     * @param centered - whether the text should be centered or not
+     */
+    public void setCentered(boolean centered) {
+        this.centerText = centered;
+    }
+
+    /**
+     * @return the color of the text.
+     */
+    public Vector3f getColor() {
+        return color;
+    }
+
+    /**
+     * @return the color of the text.
+     */
+    public Color getAWTColor() {
+        return new Color(color.x / 255, color.y / 255, color.z / 255);
+    }
+
+    /**
+     * Set font size
+     *
+     * @param fontSize - font size
+     */
+    public void setFontSize(float fontSize) {
+        this.fontSize = fontSize;
     }
 
     /**
@@ -127,6 +172,24 @@ public class GUIText {
     }
 
     /**
+     * Set the line max size
+     *
+     * @param lineMaxSize - line max size
+     */
+    public void setLineMaxSize(float lineMaxSize) {
+        this.lineMaxSize = lineMaxSize;
+    }
+
+    /**
+     * Set the position for this text
+     *
+     * @param position - the position
+     */
+    public void setPosition(Vector2f position) {
+        this.position = new Vector2f((position.x / 2 + 0.5), (position.y / 2 + 0.5));
+    }
+
+    /**
      * @return The total number of vertices of all the text's quads.
      */
     public int getVertexCount() {
@@ -136,7 +199,7 @@ public class GUIText {
     /**
      * @return the font size of the text (a font size of 1 is normal).
      */
-    protected float getFontSize() {
+    public float getFontSize() {
         return fontSize;
     }
 
@@ -168,5 +231,4 @@ public class GUIText {
     public String getTextString() {
         return textString;
     }
-
 }

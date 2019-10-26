@@ -29,6 +29,10 @@ public class FontType {
 		this.loader = new TextMeshCreator(fontFile);
 	}
 
+	public TextMeshCreator getLoader() {
+		return this.loader;
+	}
+
 	/**
 	 * @return The font texture atlas.
 	 */
@@ -45,7 +49,7 @@ public class FontType {
 	 *            - the unloaded text.
 	 * @return Information about the vertices of all the quads.
 	 */
-	public TextMeshData loadText(GUIText text) {
+	public TextMeshData loadText(Text text) {
 		return loader.createTextMesh(text);
 	}
 

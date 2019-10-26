@@ -1,15 +1,15 @@
 package textures;
 
-import fontMeshCreator.GUIText;
+import fontMeshCreator.Text;
 
 public class FontTexture extends Texture {
-    private GUIText guiText;
+    private Text text;
 
     public FontTexture(String fileName) {
         super(fileName);
     }
 
-    public GUIText getGuiText() {
-        return this.guiText;
+    public Text getText() {
+        return this.text;
     }
 }

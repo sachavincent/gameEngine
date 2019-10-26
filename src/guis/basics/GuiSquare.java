@@ -16,23 +16,6 @@ public class GuiSquare extends GuiBasics {
         super(gui, color, new AspectConstraint(1f), dimension);
     }
 
-
-    @Override
-    public void setXPreset(GuiConstraints xConstraint) {
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setxConstraint(xConstraint);
-
-        update(constraints);
-    }
-
-    @Override
-    public void setYPreset(GuiConstraints yConstraint) {
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setyConstraint(yConstraint);
-
-        update(constraints);
-    }
-
     @Override
     public void setWidthPreset(GuiConstraints widthConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();

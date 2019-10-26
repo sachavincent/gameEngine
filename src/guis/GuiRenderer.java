@@ -1,5 +1,7 @@
 package guis;
 
+import fontRendering.TextMaster;
+import guis.basics.GuiText;
 import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
@@ -20,7 +22,6 @@ public class GuiRenderer {
         float[] positions = {-1, 1, -1, -1, 1, 1, 1, -1};
 
         this.quad = loader.loadToVAO(positions, 2);
-
         this.shader = shader;
     }
 
@@ -39,12 +40,19 @@ public class GuiRenderer {
                     renderTexture(gui.getBackground());
                     gui.getComponents().stream()
 //                            .filter(GuiComponent::isDisplayed)
-                            .forEach(guiComponent -> renderTexture(guiComponent.getTexture()));
+                            .forEach(guiComponent -> {
+                                if (guiComponent instanceof GuiText) {
+                                    GuiText guiText = (GuiText) guiComponent;
+                                    guiText.getText().remove();
+                                    TextMaster.loadText(guiText.getText());
+                                } else
+                                    renderTexture(guiComponent.getTexture());
+                            });
 
                     gui.animate();
                 });
-
         shader.loadGuis(guis);
+
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
         GL20.glDisableVertexAttribArray(0);
@@ -63,7 +71,6 @@ public class GuiRenderer {
                 Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
         shader.loadAlpha(guiTexture.getAlpha());
         shader.loadColor(guiTexture.getColor());
-//        System.out.println(guiTexture.getAlpha());
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
     }
 }

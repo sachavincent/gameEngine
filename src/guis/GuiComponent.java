@@ -21,8 +21,7 @@ public abstract class GuiComponent implements GuiInterface {
 
     private GuiInterface parent;
 
-    private GuiTexture texture;
-
+    private GuiTexture      texture;
     private ClickCallback   onClickCallback;
     private ReleaseCallback onReleaseCallback;
     private EnterCallback   onEnterCallback;
@@ -43,29 +42,15 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     public GuiComponent(GuiInterface parent, String texture) {
-        this.parent = parent;
-        this.width = parent.getWidth();
-        this.height = parent.getHeight();
-        this.x = parent.getX();
-        this.y = parent.getY();
+        this(parent);
 
-        this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
-                height));
-
-        this.displayed = false;
+        this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height));
     }
 
     public GuiComponent(GuiInterface parent, Color color) {
-        this.parent = parent;
-        this.width = parent.getWidth();
-        this.height = parent.getHeight();
-        this.x = parent.getX();
-        this.y = parent.getY();
+        this(parent);
 
-        this.texture = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width,
-                height));
-
-        this.displayed = false;
+        this.texture = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width, height));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {

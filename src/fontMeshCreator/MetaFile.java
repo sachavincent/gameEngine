@@ -34,10 +34,10 @@ public class MetaFile {
     private int    paddingWidth;
     private int    paddingHeight;
 
-    private Map<Integer, Character> metaData = new HashMap<Integer, Character>();
+    private Map<Integer, Character> metaData = new HashMap<>();
 
     private BufferedReader      reader;
-    private Map<String, String> values = new HashMap<String, String>();
+    private Map<String, String> values = new HashMap<>();
 
     /**
      * Opens a font file in preparation for reading.
@@ -54,7 +54,7 @@ public class MetaFile {
         close();
     }
 
-    protected double getSpaceWidth() {
+    public double getSpaceWidth() {
         return spaceWidth;
     }
 
@@ -204,4 +204,9 @@ public class MetaFile {
         double xAdvance = (getValueOfVariable("xadvance") - paddingWidth) * horizontalPerPixelSize;
         return new Character(id, xTex, yTex, xTexSize, yTexSize, xOff, yOff, quadWidth, quadHeight, xAdvance);
     }
+
+    public double getVerticalPerPixelSize() {
+        return this.verticalPerPixelSize;
+    }
 }
+

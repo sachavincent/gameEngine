@@ -244,7 +244,8 @@ public class Gui implements GuiInterface {
     }
 
     public void addComponent(GuiComponent guiComponent) {
-        this.components.add(guiComponent);
+        if (guiComponent != null)
+            this.components.add(guiComponent);
     }
 
     public void addComponent(GuiPreset guiPreset) {
@@ -255,7 +256,11 @@ public class Gui implements GuiInterface {
         if (!isDisplayed())
             return;
 
-        this.transitions.forEach(transition -> transition.animate(this));
+        this.transitions.stream().filter(transition -> !transition.isDone()).forEach(transition -> {
+            boolean done = transition.animate(this);
+            if (done)
+                transition.setDone(true);
+        });
 
         updateTexturePosition();
     }
@@ -264,6 +269,10 @@ public class Gui implements GuiInterface {
         this.background.setAlpha(alpha);
 
         this.components.forEach(guiComponent -> guiComponent.getTexture().setAlpha(alpha));
+    }
+
+    public float getAlphaOfGui() {
+        return this.background.getAlpha();
     }
 
     public void setX(float x) {
@@ -329,4 +338,5 @@ public class Gui implements GuiInterface {
     public void setFinalHeight(float finalHeight) {
         this.finalHeight = finalHeight;
     }
+
 }

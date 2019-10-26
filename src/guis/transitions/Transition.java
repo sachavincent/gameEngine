@@ -36,5 +36,5 @@ public abstract class Transition {
 
     public abstract void showTransition(Gui gui);
 
-    public abstract void animate(Gui gui);
+    public abstract boolean animate(Gui gui);
 }

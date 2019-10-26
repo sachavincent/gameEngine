@@ -27,8 +27,8 @@ public class FontShader extends ShaderProgram {
         super.bindAttribute(1, "textureCoords");
     }
 
-    public void loadColour(Vector3f colour) {
-        super.loadVector(location_colour, colour);
+    public void loadColor(Vector3f color) {
+        super.loadVector(location_colour, color);
     }
 
     public void loadTranslation(Vector2f translation) {

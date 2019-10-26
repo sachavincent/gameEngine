@@ -15,32 +15,32 @@ public class GuiSlider<E> extends GuiPreset {
     private float   value;
     private boolean clicked;
 
-    public GuiSlider(GuiInterface parent, String texture, GuiConstraintsManager constraintsManager) {
+    public GuiSlider(GuiInterface parent, String texture,
+            GuiConstraintsManager constraintsManager) { //TODO: give name to access
         super(parent, constraintsManager);
 
         addComponents((E) texture, (E) texture);
     }
 
-    public GuiSlider(GuiInterface parent, GuiConstraintsManager constraintsManager, Color color, Color colorMovable) {
+    public GuiSlider(GuiInterface parent, Color color, Color colorMovable, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         addComponents((E) colorMovable, (E) color);
     }
 
-    private void addComponents(E colorMovable, E color) {
-
-        if (color instanceof Color)
-            sliderCursor = new GuiRectangle(this, (Color) color, new RelativeConstraint(.08f, this),
+    private void addComponents(E movableTexture, E unmovableTexture) {
+        if (unmovableTexture instanceof Color)
+            sliderCursor = new GuiRectangle(this, (Color) unmovableTexture, new RelativeConstraint(.08f, this),
                     new RelativeConstraint(1, this));
         else
-            sliderCursor = new GuiRectangle(this, (String) color, new RelativeConstraint(.08f, this),
+            sliderCursor = new GuiRectangle(this, (String) unmovableTexture, new RelativeConstraint(.08f, this),
                     new RelativeConstraint(1, this));
 
-        if (colorMovable instanceof Color)
-            sliderBase = new GuiRectangle(this, (Color) colorMovable, new RelativeConstraint(1f, this),
+        if (movableTexture instanceof Color)
+            sliderBase = new GuiRectangle(this, (Color) movableTexture, new RelativeConstraint(1f, this),
                     new RelativeConstraint(.32f, this));
         else
-            sliderBase = new GuiRectangle(this, (String) colorMovable, new RelativeConstraint(1f, this),
+            sliderBase = new GuiRectangle(this, (String) movableTexture, new RelativeConstraint(1f, this),
                     new RelativeConstraint(.32f, this));
 
         sliderCursor.setX(sliderBase.getX() - sliderBase.getWidth());

@@ -13,7 +13,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
-import util.vector.Vector;
 import util.vector.Vector3f;
 
 public abstract class Texture {
@@ -25,6 +24,9 @@ public abstract class Texture {
     public Texture(Color color) {
         this.width = 8;
         this.height = 8;
+
+        if (color == null)
+            color = Color.WHITE;
 
         this.color = new Vector3f(color.getRed(), color.getGreen(), color.getBlue());
     }

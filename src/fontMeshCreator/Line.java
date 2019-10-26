@@ -14,7 +14,7 @@ public class Line {
 	private double maxLength;
 	private double spaceSize;
 
-	private List<Word> words = new ArrayList<Word>();
+	private List<Word> words = new ArrayList<>();
 	private double currentLineLength = 0;
 
 	/**
@@ -63,7 +63,7 @@ public class Line {
 	/**
 	 * @return The current screen-space length of the line.
 	 */
-	protected double getLineLength() {
+	public double getLineLength() {
 		return currentLineLength;
 	}
 
@@ -74,4 +74,13 @@ public class Line {
 		return words;
 	}
 
+	@Override
+	public String toString() {
+		return "Line{" +
+				"maxLength=" + maxLength +
+				", spaceSize=" + spaceSize +
+				", words=" + words +
+				", currentLineLength=" + currentLineLength +
+				'}';
+	}
 }

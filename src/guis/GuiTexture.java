@@ -31,10 +31,10 @@ public class GuiTexture extends Texture {
     }
 
     public void setAlpha(float alpha) {
-        if (alpha > 1f || alpha < 0f)
+        if (alpha < 0f)
             return;
 
-        this.alpha = alpha;
+        this.alpha = Float.min(alpha, 1f);
     }
 
     public Vector2f getPosition() {

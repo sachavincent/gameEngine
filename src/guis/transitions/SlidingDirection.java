@@ -1,6 +1,6 @@
 package guis.transitions;
 
-public enum Slider {
+public enum SlidingDirection {
     LEFT,
     RIGHT,
     TOP,

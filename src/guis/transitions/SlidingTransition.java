@@ -3,21 +3,20 @@ package guis.transitions;
 import static renderEngine.DisplayManager.FPS;
 
 import guis.Gui;
-import util.Timer;
 
-public class SliderTransition extends Transition {
+public class SlidingTransition extends Transition {
 
     private final static float DISTANCE = 0.25f;
 
-    private Slider direction;
+    private SlidingDirection direction;
 
-    public SliderTransition(int length, Slider direction) {
+    public SlidingTransition(int length, SlidingDirection direction) {
         super(length);
 
         this.direction = direction;
     }
 
-    public Slider getDirection() {
+    public SlidingDirection getDirection() {
         return this.direction;
     }
 
@@ -54,10 +53,10 @@ public class SliderTransition extends Transition {
     }
 
     @Override
-    public void animate(Gui gui) {
+    public boolean animate(Gui gui) {
         switch (direction) {
             case RIGHT:
-
+                //TODO
                 break;
             case LEFT:
                 if (gui.getX() > gui.getFinalX()) {
@@ -66,20 +65,17 @@ public class SliderTransition extends Transition {
                     if (gui.getX() < gui.getFinalX())
                         gui.setX(gui.getFinalX());
                 }
-
-                if (gui.getX() == gui.getFinalX()) { // Animation terminée
-                    setDone(true);
-                }
-                break;
+                return gui.getX() == gui.getFinalX(); // Animation terminée
             case BOTTOM:
-
+                //TODO
                 break;
             case TOP:
-
+                //TODO
                 break;
             default:
                 //TODO: exception
                 break;
         }
+        return false;
     }
 }

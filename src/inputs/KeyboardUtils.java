@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 
 import guis.Gui;
+import guis.transitions.Transition;
 import java.util.List;
 import renderEngine.DisplayManager;
 
@@ -16,7 +17,7 @@ public class KeyboardUtils {
         glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_H && action == GLFW_PRESS) {
                 guis.forEach(gui -> {
-                    if(gui.isDisplayed())
+                    if(gui.getTransitions().stream().allMatch(Transition::isDone)) //TODO: handle no transitions
                         gui.hide();
                     else
                         gui.show();

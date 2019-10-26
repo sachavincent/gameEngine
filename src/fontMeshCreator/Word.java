@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class Word {
 	
-	private List<Character> characters = new ArrayList<Character>();
+	private List<Character> characters = new ArrayList<>();
 	private double width = 0;
 	private double fontSize;
 	
@@ -45,4 +45,12 @@ public class Word {
 		return width;
 	}
 
+	@Override
+	public String toString() {
+		return "Word{" +
+				"characters=" + characters +
+				", width=" + width +
+				", fontSize=" + fontSize +
+				'}';
+	}
 }

@@ -51,5 +51,4 @@ public abstract class GuiPreset extends GuiComponent {
     public List<GuiBasics> getBasics() {
         return this.basics;
     }
-
 }

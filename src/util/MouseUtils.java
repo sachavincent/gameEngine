@@ -61,7 +61,7 @@ public class MouseUtils {
                                     .forEach(GuiComponent::onClick));
                 } else if (action == GLFW_RELEASE) {
                     guis.forEach(gui -> gui.getComponents()
-                            .forEach(GuiComponent::onRelease));
+                            .forEach(GuiComponent::onRelease)); //todo optimiser : UNE boucle non lambda sur guis
 
                     guis.stream()
                             .filter(Gui::isDisplayed)
@@ -85,36 +85,28 @@ public class MouseUtils {
         });
 
         GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
-            guis.forEach(gui -> gui.getComponents().forEach(GuiComponent::onLeave));
+            if (guis == null)
+                return;
+
+            guis.forEach(gui -> {
+                List<GuiComponent> components = gui.getComponents();
+                if (components != null)
+                    components.forEach(GuiComponent::onLeave);
+            });
 
             guis.stream()
                     .filter(Gui::isDisplayed)
-                    .filter(gui -> isCursorInGui(gui))
-                    .forEach(gui -> gui.getComponents().stream()
-                            .filter(MouseUtils::isCursorInGuiComponent)
-                            .forEach(guiComponent -> {
-                                guiComponent.onHover();
-                                guiComponent.onEnter();
-                            }));
-
-        });
-
-        GLFW.glfwSetCursorEnterCallback(window, (w, entered) -> {
-            if (entered) {
-                guis.stream()
-                        .filter(Gui::isDisplayed)
-                        .filter(MouseUtils::isCursorInGui)
-                        .forEach(gui -> gui.getComponents().stream()
-                                .filter(MouseUtils::isCursorInGuiComponent)
-                                .forEach(GuiComponent::onEnter));
-            } else {
-                guis.stream()
-                        .filter(Gui::isDisplayed)
-                        .filter(MouseUtils::isCursorInGui)
-                        .forEach(gui -> gui.getComponents().stream()
-                                .filter(MouseUtils::isCursorInGuiComponent)
-                                .forEach(GuiComponent::onLeave));
-            }
+                    .filter(MouseUtils::isCursorInGui)
+                    .forEach(gui -> {
+                        List<GuiComponent> components = gui.getComponents();
+                        if (components != null)
+                            components.stream()
+                                    .filter(MouseUtils::isCursorInGuiComponent)
+                                    .forEach(guiComponent -> {
+                                        guiComponent.onHover();
+                                        guiComponent.onEnter();
+                                    });
+                    });
         });
     }
 }
