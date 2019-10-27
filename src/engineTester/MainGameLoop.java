@@ -17,14 +17,16 @@ import fontRendering.TextMaster;
 import guis.Gui;
 import guis.basics.GuiBasics;
 import guis.basics.GuiCircle;
+import guis.basics.GuiOval;
 import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
-import guis.presets.GuiRectangleButton;
 import guis.presets.GuiSlider;
+import guis.presets.buttons.GuiCircularButton;
+import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
@@ -52,7 +54,6 @@ import textures.TerrainTexturePack;
 import util.MousePicker;
 import util.MouseUtils;
 import util.Timer;
-import util.vector.Vector2f;
 import util.vector.Vector3f;
 import util.vector.Vector4f;
 import water.WaterFrameBuffers;
@@ -187,9 +188,6 @@ public class MainGameLoop {
 
 
         List<Gui> guis = new ArrayList<>();
-//        GuiTexture guis = new GuiTexture("socuwan", new Vector2f(0.5f, 0.5f),
-//                new Vector2f(0.25f, 0.25f));
-//        guis.add(guiTexture);
 
         WaterFrameBuffers buffers = new WaterFrameBuffers();
         WaterShader waterShader = new WaterShader();
@@ -211,28 +209,26 @@ public class MainGameLoop {
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
         right_gui.setConstraints(constraints);
 
-        GuiBasics square = new GuiSquare(right_gui, Color.BLUE, new RelativeConstraint(0.24f));
-        square.setYPreset(new RelativeConstraint(0f));
+        GuiBasics square = new GuiSquare(right_gui, Color.BLUE);
+        square.setHeightConstraint(new RelativeConstraint(0.24f));
+        square.setYConstraint(new RelativeConstraint(0f));
         square.setOnClick(() -> {
             System.out.println("test");
         });
 
-
         GuiConstraintsManager constraints2 = new GuiConstraintsManager();
         constraints2.setWidthConstraint(new PixelConstraint(100));
-        constraints2.setHeightConstraint(new PixelConstraint(25));
-
+        constraints2.setHeightConstraint(new PixelConstraint(50));
 //        GuiSlider slider = new GuiSlider(right_gui, Color.RED, Color.WHITE, constraints2);
+//        right_gui.addComponent(slider);
 
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
 //                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
-//        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui, "green.png", constraints2);
+        new GuiCircularButton(right_gui, "path.png", constraints2);
+//        GuiCircle guiCircle = new GuiCircle(right_gui, Color.RED);
+//        guiCircle.setWidthConstraint(new RelativeConstraint(1f));
 
-//        GuiCircle guiRectangleButton = new GuiCircle(right_gui, Color.BLACK, new RelativeConstraint(0.24f));
-        right_gui.addComponent(square);
-//        right_gui.addComponent(guiRectangleButton);
-//        right_gui.addComponent(slider);
-
+//       new GuiOval(right_gui, Color.DARK_GRAY, new RelativeConstraint(1f), new RelativeConstraint(1f));
 
         guis.add(right_gui);
 
@@ -244,7 +240,6 @@ public class MainGameLoop {
         double unprocessed = 0;
 
         double frameTime = 0;
-        int frames = 0;
 
         while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
             boolean canRender = false;
@@ -269,7 +264,6 @@ public class MainGameLoop {
                     frameTime = 0;
 
 //                    System.out.println("FPS: " + frames);
-                    frames = 0;
                 }
             }
 
@@ -352,8 +346,6 @@ public class MainGameLoop {
                 waterRenderer.render(waters, camera, sun);
 
                 TextMaster.render();
-
-                frames++;
 
             }
         }

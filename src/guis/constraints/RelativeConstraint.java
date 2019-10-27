@@ -21,7 +21,7 @@ public class RelativeConstraint extends GuiConstraints {
     public RelativeConstraint(float relative) {
         super(ConstraintsType.BOTH, Constraints.RELATIVE);
 
-        if (relative < 0 || relative > 11)
+        if (relative < 0 || relative > 1)
             return;
 
         this.constraint = relative;

@@ -28,7 +28,7 @@ public abstract class Texture {
         if (color == null)
             color = Color.WHITE;
 
-        this.color = new Vector3f(color.getRed(), color.getGreen(), color.getBlue());
+        this.color = new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
     }
 
     public Texture(String fileName) {

@@ -15,7 +15,7 @@ public class GuiTexture extends Texture {
 
         this.position = position;
         this.scale = scale;
-        this.alpha = 1f;
+//        this.alpha = 1f;
     }
 
     public GuiTexture(Color color, Vector2f position, Vector2f scale) {

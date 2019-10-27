@@ -1,23 +1,24 @@
 package guis.basics;
 
-import guis.Gui;
+import guis.GuiInterface;
 import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.PixelConstraint;
 import java.awt.Color;
 
 public class GuiSquare extends GuiBasics {
 
-    public GuiSquare(Gui gui, String texture, GuiConstraints dimension) {
-        super(gui, texture, new AspectConstraint(1f), dimension);
+    public GuiSquare(GuiInterface gui, String texture) {
+        super(gui, texture, new AspectConstraint(1f), new PixelConstraint(100));
     }
 
-    public GuiSquare(Gui gui, Color color, GuiConstraints dimension) {
-        super(gui, color, new AspectConstraint(1f), dimension);
+    public GuiSquare(GuiInterface gui, Color color) {
+        super(gui, color, new AspectConstraint(1f), new PixelConstraint(100));
     }
 
     @Override
-    public void setWidthPreset(GuiConstraints widthConstraint) {
+    public void setWidthConstraint(GuiConstraints widthConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setWidthConstraint(widthConstraint);
         constraints.setHeightConstraint(new AspectConstraint(1f));
@@ -26,11 +27,16 @@ public class GuiSquare extends GuiBasics {
     }
 
     @Override
-    public void setHeightPreset(GuiConstraints heightConstraint) {
+    public void setHeightConstraint(GuiConstraints heightConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setHeightConstraint(heightConstraint);
         constraints.setWidthConstraint(new AspectConstraint(1f));
 
         update(constraints);
+    }
+
+    @Override
+    public String toString() {
+        return "GuiSquare{" + super.toString() + "}";
     }
 }

@@ -4,6 +4,8 @@ import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
+import guis.exceptions.IllegalGuiConstraintException;
+import guis.presets.GuiPreset;
 import inputs.callbacks.ClickCallback;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
@@ -11,6 +13,7 @@ import inputs.callbacks.LeaveCallback;
 import inputs.callbacks.ReleaseCallback;
 import inputs.callbacks.ScrollCallback;
 import java.awt.Color;
+import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.MouseUtils;
 import util.vector.Vector2f;
@@ -39,6 +42,10 @@ public abstract class GuiComponent implements GuiInterface {
         this.y = parent.getY();
 
         this.displayed = false;
+
+        if (parent instanceof Gui)
+            ((Gui) parent).addComponent(this);
+
     }
 
     public GuiComponent(GuiInterface parent, String texture) {
@@ -87,6 +94,8 @@ public abstract class GuiComponent implements GuiInterface {
 
                     if (width <= parent.getWidth())
                         this.width = width;
+                    else
+                        throw new IllegalGuiConstraintException("Width of component exceeded width of parent");
 
                     break;
                 case "H":
@@ -110,8 +119,8 @@ public abstract class GuiComponent implements GuiInterface {
                     }
                     if (height <= parent.getHeight())
                         this.height = height;
-
-//                    System.out.println("H: " + this.height);
+                    else
+                        throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
 
                     break;
                 case "X":
@@ -152,7 +161,7 @@ public abstract class GuiComponent implements GuiInterface {
 //                    System.out.println("X: " + x);
                     if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
                             (x + this.width) > (parent.getX() + parent.getWidth()))
-                        this.x = parent.getX();
+                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
                     break;
                 case "Y":
                     if (yConstraint == null)
@@ -204,7 +213,7 @@ public abstract class GuiComponent implements GuiInterface {
 
                     if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
                             ((y + this.height) > parent.getY() + parent.getHeight()))
-                        this.y = parent.getY();
+                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
 
 //                        System.out.println("Y=>" + y);
                     break;
@@ -215,7 +224,6 @@ public abstract class GuiComponent implements GuiInterface {
         }
 
         updateTexturePosition();
-
     }
 
     private void updateTexturePosition() {
@@ -310,6 +318,10 @@ public abstract class GuiComponent implements GuiInterface {
         this.onScrollCallback = onScrollCallback;
     }
 
+    public void setTexture(GuiTexture texture) {
+        this.texture = texture;
+    }
+
     public float getX() {
         return this.x;
     }
@@ -328,12 +340,13 @@ public abstract class GuiComponent implements GuiInterface {
 
     public void setX(float x) {
         this.x = x;
-
+        //TODO: check if x is in parent
         updateTexturePosition();
     }
 
     public void setY(float y) {
         this.y = y;
+        //TODO: check if y is in parent
 
         updateTexturePosition();
     }
@@ -374,5 +387,24 @@ public abstract class GuiComponent implements GuiInterface {
                 ", width=" + width +
                 ", height=" + height +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        GuiComponent that = (GuiComponent) o;
+        return Float.compare(that.x, x) == 0 &&
+                Float.compare(that.y, y) == 0 &&
+                Float.compare(that.width, width) == 0 &&
+                Float.compare(that.height, height) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, width, height);
     }
 }

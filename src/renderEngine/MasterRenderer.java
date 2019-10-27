@@ -4,7 +4,6 @@ import entities.Camera;
 import entities.Entity;
 import entities.Light;
 import guis.Gui;
-import guis.GuiRenderer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

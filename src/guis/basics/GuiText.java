@@ -18,4 +18,11 @@ public class GuiText extends GuiBasics {
     public Text getText() {
         return this.text;
     }
+
+    @Override
+    public String toString() {
+        return "GuiText{" +
+                "text=" + text +
+                ", " + super.toString() + "}";
+    }
 }

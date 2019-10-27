@@ -244,15 +244,22 @@ public class Gui implements GuiInterface {
     }
 
     public void addComponent(GuiComponent guiComponent) {
-        if (guiComponent != null)
-            this.components.add(guiComponent);
+        if (guiComponent == null)
+            return;
+
+        this.components.remove(guiComponent);
+
+        this.components.add(guiComponent);
     }
 
     public void addComponent(GuiPreset guiPreset) {
+        if (guiPreset == null || guiPreset.getBasics() == null)
+            return;
+
         guiPreset.getBasics().forEach(this::addComponent);
     }
 
-    void animate() {
+    public void animate() {
         if (!isDisplayed())
             return;
 
@@ -266,9 +273,20 @@ public class Gui implements GuiInterface {
     }
 
     public void setAlphaToGui(float alpha) {
+        if (this.background == null || this.components == null)
+            return;
+
         this.background.setAlpha(alpha);
 
-        this.components.forEach(guiComponent -> guiComponent.getTexture().setAlpha(alpha));
+        this.components.forEach(guiComponent -> {
+            if (guiComponent instanceof GuiPreset) {
+                ((GuiPreset) guiComponent).getBasics().forEach(guiBasics -> {
+                    if (guiBasics != null && guiBasics.getTexture() != null)
+                        guiBasics.getTexture().setAlpha(alpha);
+                });
+            } else
+                guiComponent.getTexture().setAlpha(alpha);
+        });
     }
 
     public float getAlphaOfGui() {

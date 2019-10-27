@@ -1,23 +1,38 @@
 package guis.basics;
 
-import guis.Gui;
+import guis.GuiInterface;
 import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.PixelConstraint;
 import java.awt.Color;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import renderEngine.DisplayManager;
 
 public class GuiCircle extends GuiBasics {
 
-    public GuiCircle(Gui gui, String texture, GuiConstraints dimension) {
-        super(gui, texture, new AspectConstraint(1f), dimension);
+    public GuiCircle(GuiInterface gui, String texture) {
+        super(gui, texture, new AspectConstraint(1f), new PixelConstraint(100));
     }
 
-    public GuiCircle(Gui gui, Color color, GuiConstraints dimension) {
-        super(gui, color, new AspectConstraint(1f), dimension);
+    public GuiCircle(GuiInterface gui, Color color) {
+        super(gui, color, new AspectConstraint(1f), new PixelConstraint(100));
     }
 
+    @Override
+    public void setWidthConstraint(GuiConstraints widthConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setWidthConstraint(widthConstraint);
+        constraints.setHeightConstraint(new AspectConstraint(1f));
+
+        update(constraints);
+    }
+
+    @Override
+    public void setHeightConstraint(GuiConstraints heightConstraint) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager();
+        constraints.setHeightConstraint(heightConstraint);
+        constraints.setWidthConstraint(new AspectConstraint(1f));
+
+        update(constraints);
+    }
 
 }

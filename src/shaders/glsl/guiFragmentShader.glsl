@@ -47,11 +47,11 @@ void main(void){
         out_Color = texture(guiTexture, textureCoords);
     } else {
         out_Color = vec4(color.x, color.y, color.z, 1);
-    }
 
-    out_Color.a = calcRoundedCorners();
+        out_Color.a = calcRoundedCorners();
 
-    if (out_Color.a > 0) {
-        out_Color.a = alpha;
+        if (out_Color.a > 0) {
+            out_Color.a = alpha;
+        }
     }
 }

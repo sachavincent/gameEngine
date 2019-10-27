@@ -46,35 +46,42 @@ public abstract class GuiBasics extends GuiComponent {
         initConstraints(width, height);
     }
 
-    public void setXPreset(GuiConstraints xConstraint) {
+    public void setXConstraint(GuiConstraints xConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setxConstraint(xConstraint);
 
         update(constraints);
     }
 
-    public void setYPreset(GuiConstraints yConstraint) {
+    public void setYConstraint(GuiConstraints yConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setyConstraint(yConstraint);
 
         update(constraints);
     }
 
-    public void setWidthPreset(GuiConstraints widthConstraint) {
+    public void setWidthConstraint(GuiConstraints widthConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setWidthConstraint(widthConstraint);
 
         update(constraints);
     }
 
-    public void setHeightPreset(GuiConstraints heightConstraint) {
+    public void setHeightConstraint(GuiConstraints heightConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setHeightConstraint(heightConstraint);
 
         update(constraints);
     }
 
-    public void update(GuiConstraintsManager constraints) {
+    void update(GuiConstraintsManager constraints) {
         setConstraints(constraints);
+    }
+
+    @Override
+    public String toString() {
+        return "baseWidth=" + baseWidth +
+                ", baseHeight=" + baseHeight +
+                ", " + super.toString();
     }
 }

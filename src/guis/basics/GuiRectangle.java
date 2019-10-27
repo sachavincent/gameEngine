@@ -14,4 +14,9 @@ public class GuiRectangle extends GuiBasics {
     public GuiRectangle(GuiInterface gui, Color color, GuiConstraints width, GuiConstraints height) {
         super(gui, color, width, height);
     }
+
+    @Override
+    public String toString() {
+        return "GuiRectangle{" + super.toString() + "}";
+    }
 }
