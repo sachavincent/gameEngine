@@ -4,7 +4,6 @@ import guis.Gui;
 import java.util.List;
 import renderEngine.DisplayManager;
 import util.vector.Matrix4f;
-import util.vector.Vector;
 import util.vector.Vector3f;
 
 public class GuiShader extends ShaderProgram {

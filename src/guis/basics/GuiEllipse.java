@@ -6,13 +6,13 @@ import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import java.awt.Color;
 
-public class GuiOval extends GuiBasics {
+public class GuiEllipse extends GuiBasics {
 
-    public GuiOval(GuiInterface gui, String texture, GuiConstraints width, GuiConstraints height) {
+    public GuiEllipse(GuiInterface gui, String texture, GuiConstraints width, GuiConstraints height) {
         super(gui, texture, width, height);
     }
 
-    public GuiOval(GuiInterface gui, Color color, GuiConstraints width, GuiConstraints height) {
+    public GuiEllipse(GuiInterface gui, Color color, GuiConstraints width, GuiConstraints height) {
         super(gui, color, width, height);
     }
 

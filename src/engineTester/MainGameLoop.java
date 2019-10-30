@@ -12,13 +12,11 @@ import entities.Camera;
 import entities.Entity;
 import entities.Light;
 import fontMeshCreator.FontType;
-import fontMeshCreator.Text;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.basics.GuiBasics;
-import guis.basics.GuiCircle;
-import guis.basics.GuiOval;
 import guis.basics.GuiSquare;
+import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
@@ -26,8 +24,6 @@ import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiSlider;
 import guis.presets.buttons.GuiCircularButton;
-import guis.presets.buttons.GuiRectangleButton;
-import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
 import inputs.KeyboardUtils;
@@ -198,12 +194,13 @@ public class MainGameLoop {
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
 
-        Gui right_gui = new Gui(Color.GREEN);
+        Gui right_gui = new Gui(Color.RED);
 
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
 
-        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(400));
+//        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(4000));
+        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT));
         constraints.setHeightConstraint(new RelativeConstraint(0.7f));
         constraints.setWidthConstraint(new RelativeConstraint(0.11f));
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
@@ -218,13 +215,14 @@ public class MainGameLoop {
 
         GuiConstraintsManager constraints2 = new GuiConstraintsManager();
         constraints2.setWidthConstraint(new PixelConstraint(100));
-        constraints2.setHeightConstraint(new PixelConstraint(50));
-//        GuiSlider slider = new GuiSlider(right_gui, Color.RED, Color.WHITE, constraints2);
-//        right_gui.addComponent(slider);
+        constraints2.setHeightConstraint(new PixelConstraint(100));
+        GuiSlider slider = new GuiSlider(right_gui, Color.BLUE, Color.BLACK, constraints2);
 
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
 //                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
-        new GuiCircularButton(right_gui, "path.png", constraints2);
+//        GuiRectangleButton guiCircularButton = new GuiRectangleButton(right_gui, "path.png", constraints2);
+//        new GuiCircularButton(right_gui, "path.png", constraints2);
+
 //        GuiCircle guiCircle = new GuiCircle(right_gui, Color.RED);
 //        guiCircle.setWidthConstraint(new RelativeConstraint(1f));
 

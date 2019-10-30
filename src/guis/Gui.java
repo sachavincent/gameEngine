@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -37,7 +38,7 @@ public class Gui implements GuiInterface {
         this.background = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
                 height));
 
-        this.components = new ArrayList<>();
+        this.components = new LinkedList<>();
         this.transitions = new LinkedList<>();
     }
 
@@ -46,7 +47,7 @@ public class Gui implements GuiInterface {
         this.background = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width,
                 height));
 
-        this.components = new ArrayList<>();
+        this.components = new LinkedList<>();
         this.transitions = new LinkedList<>();
     }
 
@@ -280,10 +281,14 @@ public class Gui implements GuiInterface {
 
         this.components.forEach(guiComponent -> {
             if (guiComponent instanceof GuiPreset) {
-                ((GuiPreset) guiComponent).getBasics().forEach(guiBasics -> {
-                    if (guiBasics != null && guiBasics.getTexture() != null)
-                        guiBasics.getTexture().setAlpha(alpha);
-                });
+                ((GuiPreset) guiComponent).getBasics().
+                        stream()
+                        .filter(Objects::nonNull)
+                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() < 1f) // Ignore components which aren't going to be fully opaque
+                        .forEach(guiBasics -> {
+                            if (guiBasics.getTexture() != null)
+                                guiBasics.getTexture().setAlpha(alpha);
+                        });
             } else
                 guiComponent.getTexture().setAlpha(alpha);
         });

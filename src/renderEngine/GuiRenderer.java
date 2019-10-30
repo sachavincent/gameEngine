@@ -1,10 +1,13 @@
 package renderEngine;
 
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiTexture;
 import guis.basics.GuiCircle;
-import guis.basics.GuiOval;
+import guis.basics.GuiEllipse;
 import guis.basics.GuiText;
 import java.util.List;
 import models.RawModel;
@@ -44,26 +47,26 @@ public class GuiRenderer {
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
         GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         guis.stream()
                 .filter(Gui::isDisplayed)
                 .forEach(gui -> {
                     renderQuad(gui.getBackground());
-                    gui.getComponents().stream()
-//                            .filter(GuiComponent::isDisplayed)
+                    gui.getComponents()
+//                            .stream().filter(GuiComponent::isDisplayed)
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiCircle) {
                                     GuiCircle guiCircle = (GuiCircle) guiComponent;
                                     this.quad = drawCircle();
 
                                     renderCircle(guiCircle.getTexture());
-                                } else if (guiComponent instanceof GuiOval) {
-                                    GuiOval guiOval = (GuiOval) guiComponent;
+                                } else if (guiComponent instanceof GuiEllipse) {
+                                    GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
                                     this.quad = drawCircle();
 
-                                    renderCircle(guiOval.getTexture());
+                                    renderCircle(guiEllipse.getTexture());
                                 } else if (guiComponent instanceof GuiText) {
                                     GuiText guiText = (GuiText) guiComponent;
                                     guiText.getText().remove();
@@ -87,11 +90,10 @@ public class GuiRenderer {
     private void renderCircle(GuiTexture guiTexture) {
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
-        GL11.glDisable(GL11.GL_BLEND);
 
         renderTexture(guiTexture);
 
-        GL11.glDrawArrays(GL11.GL_LINE_LOOP, 0, quad.getVertexCount());
+        GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, quad.getVertexCount());
 
         quad = null;
     }
@@ -102,8 +104,6 @@ public class GuiRenderer {
 
             GL30.glBindVertexArray(quad.getVaoID());
             GL20.glEnableVertexAttribArray(0);
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         }
 
         renderTexture(guiTexture);
@@ -123,7 +123,8 @@ public class GuiRenderer {
         shader.loadColor(guiTexture.getColor());
     }
 
-    private RawModel drawCircle() {
+    @Deprecated
+    private RawModel drawCircleV1() {
         float cx = 0;
         float cy = 0;
         float r = 1;
@@ -151,5 +152,27 @@ public class GuiRenderer {
         }
 
         return loader.loadToVAO(te, 2);
+    }
+
+    private RawModel drawCircle() {
+        float x = 0;
+        float y = 0;
+        float radius = 1;
+        int numberOfSides = 800;
+        int numberOfVertices = numberOfSides + 2;
+
+        float twicePi = (float) (2.0f * Math.PI);
+
+        float[] allCircleVertices = new float[(numberOfVertices) * 2];
+
+        allCircleVertices[0] = x;
+        allCircleVertices[1] = y;
+
+        for (int i = 1; i < numberOfVertices; i++) {
+            allCircleVertices[i * 2] = (float) (x + (radius * Math.cos(i * twicePi / numberOfSides)));
+            allCircleVertices[(i * 2) + 1] = (float) (y + (radius * Math.sin(i * twicePi / numberOfSides)));
+        }
+
+        return loader.loadToVAO(allCircleVertices, 2);
     }
 }

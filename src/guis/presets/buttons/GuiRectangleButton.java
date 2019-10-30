@@ -14,8 +14,6 @@ public class GuiRectangleButton extends GuiButton {
         super(parent, constraintsManager);
 
         addComponents(textureBackground, text);
-
-        setListeners();
     }
 
     public GuiRectangleButton(GuiInterface parent, Text text, Color colorBackground,
@@ -23,8 +21,6 @@ public class GuiRectangleButton extends GuiButton {
         super(parent, constraintsManager);
 
         addComponents(colorBackground, text);
-
-        setListeners();
     }
 
     public GuiRectangleButton(GuiInterface parent, String textureBackground, GuiConstraintsManager constraintsManager) {
@@ -39,12 +35,19 @@ public class GuiRectangleButton extends GuiButton {
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
+        filterLayout = new GuiRectangle(this, Color.WHITE, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+
         super.addBasics(text);
     }
 
     void addComponents(Color background, Text text) { //TODO: Color border?
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
+
+        filterLayout = new GuiRectangle(this, Color.WHITE, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+
         super.addBasics(text);
     }
 

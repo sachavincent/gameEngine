@@ -5,8 +5,11 @@ import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 
 import guis.Gui;
 import guis.GuiComponent;
+import guis.basics.GuiCircle;
+import guis.basics.GuiEllipse;
 import java.nio.DoubleBuffer;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
@@ -38,12 +41,27 @@ public class MouseUtils {
     }
 
     private static boolean isPosInBounds(Vector2f cursorPos, float x, float y, float width, float height) {
-
         return (x - width) < cursorPos.x && cursorPos.x < (x + width) &&
                 (y - height) < cursorPos.y && cursorPos.y < (y + height);
     }
 
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
+        if (guiComponent instanceof GuiCircle || guiComponent instanceof GuiEllipse) {
+            Vector2f cursorPos = getCursorPos();
+
+            float x = cursorPos.x;
+            float y = cursorPos.y;
+
+            float h = guiComponent.getX();
+            float k = guiComponent.getY();
+            float r1 = guiComponent.getWidth();
+            float r2 = guiComponent.getHeight();
+
+
+            return (Math.pow(x - h, 2) / Math.pow(r1, 2) +
+                    Math.pow(y - k, 2) / Math.pow(r2, 2)) <= 1;
+        }
+
         return isPosInBounds(getCursorPos(), guiComponent.getX(), guiComponent.getY(), guiComponent.getWidth(),
                 guiComponent.getHeight());
     }
@@ -60,16 +78,21 @@ public class MouseUtils {
                                     .filter(MouseUtils::isCursorInGuiComponent)
                                     .forEach(GuiComponent::onClick));
                 } else if (action == GLFW_RELEASE) {
-                    guis.forEach(gui -> gui.getComponents()
-                            .forEach(GuiComponent::onRelease)); //todo optimiser : UNE boucle non lambda sur guis
 
-                    guis.stream()
-                            .filter(Gui::isDisplayed)
-                            .filter(MouseUtils::isCursorInGui)
-                            .forEach(gui -> gui.getComponents().stream()
+                    guis.forEach(gui -> {
+                        List<GuiComponent> guiComponents = gui.getComponents()
+                                .stream().filter(GuiComponent::isClicked).collect(Collectors.toList());
+
+
+                        if (gui.isDisplayed() && MouseUtils.isCursorInGui(gui)) {
+                            gui.getComponents().stream()
+                                    .filter(guiComponent -> !guiComponent.isClicked())
                                     .filter(MouseUtils::isCursorInGuiComponent)
-                                    .forEach(GuiComponent::onRelease));
+                                    .forEach(GuiComponent::onRelease);
+                        }
 
+                        guiComponents.forEach(GuiComponent::onRelease);
+                    });
                 }
             }
         });

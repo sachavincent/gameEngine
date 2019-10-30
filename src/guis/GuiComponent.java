@@ -5,7 +5,6 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
-import guis.presets.GuiPreset;
 import inputs.callbacks.ClickCallback;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
@@ -20,11 +19,12 @@ import util.vector.Vector2f;
 
 public abstract class GuiComponent implements GuiInterface {
 
-    private float x, y, width, height;
+    private float x, y, finalWidth, width, finalHeight, height;
 
     private GuiInterface parent;
 
-    private GuiTexture      texture;
+    private GuiTexture texture;
+
     private ClickCallback   onClickCallback;
     private ReleaseCallback onReleaseCallback;
     private EnterCallback   onEnterCallback;
@@ -34,10 +34,14 @@ public abstract class GuiComponent implements GuiInterface {
 
     private boolean displayed;
 
+    private boolean clicked;
+
     public GuiComponent(GuiInterface parent) {
         this.parent = parent;
         this.width = parent.getWidth();
+        this.finalWidth = parent.getWidth();
         this.height = parent.getHeight();
+        this.finalHeight = parent.getHeight();
         this.x = parent.getX();
         this.y = parent.getY();
 
@@ -45,7 +49,6 @@ public abstract class GuiComponent implements GuiInterface {
 
         if (parent instanceof Gui)
             ((Gui) parent).addComponent(this);
-
     }
 
     public GuiComponent(GuiInterface parent, String texture) {
@@ -223,10 +226,13 @@ public abstract class GuiComponent implements GuiInterface {
             }
         }
 
+        this.finalHeight = height;
+        this.finalWidth = width;
+
         updateTexturePosition();
     }
 
-    private void updateTexturePosition() {
+    public void updateTexturePosition() {
         if (this.texture == null)
             return;
 
@@ -240,12 +246,16 @@ public abstract class GuiComponent implements GuiInterface {
         if (onClickCallback == null)
             return;
 
+        clicked = true;
+
         onClickCallback.onClick();
     }
 
     public void onRelease() {
         if (onReleaseCallback == null)
             return;
+
+        clicked = false;
 
         onReleaseCallback.onRelease();
     }
@@ -363,8 +373,26 @@ public abstract class GuiComponent implements GuiInterface {
         updateTexturePosition();
     }
 
+    public boolean isClicked() {
+        return this.clicked;
+    }
+
+    public void setClicked(boolean clicked) {
+        this.clicked = clicked;
+    }
+
     public GuiTexture getTexture() {
         return this.texture;
+    }
+
+    public void scale(float scale) {
+        this.width = width * scale;
+        this.height = height * scale;
+    }
+
+    public void resetScale() {
+        this.width = finalWidth;
+        this.height = finalHeight;
     }
 
     public GuiInterface getParent() {
@@ -386,6 +414,7 @@ public abstract class GuiComponent implements GuiInterface {
                 ", y=" + y +
                 ", width=" + width +
                 ", height=" + height +
+                ", alpha=" + texture.getAlpha() +
                 '}';
     }
 
@@ -395,16 +424,16 @@ public abstract class GuiComponent implements GuiInterface {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-
         GuiComponent that = (GuiComponent) o;
         return Float.compare(that.x, x) == 0 &&
                 Float.compare(that.y, y) == 0 &&
                 Float.compare(that.width, width) == 0 &&
-                Float.compare(that.height, height) == 0;
+                Float.compare(that.height, height) == 0 &&
+                texture.equals(that.texture);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y, width, height);
+        return Objects.hash(x, y, width, height, texture);
     }
 }

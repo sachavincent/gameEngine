@@ -2,7 +2,8 @@ package guis.presets.buttons;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
-import guis.basics.GuiOval;
+import guis.basics.GuiCircle;
+import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import java.awt.Color;
@@ -14,8 +15,6 @@ public class GuiCircularButton extends GuiButton {
         super(parent, constraintsManager);
 
         addComponents(textureBackground, text);
-
-        setListeners();
     }
 
     public GuiCircularButton(GuiInterface parent, Text text, Color colorBackground,
@@ -23,21 +22,24 @@ public class GuiCircularButton extends GuiButton {
         super(parent, constraintsManager);
 
         addComponents(colorBackground, text);
-
-        setListeners();
     }
 
 
-    void addComponents(String background, Text text) { //TODO: Color border?
-        buttonLayout = new GuiOval(this, background, new RelativeConstraint(1, this),
+    private void addComponents(String background, Text text) { //TODO: Color border?
+        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+
+        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
         super.addBasics(text);
     }
 
-    void addComponents(Color background, Text text) { //TODO: Color border?
+    private void addComponents(Color background, Text text) { //TODO: Color border?
+        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
 
-        buttonLayout = new GuiOval(this, background, new RelativeConstraint(1, this),
+        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
         super.addBasics(text);
