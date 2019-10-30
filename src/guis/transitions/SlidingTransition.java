@@ -46,9 +46,6 @@ public class SlidingTransition extends Transition {
                 gui.setStartY(gui.getY());
 
                 break;
-            default:
-                //TODO: exception
-                break;
         }
     }
 
@@ -71,9 +68,6 @@ public class SlidingTransition extends Transition {
                 break;
             case TOP:
                 //TODO
-                break;
-            default:
-                //TODO: exception
                 break;
         }
         return false;

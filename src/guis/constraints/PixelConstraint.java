@@ -11,18 +11,12 @@ public class PixelConstraint extends GuiConstraints {
     public PixelConstraint(int pixel, GuiComponent relativeTo) {
         super(ConstraintsType.BOTH, Constraints.PIXEL);
 
-        if (pixel < 0)
-            return;
-
         this.relativeTo = relativeTo;
         this.constraint = pixel;
     }
 
     public PixelConstraint(int pixel) {
         super(ConstraintsType.BOTH, Constraints.PIXEL);
-
-        if (pixel < 0)
-            return;
 
         this.constraint = pixel;
     }

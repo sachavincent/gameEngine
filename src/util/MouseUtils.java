@@ -2,6 +2,7 @@ package util;
 
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
+import static util.Maths.isPosInBounds;
 
 import guis.Gui;
 import guis.GuiComponent;
@@ -40,10 +41,6 @@ public class MouseUtils {
         return isPosInBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 
-    private static boolean isPosInBounds(Vector2f cursorPos, float x, float y, float width, float height) {
-        return (x - width) < cursorPos.x && cursorPos.x < (x + width) &&
-                (y - height) < cursorPos.y && cursorPos.y < (y + height);
-    }
 
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
         if (guiComponent instanceof GuiCircle || guiComponent instanceof GuiEllipse) {

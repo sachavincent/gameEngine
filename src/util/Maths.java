@@ -54,4 +54,9 @@ public class Maths {
 
         return matrix;
     }
+
+    public static boolean isPosInBounds(Vector2f cursorPos, float x, float y, float width, float height) {
+        return (x - width) < cursorPos.x && cursorPos.x < (x + width) &&
+                (y - height) < cursorPos.y && cursorPos.y < (y + height);
+    }
 }

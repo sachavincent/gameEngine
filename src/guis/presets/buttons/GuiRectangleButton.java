@@ -9,46 +9,40 @@ import java.awt.Color;
 
 public class GuiRectangleButton extends GuiButton {
 
-    public GuiRectangleButton(GuiInterface parent, Text text, String textureBackground,
+    public GuiRectangleButton(GuiInterface parent, String textureBackground, Text text,
             GuiConstraintsManager constraintsManager) { //TODO: give name to access
-        super(parent, constraintsManager);
-
-        addComponents(textureBackground, text);
+        super(parent, textureBackground, text, constraintsManager);
     }
 
-    public GuiRectangleButton(GuiInterface parent, Text text, Color colorBackground,
+    public GuiRectangleButton(GuiInterface parent, Color colorBackground,Text text,
             GuiConstraintsManager constraintsManager) {
-        super(parent, constraintsManager);
-
-        addComponents(colorBackground, text);
+        super(parent, colorBackground, text, constraintsManager);
     }
 
     public GuiRectangleButton(GuiInterface parent, String textureBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, null, textureBackground, constraintsManager);
+        this(parent,  textureBackground, null,constraintsManager);
     }
 
     public GuiRectangleButton(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, null, colorBackground, constraintsManager);
+        this(parent, colorBackground, null, constraintsManager);
     }
 
-    void addComponents(String background, Text text) { //TODO: Color border?
+    @Override
+    protected void addBackgroundComponent(String background) { //TODO: Color border?
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
         filterLayout = new GuiRectangle(this, Color.WHITE, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
-
-        super.addBasics(text);
     }
 
-    void addComponents(Color background, Text text) { //TODO: Color border?
+    @Override
+    protected void addBackgroundComponent(Color background) { //TODO: Color border?
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
         filterLayout = new GuiRectangle(this, Color.WHITE, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
-
-        super.addBasics(text);
     }
 
     @Override

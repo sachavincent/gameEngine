@@ -2,7 +2,6 @@ package guis.presets.buttons;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
-import guis.basics.GuiCircle;
 import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -10,46 +9,46 @@ import java.awt.Color;
 
 public class GuiCircularButton extends GuiButton {
 
-    public GuiCircularButton(GuiInterface parent, Text text, String textureBackground,
+    public GuiCircularButton(GuiInterface parent, String textureBackground, Text text,
             GuiConstraintsManager constraintsManager) { //TODO: give name to access
-        super(parent, constraintsManager);
-
-        addComponents(textureBackground, text);
+        super(parent, textureBackground, text, constraintsManager);
     }
 
-    public GuiCircularButton(GuiInterface parent, Text text, Color colorBackground,
+    public GuiCircularButton(GuiInterface parent, Color colorBackground, Text text,
             GuiConstraintsManager constraintsManager) {
-        super(parent, constraintsManager);
-
-        addComponents(colorBackground, text);
-    }
-
-
-    private void addComponents(String background, Text text) { //TODO: Color border?
-        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        super.addBasics(text);
-    }
-
-    private void addComponents(Color background, Text text) { //TODO: Color border?
-        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        super.addBasics(text);
+        super(parent, colorBackground, text, constraintsManager);
     }
 
     public GuiCircularButton(GuiInterface parent, String textureBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, null, textureBackground, constraintsManager);
+        this(parent, textureBackground, null, constraintsManager);
     }
 
     public GuiCircularButton(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, null, colorBackground, constraintsManager);
+        this(parent, colorBackground, null, constraintsManager);
+    }
+
+    @Override
+    protected void addBackgroundComponent(String background) { //TODO: Color border?
+        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+
+        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+    }
+
+    @Override
+    protected void addBackgroundComponent(Color background) { //TODO: Color border?
+        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+
+        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+    }
+
+    @Override
+    public String toString() {
+        return "GuiCircularButton{" +
+                "buttonLayout=" + buttonLayout +
+                "} ";
     }
 }

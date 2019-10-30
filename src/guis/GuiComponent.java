@@ -1,5 +1,7 @@
 package guis;
 
+import static util.Maths.isPosInBounds;
+
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -89,10 +91,12 @@ public abstract class GuiComponent implements GuiInterface {
                             break;
                         case PIXEL:
                             if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
-                                return; //TODO: Exception
+                                throw new IllegalGuiConstraintException("Width of component exceeded width of window");
 
                             width = constraint / DisplayManager.WIDTH;
                             break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
                     if (width <= parent.getWidth())
@@ -115,11 +119,15 @@ public abstract class GuiComponent implements GuiInterface {
                             break;
                         case PIXEL:
                             if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
-                                return; //TODO: Exception
+                                throw new IllegalGuiConstraintException(
+                                        "Height of component exceeded height of window");
 
                             height = constraint / DisplayManager.HEIGHT;
                             break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
+
                     if (height <= parent.getHeight())
                         this.height = height;
                     else
@@ -146,20 +154,17 @@ public abstract class GuiComponent implements GuiInterface {
                                     this.x = parent.getX() + parent.getWidth() - this.width -
                                             constraint * parent.getWidth();
                                     break;
-                                default: //TODO: Raise exception
-                                    this.x = constraint;
-                                    break;
                             }
                             break;
                         case PIXEL:
-                            if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
-                                return; //TODO: Exception
+                            if (constraint < 0 || constraint > DisplayManager.WIDTH)
+                                throw new IllegalGuiConstraintException(
+                                        "Component x coordinate doesn't belong in window");
 
                             this.x = constraint / DisplayManager.WIDTH;
                             break;
                         default:
-                            this.x = constraint;
-                            break;
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 //                    System.out.println("X: " + x);
                     if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
@@ -175,8 +180,6 @@ public abstract class GuiComponent implements GuiInterface {
                         case RELATIVE:
                             GuiComponent relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
-//                                    System.out.println("RelativeTo: " + relativeTo.getY());
-
                                 this.y = relativeTo.getY() - this.height -
                                         (parent.getHeight() / 2 + this.height) * constraint * 2;
                             } else {
@@ -184,7 +187,6 @@ public abstract class GuiComponent implements GuiInterface {
                                 this.y = parent.getY() + parent.getHeight() - this.height -
                                         (parent.getHeight() - this.height) * constraint * 2;
                             }
-//                                System.out.println("YY: " + y);
                             break;
                         case SIDE:
                             switch (((SideConstraint) yConstraint).getSide()) {
@@ -196,22 +198,19 @@ public abstract class GuiComponent implements GuiInterface {
                                     this.y = parent.getY() + parent.getHeight() - this.height -
                                             constraint * parent.getHeight();
                                     break;
-                                default: //TODO: Raise exception
-                                    this.y = constraint;
-                                    break;
                             }
                             System.out.println("Relative: " + parent.getY() + ", " + parent.getHeight());
                             System.out.println("Y: " + y);
                             break;
                         case PIXEL:
-                            if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
-                                return; //TODO: Exception
+                            if (constraint < 0 || constraint > DisplayManager.HEIGHT)
+                                throw new IllegalGuiConstraintException(
+                                        "Component y coordinate doesn't belong in window");
 
                             this.y = constraint / DisplayManager.HEIGHT;
                             break;
                         default:
-                            this.y = constraint;
-                            break;
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
                     if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
@@ -349,14 +348,18 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     public void setX(float x) {
+        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()))
+            throw new IllegalArgumentException("New coordinates don't belong in parent");
+
         this.x = x;
-        //TODO: check if x is in parent
         updateTexturePosition();
     }
 
     public void setY(float y) {
+        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()))
+            throw new IllegalArgumentException("New coordinates don't belong in parent");
+
         this.y = y;
-        //TODO: check if y is in parent
 
         updateTexturePosition();
     }

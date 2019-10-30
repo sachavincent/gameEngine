@@ -9,11 +9,12 @@ import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiPreset;
 import inputs.callbacks.ClickCallback;
+import java.awt.Color;
 import java.util.List;
 import javax.naming.SizeLimitExceededException;
 import util.vector.Vector2f;
 
-abstract class GuiButton extends GuiPreset {
+public abstract class GuiButton extends GuiPreset {
 
     private final static float FILTER_TRANSPARENCY = 0.2f;
     private final static float BUTTON_SHRINK_RATIO = 0.05f;
@@ -23,30 +24,39 @@ abstract class GuiButton extends GuiPreset {
 
     private GuiText text;
 
-
-    GuiButton(GuiInterface parent, GuiConstraintsManager constraintsManager) {
+    GuiButton(GuiInterface parent, Color color, Text text, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
+
+        addBackgroundComponent(color);
+        setupText(text);
+        setupComponents();
     }
 
-    void addBasics(Text text) {
-        if (text != null) {
-            try {
-                setupText(text);
-            } catch (SizeLimitExceededException | IllegalArgumentException e) {
-                e.printStackTrace();
-            }
+    GuiButton(GuiInterface parent, String textureBackground, Text text, GuiConstraintsManager constraintsManager) {
+        super(parent, constraintsManager);
 
-            addBasic(this.text);
-        }
+        addBackgroundComponent(textureBackground);
+        setupText(text);
+        setupComponents();
+    }
+
+    private void setupComponents() {
+        this.filterLayout.getTexture().setFinalAlpha(FILTER_TRANSPARENCY); // Filter on hover
+        this.filterLayout.getTexture().setAlpha(0f); // Invisible by default
+
 
         setListeners();
 
-        filterLayout.getTexture().setFinalAlpha(FILTER_TRANSPARENCY); // Filter on hover
-        filterLayout.getTexture().setAlpha(0f); // Invisible by default
+        if (this.text != null)
+            addBasic(this.text);
 
-        addBasic(buttonLayout);
-        addBasic(filterLayout);
+        addBasic(this.buttonLayout);
+        addBasic(this.filterLayout);
     }
+
+    protected abstract void addBackgroundComponent(String background);
+
+    protected abstract void addBackgroundComponent(Color background);
 
     private void setListeners() {
         buttonLayout.setOnClick(() -> {
@@ -84,25 +94,47 @@ abstract class GuiButton extends GuiPreset {
         });
     }
 
-    private void setupText(Text text) throws SizeLimitExceededException, IllegalArgumentException {
+    private void setupText(Text text) {
+        if (text == null)
+            return;
+
         text.setLineMaxSize(buttonLayout.getWidth());
         text.setCentered(false);
 
         List<Line> lines = text.getFont().getLoader().getLines(text);
 
-        if (lines.size() > 1)
-            throw new SizeLimitExceededException("Content must fit in one line.");
+        if (lines.size() > 1) {
+            try {
+                throw new SizeLimitExceededException("Content must fit in one line.");
+            } catch (SizeLimitExceededException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
 
         Line line = lines.get(0);
 
-        if (line == null)
-            throw new IllegalArgumentException("Invalid text.");
+        if (line == null) {
+            try {
+                throw new IllegalArgumentException("Invalid text.");
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+
+                return;
+            }
+        }
 
         double textHeight = TextMeshCreator.LINE_HEIGHT * text.getFontSize() * 2;
 
-        if (textHeight > buttonLayout.getHeight() * 2)
-            throw new SizeLimitExceededException("Font size too large.");
+        if (textHeight > buttonLayout.getHeight() * 2) {
+            try {
+                throw new SizeLimitExceededException("Font size too large.");
+            } catch (SizeLimitExceededException e) {
+                e.printStackTrace();
 
+                return;
+            }
+        }
         text.setPosition(new Vector2f(buttonLayout.getX() - line.getLineLength(),
                 buttonLayout.getY() - textHeight / 2));
 
