@@ -9,9 +9,9 @@ public abstract class Transition {
 
     private boolean done;
 
-    public Transition(int length) {
+    Transition(int length) {
         if (length < 100)
-            return; //TODO: Exception
+            throw new IllegalArgumentException("Transitions cannot be shorter than 0.1s");
 
         this.length = length;
 

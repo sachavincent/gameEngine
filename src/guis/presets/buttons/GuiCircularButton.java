@@ -10,7 +10,7 @@ import java.awt.Color;
 public class GuiCircularButton extends GuiButton {
 
     public GuiCircularButton(GuiInterface parent, String textureBackground, Text text,
-            GuiConstraintsManager constraintsManager) { //TODO: give name to access
+            GuiConstraintsManager constraintsManager) {
         super(parent, textureBackground, text, constraintsManager);
     }
 

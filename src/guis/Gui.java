@@ -2,16 +2,16 @@ package guis;
 
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.SideConstraint;
+import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiPreset;
 import guis.transitions.Transition;
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -59,60 +59,75 @@ public class Gui implements GuiInterface {
         this(new Color(r, g, b));
     }
 
-    public void setTransitions(Transition... transitions) {
-        this.transitions = new LinkedList<>(Arrays.asList(transitions));
-    }
-
-    public void setConstraints(GuiConstraintsManager constraints) {
+    public void setConstraints(@NotNull GuiConstraintsManager constraints) {
         final GuiConstraints xConstraint = constraints.getxConstraint();
         final GuiConstraints yConstraint = constraints.getyConstraint();
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();
         final GuiConstraints heightConstraint = constraints.getHeightConstraint();
 
-        constraints.getOrder().forEach(s -> {
-            float width = 1.1f;
-            float height = 1.1f;
+        for (char s : constraints.getOrder()) {
             switch (s) {
-                case "W":
-                    if (widthConstraint != null) {
-                        switch (widthConstraint.getConstraint()) {
-                            case RELATIVE:
-                                width = widthConstraint.constraint();
-                                break;
-                            case ASPECT:
-                                width = widthConstraint.constraint() * DisplayManager.HEIGHT / DisplayManager.WIDTH *
-                                        this.height;
-                                break;
-                        }
+                case 'W':
+                    if (widthConstraint == null)
+                        break;
+                    float constraint = widthConstraint.constraint();
+
+                    switch (widthConstraint.getConstraint()) {
+                        case RELATIVE:
+                            this.width = constraint;
+                            break;
+                        case ASPECT:
+                            this.width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
+                            break;
+                        case PIXEL:
+                            this.width = constraint / DisplayManager.WIDTH;
+
+                            break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
+
                     }
 
-                    if (width <= 2)
-                        this.width = width;
+                    if (this.width > 2 || this.width < 0)
+                        throw new IllegalGuiConstraintException("Width of component exceeded width of window");
 
-//                    System.out.println("W: " + width);
                     break;
-                case "H":
-                    if (heightConstraint != null) {
-                        switch (heightConstraint.getConstraint()) {
-                            case RELATIVE:
-                                height = heightConstraint.constraint();
-                                break;
-                            case ASPECT:
-//TODO
-                                break;
-                        }
+                case 'H':
+                    if (heightConstraint == null)
+                        break;
+
+                    constraint = heightConstraint.constraint();
+
+                    switch (heightConstraint.getConstraint()) {
+                        case RELATIVE:
+                            this.height = constraint;
+                            break;
+                        case ASPECT:
+                            this.height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
+                            break;
+                        case PIXEL:
+                            this.height = constraint / DisplayManager.HEIGHT;
+
+                            break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
-                    if (height <= 2)
-                        this.height = height;
 
-//                    System.out.println("H: " + height);
+                    if (this.height > 2 || this.height < 0)
+                        throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
+
                     break;
-                case "X":
-                    if (xConstraint != null) {
-                        float constraint = xConstraint.constraint();
-                        if (xConstraint.getConstraint() == Constraints.RELATIVE) {
+                case 'X':
+                    if (xConstraint == null)
+                        break;
+
+                    constraint = xConstraint.constraint();
+
+                    switch (xConstraint.getConstraint()) {
+                        case RELATIVE:
                             this.x = 2 - this.width + (this.width - 2) * (2 - constraint * 2);
-                        } else if (xConstraint.getConstraint() == Constraints.SIDE) {
+                            break;
+                        case SIDE:
                             switch (((SideConstraint) xConstraint).getSide()) {
                                 case LEFT:
                                     this.x = -1 + constraint * 2 + this.width;
@@ -120,87 +135,73 @@ public class Gui implements GuiInterface {
                                 case RIGHT:
                                     this.x = 1 - constraint * 2 - this.width;
                                     break;
-                                default: //TODO: Raise exception
-                                    this.x = constraint;
-                                    break;
+                                default:
+                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
                             }
-                        } else
+                            break;
+                        case PIXEL:
+                            this.x = constraint / DisplayManager.WIDTH;
+                            break;
+                        case CENTER:
                             this.x = constraint;
+                            break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
-                    if (x < -1 || x > 1)
-                        this.x = 0;
 
-//                    System.out.println("X: " + x);
+                    if (x < -1 || x > 1)
+                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
+
                     break;
-                case "Y":
-                    if (yConstraint != null) {
-                        float constraint = yConstraint.constraint();
-                        if (yConstraint.getConstraint() == Constraints.RELATIVE) {
-                            // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
-                            this.y = -DisplayManager.HEIGHT + this.height +
-                                    (DisplayManager.HEIGHT - this.height) * (2 - constraint * 2);
-                        } else if (yConstraint.getConstraint() == Constraints.SIDE) {
+                case 'Y':
+                    if (yConstraint == null)
+                        break;
+
+                    constraint = yConstraint.constraint();
+
+                    switch (yConstraint.getConstraint()) {
+                        case RELATIVE:
+                            this.y = 2 - this.height + (this.height - 2) * (2 - constraint * 2);
+                            break;
+                        case SIDE:
                             switch (((SideConstraint) yConstraint).getSide()) {
-                                case TOP:
-                                    this.y = constraint * 2 - heightConstraint.constraint();
-                                    break;
                                 case BOTTOM:
-                                    this.y = constraint * 2 + heightConstraint.constraint();
+                                    this.y = -1 + constraint * 2 + this.height;
                                     break;
-                                default: //TODO: Raise exception
-                                    this.y = constraint;
+                                case TOP:
+                                    this.y = 1 - constraint * 2 - this.height;
                                     break;
+                                default:
+                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
                             }
-                        } else
+
+                            break;
+                        case PIXEL:
+                            this.y = constraint / DisplayManager.HEIGHT;
+                            break;
+                        case CENTER:
                             this.y = constraint;
+                            break;
+                        default:
+                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
                     if (y < -1 || y > 1)
-                        this.y = 0;
-//                    System.out.println("Y: " + y);
-                    break;
-                default:
-                    System.err.println("Erreur Gui.class");
+                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
+
                     break;
             }
-        });
+
+        }
 
         updateTexturePosition();
     }
 
-    public void updateTexturePosition() {
+    private void updateTexturePosition() {
         this.background.getScale().x = this.width;
         this.background.getScale().y = this.height;
         this.background.getPosition().x = this.x;
         this.background.getPosition().y = this.y;
-    }
-
-    public GuiTexture getBackground() {
-        return this.background;
-    }
-
-    public List<GuiComponent> getComponents() {
-        return this.components;
-    }
-
-    public List<Transition> getTransitions() {
-        return this.transitions;
-    }
-
-    public float getX() {
-        return this.x;
-    }
-
-    public float getY() {
-        return this.y;
-    }
-
-    public float getWidth() {
-        return this.width;
-    }
-
-    public float getHeight() {
-        return this.height;
     }
 
     @Override
@@ -213,17 +214,6 @@ public class Gui implements GuiInterface {
                 '}';
     }
 
-    public boolean isFocused() {
-        return this.focused;
-    }
-
-    public void setFocused(boolean focused) {
-        this.focused = focused;
-    }
-
-    public boolean isDisplayed() {
-        return this.displayed;
-    }
 
     public void show() {
         if (isDisplayed())
@@ -244,6 +234,10 @@ public class Gui implements GuiInterface {
         this.displayed = false;
     }
 
+    private boolean areTransitionsDone() {
+        return this.transitions.stream().allMatch(Transition::isDone);
+    }
+
     public void addComponent(GuiComponent guiComponent) {
         if (guiComponent == null)
             return;
@@ -253,6 +247,7 @@ public class Gui implements GuiInterface {
         this.components.add(guiComponent);
     }
 
+    @Deprecated
     public void addComponent(GuiPreset guiPreset) {
         if (guiPreset == null || guiPreset.getBasics() == null)
             return;
@@ -284,7 +279,8 @@ public class Gui implements GuiInterface {
                 ((GuiPreset) guiComponent).getBasics().
                         stream()
                         .filter(Objects::nonNull)
-                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() < 1f) // Ignore components which aren't going to be fully opaque
+                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() <
+                                1f) // Ignore components which aren't going to be fully opaque
                         .forEach(guiBasics -> {
                             if (guiBasics.getTexture() != null)
                                 guiBasics.getTexture().setAlpha(alpha);
@@ -294,72 +290,153 @@ public class Gui implements GuiInterface {
         });
     }
 
-    public float getAlphaOfGui() {
-        return this.background.getAlpha();
+    public void setTransitions(Transition... transitions) {
+        this.transitions = new LinkedList<>(Arrays.asList(transitions));
+    }
+
+
+    public void setFocused(boolean focused) {
+        this.focused = focused;
     }
 
     public void setX(float x) {
+        if ((x < -1 || x > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
         this.x = x;
     }
 
     public void setY(float y) {
+        if ((y < -1 || y > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
         this.y = y;
     }
 
     public void setWidth(float width) {
+        if ((width < 0 || width > 2) && areTransitionsDone())
+            throw new IllegalArgumentException("New width don't fit in window");
+
         this.width = width;
     }
 
     public void setHeight(float height) {
+        if ((height < 0 || height > 2) && areTransitionsDone())
+            throw new IllegalArgumentException("New height don't fit in window");
+
         this.height = height;
+    }
+
+    public GuiTexture getBackground() {
+        return this.background;
+    }
+
+    public List<GuiComponent> getComponents() {
+        return this.components;
+    }
+
+    public List<Transition> getTransitions() {
+        return this.transitions;
+    }
+
+    public float getX() {
+        return this.x;
+    }
+
+    public float getY() {
+        return this.y;
+    }
+
+    public float getWidth() {
+        return this.width;
+    }
+
+    public float getHeight() {
+        return this.height;
+    }
+
+    public boolean isFocused() {
+        return this.focused;
+    }
+
+    public boolean isDisplayed() {
+        return this.displayed;
+    }
+
+    public float getAlphaOfGui() {
+        return this.background.getAlpha();
     }
 
     public float getStartX() {
         return this.startX;
     }
 
-    public void setStartX(float startX) {
-        this.startX = startX;
-    }
-
     public float getStartY() {
         return this.startY;
-    }
-
-    public void setStartY(float startY) {
-        this.startY = startY;
     }
 
     public float getFinalX() {
         return this.finalX;
     }
 
-    public void setFinalX(float finalX) {
-        this.finalX = finalX;
-    }
-
     public float getFinalY() {
         return this.finalY;
-    }
-
-    public void setFinalY(float finalY) {
-        this.finalY = finalY;
     }
 
     public float getFinalWidth() {
         return this.finalWidth;
     }
 
-    public void setFinalWidth(float finalWidth) {
-        this.finalWidth = finalWidth;
-    }
-
     public float getFinalHeight() {
         return this.finalHeight;
     }
 
+    public void setStartX(float startX) {
+        if ((startX < -1 || startX > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.startX = startX;
+    }
+
+
+    public void setStartY(float startY) {
+        if ((startY < -1 || startY > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.startY = startY;
+    }
+
+
+    public void setFinalX(float finalX) {
+        if ((finalX < -1 || finalX > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.finalX = finalX;
+    }
+
+
+    public void setFinalY(float finalY) {
+        if ((finalY < -1 || finalY > 1) && areTransitionsDone())
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.finalY = finalY;
+    }
+
+    public void setFinalWidth(float finalWidth) {
+        if ((finalWidth < 0 || finalWidth > 2) && areTransitionsDone())
+            throw new IllegalArgumentException("New height don't fit in window");
+
+        this.finalWidth = finalWidth;
+    }
+
     public void setFinalHeight(float finalHeight) {
+        if ((finalHeight < 0 || finalHeight > 2) && areTransitionsDone())
+            throw new IllegalArgumentException("New height don't fit in window");
+
         this.finalHeight = finalHeight;
     }
 
+    public boolean hasTransitions() {
+        return !this.transitions.isEmpty();
+    }
 }

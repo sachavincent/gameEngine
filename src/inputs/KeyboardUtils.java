@@ -17,10 +17,17 @@ public class KeyboardUtils {
         glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_H && action == GLFW_PRESS) {
                 guis.forEach(gui -> {
-                    if(gui.getTransitions().stream().allMatch(Transition::isDone)) //TODO: handle no transitions
-                        gui.hide();
-                    else
-                        gui.show();
+                    if (gui.hasTransitions()) {
+                        if (gui.getTransitions().stream().allMatch(Transition::isDone))
+                            gui.hide();
+                        else
+                            gui.show();
+                    } else {
+                        if (gui.isDisplayed())
+                            gui.hide();
+                        else
+                            gui.show();
+                    }
                 });
             }
         });

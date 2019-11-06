@@ -71,41 +71,36 @@ public abstract class GuiComponent implements GuiInterface {
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();
         final GuiConstraints heightConstraint = constraints.getHeightConstraint();
 
-
-//        System.out.println(constraints.getOrder());
-        for (String s : constraints.getOrder()) {
-            float width = 1.1f;
-            float height = 1.1f;
+        for (char s : constraints.getOrder()) {
             switch (s) {
-                case "W":
+                case 'W':
                     if (widthConstraint == null)
                         break;
 
                     float constraint = widthConstraint.constraint();
                     switch (widthConstraint.getConstraint()) {
                         case RELATIVE:
-                            width = constraint * parent.getWidth();
+                            this.width = constraint * parent.getWidth();
                             break;
                         case ASPECT:
-                            width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
+                            this.width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
                             break;
                         case PIXEL:
-                            if (constraint > DisplayManager.WIDTH) // Nb of pixels > width
+                            if (constraint < 0 || constraint > DisplayManager.WIDTH) // Nb of pixels > width
                                 throw new IllegalGuiConstraintException("Width of component exceeded width of window");
 
-                            width = constraint / DisplayManager.WIDTH;
+                            this.width = constraint / DisplayManager.WIDTH;
+
                             break;
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
-                    if (width <= parent.getWidth())
-                        this.width = width;
-                    else
+                    if (this.width > parent.getWidth() || this.width < 0)
                         throw new IllegalGuiConstraintException("Width of component exceeded width of parent");
 
                     break;
-                case "H":
+                case 'H':
                     if (heightConstraint == null)
                         break;
 
@@ -123,26 +118,32 @@ public abstract class GuiComponent implements GuiInterface {
                                         "Height of component exceeded height of window");
 
                             height = constraint / DisplayManager.HEIGHT;
+
                             break;
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
-                    if (height <= parent.getHeight())
-                        this.height = height;
-                    else
+                    if (height > parent.getHeight() || this.height < 0)
                         throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
 
                     break;
-                case "X":
+                case 'X':
                     if (xConstraint == null)
                         break;
 
                     constraint = xConstraint.constraint();
                     switch (xConstraint.getConstraint()) {
                         case RELATIVE:
-                            this.x = parent.getX() + parent.getWidth() - this.width +
-                                    (this.width - parent.getWidth()) * (2 - constraint * 2);
+                        GuiComponent relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
+                            if (relativeTo != null) { // Relatif à un autre élément
+                                this.x = relativeTo.getX() - this.width -
+                                        (parent.getWidth() / 2 + this.width) * constraint * 2;
+                            } else {
+                                // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
+                                this.x = parent.getX() + parent.getWidth() - this.width +
+                                        (this.width - parent.getWidth()) * (2 - constraint * 2);
+                            }
                             break;
                         case SIDE:
                             switch (((SideConstraint) xConstraint).getSide()) {
@@ -154,6 +155,8 @@ public abstract class GuiComponent implements GuiInterface {
                                     this.x = parent.getX() + parent.getWidth() - this.width -
                                             constraint * parent.getWidth();
                                     break;
+                                default:
+                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
                             }
                             break;
                         case PIXEL:
@@ -166,12 +169,13 @@ public abstract class GuiComponent implements GuiInterface {
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
-//                    System.out.println("X: " + x);
+
                     if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
                             (x + this.width) > (parent.getX() + parent.getWidth()))
                         throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
+
                     break;
-                case "Y":
+                case 'Y':
                     if (yConstraint == null)
                         break;
 
@@ -198,9 +202,10 @@ public abstract class GuiComponent implements GuiInterface {
                                     this.y = parent.getY() + parent.getHeight() - this.height -
                                             constraint * parent.getHeight();
                                     break;
+                                default:
+                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
                             }
-                            System.out.println("Relative: " + parent.getY() + ", " + parent.getHeight());
-                            System.out.println("Y: " + y);
+
                             break;
                         case PIXEL:
                             if (constraint < 0 || constraint > DisplayManager.HEIGHT)
@@ -208,6 +213,7 @@ public abstract class GuiComponent implements GuiInterface {
                                         "Component y coordinate doesn't belong in window");
 
                             this.y = constraint / DisplayManager.HEIGHT;
+
                             break;
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -217,10 +223,6 @@ public abstract class GuiComponent implements GuiInterface {
                             ((y + this.height) > parent.getY() + parent.getHeight()))
                         throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
 
-//                        System.out.println("Y=>" + y);
-                    break;
-                default:
-                    System.err.println("Erreur GuiComponents.class");
                     break;
             }
         }
@@ -352,6 +354,7 @@ public abstract class GuiComponent implements GuiInterface {
             throw new IllegalArgumentException("New coordinates don't belong in parent");
 
         this.x = x;
+
         updateTexturePosition();
     }
 
@@ -417,7 +420,7 @@ public abstract class GuiComponent implements GuiInterface {
                 ", y=" + y +
                 ", width=" + width +
                 ", height=" + height +
-                ", alpha=" + texture.getAlpha() +
+                (texture == null ? "" : (", alpha=" + texture.getAlpha())) +
                 '}';
     }
 
@@ -432,7 +435,7 @@ public abstract class GuiComponent implements GuiInterface {
                 Float.compare(that.y, y) == 0 &&
                 Float.compare(that.width, width) == 0 &&
                 Float.compare(that.height, height) == 0 &&
-                texture.equals(that.texture);
+                (texture == null || texture.equals(that.texture));
     }
 
     @Override

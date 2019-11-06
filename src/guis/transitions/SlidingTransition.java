@@ -53,8 +53,13 @@ public class SlidingTransition extends Transition {
     public boolean animate(Gui gui) {
         switch (direction) {
             case RIGHT:
-                //TODO
-                break;
+                if (gui.getX() < gui.getFinalX()) {
+                    gui.setX(gui.getX() + DISTANCE / (length / 1000f) / FPS);
+
+                    if (gui.getX() > gui.getFinalX())
+                        gui.setX(gui.getFinalX());
+                }
+                return gui.getX() == gui.getFinalX(); // Animation terminée
             case LEFT:
                 if (gui.getX() > gui.getFinalX()) {
                     gui.setX(gui.getX() - DISTANCE / (length / 1000f) / FPS);
@@ -64,11 +69,21 @@ public class SlidingTransition extends Transition {
                 }
                 return gui.getX() == gui.getFinalX(); // Animation terminée
             case BOTTOM:
-                //TODO
-                break;
+                if (gui.getY() > gui.getFinalY()) {
+                    gui.setY(gui.getY() - DISTANCE / (length / 1000f) / FPS);
+
+                    if (gui.getY() < gui.getFinalY())
+                        gui.setY(gui.getFinalY());
+                }
+                return gui.getY() == gui.getFinalY(); // Animation terminée
             case TOP:
-                //TODO
-                break;
+                if (gui.getY() < gui.getFinalY()) {
+                    gui.setY(gui.getY() + DISTANCE / (length / 1000f) / FPS);
+
+                    if (gui.getY() > gui.getFinalY())
+                        gui.setY(gui.getFinalY());
+                }
+                return gui.getY() == gui.getFinalY(); // Animation terminée
         }
         return false;
     }

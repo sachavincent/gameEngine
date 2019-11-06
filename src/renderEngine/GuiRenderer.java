@@ -8,6 +8,7 @@ import guis.Gui;
 import guis.GuiTexture;
 import guis.basics.GuiCircle;
 import guis.basics.GuiEllipse;
+import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import java.util.List;
 import models.RawModel;
@@ -20,11 +21,13 @@ import util.Maths;
 
 public class GuiRenderer {
 
-    private final static float[] POSITIONS = {-1, 1, -1, -1, 1, 1, 1, -1};
+    private final static float[] POSITIONS_FILLED   = {-1, 1, -1, -1, 1, 1, 1, -1};
+    private final static float[] POSITIONS_UNFILLED = {-1, -1, -1, 1, 1, 1, 1, -1};
 
     private final Loader loader;
 
-    private final RawModel defaultQuad;
+    private final RawModel defaultFilledQuad;
+    private final RawModel defaultUnfilledQuad;
 
     private RawModel  quad;
     private GuiShader shader;
@@ -32,8 +35,9 @@ public class GuiRenderer {
     public GuiRenderer(GuiShader shader, Loader loader) {
         this.loader = loader;
 
-        this.defaultQuad = loader.loadToVAO(POSITIONS, 2);
-        this.quad = this.defaultQuad;
+        this.defaultFilledQuad = loader.loadToVAO(POSITIONS_FILLED, 2);
+        this.defaultUnfilledQuad = loader.loadToVAO(POSITIONS_UNFILLED, 2);
+        this.quad = this.defaultFilledQuad;
 
         this.shader = shader;
     }
@@ -42,7 +46,7 @@ public class GuiRenderer {
         shader.start();
 
         if (quad == null)
-            this.quad = defaultQuad;
+            this.quad = defaultFilledQuad;
 
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
@@ -53,26 +57,30 @@ public class GuiRenderer {
         guis.stream()
                 .filter(Gui::isDisplayed)
                 .forEach(gui -> {
-                    renderQuad(gui.getBackground());
+                    renderQuad(gui.getBackground(), true);
                     gui.getComponents()
 //                            .stream().filter(GuiComponent::isDisplayed)
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiCircle) {
                                     GuiCircle guiCircle = (GuiCircle) guiComponent;
-                                    this.quad = drawCircle();
+                                    this.quad = guiCircle.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
 
-                                    renderCircle(guiCircle.getTexture());
+                                    renderCircle(guiCircle.getTexture(), guiCircle.isFilled());
                                 } else if (guiComponent instanceof GuiEllipse) {
                                     GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
-                                    this.quad = drawCircle();
+                                    this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
 
-                                    renderCircle(guiEllipse.getTexture());
+                                    renderCircle(guiEllipse.getTexture(), guiEllipse.isFilled());
                                 } else if (guiComponent instanceof GuiText) {
                                     GuiText guiText = (GuiText) guiComponent;
                                     guiText.getText().remove();
+
                                     TextMaster.loadText(guiText.getText());
+                                } else if (guiComponent instanceof GuiShape) {
+                                    GuiShape guiShape = (GuiShape) guiComponent;
+                                    renderQuad(guiComponent.getTexture(), guiShape.isFilled());
                                 } else
-                                    renderQuad(guiComponent.getTexture());
+                                    renderQuad(guiComponent.getTexture(), true);
                             });
 
                     gui.animate();
@@ -82,33 +90,32 @@ public class GuiRenderer {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
         GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
         GL30.glBindVertexArray(0);
 
         shader.stop();
     }
 
-    private void renderCircle(GuiTexture guiTexture) {
+    private void renderCircle(GuiTexture guiTexture, boolean filled) {
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
 
         renderTexture(guiTexture);
 
-        GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, quad.getVertexCount());
-
-        quad = null;
+        GL11.glDrawArrays(filled ? GL11.GL_TRIANGLE_FAN : GL11.GL_LINE_STRIP, 0, quad.getVertexCount());
     }
 
-    private void renderQuad(GuiTexture guiTexture) {
-        if (quad == null) {
-            this.quad = defaultQuad;
+    private void renderQuad(GuiTexture guiTexture, boolean filled) {
+        this.quad = filled ? defaultFilledQuad : defaultUnfilledQuad;
 
-            GL30.glBindVertexArray(quad.getVaoID());
-            GL20.glEnableVertexAttribArray(0);
-        }
+        GL30.glBindVertexArray(quad.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+
+        GL11.glDisable(GL11.GL_BLEND);
 
         renderTexture(guiTexture);
 
-        GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
+        GL11.glDrawArrays(filled ? GL11.GL_TRIANGLE_STRIP : GL11.GL_LINE_LOOP, 0, quad.getVertexCount());
     }
 
     private void renderTexture(GuiTexture guiTexture) {
@@ -123,38 +130,7 @@ public class GuiRenderer {
         shader.loadColor(guiTexture.getColor());
     }
 
-    @Deprecated
-    private RawModel drawCircleV1() {
-        float cx = 0;
-        float cy = 0;
-        float r = 1;
-
-        int num_segments = (int) (8000 * Math.sqrt(r));
-
-        float theta = (float) (2 * Math.PI / num_segments);
-        float c = (float) Math.tan(theta);
-
-        float s = (float) Math.cos(theta);
-
-        float x = r;
-
-        float t;
-        float y = 0;
-
-        float[] te = new float[(num_segments * 2)];
-        for (int ii = 0; ii < num_segments; ii++) {
-            te[ii] = x + cx;
-            te[ii + 1] = y + cy;
-
-            t = x;
-            x = c * x - s * y;
-            y = s * t + c * y;
-        }
-
-        return loader.loadToVAO(te, 2);
-    }
-
-    private RawModel drawCircle() {
+    private RawModel drawFilledCircle() {
         float x = 0;
         float y = 0;
         float radius = 1;
@@ -169,6 +145,25 @@ public class GuiRenderer {
         allCircleVertices[1] = y;
 
         for (int i = 1; i < numberOfVertices; i++) {
+            allCircleVertices[i * 2] = (float) (x + (radius * Math.cos(i * twicePi / numberOfSides)));
+            allCircleVertices[(i * 2) + 1] = (float) (y + (radius * Math.sin(i * twicePi / numberOfSides)));
+        }
+
+        return loader.loadToVAO(allCircleVertices, 2);
+    }
+
+    private RawModel drawUnfilledCircle() {
+        float x = 0;
+        float y = 0;
+        float radius = 1;
+        int numberOfSides = 800;
+        int numberOfVertices = numberOfSides + 1;
+
+        float twicePi = (float) (2.0f * Math.PI);
+
+        float[] allCircleVertices = new float[(numberOfVertices) * 2];
+
+        for (int i = 0; i < numberOfVertices; i++) {
             allCircleVertices[i * 2] = (float) (x + (radius * Math.cos(i * twicePi / numberOfSides)));
             allCircleVertices[(i * 2) + 1] = (float) (y + (radius * Math.sin(i * twicePi / numberOfSides)));
         }

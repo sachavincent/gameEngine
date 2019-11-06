@@ -1,15 +1,15 @@
 package guis.constraints;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import guis.exceptions.IllegalGuiConstraintException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class GuiConstraintsManager {
 
     private GuiConstraints xConstraint, yConstraint, widthConstraint, heightConstraint;
 
-    private List<String> order = new LinkedList<>();
+    private List<Character> order = new ArrayList<>();
 
     public void setDefault() {
         this.xConstraint = new CenterConstraint();
@@ -17,7 +17,7 @@ public class GuiConstraintsManager {
         this.widthConstraint = new RelativeConstraint(0.1f);
         this.heightConstraint = new RelativeConstraint(0.1f);
 
-        this.order = new LinkedList<>(Arrays.asList("X", "Y", "W", "H"));
+        this.order = new ArrayList<>(Arrays.asList('X', 'Y', 'W', 'H'));
     }
 
     public GuiConstraints getxConstraint() {
@@ -42,8 +42,8 @@ public class GuiConstraintsManager {
 
         this.xConstraint = xConstraint;
 
-        this.order.remove("X");
-        this.order.add("X");
+        this.order.remove(Character.valueOf('X'));
+        this.order.add('X');
     }
 
     public void setyConstraint(GuiConstraints yConstraint) {
@@ -52,8 +52,8 @@ public class GuiConstraintsManager {
 
         this.yConstraint = yConstraint;
 
-        this.order.remove("Y");
-        this.order.add("Y");
+        this.order.remove(Character.valueOf('Y'));
+        this.order.add('Y');
     }
 
     public void setWidthConstraint(GuiConstraints widthConstraint) {
@@ -62,8 +62,8 @@ public class GuiConstraintsManager {
 
         this.widthConstraint = widthConstraint;
 
-        this.order.remove("W");
-        this.order.add("W");
+        this.order.remove(Character.valueOf('W'));
+        this.order.add('W');
     }
 
     public void setHeightConstraint(GuiConstraints heightConstraint) {
@@ -72,11 +72,11 @@ public class GuiConstraintsManager {
 
         this.heightConstraint = heightConstraint;
 
-        this.order.remove("H");
-        this.order.add("H");
+        this.order.remove(Character.valueOf('H'));
+        this.order.add('H');
     }
 
-    public List<String> getOrder() {
+    public List<Character> getOrder() {
         return this.order;
     }
 
