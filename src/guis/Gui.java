@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -59,7 +58,7 @@ public class Gui implements GuiInterface {
         this(new Color(r, g, b));
     }
 
-    public void setConstraints(@NotNull GuiConstraintsManager constraints) {
+    public void setConstraints(GuiConstraintsManager constraints) {
         final GuiConstraints xConstraint = constraints.getxConstraint();
         final GuiConstraints yConstraint = constraints.getyConstraint();
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();

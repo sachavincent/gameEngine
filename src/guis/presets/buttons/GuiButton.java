@@ -21,6 +21,7 @@ public abstract class GuiButton extends GuiPreset {
 
     GuiBasics filterLayout;
     GuiBasics buttonLayout;
+    GuiBasics borderLayout;
 
     private GuiText text;
 
@@ -140,6 +141,17 @@ public abstract class GuiButton extends GuiPreset {
 
         this.text = new GuiText(this, text);
     }
+
+
+    public void setBorder(float r, float g, float b) {
+        setBorder(new Color(r, g, b));
+    }
+
+    public void setBorder(int r, int g, int b) {
+        setBorder(new Color(r, g, b));
+    }
+
+    public abstract void setBorder(Color color);
 
     @Override
     public void setOnClick(ClickCallback onClickCallback) {

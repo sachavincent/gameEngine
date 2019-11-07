@@ -2,6 +2,7 @@ package guis.presets.buttons;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
+import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -46,9 +47,17 @@ public class GuiCircularButton extends GuiButton {
     }
 
     @Override
+    public void setBorder(Color color) {
+        borderLayout = new GuiEllipse(this, color, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this), false);
+    }
+
+    @Override
     public String toString() {
         return "GuiCircularButton{" +
-                "buttonLayout=" + buttonLayout +
-                "} ";
+                "filterLayout=" + filterLayout +
+                ", buttonLayout=" + buttonLayout +
+                ", borderLayout=" + borderLayout +
+                '}';
     }
 }

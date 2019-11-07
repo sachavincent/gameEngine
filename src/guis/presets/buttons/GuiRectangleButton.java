@@ -2,6 +2,7 @@ package guis.presets.buttons;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
+import guis.basics.GuiBasics;
 import guis.basics.GuiRectangle;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
@@ -14,13 +15,13 @@ public class GuiRectangleButton extends GuiButton {
         super(parent, textureBackground, text, constraintsManager);
     }
 
-    public GuiRectangleButton(GuiInterface parent, Color colorBackground,Text text,
+    public GuiRectangleButton(GuiInterface parent, Color colorBackground, Text text,
             GuiConstraintsManager constraintsManager) {
         super(parent, colorBackground, text, constraintsManager);
     }
 
     public GuiRectangleButton(GuiInterface parent, String textureBackground, GuiConstraintsManager constraintsManager) {
-        this(parent,  textureBackground, null,constraintsManager);
+        this(parent, textureBackground, null, constraintsManager);
     }
 
     public GuiRectangleButton(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
@@ -43,6 +44,12 @@ public class GuiRectangleButton extends GuiButton {
 
         filterLayout = new GuiRectangle(this, Color.WHITE, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
+    }
+
+    @Override
+    public void setBorder(Color color) {
+        borderLayout = new GuiRectangle(this, color, new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this), false);
     }
 
     @Override
