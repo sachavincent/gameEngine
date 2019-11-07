@@ -135,7 +135,7 @@ public abstract class GuiComponent implements GuiInterface {
                     constraint = xConstraint.constraint();
                     switch (xConstraint.getConstraint()) {
                         case RELATIVE:
-                        GuiComponent relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
+                            GuiComponent relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
                                 this.x = relativeTo.getX() - this.width -
                                         (parent.getWidth() / 2 + this.width) * constraint * 2;
@@ -387,6 +387,7 @@ public abstract class GuiComponent implements GuiInterface {
         this.clicked = clicked;
     }
 
+    @Override
     public GuiTexture getTexture() {
         return this.texture;
     }

@@ -4,6 +4,7 @@ import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
+import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import java.awt.Color;
@@ -29,7 +30,7 @@ public class GuiCircularButton extends GuiButton {
     }
 
     @Override
-    protected void addBackgroundComponent(String background) { //TODO: Color border?
+    protected void addBackgroundComponent(String background) {
         buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
@@ -38,7 +39,7 @@ public class GuiCircularButton extends GuiButton {
     }
 
     @Override
-    protected void addBackgroundComponent(Color background) { //TODO: Color border?
+    protected void addBackgroundComponent(Color background) {
         buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
@@ -48,8 +49,7 @@ public class GuiCircularButton extends GuiButton {
 
     @Override
     public void setBorder(Color color) {
-        borderLayout = new GuiEllipse(this, color, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this), false);
+       addBorderLayout(new GuiEllipse(this, color, new RelativeConstraint(1, this), new RelativeConstraint(1, this), false));
     }
 
     @Override

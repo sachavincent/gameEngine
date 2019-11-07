@@ -278,13 +278,13 @@ public class Gui implements GuiInterface {
                 ((GuiPreset) guiComponent).getBasics().
                         stream()
                         .filter(Objects::nonNull)
-                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() <
-                                1f) // Ignore components which aren't going to be fully opaque
+                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() == 1)
+                        // Ignore components which aren't going to be fully opaque
                         .forEach(guiBasics -> {
                             if (guiBasics.getTexture() != null)
                                 guiBasics.getTexture().setAlpha(alpha);
                         });
-            } else
+            } else if (guiComponent.getTexture().getFinalAlpha() == 1)
                 guiComponent.getTexture().setAlpha(alpha);
         });
     }
@@ -326,7 +326,8 @@ public class Gui implements GuiInterface {
         this.height = height;
     }
 
-    public GuiTexture getBackground() {
+    @Override
+    public GuiTexture getTexture() {
         return this.background;
     }
 

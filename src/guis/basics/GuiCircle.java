@@ -42,5 +42,4 @@ public class GuiCircle extends GuiShape {
 
         update(constraints);
     }
-
 }

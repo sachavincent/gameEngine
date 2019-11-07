@@ -9,4 +9,6 @@ public interface GuiInterface {
     float getWidth();
 
     float getHeight();
+
+    GuiTexture getTexture();
 }

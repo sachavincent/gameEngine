@@ -5,6 +5,7 @@ import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshCreator;
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
+import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiPreset;
@@ -63,17 +64,15 @@ public abstract class GuiButton extends GuiPreset {
         buttonLayout.setOnClick(() -> {
             setClicked(true);
             System.out.println("Click");
-            buttonLayout.scale(1 - BUTTON_SHRINK_RATIO);
 
-            buttonLayout.updateTexturePosition();
+            updateTexturesOnClick();
         });
 
         buttonLayout.setOnRelease(() -> {
             setClicked(false);
             System.out.println("Release");
-            buttonLayout.resetScale();
 
-            buttonLayout.updateTexturePosition();
+            updateTexturesOnClick();
         });
 
         buttonLayout.setOnHover(() -> {
@@ -93,6 +92,26 @@ public abstract class GuiButton extends GuiPreset {
 
             filterLayout.updateTexturePosition();
         });
+    }
+
+    private void updateTexturesOnClick() {
+        if (this.isClicked()) {
+            float scale = 1 - BUTTON_SHRINK_RATIO;
+            this.buttonLayout.scale(scale);
+
+            if (this.borderLayout != null)
+                this.borderLayout.scale(scale);
+        } else {
+            this.buttonLayout.resetScale();
+
+            if (this.borderLayout != null)
+                this.borderLayout.resetScale();
+        }
+
+        this.buttonLayout.updateTexturePosition();
+
+        if (this.borderLayout != null)
+            this.borderLayout.updateTexturePosition();
     }
 
     private void setupText(Text text) {
@@ -152,6 +171,15 @@ public abstract class GuiButton extends GuiPreset {
     }
 
     public abstract void setBorder(Color color);
+
+    public void addBorderLayout(GuiShape guiShape) {
+        if (guiShape == null)
+            throw new IllegalArgumentException("Border missing");
+
+        this.borderLayout = guiShape;
+
+        addBasic(this.borderLayout);
+    }
 
     @Override
     public void setOnClick(ClickCallback onClickCallback) {

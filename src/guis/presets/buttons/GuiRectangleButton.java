@@ -29,7 +29,7 @@ public class GuiRectangleButton extends GuiButton {
     }
 
     @Override
-    protected void addBackgroundComponent(String background) { //TODO: Color border?
+    protected void addBackgroundComponent(String background) {
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
@@ -38,7 +38,7 @@ public class GuiRectangleButton extends GuiButton {
     }
 
     @Override
-    protected void addBackgroundComponent(Color background) { //TODO: Color border?
+    protected void addBackgroundComponent(Color background) {
         buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 

@@ -17,7 +17,7 @@ public class FadeTransition extends Transition {
 
     @Override
     public boolean animate(Gui gui) {
-        float futureAlpha = gui.getBackground().getAlpha() + 1 / (length / 1000f) / FPS;
+        float futureAlpha = gui.getTexture().getAlpha() + 1 / (length / 1000f) / FPS;
         gui.setAlphaToGui(futureAlpha);
 
         return futureAlpha >= 1f;

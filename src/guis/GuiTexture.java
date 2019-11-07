@@ -58,6 +58,10 @@ public class GuiTexture extends Texture {
         return this.scale;
     }
 
+    public void setScale(Vector2f scale) {
+        this.scale = scale;
+    }
+
     @Override
     public String toString() {
         return "GuiTexture{" +

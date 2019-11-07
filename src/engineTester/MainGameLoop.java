@@ -15,16 +15,13 @@ import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.basics.GuiBasics;
-import guis.basics.GuiCircle;
+import guis.basics.GuiRectangle;
 import guis.basics.GuiSquare;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
-import guis.presets.buttons.GuiCircularButton;
-import guis.presets.sliders.GuiRectangleSlider;
-import guis.presets.sliders.GuiSlider;
 import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
@@ -223,10 +220,11 @@ public class MainGameLoop {
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
 //                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
 //        GuiRectangleButton guiCircularButton = new GuiRectangleButton(right_gui, "path.png", constraints2);
-        GuiCircularButton b = new GuiCircularButton(right_gui, Color.BLACK, constraints2);
+//        GuiCircularButton b = new GuiCircularButton(right_gui, Color.BLACK, constraints2);
 //        b.setBorder(Color.WHITE);
-//        GuiCircle guiCircle = new GuiCircle(right_gui, Color.BLACK, false);
-
+        GuiRectangle guiCircle = new GuiRectangle(right_gui, Color.BLACK, new PixelConstraint(100),
+                new PixelConstraint(100), false);
+        guiCircle.setOutlineWidth(5);
 //        guiCircle.setWidthConstraint(new RelativeConstraint(1f));
 
 //        System.out.println(guiCircle);

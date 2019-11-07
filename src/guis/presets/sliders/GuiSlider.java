@@ -43,12 +43,13 @@ public abstract class GuiSlider extends GuiPreset {
 
     /**
      * Set the color of the part of the slider base on the left of the cursor
+     *
      * @param color - the color of the left part of the base
      */
     public void setColorOfLeftBase(Color color) {
         sliderBaseLeftSide = new GuiRectangle(this, color, new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
-    }//TODO OW like sliders (colored left side of cursor)
+    } //TODO OW like sliders (colored left side of cursor)
 //
 //    private void addBase(String unmovableTexture) {
 //        sliderBase = new GuiRectangle(this, unmovableTexture, new RelativeConstraint(1f, this),
@@ -59,7 +60,7 @@ public abstract class GuiSlider extends GuiPreset {
     private void addBase(Color unmovableColor) {
         sliderBaseLeftSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
-        
+
         sliderBaseRightSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
     }
