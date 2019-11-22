@@ -1,8 +1,8 @@
 package guis.presets.sliders;
 
 import guis.GuiInterface;
-import guis.basics.GuiBasics;
 import guis.basics.GuiRectangle;
+import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.presets.GuiPreset;
@@ -11,10 +11,10 @@ import util.MouseUtils;
 
 public abstract class GuiSlider extends GuiPreset {
 
-    GuiBasics sliderCursor;
+    GuiShape sliderCursor;
 
-    private GuiRectangle sliderBaseRightSide;
-    private GuiRectangle sliderBaseLeftSide;
+    private GuiShape sliderBaseRightSide;
+    private GuiShape sliderBaseLeftSide;
 
     private float   value;
     private boolean clicked;
@@ -47,22 +47,27 @@ public abstract class GuiSlider extends GuiPreset {
      * @param color - the color of the left part of the base
      */
     public void setColorOfLeftBase(Color color) {
-        sliderBaseLeftSide = new GuiRectangle(this, color, new RelativeConstraint(1f, this),
+        removeBasic(sliderBaseLeftSide);
+
+        sliderBaseLeftSide = new GuiRectangle(this, color, new RelativeConstraint(value, this),
                 new RelativeConstraint(.32f, this));
-    } //TODO OW like sliders (colored left side of cursor)
-//
-//    private void addBase(String unmovableTexture) {
-//        sliderBase = new GuiRectangle(this, unmovableTexture, new RelativeConstraint(1f, this),
-//                new RelativeConstraint(.32f, this));
-//    }
+
+        addBasic(sliderBaseLeftSide);
+
+        removeBasic(sliderCursor);
+        addBasic(sliderCursor);
+    }
 
 
     private void addBase(Color unmovableColor) {
-        sliderBaseLeftSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(1f, this),
+        sliderBaseLeftSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(0, this),
                 new RelativeConstraint(.32f, this));
 
         sliderBaseRightSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
+
+
+        sliderBaseLeftSide.setX(sliderBaseRightSide.getX() - sliderBaseRightSide.getWidth());
     }
 
     private void setupCursor() {
@@ -89,47 +94,53 @@ public abstract class GuiSlider extends GuiPreset {
             if (!clicked)
                 return;
 
-            setSliderValue(sliderCursor, sliderBaseRightSide);
+            setSliderValue(sliderCursor, sliderBaseLeftSide, sliderBaseRightSide);
         });
 
         sliderCursor.setOnLeave(() -> {
             if (clicked) {
-                setSliderValue(sliderCursor, sliderBaseRightSide);
+                setSliderValue(sliderCursor, sliderBaseLeftSide, sliderBaseRightSide);
             }
         });
 
         sliderCursor.setOnEnter(() -> {
             if (clicked) {
-                setSliderValue(sliderCursor, sliderBaseRightSide);
+                setSliderValue(sliderCursor, sliderBaseLeftSide, sliderBaseRightSide);
             }
         });
 
         sliderBaseRightSide.setOnEnter(() -> {
             if (clicked) {
-                setSliderValue(sliderCursor, sliderBaseRightSide); //TODO: Smooth anim???
+                setSliderValue(sliderCursor, sliderBaseLeftSide, sliderBaseRightSide); //TODO: Smooth anim???
             }
         });
 
         sliderBaseRightSide.setOnLeave(() -> {
             if (clicked) {
-                setSliderValue(sliderCursor, sliderBaseRightSide);
+                setSliderValue(sliderCursor, sliderBaseLeftSide, sliderBaseRightSide);
             }
         });
 
     }
 
-    private void setSliderValue(GuiBasics sliderCursor, GuiRectangle sliderBase) {
+    private void setSliderValue(GuiShape sliderCursor, GuiShape sliderBaseLeftSide, GuiShape sliderBaseRightSide) {
         float cursorX = MouseUtils.getCursorPos().x;
 
-        float maxValue = sliderBase.getX() + sliderBase.getWidth();
-        float minValue = sliderBase.getX() - sliderBase.getWidth();
+        float maxValue = sliderBaseRightSide.getX() + sliderBaseRightSide.getWidth();
+        float minValue = sliderBaseRightSide.getX() - sliderBaseRightSide.getWidth();
 
         cursorX = Float.max(cursorX, minValue);
         cursorX = Float.min(cursorX, maxValue);
+
         sliderCursor.setX(cursorX);
 
-        value = cursorX - (sliderBase.getX() - sliderBase.getWidth());
-        value = value * 1 / sliderBase.getWidth() / 2;
+        value = cursorX - (sliderBaseRightSide.getX() - sliderBaseRightSide.getWidth());
+        value = value * 1 / sliderBaseRightSide.getWidth() / 2;
+
+        sliderBaseLeftSide.setWidthConstraint(new RelativeConstraint(value));
+        sliderBaseLeftSide.setX(cursorX - sliderBaseLeftSide.getWidth());
+
+        this.sliderBaseLeftSide = sliderBaseLeftSide;
     }
 
     public float getValue() {

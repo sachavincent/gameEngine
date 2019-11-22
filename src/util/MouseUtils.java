@@ -6,7 +6,6 @@ import static util.Maths.isPosInBounds;
 
 import guis.Gui;
 import guis.GuiComponent;
-import guis.basics.GuiCircle;
 import guis.basics.GuiEllipse;
 import java.nio.DoubleBuffer;
 import java.util.List;
@@ -43,7 +42,7 @@ public class MouseUtils {
 
 
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
-        if (guiComponent instanceof GuiCircle || guiComponent instanceof GuiEllipse) {
+        if (guiComponent instanceof GuiEllipse) {
             Vector2f cursorPos = getCursorPos();
 
             float x = cursorPos.x;

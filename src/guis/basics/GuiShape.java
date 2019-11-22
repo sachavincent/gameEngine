@@ -7,7 +7,7 @@ import java.awt.Color;
 public abstract class GuiShape extends GuiBasics {
 
     private boolean filled;
-    private int outlineWidth = 1;
+    private int     outlineWidth = 1;
 
     public GuiShape(GuiInterface parent, String texture, GuiConstraints width, GuiConstraints height, boolean filled) {
         super(parent, texture, width, height);

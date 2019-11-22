@@ -246,6 +246,13 @@ public class Gui implements GuiInterface {
         this.components.add(guiComponent);
     }
 
+    public void removeComponent(GuiComponent guiComponent) {
+        if (guiComponent == null)
+            return;
+
+        this.components.remove(guiComponent);
+    }
+
     @Deprecated
     public void addComponent(GuiPreset guiPreset) {
         if (guiPreset == null || guiPreset.getBasics() == null)

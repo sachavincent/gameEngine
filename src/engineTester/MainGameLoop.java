@@ -22,6 +22,7 @@ import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
+import guis.presets.checkbox.buttons.GuiRectangleCheckbox;
 import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
@@ -215,16 +216,25 @@ public class MainGameLoop {
         GuiConstraintsManager constraints2 = new GuiConstraintsManager();
         constraints2.setWidthConstraint(new PixelConstraint(100));
         constraints2.setHeightConstraint(new PixelConstraint(100));
-//        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.BLUE, Color.BLACK, constraints2);
 
+//        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.GREEN, Color.BLACK, constraints2);
+
+
+        GuiRectangle rect = new GuiRectangle(right_gui, Color.GREEN, new PixelConstraint(100),
+                new PixelConstraint(38));
+        GuiRectangleCheckbox gu = new GuiRectangleCheckbox(right_gui, Color.BLACK, constraints2);
+        gu.setOutlineWidth(5);
+
+        gu.setCheckmark(rect);
+//        slider.setColorOfLeftBase(Color.GREEN);
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
 //                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
 //        GuiRectangleButton guiCircularButton = new GuiRectangleButton(right_gui, "path.png", constraints2);
 //        GuiCircularButton b = new GuiCircularButton(right_gui, Color.BLACK, constraints2);
 //        b.setBorder(Color.WHITE);
-        GuiRectangle guiCircle = new GuiRectangle(right_gui, Color.BLACK, new PixelConstraint(100),
-                new PixelConstraint(100), false);
-        guiCircle.setOutlineWidth(5);
+//        GuiRectangle guiCircle = new GuiRectangle(right_gui, Color.BLACK, new PixelConstraint(100),
+//                new PixelConstraint(100), false);
+//        guiCircle.setOutlineWidth(5);
 //        guiCircle.setWidthConstraint(new RelativeConstraint(1f));
 
 //        System.out.println(guiCircle);

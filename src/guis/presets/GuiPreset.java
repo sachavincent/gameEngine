@@ -29,6 +29,13 @@ public abstract class GuiPreset extends GuiComponent {
             ((Gui) getParent()).addComponent(guiBasics);
     }
 
+    protected void removeBasic(GuiBasics guiBasics) {
+        this.basics.remove(guiBasics);
+
+        if (getParent() instanceof Gui)
+            ((Gui) getParent()).removeComponent(guiBasics);
+    }
+
     @Override
     public void updateTexturePosition() {
         super.updateTexturePosition();

@@ -1,8 +1,10 @@
 package renderEngine;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.GL_PERSPECTIVE_CORRECTION_HINT;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengles.GLES20.GL_NICEST;
 
 import java.awt.Toolkit;
 import java.nio.IntBuffer;
@@ -37,6 +39,8 @@ public class DisplayManager {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
+
         glfwWindowHint(GLFW_SAMPLES, 8);
 //        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
         IntBuffer w = BufferUtils.createIntBuffer(1);

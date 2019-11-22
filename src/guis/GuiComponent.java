@@ -47,7 +47,7 @@ public abstract class GuiComponent implements GuiInterface {
         this.x = parent.getX();
         this.y = parent.getY();
 
-        this.displayed = false;
+        this.displayed = true;
 
         if (parent instanceof Gui)
             ((Gui) parent).addComponent(this);

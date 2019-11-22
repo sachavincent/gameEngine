@@ -1,16 +1,12 @@
 package renderEngine;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_LINE_STRIP;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.*;
 
 import fontRendering.TextMaster;
 import guis.Gui;
+import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.GuiTexture;
-import guis.basics.GuiCircle;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
@@ -21,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL42;
 import shaders.GuiShader;
 import util.Maths;
 import util.vector.Vector2f;
@@ -38,7 +35,7 @@ public class GuiRenderer {
     private RawModel  quad;
     private GuiShader shader;
 
-    public GuiRenderer(GuiShader shader, Loader loader) {
+    GuiRenderer(GuiShader shader, Loader loader) {
         this.loader = loader;
 
         this.defaultFilledQuad = loader.loadToVAO(POSITIONS_FILLED, 2);
@@ -56,23 +53,21 @@ public class GuiRenderer {
 
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
+
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
+//        GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
+        GL11.glDisable(GL42.GL_MULTISAMPLE);
 
         guis.stream()
                 .filter(Gui::isDisplayed)
                 .forEach(gui -> {
                     renderQuad(gui, true);
                     gui.getComponents()
-//                            .stream().filter(GuiComponent::isDisplayed)
+                            .stream().filter(GuiComponent::isDisplayed)
                             .forEach(guiComponent -> {
-                                if (guiComponent instanceof GuiCircle) {
-                                    GuiCircle guiCircle = (GuiCircle) guiComponent;
-                                    this.quad = guiCircle.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
-
-                                    renderCircle(guiCircle, guiCircle.isFilled());
-                                } else if (guiComponent instanceof GuiEllipse) {
+                                if (guiComponent instanceof GuiEllipse) {
                                     GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
                                     this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
 
@@ -95,6 +90,8 @@ public class GuiRenderer {
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL42.GL_MULTISAMPLE);
+
         GL20.glDisableVertexAttribArray(0);
         GL30.glBindVertexArray(0);
 
@@ -106,8 +103,6 @@ public class GuiRenderer {
         GL20.glEnableVertexAttribArray(0);
 
         if (!filled) { // Probably temp
-            GL11.glDisable(GL11.GL_BLEND);
-
             renderUnfilledShape(guiShape, GL11.GL_LINE_STRIP);
         } else {
             renderTexture(guiShape.getTexture());
@@ -142,7 +137,7 @@ public class GuiRenderer {
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
 
-        if (!filled) { //TODO temp probablement
+        if (!filled) {
             if (guiComponent instanceof GuiShape)
                 renderUnfilledShape((GuiShape) guiComponent, GL11.GL_LINE_LOOP);
             else {
@@ -162,7 +157,8 @@ public class GuiRenderer {
             return;
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, guiTexture.getTextureID());
+        GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
+        GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
         shader.loadTransformation(
                 Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
         shader.loadAlpha(guiTexture.getAlpha());
