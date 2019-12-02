@@ -5,24 +5,16 @@ import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
-import java.awt.Color;
+import guis.presets.GuiBackground;
 
 public class GuiSquare extends GuiShape {
 
-    public GuiSquare(GuiInterface gui, String texture) {
-        super(gui, texture, new AspectConstraint(1f), new PixelConstraint(100), true);
+    public GuiSquare(GuiInterface gui, GuiBackground<?> background) {
+        super(gui, background, new AspectConstraint(1f), new PixelConstraint(100), true);
     }
 
-    public GuiSquare(GuiInterface gui, Color color) {
-        super(gui, color, new AspectConstraint(1f), new PixelConstraint(100), true);
-    }
-
-    public GuiSquare(GuiInterface gui, String texture, boolean filled) {
-        super(gui, texture, new AspectConstraint(1f), new PixelConstraint(100), filled);
-    }
-
-    public GuiSquare(GuiInterface gui, Color color, boolean filled) {
-        super(gui, color, new AspectConstraint(1f), new PixelConstraint(100), filled);
+    public GuiSquare(GuiInterface gui, GuiBackground<?> background, boolean filled) {
+        super(gui, background, new AspectConstraint(1f), new PixelConstraint(100), filled);
     }
 
     @Override

@@ -1,14 +1,14 @@
 package guis.constraints;
 
-import guis.GuiComponent;
+import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class RelativeConstraint extends GuiConstraints {
 
-    private GuiComponent relativeTo;
+    private GuiInterface relativeTo;
 
-    public RelativeConstraint(float relative, GuiComponent relativeTo) {
+    public RelativeConstraint(float relative, GuiInterface relativeTo) {
         super(ConstraintsType.BOTH, Constraints.RELATIVE);
 
         if (relative < -1 || relative > 1)
@@ -27,7 +27,7 @@ public class RelativeConstraint extends GuiConstraints {
         this.constraint = relative;
     }
 
-    public GuiComponent getRelativeTo() {
+    public GuiInterface getRelativeTo() {
         return this.relativeTo;
     }
 }

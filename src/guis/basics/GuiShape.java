@@ -2,21 +2,16 @@ package guis.basics;
 
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
-import java.awt.Color;
+import guis.presets.GuiBackground;
 
 public abstract class GuiShape extends GuiBasics {
 
     private boolean filled;
     private int     outlineWidth = 1;
 
-    public GuiShape(GuiInterface parent, String texture, GuiConstraints width, GuiConstraints height, boolean filled) {
-        super(parent, texture, width, height);
-
-        this.filled = filled;
-    }
-
-    public GuiShape(GuiInterface parent, Color color, GuiConstraints width, GuiConstraints height, boolean filled) {
-        super(parent, color, width, height);
+    public GuiShape(GuiInterface parent, GuiBackground<?> background, GuiConstraints width, GuiConstraints height,
+            boolean filled) {
+        super(parent, background, width, height);
 
         this.filled = filled;
     }

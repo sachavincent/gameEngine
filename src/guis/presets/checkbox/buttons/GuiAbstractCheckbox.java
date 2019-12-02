@@ -8,13 +8,13 @@ import inputs.callbacks.ClickCallback;
 import java.awt.Color;
 import util.MouseUtils;
 
-public abstract class GuiCheckbox extends GuiPreset {
+public abstract class GuiAbstractCheckbox extends GuiPreset {
 
     GuiBasics checkboxLayout;
     GuiBasics checkmark;
 
 
-    GuiCheckbox(GuiInterface parent, Color color, GuiConstraintsManager constraintsManager) {
+    GuiAbstractCheckbox(GuiInterface parent, Color color, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         addBackgroundComponent(color);

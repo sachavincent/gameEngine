@@ -93,4 +93,47 @@ public class GuiConstraintsManager {
         POSITION,
         BOTH
     }
+
+    public static class Builder {
+
+        private GuiConstraintsManager guiConstraintsManager;
+
+        public Builder() {
+            guiConstraintsManager = new GuiConstraintsManager();
+        }
+
+        public Builder setDefault() {
+            guiConstraintsManager.setDefault();
+
+            return this;
+        }
+
+        public Builder setHeightConstraint(GuiConstraints heightConstraint) {
+            guiConstraintsManager.setHeightConstraint(heightConstraint);
+
+            return this;
+        }
+
+        public Builder setWidthConstraint(GuiConstraints widthConstraint) {
+            guiConstraintsManager.setWidthConstraint(widthConstraint);
+
+            return this;
+        }
+
+        public Builder setxConstraint(GuiConstraints xConstraint) {
+            guiConstraintsManager.setxConstraint(xConstraint);
+
+            return this;
+        }
+
+        public Builder setyConstraint(GuiConstraints yConstraint) {
+            guiConstraintsManager.setyConstraint(yConstraint);
+
+            return this;
+        }
+
+        public GuiConstraintsManager create() {
+            return guiConstraintsManager;
+        }
+    }
 }

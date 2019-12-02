@@ -4,9 +4,10 @@ import guis.GuiInterface;
 import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
+import guis.presets.GuiBackground;
 import java.awt.Color;
 
-public class GuiCircularCheckbox extends GuiCheckbox {
+public class GuiCircularCheckbox extends GuiAbstractCheckbox {
 
     public GuiCircularCheckbox(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
         super(parent, colorBackground, constraintsManager);
@@ -14,7 +15,7 @@ public class GuiCircularCheckbox extends GuiCheckbox {
 
     @Override
     protected void addBackgroundComponent(Color background) {
-        checkboxLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
+        checkboxLayout = new GuiEllipse(this, new GuiBackground(background), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this), false);
     }
 

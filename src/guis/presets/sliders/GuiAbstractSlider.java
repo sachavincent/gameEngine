@@ -5,11 +5,12 @@ import guis.basics.GuiRectangle;
 import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
+import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import java.awt.Color;
 import util.MouseUtils;
 
-public abstract class GuiSlider extends GuiPreset {
+public abstract class GuiAbstractSlider extends GuiPreset {
 
     GuiShape sliderCursor;
 
@@ -28,7 +29,7 @@ public abstract class GuiSlider extends GuiPreset {
 //        setupCursor();
 //    }
 
-    GuiSlider(GuiInterface parent, Color color, Color colorMovable, GuiConstraintsManager constraintsManager) {
+    GuiAbstractSlider(GuiInterface parent, Color color, Color colorMovable, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         addBase(color);
@@ -49,7 +50,7 @@ public abstract class GuiSlider extends GuiPreset {
     public void setColorOfLeftBase(Color color) {
         removeBasic(sliderBaseLeftSide);
 
-        sliderBaseLeftSide = new GuiRectangle(this, color, new RelativeConstraint(value, this),
+        sliderBaseLeftSide = new GuiRectangle(this, new GuiBackground(color), new RelativeConstraint(value, this),
                 new RelativeConstraint(.32f, this));
 
         addBasic(sliderBaseLeftSide);
@@ -60,10 +61,11 @@ public abstract class GuiSlider extends GuiPreset {
 
 
     private void addBase(Color unmovableColor) {
-        sliderBaseLeftSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(0, this),
+        sliderBaseLeftSide = new GuiRectangle(this, new GuiBackground(unmovableColor), new RelativeConstraint(0, this),
                 new RelativeConstraint(.32f, this));
 
-        sliderBaseRightSide = new GuiRectangle(this, unmovableColor, new RelativeConstraint(1f, this),
+        sliderBaseRightSide = new GuiRectangle(this, new GuiBackground(unmovableColor),
+                new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
 
 

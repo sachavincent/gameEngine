@@ -3,6 +3,7 @@ package textures;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 
+import guis.presets.GuiBackground;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -15,13 +16,23 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import util.vector.Vector3f;
 
-public abstract class Texture {
+public abstract class Texture<E> {
 
     private int textureID, width, height;
 
     private Vector3f color;
 
-    public Texture(Color color) {
+    public Texture(GuiBackground<?> background) {
+        if (background.getBackground() instanceof Color)
+            instantiateWithColor((Color) background.getBackground());
+        else if (background.getBackground() instanceof String)
+            instantiateWithFile((String) background.getBackground());
+        else
+            throw new IllegalArgumentException("Type invalide.");
+
+    }
+
+    private void instantiateWithColor(Color color) {
         this.width = 8;
         this.height = 8;
 
@@ -31,8 +42,7 @@ public abstract class Texture {
         this.color = new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
     }
 
-    public Texture(String fileName) {
-
+    private void instantiateWithFile(String fileName) {
         IntBuffer width = BufferUtils.createIntBuffer(1);
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer comp = BufferUtils.createIntBuffer(1);
@@ -62,7 +72,7 @@ public abstract class Texture {
             float amount = Math.min(4f, GL11.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
             GL11.glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
         } else {
-
+            // TODO
         }
         STBImage.stbi_image_free(byteBuffer);
     }

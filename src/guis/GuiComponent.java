@@ -7,25 +7,25 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
+import guis.presets.GuiBackground;
 import inputs.callbacks.ClickCallback;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
 import inputs.callbacks.LeaveCallback;
 import inputs.callbacks.ReleaseCallback;
 import inputs.callbacks.ScrollCallback;
-import java.awt.Color;
 import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.MouseUtils;
 import util.vector.Vector2f;
 
-public abstract class GuiComponent implements GuiInterface {
+public abstract class GuiComponent<E> implements GuiInterface {
 
     private float x, y, finalWidth, width, finalHeight, height;
 
     private GuiInterface parent;
 
-    private GuiTexture texture;
+    private GuiTexture<?> texture;
 
     private ClickCallback   onClickCallback;
     private ReleaseCallback onReleaseCallback;
@@ -53,16 +53,10 @@ public abstract class GuiComponent implements GuiInterface {
             ((Gui) parent).addComponent(this);
     }
 
-    public GuiComponent(GuiInterface parent, String texture) {
+    public GuiComponent(GuiInterface parent, GuiBackground<?> texture) {
         this(parent);
 
-        this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height));
-    }
-
-    public GuiComponent(GuiInterface parent, Color color) {
-        this(parent);
-
-        this.texture = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width, height));
+        this.texture = new GuiTexture<E>(texture, new Vector2f(x, y), new Vector2f(width, height));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -135,7 +129,7 @@ public abstract class GuiComponent implements GuiInterface {
                     constraint = xConstraint.constraint();
                     switch (xConstraint.getConstraint()) {
                         case RELATIVE:
-                            GuiComponent relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
+                            GuiInterface relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
                                 this.x = relativeTo.getX() - this.width -
                                         (parent.getWidth() / 2 + this.width) * constraint * 2;
@@ -166,6 +160,9 @@ public abstract class GuiComponent implements GuiInterface {
 
                             this.x = constraint / DisplayManager.WIDTH;
                             break;
+                        case CENTER:
+                            this.x = parent.getX();
+                            break;
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
@@ -182,7 +179,7 @@ public abstract class GuiComponent implements GuiInterface {
                     constraint = yConstraint.constraint();
                     switch (yConstraint.getConstraint()) {
                         case RELATIVE:
-                            GuiComponent relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
+                            GuiInterface relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
                                 this.y = relativeTo.getY() - this.height -
                                         (parent.getHeight() / 2 + this.height) * constraint * 2;
@@ -214,6 +211,9 @@ public abstract class GuiComponent implements GuiInterface {
 
                             this.y = constraint / DisplayManager.HEIGHT;
 
+                            break;
+                        case CENTER:
+                            this.y = parent.getY();
                             break;
                         default:
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");

@@ -1,12 +1,12 @@
 package fontRendering;
 
+import fontMeshCreator.FontType;
+import fontMeshCreator.Text;
+import fontMeshCreator.TextMeshData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import fontMeshCreator.FontType;
-import fontMeshCreator.Text;
-import fontMeshCreator.TextMeshData;
 import renderEngine.Loader;
 
 public class TextMaster {
@@ -15,9 +15,10 @@ public class TextMaster {
     private static Map<FontType, List<Text>> texts = new HashMap<>();
     private static FontRenderer              renderer;
 
-    public static void init(Loader theLoader) {
+    public static void init(Loader loader) {
         renderer = new FontRenderer();
-        loader = theLoader;
+
+        TextMaster.loader = loader;
     }
 
     public static void render() {
@@ -25,27 +26,32 @@ public class TextMaster {
     }
 
     public static void loadText(Text text) {
+        if (text == null)
+            throw new IllegalArgumentException("Invalid text.");
+
         FontType font = text.getFont();
         TextMeshData data = font.loadText(text);
         int vao = loader.loadToVAO(data.getVertexPositions(), data.getTextureCoords());
         text.setMeshInfo(vao, data.getVertexCount());
-        List<Text> textBatch = texts.get(font);
-        if (textBatch == null) {
-            textBatch = new ArrayList<>();
-            texts.put(font, textBatch);
-        }
+        List<Text> textBatch = texts.computeIfAbsent(font, k -> new ArrayList<>());
         textBatch.add(text);
     }
 
     public static void removeText(Text text) {
+        if (text == null)
+            return;
+
         List<Text> textBatch = texts.get(text.getFont());
+        if (textBatch == null)
+            return;
+
         textBatch.remove(text);
         if (textBatch.isEmpty())
             texts.remove(text.getFont());
     }
 
     public static void removeText() {
-            texts = new HashMap<>();
+        texts = new HashMap<>();
     }
 
     public static void cleanUp() {

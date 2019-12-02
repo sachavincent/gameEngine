@@ -2,54 +2,37 @@ package guis.presets.buttons;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
-import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
-import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
+import guis.presets.GuiBackground;
 import java.awt.Color;
 
-public class GuiCircularButton extends GuiButton {
+public class GuiCircularButton extends GuiAbstractButton {
 
-    public GuiCircularButton(GuiInterface parent, String textureBackground, Text text,
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
-        super(parent, textureBackground, text, constraintsManager);
+        super(parent, background, text, constraintsManager);
     }
 
-    public GuiCircularButton(GuiInterface parent, Color colorBackground, Text text,
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background,
             GuiConstraintsManager constraintsManager) {
-        super(parent, colorBackground, text, constraintsManager);
-    }
-
-    public GuiCircularButton(GuiInterface parent, String textureBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, textureBackground, null, constraintsManager);
-    }
-
-    public GuiCircularButton(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
-        this(parent, colorBackground, null, constraintsManager);
+        this(parent, background, null, constraintsManager);
     }
 
     @Override
-    protected void addBackgroundComponent(String background) {
+    protected void addBackgroundComponent(GuiBackground<?> background) {
         buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
-        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-    }
-
-    @Override
-    protected void addBackgroundComponent(Color background) {
-        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        filterLayout = new GuiEllipse(this, Color.WHITE, new RelativeConstraint(1, this),
+        filterLayout = new GuiEllipse(this, new GuiBackground(Color.WHITE), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
     }
 
     @Override
     public void setBorder(Color color) {
-       addBorderLayout(new GuiEllipse(this, color, new RelativeConstraint(1, this), new RelativeConstraint(1, this), false));
+        addBorderLayout(new GuiEllipse(this, new GuiBackground(color), new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this), false));
     }
 
     @Override

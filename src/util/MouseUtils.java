@@ -6,10 +6,13 @@ import static util.Maths.isPosInBounds;
 
 import guis.Gui;
 import guis.GuiComponent;
+import guis.GuiEscapeMenu;
 import guis.basics.GuiEllipse;
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
@@ -62,20 +65,25 @@ public class MouseUtils {
                 guiComponent.getHeight());
     }
 
-    public static void setupListeners(List<Gui> guis) {
+    public static void setupListeners(final List<Gui> guis) {
         long window = DisplayManager.getWindow();
+
+        final List<Gui> guisClone = new ArrayList<>(guis);
+
+        guisClone.add(GuiEscapeMenu.getEscapeMenu());
+
         GLFW.glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 if (action == GLFW.GLFW_PRESS) {
-                    guis.stream()
+                    guisClone.stream()
                             .filter(Gui::isDisplayed)
                             .filter(MouseUtils::isCursorInGui)
                             .forEach(gui -> gui.getComponents().stream()
                                     .filter(MouseUtils::isCursorInGuiComponent)
                                     .forEach(GuiComponent::onClick));
-                } else if (action == GLFW_RELEASE) {
 
-                    guis.forEach(gui -> {
+                } else if (action == GLFW_RELEASE) {
+                    guisClone.forEach(gui -> {
                         List<GuiComponent> guiComponents = gui.getComponents()
                                 .stream().filter(GuiComponent::isClicked).collect(Collectors.toList());
 
@@ -104,16 +112,13 @@ public class MouseUtils {
         });
 
         GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
-            if (guis == null)
-                return;
-
-            guis.forEach(gui -> {
+            guisClone.forEach(gui -> {
                 List<GuiComponent> components = gui.getComponents();
                 if (components != null)
                     components.forEach(GuiComponent::onLeave);
             });
 
-            guis.stream()
+            guisClone.stream()
                     .filter(Gui::isDisplayed)
                     .filter(MouseUtils::isCursorInGui)
                     .forEach(gui -> {

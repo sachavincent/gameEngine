@@ -4,14 +4,10 @@ import guis.GuiInterface;
 import guis.basics.GuiRectangle;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
+import guis.presets.GuiBackground;
 import java.awt.Color;
 
-public class GuiRectangleSlider extends GuiSlider {
-//
-//    public GuiRectangleSlider(GuiInterface parent, String texture,
-//            GuiConstraintsManager constraintsManager) {
-//        super(parent, texture, constraintsManager);
-//    }
+public class GuiRectangleSlider extends GuiAbstractSlider {
 
     public GuiRectangleSlider(GuiInterface parent, Color color, Color colorMovable,
             GuiConstraintsManager constraintsManager) {
@@ -20,7 +16,7 @@ public class GuiRectangleSlider extends GuiSlider {
 
     @Override
     void addCursor(Color color) {
-        this.sliderCursor = new GuiRectangle(this, color, new RelativeConstraint(.08f, this),
+        this.sliderCursor = new GuiRectangle(this, new GuiBackground(color), new RelativeConstraint(.08f, this),
                 new RelativeConstraint(1, this));
     }
 

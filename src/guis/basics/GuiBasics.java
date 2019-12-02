@@ -4,7 +4,7 @@ import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import java.awt.Color;
+import guis.presets.GuiBackground;
 
 public abstract class GuiBasics extends GuiComponent {
 
@@ -34,14 +34,8 @@ public abstract class GuiBasics extends GuiComponent {
         update(constraints);
     }
 
-    public GuiBasics(GuiInterface parent, String texture, GuiConstraints width, GuiConstraints height) {
-        super(parent, texture);
-
-        initConstraints(width, height);
-    }
-
-    public GuiBasics(GuiInterface parent, Color color, GuiConstraints width, GuiConstraints height) {
-        super(parent, color);
+    public GuiBasics(GuiInterface parent, GuiBackground<?> background, GuiConstraints width, GuiConstraints height) {
+        super(parent, background);
 
         initConstraints(width, height);
     }

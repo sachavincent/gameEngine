@@ -1,5 +1,7 @@
 package textures;
 
+import guis.presets.GuiBackground;
+
 public class ModelTexture extends Texture {
 
     private float shineDamper = 1, reflectivity = 0;
@@ -10,7 +12,7 @@ public class ModelTexture extends Texture {
     private int numberOfRows = 1;
 
     public ModelTexture(String pathFile) {
-        super(pathFile);
+        super(new GuiBackground(pathFile));
     }
 
     public float getShineDamper() {

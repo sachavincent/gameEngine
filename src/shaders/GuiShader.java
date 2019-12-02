@@ -26,16 +26,20 @@ public class GuiShader extends ShaderProgram {
         super.loadMatrix(location_transformationMatrix, matrix);
     }
 
-    public void loadGuis(List<Gui> guis) {
-        for (Gui gui : guis) {
-            super.loadFloat(location_guiWidth, gui.getWidth() * DisplayManager.WIDTH);
-            super.loadFloat(location_guiHeight, gui.getHeight() * DisplayManager.HEIGHT);
-            super.loadFloat(location_radius, Gui.CORNER_RADIUS);
-        }
-    }
-
     public void loadAlpha(float alpha) {
         super.loadFloat(location_alpha, alpha);
+    }
+
+    public void loadRadius(float radius) {
+        super.loadFloat(location_radius, radius);
+    }
+
+    public void loadWidth(float width) {
+        super.loadFloat(location_guiWidth, width * DisplayManager.WIDTH);
+    }
+
+    public void loadHeight(float height) {
+        super.loadFloat(location_guiHeight, height * DisplayManager.HEIGHT);
     }
 
     public void loadColor(Vector3f color) {

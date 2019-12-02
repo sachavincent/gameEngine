@@ -1,11 +1,8 @@
 package engineTester;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.glfwGetKey;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static renderEngine.DisplayManager.FPS;
 
 import entities.Camera;
@@ -14,6 +11,8 @@ import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
+import guis.GuiEscapeMenu;
+import guis.GuiEscapeMenu.MenuButton;
 import guis.basics.GuiBasics;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiSquare;
@@ -22,6 +21,8 @@ import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
+import guis.presets.GuiBackground;
+import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.checkbox.buttons.GuiRectangleCheckbox;
 import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
@@ -32,6 +33,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import language.Language;
+import language.TextConverter;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -106,6 +109,10 @@ public class MainGameLoop {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
+
+        TextConverter.loadDefaultLanguage();
+//        TextConverter.loadLanguage(Language.FRENCH);
+
         Loader loader = new Loader();
 
         TextMaster.init(loader);
@@ -194,7 +201,7 @@ public class MainGameLoop {
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
 
-        Gui right_gui = new Gui(Color.RED);
+        Gui right_gui = new Gui(new GuiBackground(new Color(42, 42, 42)));
 
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setDefault();
@@ -206,7 +213,7 @@ public class MainGameLoop {
         constraints.setxConstraint(new SideConstraint(Side.RIGHT));
         right_gui.setConstraints(constraints);
 
-        GuiBasics square = new GuiSquare(right_gui, Color.BLUE);
+        GuiBasics square = new GuiSquare(right_gui, new GuiBackground(new Color(109, 109, 109)));
         square.setHeightConstraint(new RelativeConstraint(0.24f));
         square.setYConstraint(new RelativeConstraint(0f));
         square.setOnClick(() -> {
@@ -220,12 +227,13 @@ public class MainGameLoop {
 //        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.GREEN, Color.BLACK, constraints2);
 
 
-        GuiRectangle rect = new GuiRectangle(right_gui, Color.GREEN, new PixelConstraint(100),
+        GuiRectangle rect = new GuiRectangle(right_gui, new GuiBackground(Color.GREEN), new PixelConstraint(100),
                 new PixelConstraint(38));
         GuiRectangleCheckbox gu = new GuiRectangleCheckbox(right_gui, Color.BLACK, constraints2);
         gu.setOutlineWidth(5);
 
         gu.setCheckmark(rect);
+//
 //        slider.setColorOfLeftBase(Color.GREEN);
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
 //                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
@@ -241,6 +249,43 @@ public class MainGameLoop {
 //       new GuiOval(right_gui, Color.DARK_GRAY, new RelativeConstraint(1f), new RelativeConstraint(1f));
 
         guis.add(right_gui);
+
+//
+//        Gui menuGui = new Gui(new GuiBackground(new Color(109, 109, 109, 80)));
+//
+//
+//        GuiConstraintsManager menuConstraints = new GuiConstraintsManager();
+//        menuConstraints.setDefault();
+//
+//        menuConstraints.setHeightConstraint(new RelativeConstraint(0.9f));
+//        menuConstraints.setWidthConstraint(new RelativeConstraint(0.2f));
+//        menuGui.setConstraints(menuConstraints);
+
+
+//        GuiConstraintsManager b1Constraints = new GuiConstraintsManager();
+//        b1Constraints.setDefault();
+//        b1Constraints.setWidthConstraint(new RelativeConstraint(0.7f, menuGui));
+//        b1Constraints.setHeightConstraint(new AspectConstraint(0.25f));
+//        b1Constraints.setyConstraint(new RelativeConstraint(0.25f));
+//        GuiRectangleButton b1 = new GuiRectangleButton(menuGui, new GuiBackground(new Color(109, 109, 109, 100)),
+//                new Text("Resume", .7f, font, new Color(72, 72, 72)), b1Constraints);
+//
+//        GuiConstraintsManager b2Constraints = new GuiConstraintsManager();
+//        b2Constraints.setDefault();
+//        b2Constraints.setWidthConstraint(new RelativeConstraint(0.7f, menuGui));
+//        b2Constraints.setHeightConstraint(new AspectConstraint(0.25f));
+//        b2Constraints.setyConstraint(new RelativeConstraint(0.25f, b1));
+//        GuiRectangleButton b2 = new GuiRectangleButton(menuGui, new GuiBackground(new Color(109, 109, 109, 100)),
+//                new Text("Save & Quit", .7f, font, new Color(72, 72, 72)), b2Constraints);
+
+//        GuiEscapeMenu.instantiateEscapeMenu(new GuiBackground(new Color(109, 109, 109, 80)));
+        new GuiEscapeMenu.Builder()
+                .setBackground(new GuiBackground(new Color(109, 109, 109, 80)))
+                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE, new GuiBackground(new Color(109, 109, 109, 100)))
+                .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
+                        new GuiBackground(new Color(109, 109, 109, 100)))
+                //.setFont
+                .create();
 
         MouseUtils.setupListeners(guis);
         KeyboardUtils.setupListeners(guis);
@@ -264,8 +309,8 @@ public class MainGameLoop {
                 unprocessed -= frameCap;
                 canRender = true;
 
-                if (glfwGetKey(DisplayManager.getWindow(), GLFW_KEY_ESCAPE) == GL_TRUE)
-                    DisplayManager.closeDisplay();
+//                if (glfwGetKey(DisplayManager.getWindow(), GLFW_KEY_ESCAPE) == GL_TRUE)
+//                    DisplayManager.closeDisplay();
 
 
                 DisplayManager.updateDisplay();
@@ -355,8 +400,7 @@ public class MainGameLoop {
 
                 waterRenderer.render(waters, camera, sun);
 
-                TextMaster.render();
-
+                TextMaster.render();//TODO: Handle double rendering w/ GuiRenderer
             }
         }
 

@@ -2,9 +2,11 @@ package renderEngine;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import fontRendering.FontRenderer;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiComponent;
+import guis.GuiEscapeMenu;
 import guis.GuiInterface;
 import guis.GuiTexture;
 import guis.basics.GuiEllipse;
@@ -46,6 +48,8 @@ public class GuiRenderer {
     }
 
     public void render(List<Gui> guis) {
+        guis.add(GuiEscapeMenu.getEscapeMenu());
+
         shader.start();
 
         if (quad == null)
@@ -64,6 +68,7 @@ public class GuiRenderer {
                 .filter(Gui::isDisplayed)
                 .forEach(gui -> {
                     renderQuad(gui, true);
+
                     gui.getComponents()
                             .stream().filter(GuiComponent::isDisplayed)
                             .forEach(guiComponent -> {
@@ -72,21 +77,32 @@ public class GuiRenderer {
                                     this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
 
                                     renderCircle(guiEllipse, guiEllipse.isFilled());
-                                } else if (guiComponent instanceof GuiText) {
-                                    GuiText guiText = (GuiText) guiComponent;
-                                    guiText.getText().remove();
-
-                                    TextMaster.loadText(guiText.getText());
                                 } else if (guiComponent instanceof GuiShape) {
                                     GuiShape guiShape = (GuiShape) guiComponent;
                                     renderQuad(guiShape, guiShape.isFilled());
+                                } else if (guiComponent instanceof GuiText) {
+                                    GuiText guiText = (GuiText) guiComponent;
+
+                                    TextMaster.removeText(guiText.getText());
+                                    TextMaster.loadText(guiText.getText());
                                 } else
                                     renderQuad(guiComponent, true);
                             });
-
                     gui.animate();
                 });
-        shader.loadGuis(guis);
+        guis.stream()
+                .filter(gui -> !gui.isDisplayed())
+                .forEach(gui -> {
+                    gui.getComponents()
+                            .stream().filter(guiComponent -> !guiComponent.isDisplayed())
+                            .forEach(guiComponent -> {
+                                if (guiComponent instanceof GuiText) {
+                                    GuiText guiText = (GuiText) guiComponent;
+
+                                    TextMaster.removeText(guiText.getText());
+                                }
+                            });
+                });
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
@@ -109,7 +125,6 @@ public class GuiRenderer {
 
             GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, quad.getVertexCount());
         }
-
     }
 
     private void renderUnfilledShape(GuiShape guiShape, int renderingMode) {
@@ -122,6 +137,7 @@ public class GuiRenderer {
             textureScale.x -= (float) width / DisplayManager.WIDTH;
 
             textureScale.y -= (float) width / DisplayManager.HEIGHT;
+
             renderTexture(guiShape.getTexture());
 
             textureScale.x = x;
@@ -129,6 +145,8 @@ public class GuiRenderer {
 
             GL11.glDrawArrays(renderingMode, 0, quad.getVertexCount());
         });
+
+        glEnable(GL_BLEND);
     }
 
     private void renderQuad(GuiInterface guiComponent, boolean filled) {
@@ -159,10 +177,17 @@ public class GuiRenderer {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
         GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
+
         shader.loadTransformation(
                 Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
+
+        shader.loadWidth(guiTexture.getScale().x);
+        shader.loadHeight(guiTexture.getScale().y);
+
         shader.loadAlpha(guiTexture.getAlpha());
         shader.loadColor(guiTexture.getColor());
+
+        shader.loadRadius(Gui.CORNER_RADIUS);
     }
 
     private RawModel drawFilledCircle() {

@@ -25,8 +25,12 @@ public class TextMeshCreator {
     }
 
     private List<Line> createStructure(Text text) {
-        char[] chars = text.getTextString().toCharArray();
         List<Line> lines = new ArrayList<>();
+
+        if (text == null)
+            return lines;
+
+        char[] chars = text.getTextString().toCharArray();
         Line currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineSize());
         Word currentWord = new Word(text.getFontSize());
         for (char c : chars) {

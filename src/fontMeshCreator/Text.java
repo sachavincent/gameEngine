@@ -2,6 +2,7 @@ package fontMeshCreator;
 
 import fontRendering.TextMaster;
 import java.awt.Color;
+import language.LanguageAssets;
 import util.vector.Vector2f;
 import util.vector.Vector3f;
 
@@ -47,7 +48,7 @@ public class Text {
      * @param centered - whether the text should be centered or not.
      */
     public Text(String text, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
-        this.textString = text;
+        this.textString = LanguageAssets.getInstance().getWord(text);
         this.fontSize = fontSize;
         this.font = font;
         this.position = position;
@@ -58,7 +59,7 @@ public class Text {
     }
 
     public Text(String text, float fontSize, FontType font, Color color) {
-        this.textString = text;
+        this.textString = LanguageAssets.getInstance().getWord(text);
         this.fontSize = fontSize;
         this.font = font;
 

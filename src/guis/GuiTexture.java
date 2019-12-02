@@ -1,34 +1,51 @@
 package guis;
 
+import guis.presets.GuiBackground;
 import java.awt.Color;
 import textures.Texture;
 import util.vector.Vector2f;
 
-public class GuiTexture extends Texture {
+public class GuiTexture<E> extends Texture {
 
     private Vector2f position, scale;
 
     private float finalAlpha, alpha;
 
-    GuiTexture(String file, Vector2f position, Vector2f scale) {
-        super(file);
+    public GuiTexture(GuiBackground<?> background, GuiInterface guiInterface) {
+        this(background, new Vector2f(guiInterface.getX(), guiInterface.getY()),
+                new Vector2f(guiInterface.getWidth(), guiInterface.getHeight()));
+    }
+
+    public GuiTexture(GuiBackground<?> background, Vector2f position, Vector2f scale) {
+        super(background);
 
         this.position = position;
         this.scale = scale;
 
-        this.alpha = 1f;
-        this.finalAlpha = 1f;
+        if (background.getBackground() instanceof String)
+            this.alpha = 1f;
+        else if (background.getBackground() instanceof Color)
+            this.alpha = ((Color) background.getBackground()).getAlpha() / 255f;
+        else
+            throw new IllegalArgumentException("Type invalide");
+
+        this.finalAlpha = this.alpha;
     }
 
-    GuiTexture(Color color, Vector2f position, Vector2f scale) {
-        super(color);
+//    GuiTexture(String file) {
+//        super(file);
+//
+//        this.alpha = 1f;
+//        this.finalAlpha = this.alpha;
+//    }
+//
+//    GuiTexture(Color color) {
+//        super(color);
+//
+//        this.alpha = color.getAlpha() / 255f;
+//        this.finalAlpha = this.alpha;
+//    }
 
-        this.position = position;
-        this.scale = scale;
-
-        this.alpha = 1f;
-        this.finalAlpha = 1f;
-    }
 
     public float getAlpha() {
         return this.alpha;
@@ -48,6 +65,10 @@ public class GuiTexture extends Texture {
     public void setFinalAlpha(float finalAlpha) {
         this.finalAlpha = Float.min(finalAlpha, 1f);
         this.alpha = this.finalAlpha;
+    }
+
+    public void setPosition(Vector2f position) {
+        this.position = position;
     }
 
     public Vector2f getPosition() {

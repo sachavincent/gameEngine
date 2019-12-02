@@ -2,15 +2,14 @@ package guis.basics;
 
 import fontMeshCreator.Text;
 import guis.GuiInterface;
-import guis.constraints.GuiConstraints;
-import guis.constraints.GuiConstraintsManager;
+import guis.presets.GuiBackground;
 
 public class GuiText extends GuiBasics {
 
     private Text text;
 
     public GuiText(GuiInterface gui, Text text) {
-        super(gui, text == null ? null : text.getAWTColor(), null, null);
+        super(gui, new GuiBackground(text == null ? null : text.getAWTColor()), null, null);
 
         this.text = text;
     }

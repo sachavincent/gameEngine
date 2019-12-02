@@ -8,6 +8,7 @@ import guis.basics.GuiBasics;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
+import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import inputs.callbacks.ClickCallback;
 import java.awt.Color;
@@ -15,7 +16,7 @@ import java.util.List;
 import javax.naming.SizeLimitExceededException;
 import util.vector.Vector2f;
 
-public abstract class GuiButton extends GuiPreset {
+public abstract class GuiAbstractButton extends GuiPreset {
 
     private final static float FILTER_TRANSPARENCY = 0.2f;
     private final static float BUTTON_SHRINK_RATIO = 0.05f;
@@ -26,26 +27,25 @@ public abstract class GuiButton extends GuiPreset {
 
     private GuiText text;
 
-    GuiButton(GuiInterface parent, Color color, Text text, GuiConstraintsManager constraintsManager) {
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text,
+            GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
-        addBackgroundComponent(color);
+        addBackgroundComponent(background);
         setupText(text);
         setupComponents();
     }
 
-    GuiButton(GuiInterface parent, String textureBackground, Text text, GuiConstraintsManager constraintsManager) {
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
-        addBackgroundComponent(textureBackground);
-        setupText(text);
+        addBackgroundComponent(background);
         setupComponents();
     }
 
     private void setupComponents() {
         this.filterLayout.getTexture().setFinalAlpha(FILTER_TRANSPARENCY); // Filter on hover
         this.filterLayout.getTexture().setAlpha(0f); // Invisible by default
-
 
         setListeners();
 
@@ -56,9 +56,16 @@ public abstract class GuiButton extends GuiPreset {
         addBasic(this.filterLayout);
     }
 
-    protected abstract void addBackgroundComponent(String background);
+    public void setupText(Text text) {
+        if (this.text != null)
+            removeBasic(this.text);
 
-    protected abstract void addBackgroundComponent(Color background);
+        setText(text);
+
+        addBasic(this.text);
+    }
+
+    protected abstract void addBackgroundComponent(GuiBackground<?> background);
 
     private void setListeners() {
         buttonLayout.setOnClick(() -> {
@@ -98,23 +105,26 @@ public abstract class GuiButton extends GuiPreset {
         if (this.isClicked()) {
             float scale = 1 - BUTTON_SHRINK_RATIO;
             this.buttonLayout.scale(scale);
+            this.filterLayout.scale(scale);
 
             if (this.borderLayout != null)
                 this.borderLayout.scale(scale);
         } else {
             this.buttonLayout.resetScale();
+            this.filterLayout.resetScale();
 
             if (this.borderLayout != null)
                 this.borderLayout.resetScale();
         }
 
         this.buttonLayout.updateTexturePosition();
+        this.filterLayout.updateTexturePosition();
 
         if (this.borderLayout != null)
             this.borderLayout.updateTexturePosition();
     }
 
-    private void setupText(Text text) {
+    private void setText(Text text) {
         if (text == null)
             return;
 
@@ -155,8 +165,9 @@ public abstract class GuiButton extends GuiPreset {
                 return;
             }
         }
+
         text.setPosition(new Vector2f(buttonLayout.getX() - line.getLineLength(),
-                buttonLayout.getY() - textHeight / 2));
+                -buttonLayout.getY() - textHeight / 2));
 
         this.text = new GuiText(this, text);
     }
@@ -186,4 +197,8 @@ public abstract class GuiButton extends GuiPreset {
         buttonLayout.setOnClick(onClickCallback);
     }
 
+    public enum ButtonType {
+        RECTANGLE,
+        CIRCULAR
+    }
 }

@@ -1,11 +1,12 @@
 package inputs;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_H;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 
 import guis.Gui;
-import guis.transitions.Transition;
+import guis.GuiEscapeMenu;
 import java.util.List;
 import renderEngine.DisplayManager;
 
@@ -15,20 +16,15 @@ public class KeyboardUtils {
         long window = DisplayManager.getWindow();
 
         glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_H && action == GLFW_PRESS) {
-                guis.forEach(gui -> {
-                    if (gui.hasTransitions()) {
-                        if (gui.getTransitions().stream().allMatch(Transition::isDone))
-                            gui.hide();
-                        else
-                            gui.show();
-                    } else {
-                        if (gui.isDisplayed())
-                            gui.hide();
-                        else
-                            gui.show();
-                    }
-                });
+            if (action == GLFW_PRESS) {
+                switch (key) {
+                    case GLFW_KEY_H:
+                        guis.forEach(Gui::showGui);
+                        break;
+                    case GLFW_KEY_ESCAPE:
+                        Gui.showGui(GuiEscapeMenu.getEscapeMenu());
+                        break;
+                }
             }
         });
     }

@@ -4,6 +4,7 @@ import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
+import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import guis.transitions.Transition;
 import java.awt.Color;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -33,29 +35,25 @@ public class Gui implements GuiInterface {
 
     private boolean focused, displayed;
 
-    public Gui(String texture) {
-        this.background = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width,
+    public Gui(GuiBackground<?> background) {
+        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
                 height));
 
         this.components = new LinkedList<>();
         this.transitions = new LinkedList<>();
     }
 
-
-    public Gui(Color color) {
-        this.background = new GuiTexture(color, new Vector2f(x, y), new Vector2f(width,
+    public void setBackground(GuiBackground background) {
+        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
                 height));
-
-        this.components = new LinkedList<>();
-        this.transitions = new LinkedList<>();
     }
 
     public Gui(int r, int g, int b) {
-        this(new Color(r, g, b));
+        this(new GuiBackground(new Color(r, g, b)));
     }
 
     public Gui(float r, float g, float b) {
-        this(new Color(r, g, b));
+        this(new GuiBackground(new Color(r, g, b)));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -221,6 +219,8 @@ public class Gui implements GuiInterface {
         this.transitions.forEach(transition -> transition.showTransition(this));
         updateTexturePosition();
 
+        components.forEach(guiComponent -> guiComponent.setDisplayed(true));
+
         this.displayed = true;
     }
 
@@ -229,6 +229,8 @@ public class Gui implements GuiInterface {
             return;
 
         this.transitions.forEach(transition -> transition.setDone(false));
+
+        components.forEach(guiComponent -> guiComponent.setDisplayed(false));
 
         this.displayed = false;
     }
@@ -252,14 +254,14 @@ public class Gui implements GuiInterface {
 
         this.components.remove(guiComponent);
     }
-
-    @Deprecated
-    public void addComponent(GuiPreset guiPreset) {
-        if (guiPreset == null || guiPreset.getBasics() == null)
-            return;
-
-        guiPreset.getBasics().forEach(this::addComponent);
-    }
+//
+//    @Deprecated
+//    public void addComponent(GuiPreset guiPreset) {
+//        if (guiPreset == null || guiPreset.getBasics() == null)
+//            return;
+//
+//        guiPreset.getBasics().forEach(this::addComponent);
+//    }
 
     public void animate() {
         if (!isDisplayed())
@@ -445,5 +447,19 @@ public class Gui implements GuiInterface {
 
     public boolean hasTransitions() {
         return !this.transitions.isEmpty();
+    }
+
+    public static void showGui(Gui gui) {
+        if (gui.hasTransitions()) {
+            if (gui.getTransitions().stream().allMatch(Transition::isDone))
+                gui.hide();
+            else
+                gui.show();
+        } else {
+            if (gui.isDisplayed())
+                gui.hide();
+            else
+                gui.show();
+        }
     }
 }
