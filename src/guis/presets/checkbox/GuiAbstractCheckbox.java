@@ -1,10 +1,9 @@
-package guis.presets.checkbox.buttons;
+package guis.presets.checkbox;
 
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiPreset;
-import inputs.callbacks.ClickCallback;
 import java.awt.Color;
 import util.MouseUtils;
 
@@ -40,7 +39,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
     }
 
     private void setListeners() {
-        checkboxLayout.setOnClick(() -> {
+        setOnClick(() -> {
             System.out.println("Click");
 
             setClicked(true);
@@ -48,7 +47,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
             updateTexturesOnClick();
         });
 
-        checkboxLayout.setOnRelease(() -> {
+        setOnRelease(() -> {
             System.out.println("Release");
 
             if (isClicked() && MouseUtils.isCursorInGuiComponent(this) && checkmark != null)
@@ -56,34 +55,43 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
 
             setClicked(false);
 
+            updateTexturesOnClick();
+        });
+
+        setOnPress(() -> {
+            System.out.println("Press");
+
+            setClicked(false);
 
             updateTexturesOnClick();
         });
 
-        checkboxLayout.setOnHover(() -> {
+        setOnHover(() -> {
 //            System.out.println("Hover");
         });
 
-        checkboxLayout.setOnLeave(() -> {
+        setOnLeave(() -> {
             System.out.println("Leave");
             checkboxLayout.updateTexturePosition();
         });
 
-        checkboxLayout.setOnEnter(() -> {
+        setOnEnter(() -> {
             System.out.println("Enter");
             checkboxLayout.updateTexturePosition();
         });
     }
 
     private void updateTexturesOnClick() {
+        super.updateTexturePosition();
+
         this.checkboxLayout.updateTexturePosition();
 
         if (this.checkmark != null)
             this.checkmark.updateTexturePosition();
     }
-
-    @Override
-    public void setOnClick(ClickCallback onClickCallback) {
-        checkboxLayout.setOnClick(onClickCallback);
-    }
+//
+//    @Override
+//    public void setOnClick(ClickCallback onClickCallback) {
+//        checkboxLayout.setOnClick(onClickCallback);
+//    }
 }

@@ -23,7 +23,7 @@ import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiBackground;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.presets.checkbox.buttons.GuiRectangleCheckbox;
+import guis.presets.checkbox.GuiRectangleCheckbox;
 import guis.transitions.FadeTransition;
 import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
@@ -33,7 +33,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import language.Language;
 import language.TextConverter;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL;
@@ -201,38 +200,38 @@ public class MainGameLoop {
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
 
-        Gui right_gui = new Gui(new GuiBackground(new Color(42, 42, 42)));
-
-        GuiConstraintsManager constraints = new GuiConstraintsManager();
-        constraints.setDefault();
-
-        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(400));
-//        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT));
-        constraints.setWidthConstraint(new RelativeConstraint(0.1f));
-        constraints.setHeightConstraint(new RelativeConstraint(0.75f));
-        constraints.setxConstraint(new SideConstraint(Side.RIGHT));
-        right_gui.setConstraints(constraints);
-
-        GuiBasics square = new GuiSquare(right_gui, new GuiBackground(new Color(109, 109, 109)));
-        square.setHeightConstraint(new RelativeConstraint(0.24f));
-        square.setYConstraint(new RelativeConstraint(0f));
-        square.setOnClick(() -> {
-            System.out.println("test");
-        });
-
-        GuiConstraintsManager constraints2 = new GuiConstraintsManager();
-        constraints2.setWidthConstraint(new PixelConstraint(100));
-        constraints2.setHeightConstraint(new PixelConstraint(100));
-
-//        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.GREEN, Color.BLACK, constraints2);
-
-
-        GuiRectangle rect = new GuiRectangle(right_gui, new GuiBackground(Color.GREEN), new PixelConstraint(100),
-                new PixelConstraint(38));
-        GuiRectangleCheckbox gu = new GuiRectangleCheckbox(right_gui, Color.BLACK, constraints2);
-        gu.setOutlineWidth(5);
-
-        gu.setCheckmark(rect);
+//        Gui right_gui = new Gui(new GuiBackground(new Color(42, 42, 42)));
+//
+//        GuiConstraintsManager constraints = new GuiConstraintsManager();
+//        constraints.setDefault();
+//
+//        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(400));
+////        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT));
+//        constraints.setWidthConstraint(new RelativeConstraint(0.1f));
+//        constraints.setHeightConstraint(new RelativeConstraint(0.75f));
+//        constraints.setxConstraint(new SideConstraint(Side.RIGHT));
+//        right_gui.setConstraints(constraints);
+//
+//        GuiBasics square = new GuiSquare(right_gui, new GuiBackground(new Color(109, 109, 109)));
+//        square.setHeightConstraint(new RelativeConstraint(0.24f));
+//        square.setYConstraint(new RelativeConstraint(0f));
+//        square.setOnClick(() -> {
+//            System.out.println("test");
+//        });
+//
+//        GuiConstraintsManager constraints2 = new GuiConstraintsManager();
+//        constraints2.setWidthConstraint(new PixelConstraint(100));
+//        constraints2.setHeightConstraint(new PixelConstraint(100));
+//
+////        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.GREEN, Color.BLACK, constraints2);
+//
+//
+//        GuiRectangle rect = new GuiRectangle(right_gui, new GuiBackground(Color.GREEN), new PixelConstraint(100),
+//                new PixelConstraint(38));
+//        GuiRectangleCheckbox gu = new GuiRectangleCheckbox(right_gui, Color.BLACK, constraints2);
+//        gu.setOutlineWidth(5);
+//
+//        gu.setCheckmark(rect);
 //
 //        slider.setColorOfLeftBase(Color.GREEN);
 //        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
@@ -248,7 +247,7 @@ public class MainGameLoop {
 //        System.out.println(guiCircle);
 //       new GuiOval(right_gui, Color.DARK_GRAY, new RelativeConstraint(1f), new RelativeConstraint(1f));
 
-        guis.add(right_gui);
+//        guis.add(right_gui);
 
 //
 //        Gui menuGui = new Gui(new GuiBackground(new Color(109, 109, 109, 80)));
@@ -279,14 +278,18 @@ public class MainGameLoop {
 //                new Text("Save & Quit", .7f, font, new Color(72, 72, 72)), b2Constraints);
 
 //        GuiEscapeMenu.instantiateEscapeMenu(new GuiBackground(new Color(109, 109, 109, 80)));
-        new GuiEscapeMenu.Builder()
+        GuiEscapeMenu z = new GuiEscapeMenu.Builder()
                 .setBackground(new GuiBackground(new Color(109, 109, 109, 80)))
-                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE, new GuiBackground(new Color(109, 109, 109, 100)))
+                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE, new GuiBackground(new Color(109, 109, 109, 100)),
+                        new SlidingTransition(900, SlidingDirection.RIGHT))
                 .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
                         new GuiBackground(new Color(109, 109, 109, 100)))
-                //.setFont
+                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE, new GuiBackground(new Color(109, 109, 109, 100)))
+                .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
+                        new GuiBackground(new Color(109, 109, 109, 100)))
+                //.setFont TODO
                 .create();
-
+//        z.setTransitions(new SlidingTransition(900, SlidingDirection.RIGHT));
         MouseUtils.setupListeners(guis);
         KeyboardUtils.setupListeners(guis);
 

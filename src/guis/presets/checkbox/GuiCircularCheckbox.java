@@ -1,4 +1,4 @@
-package guis.presets.checkbox.buttons;
+package guis.presets.checkbox;
 
 import guis.GuiInterface;
 import guis.basics.GuiEllipse;

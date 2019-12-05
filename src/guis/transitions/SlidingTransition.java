@@ -2,13 +2,14 @@ package guis.transitions;
 
 import static renderEngine.DisplayManager.FPS;
 
-import guis.Gui;
+import guis.GuiInterface;
 
 public class SlidingTransition extends Transition {
 
     private final static float DISTANCE = 0.25f;
 
     private SlidingDirection direction;
+    //TODO: Trigger (powerpoint like : after component, same time as component, ...)
 
     public SlidingTransition(int length, SlidingDirection direction) {
         super(length);
@@ -21,7 +22,7 @@ public class SlidingTransition extends Transition {
     }
 
     @Override
-    public void showTransition(Gui gui) {
+    public void showTransition(GuiInterface gui) {
         switch (direction) {
             case RIGHT:
                 gui.setFinalX(gui.getX());
@@ -50,7 +51,7 @@ public class SlidingTransition extends Transition {
     }
 
     @Override
-    public boolean animate(Gui gui) {
+    public boolean animate(GuiInterface gui) {
         switch (direction) {
             case RIGHT:
                 if (gui.getX() < gui.getFinalX()) {

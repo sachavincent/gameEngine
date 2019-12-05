@@ -1,6 +1,6 @@
 package guis.transitions;
 
-import guis.Gui;
+import guis.GuiInterface;
 
 public abstract class Transition {
 
@@ -34,7 +34,7 @@ public abstract class Transition {
         this.done = done;
     }
 
-    public abstract void showTransition(Gui gui);
+    public abstract void showTransition(GuiInterface gui);
 
-    public abstract boolean animate(Gui gui);
+    public abstract boolean animate(GuiInterface gui);
 }

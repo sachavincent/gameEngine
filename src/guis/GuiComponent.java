@@ -8,12 +8,8 @@ import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiBackground;
-import inputs.callbacks.ClickCallback;
-import inputs.callbacks.EnterCallback;
-import inputs.callbacks.HoverCallback;
-import inputs.callbacks.LeaveCallback;
-import inputs.callbacks.ReleaseCallback;
-import inputs.callbacks.ScrollCallback;
+import guis.presets.GuiPreset;
+import inputs.callbacks.*;
 import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.MouseUtils;
@@ -21,7 +17,14 @@ import util.vector.Vector2f;
 
 public abstract class GuiComponent<E> implements GuiInterface {
 
-    private float x, y, finalWidth, width, finalHeight, height;
+    private float x, y;
+
+    private float width, height;
+
+    private float startX, startY;
+    private float finalX, finalY;
+
+    private float finalWidth, finalHeight;
 
     private GuiInterface parent;
 
@@ -33,6 +36,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
     private LeaveCallback   onLeaveCallback;
     private HoverCallback   onHoverCallback;
     private ScrollCallback  onScrollCallback;
+    private PressCallback   onPressCallback;
 
     private boolean displayed;
 
@@ -261,6 +265,20 @@ public abstract class GuiComponent<E> implements GuiInterface {
         onReleaseCallback.onRelease();
     }
 
+    /**
+     * Click + release within component
+     */
+    public void onPress() {
+        if (onPressCallback == null) {
+            System.out.println("null");
+            return;
+        }
+
+        clicked = false;
+
+        onPressCallback.onPress();
+    }
+
     private boolean cursorInComponent;
 
     public void onEnter() {
@@ -309,6 +327,10 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.onClickCallback = onClickCallback;
     }
 
+    public void setOnPress(PressCallback onPressCallback) {
+        this.onPressCallback = onPressCallback;
+    }
+
     public void setOnRelease(ReleaseCallback onReleaseCallback) {
         this.onReleaseCallback = onReleaseCallback;
     }
@@ -350,7 +372,8 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     public void setX(float x) {
-        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()))
+        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
+                getParentGui(this).areTransitionsOfComponentDone(this))
             throw new IllegalArgumentException("New coordinates don't belong in parent");
 
         this.x = x;
@@ -359,7 +382,11 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     public void setY(float y) {
-        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()))
+        if (!getParentGui(this).areTransitionsOfComponentDone(this))
+            return;
+
+        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
+                getParentGui(this).areTransitionsOfComponentDone(this))
             throw new IllegalArgumentException("New coordinates don't belong in parent");
 
         this.y = y;
@@ -402,6 +429,13 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.height = finalHeight;
     }
 
+    protected static Gui getParentGui(GuiComponent guiComponent) {
+        if (guiComponent.getParent() instanceof Gui)
+            return (Gui) guiComponent.getParent();
+
+        return getParentGui((GuiComponent) guiComponent.getParent());
+    }
+
     public GuiInterface getParent() {
         return this.parent;
     }
@@ -426,21 +460,126 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     @Override
+    public float getStartX() {
+        return 0;
+    }
+
+    @Override
+    public float getStartY() {
+        return 0;
+    }
+
+    @Override
+    public float getFinalWidth() {
+        return 0;
+    }
+
+    @Override
+    public float getFinalHeight() {
+        return 0;
+    }
+
+    @Override
+    public float getFinalX() {
+        return this.finalX;
+    }
+
+    @Override
+    public float getFinalY() {
+        return this.finalY;
+    }
+
+    @Override
+    public void setStartX(float startX) {
+        if ((startX < -1 || startX > 1) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.startX = startX;
+    }
+
+    @Override
+    public void setStartY(float startY) {
+        if ((startY < -1 || startY > 1) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.startY = startY;
+    }
+
+    @Override
+    public void setFinalX(float finalX) {
+        if ((finalX < -1 || finalX > 1) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.finalX = finalX;
+    }
+
+    @Override
+    public void setFinalY(float finalY) {
+        if ((finalY < -1 || finalY > 1) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New coordinates don't belong in window");
+
+        this.finalY = finalY;
+    }
+
+    @Override
+    public void setFinalWidth(float finalWidth) {
+        if ((finalWidth < 0 || finalWidth > 2) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New width don't fit in window");
+
+        this.finalWidth = finalWidth;
+    }
+
+    @Override
+    public void setFinalHeight(float finalHeight) {
+        if ((finalHeight < 0 || finalHeight > 2) && getParentGui(this).areTransitionsOfComponentDone(this))
+            throw new IllegalArgumentException("New height don't fit in window");
+
+        this.finalHeight = finalHeight;
+    }
+
+    @Override
+    public void setAlpha(float alpha) {
+        if (this.texture == null)
+            return;
+
+        this.texture.setAlpha(alpha);
+
+        if (this instanceof GuiPreset) {
+            ((GuiPreset) this).getBasics()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() == 1)
+                    // Ignore components which aren't going to be fully opaque
+                    .forEach(guiBasics -> {
+                        if (guiBasics.getTexture() != null)
+                            guiBasics.getTexture().setAlpha(alpha);
+                    });
+        } else if (texture.getFinalAlpha() == 1)
+            texture.setAlpha(alpha);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        GuiComponent that = (GuiComponent) o;
+
+        GuiComponent<?> that = (GuiComponent<?>) o;
         return Float.compare(that.x, x) == 0 &&
                 Float.compare(that.y, y) == 0 &&
                 Float.compare(that.width, width) == 0 &&
                 Float.compare(that.height, height) == 0 &&
-                (texture == null || texture.equals(that.texture));
+                Float.compare(that.startX, startX) == 0 &&
+                Float.compare(that.startY, startY) == 0 &&
+                Float.compare(that.finalX, finalX) == 0 &&
+                Float.compare(that.finalY, finalY) == 0 &&
+                Float.compare(that.finalWidth, finalWidth) == 0 &&
+                Float.compare(that.finalHeight, finalHeight) == 0;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y, width, height, texture);
-    }
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(x, y, width, height, startX, startY, finalX, finalY, finalWidth, finalHeight);
+//    }
 }

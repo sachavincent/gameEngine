@@ -34,7 +34,7 @@ public class LanguageAssets {
 
     public String getWord(String key) {
         if (currentLanguage == null || !currentLanguage.containsKey(key))
-            throw new UnknownLanguageException();
+            throw new UnknownLanguageException("Couldn't find word: \"" + key + "\"");
 
         return currentLanguage.get(key);
     }

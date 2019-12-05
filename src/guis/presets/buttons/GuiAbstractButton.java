@@ -10,7 +10,6 @@ import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
-import inputs.callbacks.ClickCallback;
 import java.awt.Color;
 import java.util.List;
 import javax.naming.SizeLimitExceededException;
@@ -68,32 +67,39 @@ public abstract class GuiAbstractButton extends GuiPreset {
     protected abstract void addBackgroundComponent(GuiBackground<?> background);
 
     private void setListeners() {
-        buttonLayout.setOnClick(() -> {
+        setOnClick(() -> {
             setClicked(true);
             System.out.println("Click");
 
             updateTexturesOnClick();
         });
 
-        buttonLayout.setOnRelease(() -> {
+        setOnRelease(() -> {
             setClicked(false);
             System.out.println("Release");
 
             updateTexturesOnClick();
         });
 
-        buttonLayout.setOnHover(() -> {
+        setOnPress(() -> {
+            setClicked(false);
+            System.out.println("Press");
+
+            updateTexturesOnClick();
+        });
+
+        setOnHover(() -> {
 //            System.out.println("Hover");
         });
 
-        buttonLayout.setOnLeave(() -> {
+        setOnLeave(() -> {
             System.out.println("Leave");
             filterLayout.getTexture().setAlpha(0f);
 
             filterLayout.updateTexturePosition();
         });
 
-        buttonLayout.setOnEnter(() -> {
+        setOnEnter(() -> {
             System.out.println("Enter");
             filterLayout.getTexture().setAlpha(1f);
 
@@ -102,6 +108,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
     }
 
     private void updateTexturesOnClick() {
+        super.updateTexturePosition();
+
         if (this.isClicked()) {
             float scale = 1 - BUTTON_SHRINK_RATIO;
             this.buttonLayout.scale(scale);
@@ -190,11 +198,6 @@ public abstract class GuiAbstractButton extends GuiPreset {
         this.borderLayout = guiShape;
 
         addBasic(this.borderLayout);
-    }
-
-    @Override
-    public void setOnClick(ClickCallback onClickCallback) {
-        buttonLayout.setOnClick(onClickCallback);
     }
 
     public enum ButtonType {

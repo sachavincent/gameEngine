@@ -1,5 +1,6 @@
 package guis;
 
+import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.SideConstraint;
@@ -8,11 +9,8 @@ import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import guis.transitions.Transition;
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.*;
+import org.jetbrains.annotations.NotNull;
 import renderEngine.DisplayManager;
 import util.vector.Vector2f;
 
@@ -20,10 +18,10 @@ public class Gui implements GuiInterface {
 
     public final static float CORNER_RADIUS = 8f;
 
-    private GuiTexture         background;
-    private List<GuiComponent> components;
+    private GuiTexture                         background;
+    private Map<GuiComponent, Set<Transition>> components;
 
-    private List<Transition> transitions;
+    private Set<Transition> transitions;
 
     private float x, y;
     private float width, height;
@@ -36,11 +34,10 @@ public class Gui implements GuiInterface {
     private boolean focused, displayed;
 
     public Gui(GuiBackground<?> background) {
-        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
-                height));
+        setBackground(background);
 
-        this.components = new LinkedList<>();
-        this.transitions = new LinkedList<>();
+        this.components = new HashMap<>();
+        this.transitions = new HashSet<>();
     }
 
     public void setBackground(GuiBackground background) {
@@ -217,9 +214,16 @@ public class Gui implements GuiInterface {
             return;
 
         this.transitions.forEach(transition -> transition.showTransition(this));
+        this.components.forEach(
+                (component, lTransitions) -> {
+                    lTransitions.forEach(transition -> transition.showTransition(component));
+
+                    component.updateTexturePosition();
+                });
+
         updateTexturePosition();
 
-        components.forEach(guiComponent -> guiComponent.setDisplayed(true));
+        components.keySet().forEach(guiComponent -> guiComponent.setDisplayed(true));
 
         this.displayed = true;
     }
@@ -230,7 +234,10 @@ public class Gui implements GuiInterface {
 
         this.transitions.forEach(transition -> transition.setDone(false));
 
-        components.forEach(guiComponent -> guiComponent.setDisplayed(false));
+        this.components.forEach((guiComponent, lTransitions) -> {
+            lTransitions.forEach(transition -> transition.setDone(false));
+            guiComponent.setDisplayed(false);
+        });
 
         this.displayed = false;
     }
@@ -239,13 +246,29 @@ public class Gui implements GuiInterface {
         return this.transitions.stream().allMatch(Transition::isDone);
     }
 
-    public void addComponent(GuiComponent guiComponent) {
+    public boolean areTransitionsOfComponentDone(GuiComponent guiComponent) {
+        if (!this.components.containsKey(guiComponent) && guiComponent instanceof GuiBasics)
+            guiComponent = (GuiComponent) guiComponent.getParent();
+
+        if (!this.components.containsKey(guiComponent))
+            return false;
+
+        if (this.components.get(guiComponent).isEmpty())
+            return true;
+
+        return this.components.get(guiComponent).stream().allMatch(Transition::isDone);
+    }
+
+    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
         if (guiComponent == null)
             return;
 
         this.components.remove(guiComponent);
 
-        this.components.add(guiComponent);
+        if (transitions.length == 0)
+            this.components.put(guiComponent, new HashSet<>());
+        else
+            this.components.put(guiComponent, new HashSet<>(Arrays.asList(transitions)));
     }
 
     public void removeComponent(GuiComponent guiComponent) {
@@ -273,35 +296,55 @@ public class Gui implements GuiInterface {
                 transition.setDone(true);
         });
 
+
+        this.components.forEach((guiComponent, lTransitions) -> lTransitions.forEach(transition -> {
+                    boolean done = transition.animate(guiComponent);
+                    if (done)
+                        transition.setDone(true);
+
+                    guiComponent.updateTexturePosition();
+                }
+        ));
+
         updateTexturePosition();
     }
 
-    public void setAlphaToGui(float alpha) {
+    public void setAlpha(float alpha) {
         if (this.background == null || this.components == null)
             return;
 
         this.background.setAlpha(alpha);
 
-        this.components.forEach(guiComponent -> {
-            if (guiComponent instanceof GuiPreset) {
-                ((GuiPreset) guiComponent).getBasics().
-                        stream()
-                        .filter(Objects::nonNull)
-                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() == 1)
-                        // Ignore components which aren't going to be fully opaque
-                        .forEach(guiBasics -> {
-                            if (guiBasics.getTexture() != null)
-                                guiBasics.getTexture().setAlpha(alpha);
-                        });
-            } else if (guiComponent.getTexture().getFinalAlpha() == 1)
-                guiComponent.getTexture().setAlpha(alpha);
-        });
+//        this.components.keySet().forEach(guiComponent -> {
+//            if (guiComponent instanceof GuiPreset) {
+//                ((GuiPreset) guiComponent).getBasics()
+//                        .stream()
+//                        .filter(Objects::nonNull)
+//                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() == 1)
+//                        // Ignore components which aren't going to be fully opaque
+//                        .forEach(guiBasics -> {
+//                            if (guiBasics.getTexture() != null)
+//                                guiBasics.getTexture().setAlpha(alpha);
+//                        });
+//            } else if (guiComponent.getTexture().getFinalAlpha() == 1)
+//                guiComponent.getTexture().setAlpha(alpha);
+//        });
     }
 
     public void setTransitions(Transition... transitions) {
-        this.transitions = new LinkedList<>(Arrays.asList(transitions));
+        this.transitions = new HashSet<>(Arrays.asList(transitions));
     }
 
+    public void setComponentTransitions(GuiComponent guiComponent, Transition... transitions) {
+        if (!components.containsKey(guiComponent))
+            throw new IllegalArgumentException("Component does not belong to parent gui");
+
+        components.get(guiComponent).addAll(Arrays.asList(transitions));
+    }
+
+    public void setTransitionsToAllComponents(Transition... transitions) {
+        components.keySet().forEach(guiComponent -> setComponentTransitions(guiComponent, transitions));
+    }
 
     public void setFocused(boolean focused) {
         this.focused = focused;
@@ -335,16 +378,29 @@ public class Gui implements GuiInterface {
         this.height = height;
     }
 
+    public List<GuiComponent> getAllComponents() {
+        final List<GuiComponent> guiComponents = new ArrayList<>();
+        getComponents().keySet().forEach(guiComponent -> {
+            if (guiComponent instanceof GuiPreset) {
+                guiComponents.addAll(((GuiPreset) guiComponent).getBasics());
+            }
+
+            guiComponents.add(guiComponent);
+        });
+
+        return guiComponents;
+    }
+
     @Override
     public GuiTexture getTexture() {
         return this.background;
     }
 
-    public List<GuiComponent> getComponents() {
+    public Map<GuiComponent, Set<Transition>> getComponents() {
         return this.components;
     }
 
-    public List<Transition> getTransitions() {
+    public Set<Transition> getTransitions() {
         return this.transitions;
     }
 
@@ -433,7 +489,7 @@ public class Gui implements GuiInterface {
 
     public void setFinalWidth(float finalWidth) {
         if ((finalWidth < 0 || finalWidth > 2) && areTransitionsDone())
-            throw new IllegalArgumentException("New height don't fit in window");
+            throw new IllegalArgumentException("New width don't fit in window");
 
         this.finalWidth = finalWidth;
     }
@@ -449,11 +505,14 @@ public class Gui implements GuiInterface {
         return !this.transitions.isEmpty();
     }
 
+
     public static void showGui(Gui gui) {
-        if (gui.hasTransitions()) {
-            if (gui.getTransitions().stream().allMatch(Transition::isDone))
+        final List<Transition> lTransitions = gui.getAllTransitions();
+
+        if (!lTransitions.isEmpty()) {
+            if (lTransitions.stream().allMatch(Transition::isDone))
                 gui.hide();
-            else
+            else if (lTransitions.stream().noneMatch(Transition::isDone))
                 gui.show();
         } else {
             if (gui.isDisplayed())
@@ -461,5 +520,14 @@ public class Gui implements GuiInterface {
             else
                 gui.show();
         }
+    }
+
+    @NotNull
+    private List<Transition> getAllTransitions() {
+        final List<Transition> lTransitions = new ArrayList<>();
+        this.components.values().forEach(lTransitions::addAll);
+        lTransitions.addAll(getTransitions());
+
+        return lTransitions;
     }
 }

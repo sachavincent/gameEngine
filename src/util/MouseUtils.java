@@ -12,7 +12,6 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
@@ -78,21 +77,25 @@ public class MouseUtils {
                     guisClone.stream()
                             .filter(Gui::isDisplayed)
                             .filter(MouseUtils::isCursorInGui)
-                            .forEach(gui -> gui.getComponents().stream()
-                                    .filter(MouseUtils::isCursorInGuiComponent)
-                                    .forEach(GuiComponent::onClick));
+                            .forEach(gui -> {
+                                gui.getComponents().keySet().stream()
+                                        .filter(MouseUtils::isCursorInGuiComponent)
+                                        .filter(gui::areTransitionsOfComponentDone)
+                                        .forEach(GuiComponent::onClick);
+                            });
 
                 } else if (action == GLFW_RELEASE) {
                     guisClone.forEach(gui -> {
-                        List<GuiComponent> guiComponents = gui.getComponents()
+                        List<GuiComponent> guiComponents = gui.getComponents().keySet()
                                 .stream().filter(GuiComponent::isClicked).collect(Collectors.toList());
 
 
                         if (gui.isDisplayed() && MouseUtils.isCursorInGui(gui)) {
-                            gui.getComponents().stream()
-                                    .filter(guiComponent -> !guiComponent.isClicked())
+                            guiComponents.stream()
+//                                    .filter(guiComponent -> guiComponent.isClicked())
                                     .filter(MouseUtils::isCursorInGuiComponent)
-                                    .forEach(GuiComponent::onRelease);
+                                    .filter(gui::areTransitionsOfComponentDone)
+                                    .forEach(GuiComponent::onPress);
                         }
 
                         guiComponents.forEach(GuiComponent::onRelease);
@@ -113,23 +116,22 @@ public class MouseUtils {
 
         GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
             guisClone.forEach(gui -> {
-                List<GuiComponent> components = gui.getComponents();
-                if (components != null)
-                    components.forEach(GuiComponent::onLeave);
+                gui.getComponents().keySet().stream()
+                        .filter(gui::areTransitionsOfComponentDone)
+                        .forEach(GuiComponent::onLeave);
             });
 
             guisClone.stream()
                     .filter(Gui::isDisplayed)
                     .filter(MouseUtils::isCursorInGui)
                     .forEach(gui -> {
-                        List<GuiComponent> components = gui.getComponents();
-                        if (components != null)
-                            components.stream()
-                                    .filter(MouseUtils::isCursorInGuiComponent)
-                                    .forEach(guiComponent -> {
-                                        guiComponent.onHover();
-                                        guiComponent.onEnter();
-                                    });
+                        gui.getComponents().keySet().stream()
+                                .filter(MouseUtils::isCursorInGuiComponent)
+                                .filter(gui::areTransitionsOfComponentDone)
+                                .forEach(guiComponent -> {
+                                    guiComponent.onHover();
+                                    guiComponent.onEnter();
+                                });
                     });
         });
     }

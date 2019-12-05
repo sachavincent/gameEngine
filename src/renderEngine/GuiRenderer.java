@@ -1,17 +1,20 @@
 package renderEngine;
 
+import static guis.basics.GuiRectangle.POSITIONS_FILLED;
+import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
 import static org.lwjgl.opengl.GL11.*;
 
-import fontRendering.FontRenderer;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.GuiEscapeMenu;
 import guis.GuiInterface;
 import guis.GuiTexture;
+import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
+import guis.presets.GuiPreset;
 import java.util.List;
 import java.util.stream.IntStream;
 import models.RawModel;
@@ -25,9 +28,6 @@ import util.Maths;
 import util.vector.Vector2f;
 
 public class GuiRenderer {
-
-    private final static float[] POSITIONS_FILLED   = {-1, 1, -1, -1, 1, 1, 1, -1};
-    private final static float[] POSITIONS_UNFILLED = {-1, -1, -1, 1, 1, 1, 1, -1};
 
     private final Loader loader;
 
@@ -69,37 +69,32 @@ public class GuiRenderer {
                 .forEach(gui -> {
                     renderQuad(gui, true);
 
-                    gui.getComponents()
+                    gui.getComponents().keySet()
                             .stream().filter(GuiComponent::isDisplayed)
                             .forEach(guiComponent -> {
-                                if (guiComponent instanceof GuiEllipse) {
-                                    GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
-                                    this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
-
-                                    renderCircle(guiEllipse, guiEllipse.isFilled());
-                                } else if (guiComponent instanceof GuiShape) {
-                                    GuiShape guiShape = (GuiShape) guiComponent;
-                                    renderQuad(guiShape, guiShape.isFilled());
-                                } else if (guiComponent instanceof GuiText) {
-                                    GuiText guiText = (GuiText) guiComponent;
-
-                                    TextMaster.removeText(guiText.getText());
-                                    TextMaster.loadText(guiText.getText());
+                                if (guiComponent instanceof GuiPreset) {
+                                    ((GuiPreset) guiComponent).getBasics().forEach(this::handleBasicsRendering);
                                 } else
-                                    renderQuad(guiComponent, true);
+                                    handleBasicsRendering(guiComponent);
                             });
                     gui.animate();
                 });
+
         guis.stream()
                 .filter(gui -> !gui.isDisplayed())
                 .forEach(gui -> {
-                    gui.getComponents()
+                    gui.getComponents().keySet()
                             .stream().filter(guiComponent -> !guiComponent.isDisplayed())
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiText) {
                                     GuiText guiText = (GuiText) guiComponent;
 
                                     TextMaster.removeText(guiText.getText());
+                                } else if (guiComponent instanceof GuiPreset) {
+                                    List<GuiBasics> guiBasics = ((GuiPreset) guiComponent).getBasics();
+                                    guiBasics.stream().filter(GuiText.class::isInstance)
+                                            .map(guiText -> ((GuiText) guiText).getText())
+                                            .forEach(TextMaster::removeText);
                                 }
                             });
                 });
@@ -112,6 +107,24 @@ public class GuiRenderer {
         GL30.glBindVertexArray(0);
 
         shader.stop();
+    }
+
+    private void handleBasicsRendering(GuiComponent guiComponent) {
+        if (guiComponent instanceof GuiEllipse) {
+            GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
+            this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
+
+            renderCircle(guiEllipse, guiEllipse.isFilled());
+        } else if (guiComponent instanceof GuiShape) {
+            GuiShape guiShape = (GuiShape) guiComponent;
+            renderQuad(guiShape, guiShape.isFilled());
+        } else if (guiComponent instanceof GuiText) {
+            GuiText guiText = (GuiText) guiComponent;
+
+            TextMaster.removeText(guiText.getText());
+            TextMaster.loadText(guiText.getText());
+        } else
+            renderQuad(guiComponent, true);
     }
 
     private void renderCircle(GuiShape guiShape, boolean filled) {

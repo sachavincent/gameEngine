@@ -11,9 +11,12 @@ import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiCircularButton;
 import guis.presets.buttons.GuiRectangleButton;
+import guis.transitions.Transition;
+import inputs.callbacks.PressCallback;
 import java.awt.Color;
 import java.io.File;
 import language.Words;
+import renderEngine.DisplayManager;
 import textures.FontTexture;
 
 public class GuiEscapeMenu extends Gui {
@@ -62,30 +65,87 @@ public class GuiEscapeMenu extends Gui {
 
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background) {
+    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+            Transition... transitions) {
+        PressCallback pressCallback = null;
+
+        switch (menuButton) {
+            case RESUME:
+                pressCallback = this::hide;
+                break;
+            case SAVE_AND_QUIT:
+                pressCallback = () -> {
+                    System.out.println("Save & Quit");
+                    //TODO: Save
+                    quitFunction();
+                };
+                break;
+            case QUICK_SAVE:
+                pressCallback = () -> {
+//                    saveGame(); //TODO: Save (quick???)
+                };
+                break;
+            case QUIT:
+                pressCallback = () -> {
+                    //TODO: "Are you sure" popup (AlertDialog like?)
+
+                    // if sure
+                    quitFunction();
+                    // else
+                    //TODO: Close popup
+                };
+
+                break;
+        }
+
+        addButton(menuButton, buttonType, background, pressCallback, transitions);
+    }
+
+
+    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+            PressCallback onPress, Transition... transitions) {
         GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(0.7f, instance))
                 .setHeightConstraint(new AspectConstraint(0.25f))
                 .create();
 
-        GuiAbstractButton button = null;
+        GuiAbstractButton button;
         switch (menuButton) {
             case RESUME:
                 constraints.setyConstraint(new RelativeConstraint(0.25f));
-
-                button = createButton(menuButton, buttonType, background, constraints);
                 break;
             case SAVE_AND_QUIT:
-                constraints.setyConstraint(new RelativeConstraint(0.5f)); //TODO: More buttons = less space between buttons
-                                                                          //TODO: Spacing = parameter (in pixels maybe?)
+                constraints
+                        .setyConstraint(new RelativeConstraint(0.5f)); //TODO: More buttons = less space between buttons
+                //TODO: Spacing = parameter (in pixels maybe?)
 
-                button = createButton(menuButton, buttonType, background, constraints);
+                break;
+            case QUICK_SAVE:
+                constraints
+                        .setyConstraint(
+                                new RelativeConstraint(0.75f)); //TODO: More buttons = less space between buttons
+                //TODO: Spacing = parameter (in pixels maybe?)
+
+                break;
+            case QUIT:
+                constraints.setyConstraint(new RelativeConstraint(1f));
+
                 break;
             //TODO: Other buttons
         }
 
-        addComponent(button);
+        button = createButton(menuButton, buttonType, background, constraints);
+
+        if (button != null) {
+            button.setOnPress(onPress);
+
+            setComponentTransitions(button, transitions);
+        }
+    }
+
+    private void quitFunction() {
+        DisplayManager.closeDisplay();
     }
 
     private GuiAbstractButton createButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
@@ -93,13 +153,13 @@ public class GuiEscapeMenu extends Gui {
         switch (buttonType) {
             case CIRCULAR:
                 return new GuiCircularButton(this, background,
-                        new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)), constraints); //TODO: Handle fontSize automatically (text length with button width)
-                                                                                                                                    // TODO: Add color parameter
+                        new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)),
+                        constraints); //TODO: Handle fontSize automatically (text length with button width)
+            // TODO: Add color parameter
             case RECTANGLE:
                 return new GuiRectangleButton(this, background,
                         new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)), constraints);
         }
-        //TODO: Click listeners
         return null;
     }
 
@@ -110,7 +170,7 @@ public class GuiEscapeMenu extends Gui {
     public enum MenuButton {
         RESUME(Words.RESUME),
         SAVE_AND_QUIT(Words.SAVE_AND_QUIT),
-        SAVE(Words.SAVE),
+        QUICK_SAVE(Words.QUICK_SAVE),//TODO: Quick save
         QUIT(Words.QUIT),
         SETTINGS(Words.SETTINGS);
 
@@ -140,13 +200,21 @@ public class GuiEscapeMenu extends Gui {
         }
 
         public Builder setConstraints(GuiConstraintsManager constraintsManager) {
-            setConstraints(constraintsManager);
+            guiEscapeMenu.setConstraints(constraintsManager);
 
             return this;
         }
 
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background) {
-            guiEscapeMenu.addButton(menuButton, buttonType, background);
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+                PressCallback clickListener, Transition... transitions) {
+            guiEscapeMenu.addButton(menuButton, buttonType, background, clickListener, transitions);
+
+            return this;
+        }
+
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+                Transition... transitions) {
+            guiEscapeMenu.addButton(menuButton, buttonType, background, transitions);
 
             return this;
         }
