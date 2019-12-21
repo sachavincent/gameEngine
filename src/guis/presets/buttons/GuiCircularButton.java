@@ -25,13 +25,13 @@ public class GuiCircularButton extends GuiAbstractButton {
         buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
 
-        filterLayout = new GuiEllipse(this, new GuiBackground(Color.WHITE), new RelativeConstraint(1, this),
+        filterLayout = new GuiEllipse(this, new GuiBackground<>(Color.WHITE), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
     }
 
     @Override
     public void setBorder(Color color) {
-        addBorderLayout(new GuiEllipse(this, new GuiBackground(color), new RelativeConstraint(1, this),
+        addBorderLayout(new GuiEllipse(this, new GuiBackground<>(color), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this), false));
     }
 

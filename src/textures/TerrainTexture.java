@@ -5,7 +5,7 @@ import guis.presets.GuiBackground;
 public class TerrainTexture extends Texture {
 
     public TerrainTexture(String pathFile) {
-        super(new GuiBackground(pathFile));
+        super(new GuiBackground<>(pathFile));
     }
 
 }

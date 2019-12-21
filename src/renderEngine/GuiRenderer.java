@@ -15,6 +15,8 @@ import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.presets.GuiPreset;
+import guis.transitions.Transition;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import models.RawModel;
@@ -29,6 +31,8 @@ import util.vector.Vector2f;
 
 public class GuiRenderer {
 
+    private static GuiRenderer instance;
+
     private final Loader loader;
 
     private final RawModel defaultFilledQuad;
@@ -37,17 +41,31 @@ public class GuiRenderer {
     private RawModel  quad;
     private GuiShader shader;
 
-    GuiRenderer(GuiShader shader, Loader loader) {
-        this.loader = loader;
+    private List<Gui> guis;
+
+    public static GuiRenderer getInstance() {
+        return instance == null ? (instance = new GuiRenderer()) : instance;
+    }
+
+    private GuiRenderer() {
+        this.loader = Loader.getInstance();
 
         this.defaultFilledQuad = loader.loadToVAO(POSITIONS_FILLED, 2);
         this.defaultUnfilledQuad = loader.loadToVAO(POSITIONS_UNFILLED, 2);
         this.quad = this.defaultFilledQuad;
 
-        this.shader = shader;
+        this.shader = new GuiShader();
+
+        this.guis = new ArrayList<>();
     }
 
-    public void render(List<Gui> guis) {
+    public void renderGuis(List<Gui> guis) {
+        guis.forEach(this::processGui);
+
+        render();
+    }
+
+    private void render() {
         guis.add(GuiEscapeMenu.getEscapeMenu());
 
         shader.start();
@@ -65,12 +83,19 @@ public class GuiRenderer {
         GL11.glDisable(GL42.GL_MULTISAMPLE);
 
         guis.stream()
-                .filter(Gui::isDisplayed)
+//                .filter(gui -> gui.isDisplayed() ||
+//                        gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()) ||
+//                        gui.getComponentsHideTransitions().values().stream().anyMatch(
+//                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone())))
                 .forEach(gui -> {
-                    renderQuad(gui, true);
+                    if (gui.isDisplayed() ||
+                            gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()))
+                        renderQuad(gui, true);
 
                     gui.getComponents().keySet()
-                            .stream().filter(GuiComponent::isDisplayed)
+                            .stream().filter(guiComponent -> guiComponent.isDisplayed() ||
+                            gui.getComponentsHideTransitions().get(guiComponent).stream()
+                                    .anyMatch(transition -> !transition.isDone()))
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiPreset) {
                                     ((GuiPreset) guiComponent).getBasics().forEach(this::handleBasicsRendering);
@@ -81,7 +106,7 @@ public class GuiRenderer {
                 });
 
         guis.stream()
-                .filter(gui -> !gui.isDisplayed())
+                .filter(gui -> !gui.isDisplayed() && gui.getHideTransitions().stream().allMatch(Transition::isDone))
                 .forEach(gui -> {
                     gui.getComponents().keySet()
                             .stream().filter(guiComponent -> !guiComponent.isDisplayed())
@@ -106,10 +131,11 @@ public class GuiRenderer {
         GL20.glDisableVertexAttribArray(0);
         GL30.glBindVertexArray(0);
 
+        guis.clear();
         shader.stop();
     }
 
-    private void handleBasicsRendering(GuiComponent guiComponent) {
+    private void handleBasicsRendering(GuiComponent<?> guiComponent) {
         if (guiComponent instanceof GuiEllipse) {
             GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
             this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
@@ -183,7 +209,7 @@ public class GuiRenderer {
         }
     }
 
-    private void renderTexture(GuiTexture guiTexture) {
+    private void renderTexture(GuiTexture<?> guiTexture) {
         if (guiTexture == null)
             return;
 
@@ -244,4 +270,13 @@ public class GuiRenderer {
 
         return loader.loadToVAO(allCircleVertices, 2);
     }
+
+    public void cleanUp() {
+        shader.cleanUp();
+    }
+
+    private void processGui(Gui gui) {
+        guis.add(gui);
+    }
+
 }

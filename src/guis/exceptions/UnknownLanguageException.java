@@ -17,9 +17,4 @@ public class UnknownLanguageException extends RuntimeException {
     public UnknownLanguageException(Throwable cause) {
         super(cause);
     }
-
-    protected UnknownLanguageException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

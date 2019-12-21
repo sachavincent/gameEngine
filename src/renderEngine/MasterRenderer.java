@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
-import shaders.GuiShader;
 import shaders.StaticShader;
 import shaders.TerrainShader;
 import skybox.SkyboxRenderer;
@@ -33,16 +32,13 @@ public class MasterRenderer {
     private StaticShader   shader = new StaticShader();
     private EntityRenderer renderer;
     private SkyboxRenderer skyboxRenderer;
-    private GuiRenderer    guiRenderer;
 
     private TerrainRenderer terrainRenderer;
     private TerrainShader   terrainShader = new TerrainShader();
-    private GuiShader       guiShader     = new GuiShader();
 
 
     private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
     private List<Terrain>                    terrains = new ArrayList<>();
-    private List<Gui>                        guis     = new ArrayList<>();
 
     public MasterRenderer(Loader loader) {
         enableCulling();
@@ -51,22 +47,12 @@ public class MasterRenderer {
         renderer = new EntityRenderer(shader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
         skyboxRenderer = new SkyboxRenderer(loader, projectionMatrix);
-        guiRenderer = new GuiRenderer(guiShader, loader);
     }
 
     public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights,
             Camera camera, Vector4f clipPlane) {
         terrains.forEach(this::processTerrain);
         entities.forEach(this::processEntity);
-
-        render(lights, camera, clipPlane);
-    }
-
-    public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights, List<Gui> guis,
-            Camera camera, Vector4f clipPlane) {
-        terrains.forEach(this::processTerrain);
-        entities.forEach(this::processEntity);
-        guis.forEach(this::processGuis);
 
         render(lights, camera, clipPlane);
     }
@@ -93,19 +79,10 @@ public class MasterRenderer {
         skyboxRenderer.render(camera);
         terrains.clear();
         entities.clear();
-
-
-        // Last render
-        guiRenderer.render(guis);
-        guis.clear();
     }
 
     private void processTerrain(Terrain terrain) {
         terrains.add(terrain);
-    }
-
-    private void processGuis(Gui gui) {
-        guis.add(gui);
     }
 
     private void processEntity(Entity entity) {
@@ -134,11 +111,10 @@ public class MasterRenderer {
     public void cleanUp() {
         shader.cleanUp();
         terrainShader.cleanUp();
-        guiShader.cleanUp();
     }
 
     private void prepare() {
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
+//        GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glClearColor(RED, GREEN, BLUE, 1);
     }

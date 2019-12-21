@@ -9,13 +9,38 @@ public abstract class Transition {
 
     private boolean done;
 
-    Transition(int length) {
+    private Trigger trigger;
+    private int     delay;
+
+    Transition(Trigger trigger, int length) {
+        this(trigger, 0, length);
+    }
+
+    Transition(Transition transition) {
+        this(transition.getTrigger(), transition.getDelay(), transition.getLength());
+    }
+
+    Transition(Trigger trigger, int delay, int length) {
         if (length < 100)
             throw new IllegalArgumentException("Transitions cannot be shorter than 0.1s");
 
         this.length = length;
+        this.trigger = trigger;
+        this.delay = delay;
 
         this.done = false;
+    }
+
+    public int getDelay() {
+        return this.delay;
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
+    }
+
+    public Trigger getTrigger() {
+        return this.trigger;
     }
 
     public int getLength() {
@@ -34,7 +59,26 @@ public abstract class Transition {
         this.done = done;
     }
 
-    public abstract void showTransition(GuiInterface gui);
+    public abstract void startTransitionShow(GuiInterface gui);
+    
+    public abstract void startTransitionHide(GuiInterface gui);
 
     public abstract boolean animate(GuiInterface gui);
+
+    public abstract Transition copy();
+
+    public enum Trigger {
+        SHOW,
+        HIDE;
+    }
+
+    @Override
+    public String toString() {
+        return "Transition{" +
+                "length=" + length +
+                ", done=" + done +
+                ", trigger=" + trigger +
+                ", delay=" + delay +
+                '}';
+    }
 }

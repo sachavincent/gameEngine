@@ -15,6 +15,9 @@ import guis.transitions.Transition;
 import inputs.callbacks.PressCallback;
 import java.awt.Color;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 import language.Words;
 import renderEngine.DisplayManager;
 import textures.FontTexture;
@@ -27,7 +30,7 @@ public class GuiEscapeMenu extends Gui {
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.9f)};
 
-    private final static GuiBackground DEFAULT_BACKGROUND = new GuiBackground(Color.WHITE);
+    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(Color.WHITE);
 
     private static GuiEscapeMenu instance;
 
@@ -67,11 +70,15 @@ public class GuiEscapeMenu extends Gui {
 
     public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
             Transition... transitions) {
-        PressCallback pressCallback = null;
+        PressCallback pressCallback;
 
         switch (menuButton) {
             case RESUME:
-                pressCallback = this::hide;
+                pressCallback = () -> {
+                    final List<Transition> lTransitions = getAllTransitions();
+                    if (!lTransitions.isEmpty() && lTransitions.stream().allMatch(Transition::isDone) || isDisplayed())
+                        hide();
+                };
                 break;
             case SAVE_AND_QUIT:
                 pressCallback = () -> {
@@ -85,6 +92,12 @@ public class GuiEscapeMenu extends Gui {
 //                    saveGame(); //TODO: Save (quick???)
                 };
                 break;
+            case SETTINGS:
+                pressCallback = () -> {
+                    settingsFunction();
+                };
+
+                break;
             case QUIT:
                 pressCallback = () -> {
                     //TODO: "Are you sure" popup (AlertDialog like?)
@@ -96,9 +109,14 @@ public class GuiEscapeMenu extends Gui {
                 };
 
                 break;
+            default:
+                throw new IllegalArgumentException("Incompatible button");
         }
 
         addButton(menuButton, buttonType, background, pressCallback, transitions);
+    }
+
+    private void settingsFunction() {
     }
 
 
@@ -111,33 +129,15 @@ public class GuiEscapeMenu extends Gui {
                 .create();
 
         GuiAbstractButton button;
-        switch (menuButton) {
-            case RESUME:
-                constraints.setyConstraint(new RelativeConstraint(0.25f));
-                break;
-            case SAVE_AND_QUIT:
-                constraints
-                        .setyConstraint(new RelativeConstraint(0.5f)); //TODO: More buttons = less space between buttons
-                //TODO: Spacing = parameter (in pixels maybe?)
 
-                break;
-            case QUICK_SAVE:
-                constraints
-                        .setyConstraint(
-                                new RelativeConstraint(0.75f)); //TODO: More buttons = less space between buttons
-                //TODO: Spacing = parameter (in pixels maybe?)
+        List<MenuButton> l = new ArrayList<>(EnumSet.allOf(MenuButton.class));
+        float y = (l.indexOf(menuButton) + 1) / (l.size() + 1f);
 
-                break;
-            case QUIT:
-                constraints.setyConstraint(new RelativeConstraint(1f));
-
-                break;
-            //TODO: Other buttons
-        }
+        constraints.setyConstraint(new RelativeConstraint(y));
 
         button = createButton(menuButton, buttonType, background, constraints);
-
         if (button != null) {
+            button.setDisplayed(false);
             button.setOnPress(onPress);
 
             setComponentTransitions(button, transitions);
@@ -163,6 +163,19 @@ public class GuiEscapeMenu extends Gui {
         return null;
     }
 
+    public void setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
+        if (delayFirst)
+            transition.setDelay(delay);
+
+        getComponents().keySet().stream().filter(GuiAbstractButton.class::isInstance)
+                .forEach(guiComponent -> {
+                    setComponentTransitions(guiComponent, transition.copy());
+
+                    transition.setDelay(transition.getDelay() + delay);
+                });
+
+    }
+
     public static GuiEscapeMenu getEscapeMenu() {
         return instance;
     }
@@ -171,8 +184,8 @@ public class GuiEscapeMenu extends Gui {
         RESUME(Words.RESUME),
         SAVE_AND_QUIT(Words.SAVE_AND_QUIT),
         QUICK_SAVE(Words.QUICK_SAVE),//TODO: Quick save
-        QUIT(Words.QUIT),
-        SETTINGS(Words.SETTINGS);
+        SETTINGS(Words.SETTINGS),
+        QUIT(Words.QUIT);
 
         private String string;
 
@@ -193,7 +206,7 @@ public class GuiEscapeMenu extends Gui {
             guiEscapeMenu = new GuiEscapeMenu();
         }
 
-        public Builder setBackground(GuiBackground guiBackground) {
+        public Builder setBackground(GuiBackground<?> guiBackground) {
             guiEscapeMenu.setBackground(guiBackground);
 
             return this;
@@ -219,6 +232,23 @@ public class GuiEscapeMenu extends Gui {
             return this;
         }
 
+        public Builder setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
+            guiEscapeMenu.setTransitionsToAllButtons(transition, delay, delayFirst);
+
+            return this;
+        }
+
+        public Builder setTransitionsToAllButtons(Transition transition) {
+            guiEscapeMenu.setTransitionsToAllButtons(transition, 0, false);
+
+            return this;
+        }
+
+        public Builder setTransitions(Transition... transitions) {
+            guiEscapeMenu.setTransitions(transitions);
+
+            return this;
+        }
 
         public GuiEscapeMenu create() {
             return (instance = guiEscapeMenu);

@@ -12,7 +12,7 @@ public class ModelTexture extends Texture {
     private int numberOfRows = 1;
 
     public ModelTexture(String pathFile) {
-        super(new GuiBackground(pathFile));
+        super(new GuiBackground<>(pathFile));
     }
 
     public float getShineDamper() {

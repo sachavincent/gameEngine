@@ -10,6 +10,10 @@ public class GuiBackground<E> {
         background = (E) texture;
     }
 
+    public GuiBackground(Integer texture) {
+        background = (E) texture;
+    }
+
     public GuiBackground(Color color) {
         background = (E) color;
     }

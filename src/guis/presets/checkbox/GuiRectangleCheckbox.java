@@ -15,7 +15,7 @@ public class GuiRectangleCheckbox extends GuiAbstractCheckbox {
 
     @Override
     protected void addBackgroundComponent(Color background) {
-        checkboxLayout = new GuiRectangle(this, new GuiBackground(background), new RelativeConstraint(1, this),
+        checkboxLayout = new GuiRectangle(this, new GuiBackground<>(background), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this), false);
     }
 

@@ -16,7 +16,7 @@ public class GuiRectangleSlider extends GuiAbstractSlider {
 
     @Override
     void addCursor(Color color) {
-        this.sliderCursor = new GuiRectangle(this, new GuiBackground(color), new RelativeConstraint(.08f, this),
+        this.sliderCursor = new GuiRectangle(this, new GuiBackground<>(color), new RelativeConstraint(.08f, this),
                 new RelativeConstraint(1, this));
     }
 

@@ -8,7 +8,7 @@ public class FontTexture extends Texture {
     private Text text;
 
     public FontTexture(String fileName) {
-        super(new GuiBackground(fileName));
+        super(new GuiBackground<>(fileName));
     }
 
     public Text getText() {

@@ -40,5 +40,11 @@ public interface GuiInterface {
 
     void setAlpha(float alpha);
 
-    GuiTexture getTexture();
+    GuiTexture<?> getTexture();
+
+    void setDisplayed(boolean displayed);
+
+    boolean isDisplayed();
+
+    void updateTexturePosition();
 }

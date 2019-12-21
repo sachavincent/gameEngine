@@ -24,12 +24,12 @@ public class Camera {
     private Focusable focus;
 
     public Camera(Focusable focus) {
-        GLFW.glfwSetScrollCallback(DisplayManager.getWindow(), new GLFWScrollCallback() {
-            @Override
-            public void invoke(long window, double xoffset, double yoffset) {
-                position.z -= 0.2f;
-            }
-        });
+//        GLFW.glfwSetScrollCallback(DisplayManager.getWindow(), new GLFWScrollCallback() {
+//            @Override
+//            public void invoke(long window, double xoffset, double yoffset) {
+//                position.z -= 0.2f;
+//            }
+//        });
 
 
     }
@@ -43,25 +43,25 @@ public class Camera {
 //        pitch = (float) (Math.exp((distanceFromFocus - maxZoom) / 10));
 //        if (pitch > 30)
 //            pitch = 30;
-
-        glfwSetKeyCallback(DisplayManager.getWindow(), new GLFWKeyCallback() {
-            @Override
-            public void invoke(long window, int key, int scancode, int action, int mods) {
-                if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                    focus.getPosition().x += movementSpeed * Math.sin(Math.toRadians(180 - yaw));
-                    focus.getPosition().z += movementSpeed * Math.cos(Math.toRadians(180 - yaw));
-                } else if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                    focus.getPosition().x -= movementSpeed * Math.sin(Math.toRadians(180 - yaw));
-                    focus.getPosition().z -= movementSpeed * Math.cos(Math.toRadians(180 - yaw));
-                } else if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                    focus.getPosition().x += movementSpeed * Math.cos(Math.toRadians(180 - yaw));
-                    focus.getPosition().z -= movementSpeed * Math.sin(Math.toRadians(180 - yaw));
-                } else if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                    focus.getPosition().x -= movementSpeed * Math.cos(Math.toRadians(180 - yaw));
-                    focus.getPosition().z += movementSpeed * Math.sin(Math.toRadians(180 - yaw));
-                }
-            }
-        });
+//
+//        glfwSetKeyCallback(DisplayManager.getWindow(), new GLFWKeyCallback() {
+//            @Override
+//            public void invoke(long window, int key, int scancode, int action, int mods) {
+//                if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+//                    focus.getPosition().x += movementSpeed * Math.sin(Math.toRadians(180 - yaw));
+//                    focus.getPosition().z += movementSpeed * Math.cos(Math.toRadians(180 - yaw));
+//                } else if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+//                    focus.getPosition().x -= movementSpeed * Math.sin(Math.toRadians(180 - yaw));
+//                    focus.getPosition().z -= movementSpeed * Math.cos(Math.toRadians(180 - yaw));
+//                } else if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+//                    focus.getPosition().x += movementSpeed * Math.cos(Math.toRadians(180 - yaw));
+//                    focus.getPosition().z -= movementSpeed * Math.sin(Math.toRadians(180 - yaw));
+//                } else if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+//                    focus.getPosition().x -= movementSpeed * Math.cos(Math.toRadians(180 - yaw));
+//                    focus.getPosition().z += movementSpeed * Math.sin(Math.toRadians(180 - yaw));
+//                }
+//            }
+//        });
 
         GLFW.glfwSetScrollCallback(DisplayManager.getWindow(), new GLFWScrollCallback() {
             @Override

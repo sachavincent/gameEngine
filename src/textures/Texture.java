@@ -27,6 +27,8 @@ public abstract class Texture<E> {
             instantiateWithColor((Color) background.getBackground());
         else if (background.getBackground() instanceof String)
             instantiateWithFile((String) background.getBackground());
+        else if (background.getBackground() instanceof Integer)
+            instantiateWithInteger((Integer) background.getBackground());
         else
             throw new IllegalArgumentException("Type invalide.");
 
@@ -40,6 +42,10 @@ public abstract class Texture<E> {
             color = Color.WHITE;
 
         this.color = new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
+    }
+
+    private void instantiateWithInteger(Integer integer) {
+        textureID = integer;
     }
 
     private void instantiateWithFile(String fileName) {

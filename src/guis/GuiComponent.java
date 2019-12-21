@@ -188,9 +188,8 @@ public abstract class GuiComponent<E> implements GuiInterface {
                                 this.y = relativeTo.getY() - this.height -
                                         (parent.getHeight() / 2 + this.height) * constraint * 2;
                             } else {
-                                // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
-                                this.y = parent.getY() + parent.getHeight() - this.height -
-                                        (parent.getHeight() - this.height) * constraint * 2;
+                                // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent : fonctionne.
+                                this.y = (parent.getY() + parent.getHeight() - this.height) - (parent.getHeight() - this.height) * 2 * constraint;
                             }
                             break;
                         case SIDE:
@@ -351,36 +350,42 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.onScrollCallback = onScrollCallback;
     }
 
-    public void setTexture(GuiTexture texture) {
+    public void setTexture(GuiTexture<?> texture) {
         this.texture = texture;
     }
 
+    @Override
     public float getX() {
         return this.x;
     }
 
+    @Override
     public float getY() {
         return this.y;
     }
 
+    @Override
     public float getWidth() {
         return this.width;
     }
 
+    @Override
     public float getHeight() {
         return this.height;
     }
 
+    @Override
     public void setX(float x) {
-        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
-                getParentGui(this).areTransitionsOfComponentDone(this))
-            throw new IllegalArgumentException("New coordinates don't belong in parent");
+//        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
+//                getParentGui(this).areTransitionsOfComponentDone(this))
+//            throw new IllegalArgumentException("New coordinates don't belong in parent");
 
         this.x = x;
 
         updateTexturePosition();
     }
 
+    @Override
     public void setY(float y) {
         if (!getParentGui(this).areTransitionsOfComponentDone(this))
             return;
@@ -415,7 +420,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     @Override
-    public GuiTexture getTexture() {
+    public GuiTexture<?> getTexture() {
         return this.texture;
     }
 
@@ -429,21 +434,23 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.height = finalHeight;
     }
 
-    protected static Gui getParentGui(GuiComponent guiComponent) {
+    public static Gui getParentGui(GuiComponent<?> guiComponent) {
         if (guiComponent.getParent() instanceof Gui)
             return (Gui) guiComponent.getParent();
 
-        return getParentGui((GuiComponent) guiComponent.getParent());
+        return getParentGui((GuiComponent<?>) guiComponent.getParent());
     }
 
     public GuiInterface getParent() {
         return this.parent;
     }
 
+    @Override
     public void setDisplayed(boolean displayed) {
         this.displayed = displayed;
     }
 
+    @Override
     public boolean isDisplayed() {
         return this.displayed;
     }
@@ -577,9 +584,4 @@ public abstract class GuiComponent<E> implements GuiInterface {
                 Float.compare(that.finalWidth, finalWidth) == 0 &&
                 Float.compare(that.finalHeight, finalHeight) == 0;
     }
-
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(x, y, width, height, startX, startY, finalX, finalY, finalWidth, finalHeight);
-//    }
 }

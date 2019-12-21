@@ -9,19 +9,29 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import models.RawModel;
-import textures.TextureData;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import textures.TextureData;
 
 public class Loader {
+
+    private static Loader instance;
 
     private List<Integer> vaos     = new ArrayList<>();
     private List<Integer> vbos     = new ArrayList<>();
     private List<Integer> textures = new ArrayList<>();
+
+
+    public static Loader getInstance() {
+        return instance == null ? (instance = new Loader()) : instance;
+    }
+
+    private Loader() {
+    }
 
     public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices, float width,
             float depth, float height) {

@@ -4,6 +4,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 import static util.Maths.isPosInBounds;
 
+import entities.Camera;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.GuiEscapeMenu;
@@ -64,7 +65,7 @@ public class MouseUtils {
                 guiComponent.getHeight());
     }
 
-    public static void setupListeners(final List<Gui> guis) {
+    public static void setupListeners(final List<Gui> guis, Camera camera) {
         long window = DisplayManager.getWindow();
 
         final List<Gui> guisClone = new ArrayList<>(guis);
@@ -104,10 +105,10 @@ public class MouseUtils {
             }
         });
 
-        GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
-            Vector2f cursorPos = getCursorPos();
 
-        });
+//        GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
+//            camera.getPosition().x -= 1f;
+//        });
 
         GLFW.glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
             Vector2f cursorPos = getCursorPos();

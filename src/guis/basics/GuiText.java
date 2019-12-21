@@ -9,7 +9,7 @@ public class GuiText extends GuiBasics {
     private Text text;
 
     public GuiText(GuiInterface gui, Text text) {
-        super(gui, new GuiBackground(text == null ? null : text.getAWTColor()), null, null);
+        super(gui, new GuiBackground<>(text == null ? null : text.getAWTColor()), null, null);
 
         this.text = text;
     }
