@@ -285,11 +285,11 @@ public class MainGameLoop {
                 .addButton(MenuButton.QUIT, ButtonType.RECTANGLE, new GuiBackground<>(new Color(109, 109, 109, 100)))
                 .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
                         true)
-//                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
-//                        true)
+                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
+                        true)
                 //.setFont TODO
                 .setTransitions(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT))
-//                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
+                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
                 .create();
 
         MouseUtils.setupListeners(guis, camera);

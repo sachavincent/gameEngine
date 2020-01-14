@@ -20,21 +20,39 @@ public class FadeTransition extends Transition {
 
     @Override
     public void startTransitionShow(GuiInterface gui) {
+        if (gui.isDisplayed())
+            return;
+
+        if (started)
+            throw new IllegalStateException("Transition should not be started at this point");
+
         gui.setAlpha(0f);
 
+        started = true;
         gui.setDisplayed(true);
     }
 
     @Override
     public void startTransitionHide(GuiInterface gui) {
+        if (!gui.isDisplayed())
+            return;
+
+        if (started)
+            throw new IllegalStateException("Transition should not be started at this point");
+
         gui.setAlpha(1f);
 
+
+        started = true;
         gui.setDisplayed(false);
     }
 
 
     @Override
     public boolean animate(GuiInterface gui) {
+        if (!started)
+            return false;
+
         switch (getTrigger()) {
             case SHOW:
                 float futureAlpha = gui.getTexture().getAlpha() + 1 / (length / 1000f) / FPS;

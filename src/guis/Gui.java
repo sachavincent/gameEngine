@@ -219,15 +219,22 @@ public class Gui implements GuiInterface {
         if (getShowTransitions().isEmpty())
             setDisplayed(true);
         else
-            getShowTransitions().forEach(transition -> Timer.scheduleTransition(transition, this));
+            getShowTransitions().forEach(transition -> {
+                transition.setStarted(false);
+                Timer.scheduleTransition(transition, this);
+            });
 
         getComponentsShowTransitions().
                 forEach((component, lTransitions) -> {
                     if (lTransitions.isEmpty())
                         component.setDisplayed(true);
                     else
-                        lTransitions.forEach(transition -> Timer.scheduleTransition(transition, component));
+                        lTransitions.forEach(transition -> {
+                            transition.setStarted(
+                                    false); // Started from previous iteration, set to false before it begins
 
+                            Timer.scheduleTransition(transition, component);
+                        });
                 });
 
         getHideTransitions().forEach(transition -> transition.setDone(false));
@@ -246,7 +253,11 @@ public class Gui implements GuiInterface {
         if (getHideTransitions().isEmpty())
             setDisplayed(false);
         else
-            getHideTransitions().forEach(transition -> Timer.scheduleTransition(transition, this));
+            getHideTransitions().forEach(transition -> {
+                transition.setStarted(false);
+
+                Timer.scheduleTransition(transition, this);
+            });
 
 
         getComponentsHideTransitions().forEach(
@@ -280,7 +291,7 @@ public class Gui implements GuiInterface {
             return false;
 
         if (this.components.get(guiComponent).isEmpty())
-            throw new IllegalArgumentException("GuiComponent does not belong to this gui");
+            return true;
 
         return this.components.get(guiComponent).stream().allMatch(Transition::isDone);
     }
@@ -314,35 +325,35 @@ public class Gui implements GuiInterface {
 
     public void animate() {
         Set<Transition> transitions;
-        if (isDisplayed()) {
-            transitions = getShowTransitions().stream().filter(transition -> !transition.isDone())
+        if (isDisplayed())
+            transitions = getShowTransitions().stream()
+                    .filter(transition -> !transition.isDone() && transition.isStarted())
                     .collect(Collectors.toSet());
-        } else {
-            transitions = getHideTransitions().stream().filter(transition -> !transition.isDone())
+        else
+            transitions = getHideTransitions().stream()
+                    .filter(transition -> !transition.isDone() && transition.isStarted())
                     .collect(Collectors.toSet());
-        }
 
-        transitions.stream().filter(transition -> !transition.isDone()).forEach(transition -> {
+
+        transitions.forEach(transition -> {
             boolean done = transition.animate(this);
             if (done) {
-                System.out.println("done");
                 transition.setDone(true);
             }
         });
 
+        Map<GuiComponent, Set<Transition>> map =
+                isDisplayed() ? getComponentsShowTransitions() : getComponentsHideTransitions();
 
-        this.components.forEach((guiComponent, lTransitions) -> {
-//            if (guiComponent.isDisplayed()) {
-            lTransitions.stream().filter(transition -> !transition.isDone()).forEach(transition -> {
-                        boolean done = transition.animate(guiComponent);
-                        if (done)
-                            transition.setDone(true);
+        map.forEach((guiComponent, lTransitions) -> lTransitions.stream().filter(transition -> !transition.isDone())
+                .forEach(transition -> {
+                            boolean done = transition.animate(guiComponent);
+                            if (done)
+                                transition.setDone(true);
 
-                        guiComponent.updateTexturePosition();
-                    }
-            );
-//            }
-        });
+                            guiComponent.updateTexturePosition();
+                        }
+                ));
 
         updateTexturePosition();
     }

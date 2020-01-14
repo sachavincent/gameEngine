@@ -89,13 +89,13 @@ public class GuiRenderer {
 //                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone())))
                 .forEach(gui -> {
                     if (gui.isDisplayed() ||
-                            gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()))
+                            gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                         renderQuad(gui, true);
 
                     gui.getComponents().keySet()
                             .stream().filter(guiComponent -> guiComponent.isDisplayed() ||
                             gui.getComponentsHideTransitions().get(guiComponent).stream()
-                                    .anyMatch(transition -> !transition.isDone()))
+                                    .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiPreset) {
                                     ((GuiPreset) guiComponent).getBasics().forEach(this::handleBasicsRendering);

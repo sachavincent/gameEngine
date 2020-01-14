@@ -12,6 +12,9 @@ public abstract class Transition {
     private Trigger trigger;
     private int     delay;
 
+    protected boolean started = false;
+
+
     Transition(Trigger trigger, int length) {
         this(trigger, 0, length);
     }
@@ -60,12 +63,20 @@ public abstract class Transition {
     }
 
     public abstract void startTransitionShow(GuiInterface gui);
-    
+
     public abstract void startTransitionHide(GuiInterface gui);
 
     public abstract boolean animate(GuiInterface gui);
 
     public abstract Transition copy();
+
+    public boolean isStarted() {
+        return this.started;
+    }
+
+    public void setStarted(boolean started) {
+        this.started = started;
+    }
 
     public enum Trigger {
         SHOW,
@@ -79,6 +90,7 @@ public abstract class Transition {
                 ", done=" + done +
                 ", trigger=" + trigger +
                 ", delay=" + delay +
+                ", started=" + started +
                 '}';
     }
 }

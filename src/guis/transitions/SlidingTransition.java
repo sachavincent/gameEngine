@@ -37,6 +37,9 @@ public class SlidingTransition extends Transition {
         if (gui.isDisplayed())
             return;
 
+        if (started)
+            throw new IllegalStateException("Transition should not be started at this point");
+
         switch (direction) {
             case RIGHT:
                 gui.setFinalX(gui.getX());
@@ -64,6 +67,8 @@ public class SlidingTransition extends Transition {
                 break;
         }
 
+        started = true;
+
         gui.setDisplayed(true);
     }
 
@@ -71,6 +76,9 @@ public class SlidingTransition extends Transition {
     public void startTransitionHide(GuiInterface gui) {
         if (!gui.isDisplayed())
             return;
+
+        if(started)
+            throw new IllegalStateException("Transition should not be started at this point");
 
         switch (direction) {
             case RIGHT:
@@ -90,11 +98,15 @@ public class SlidingTransition extends Transition {
                 break;
         }
 
+        started = true;
         gui.setDisplayed(false);
     }
 
     @Override
     public boolean animate(GuiInterface gui) {
+        if (!started)
+            return false;
+
         switch (direction) {
             case RIGHT:
                 gui.setX(Float.min(gui.getFinalX(), gui.getX() + DISTANCE / (length / 1000f) / FPS));
