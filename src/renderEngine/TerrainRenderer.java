@@ -1,17 +1,19 @@
 package renderEngine;
 
+import java.awt.Color;
 import java.util.List;
 import models.RawModel;
-import shaders.TerrainShader;
-import terrains.Terrain;
-import textures.TerrainTexturePack;
-import util.Maths;
-import util.vector.Matrix4f;
-import util.vector.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import shaders.TerrainShader;
+import terrains.Terrain;
+import textures.TerrainTexture;
+import textures.TerrainTexturePack;
+import util.Maths;
+import util.math.Matrix4f;
+import util.math.Vector3f;
 
 public class TerrainRenderer {
 
@@ -33,6 +35,18 @@ public class TerrainRenderer {
             loadModelMatrix(terrain);
             GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             unbindTexturedModel();
+
+//            prepareColorlessTerrain(terrain, false);
+//            loadModelMatrix(terrain, 0.1f);
+//            GL11.glDrawElements(GL11.GL_LINES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+//            unbindTexturedModel();
+
+            prepareColorlessTerrain(terrain);
+            terrain.setY(terrain.getY() + 0.01f);
+            loadModelMatrix(terrain);
+            GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+            unbindTexturedModel();
+            terrain.setY(terrain.getY() - 0.01f);
         }
     }
 
@@ -46,6 +60,19 @@ public class TerrainRenderer {
         bindTextures(terrain);
 
         shader.loadShineVariables(1, 0);
+    }
+
+    private void prepareColorlessTerrain(Terrain terrain) {
+        RawModel rawModel = terrain.getModelGrid();
+
+        GL30.glBindVertexArray(rawModel.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glEnableVertexAttribArray(1);
+        GL20.glEnableVertexAttribArray(2);
+
+        bindColorlessTextures(terrain);
+
+//        shader.loadShineVariables(1, 0);
     }
 
     private void bindTextures(Terrain terrain) {
@@ -76,6 +103,42 @@ public class TerrainRenderer {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.getBlendMap().getTextureID());
     }
 
+    private void bindColorlessTextures(Terrain terrain) {
+        String file = "red.png";
+
+        TerrainTexture backgroundTexture = new TerrainTexture(file);
+        TerrainTexture rTexture = new TerrainTexture(file);
+        TerrainTexture gTexture = new TerrainTexture(file);
+        TerrainTexture bTexture = new TerrainTexture(file);
+
+        TerrainTexturePack texturePack = new TerrainTexturePack(backgroundTexture, rTexture, gTexture, bTexture);
+//        TerrainTexturePack texturePack = terrain.getTexturePack();
+
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+        if (texturePack.getBackgroundTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
+            GL13.glActiveTexture(GL13.GL_TEXTURE1);
+        }
+        if (texturePack.getrTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
+            GL13.glActiveTexture(GL13.GL_TEXTURE2);
+        }
+
+        if (texturePack.getgTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
+            GL13.glActiveTexture(GL13.GL_TEXTURE3);
+        }
+
+        if (texturePack.getbTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
+            GL13.glActiveTexture(GL13.GL_TEXTURE4);
+        }
+
+//        if (terrain.getBlendMap() != null)
+//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.getBlendMap().getTextureID());
+    }
+
     private void unbindTexturedModel() {
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
@@ -85,7 +148,11 @@ public class TerrainRenderer {
 
     private void loadModelMatrix(Terrain terrain) {
         Matrix4f transformationMatrix = Maths.createTransformationMatrix(
-                new Vector3f(terrain.getX(), 0, terrain.getZ()), 0, 0, 0, 1);
+                new Vector3f(terrain.getX(), terrain.getY(), terrain.getZ()), 0, 0, 0, 1);
+
+        if (transformationMatrix == null)
+            return;
+
         shader.loadTransformationMatrix(transformationMatrix);
     }
 

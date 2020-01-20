@@ -3,7 +3,7 @@ package guis;
 import guis.presets.GuiBackground;
 import java.awt.Color;
 import textures.Texture;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public class GuiTexture<E> extends Texture {
 

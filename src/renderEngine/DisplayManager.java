@@ -19,9 +19,7 @@ import util.Timer;
 
 public class DisplayManager {
 
-    public static int WIDTH              = Toolkit.getDefaultToolkit().getScreenSize().width, HEIGHT = Toolkit
-            .getDefaultToolkit()
-            .getScreenSize().height, FPS = 60;
+    public static int WIDTH              = 1280, HEIGHT = 720, FPS = 60;
 
     private static double  lastFrameTime;
     private static double  delta;

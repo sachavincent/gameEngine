@@ -1,28 +1,25 @@
-package util.vector;
+package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
-public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
+public class Vector4f extends Vector implements Serializable, ReadableVector4f, WritableVector4f {
 
     private static final long  serialVersionUID = 1L;
     public               float x;
     public               float y;
     public               float z;
+    public               float w;
 
-    public Vector3f() {
+    public Vector4f() {
     }
 
-    public Vector3f(ReadableVector3f src) {
+    public Vector4f(ReadableVector4f src) {
         this.set(src);
     }
 
-    public Vector3f(float x, float y, float z) {
-        this.set(x, y, z);
-    }
-
-    public Vector3f(double x, double y, double z) {
-        this.set((float) x, (float) y, (float) z);
+    public Vector4f(float x, float y, float z, float w) {
+        this.set(x, y, z, w);
     }
 
     public void set(float x, float y) {
@@ -36,86 +33,87 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.z = z;
     }
 
-    public Vector3f set(ReadableVector3f src) {
+    public void set(float x, float y, float z, float w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+    }
+
+    public Vector4f set(ReadableVector4f src) {
         this.x = src.getX();
         this.y = src.getY();
         this.z = src.getZ();
+        this.w = src.getW();
         return this;
     }
 
     public float lengthSquared() {
-        return this.x * this.x + this.y * this.y + this.z * this.z;
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
     }
 
-    public Vector3f translate(float x, float y, float z) {
+    public Vector4f translate(float x, float y, float z, float w) {
         this.x += x;
         this.y += y;
         this.z += z;
+        this.w += w;
         return this;
     }
 
-    public static Vector3f add(Vector3f left, Vector3f right, Vector3f dest) {
+    public static Vector4f add(Vector4f left, Vector4f right, Vector4f dest) {
         if (dest == null) {
-            return new Vector3f(left.x + right.x, left.y + right.y, left.z + right.z);
+            return new Vector4f(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
         } else {
-            dest.set(left.x + right.x, left.y + right.y, left.z + right.z);
+            dest.set(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
             return dest;
         }
     }
 
-    public static Vector3f sub(Vector3f left, Vector3f right, Vector3f dest) {
+    public static Vector4f sub(Vector4f left, Vector4f right, Vector4f dest) {
         if (dest == null) {
-            return new Vector3f(left.x - right.x, left.y - right.y, left.z - right.z);
+            return new Vector4f(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
         } else {
-            dest.set(left.x - right.x, left.y - right.y, left.z - right.z);
+            dest.set(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
             return dest;
         }
-    }
-
-    public static Vector3f cross(Vector3f left, Vector3f right, Vector3f dest) {
-        if (dest == null) {
-            dest = new Vector3f();
-        }
-
-        dest.set(left.y * right.z - left.z * right.y, right.x * left.z - right.z * left.x,
-                left.x * right.y - left.y * right.x);
-        return dest;
     }
 
     public Vector negate() {
         this.x = -this.x;
         this.y = -this.y;
         this.z = -this.z;
+        this.w = -this.w;
         return this;
     }
 
-    public Vector3f negate(Vector3f dest) {
+    public Vector4f negate(Vector4f dest) {
         if (dest == null) {
-            dest = new Vector3f();
+            dest = new Vector4f();
         }
 
         dest.x = -this.x;
         dest.y = -this.y;
         dest.z = -this.z;
+        dest.w = -this.w;
         return dest;
     }
 
-    public Vector3f normalise(Vector3f dest) {
+    public Vector4f normalise(Vector4f dest) {
         float l = this.length();
         if (dest == null) {
-            dest = new Vector3f(this.x / l, this.y / l, this.z / l);
+            dest = new Vector4f(this.x / l, this.y / l, this.z / l, this.w / l);
         } else {
-            dest.set(this.x / l, this.y / l, this.z / l);
+            dest.set(this.x / l, this.y / l, this.z / l, this.w / l);
         }
 
         return dest;
     }
 
-    public static float dot(Vector3f left, Vector3f right) {
-        return left.x * right.x + left.y * right.y + left.z * right.z;
+    public static float dot(Vector4f left, Vector4f right) {
+        return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
     }
 
-    public static float angle(Vector3f a, Vector3f b) {
+    public static float angle(Vector4f a, Vector4f b) {
         float dls = dot(a, b) / (a.length() * b.length());
         if (dls < -1.0F) {
             dls = -1.0F;
@@ -130,6 +128,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.x = buf.get();
         this.y = buf.get();
         this.z = buf.get();
+        this.w = buf.get();
         return this;
     }
 
@@ -137,6 +136,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.x *= scale;
         this.y *= scale;
         this.z *= scale;
+        this.w *= scale;
         return this;
     }
 
@@ -144,19 +144,12 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         buf.put(this.x);
         buf.put(this.y);
         buf.put(this.z);
+        buf.put(this.w);
         return this;
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder(64);
-        sb.append("Vector3f[");
-        sb.append(this.x);
-        sb.append(", ");
-        sb.append(this.y);
-        sb.append(", ");
-        sb.append(this.z);
-        sb.append(']');
-        return sb.toString();
+        return "Vector4f: " + this.x + " " + this.y + " " + this.z + " " + this.w;
     }
 
     public final float getX() {
@@ -183,22 +176,12 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         return this.z;
     }
 
-    public double distanceSquared(Vector3f v) {
-        double dx = x - v.x;
-        double dy = y - v.y;
-        double dz = z - v.z;
-        return dx * dx + dy * dy + dz * dz;
+    public void setW(float w) {
+        this.w = w;
     }
 
-    public Vector3f add(Vector3f vec) {
-        if (vec == null)
-            return this;
-
-        return new Vector3f(x + vec.x, y + vec.y, z + vec.z);
-    }
-
-    public double distance(Vector3f v) {
-        return Math.sqrt(distanceSquared(v));
+    public float getW() {
+        return this.w;
     }
 
     public boolean equals(Object obj) {
@@ -209,8 +192,8 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         } else if (this.getClass() != obj.getClass()) {
             return false;
         } else {
-            Vector3f other = (Vector3f) obj;
-            return this.x == other.x && this.y == other.y && this.z == other.z;
+            Vector4f other = (Vector4f) obj;
+            return this.x == other.x && this.y == other.y && this.z == other.z && this.w == other.w;
         }
     }
 }

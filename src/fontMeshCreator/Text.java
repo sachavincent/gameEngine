@@ -3,8 +3,8 @@ package fontMeshCreator;
 import fontRendering.TextMaster;
 import java.awt.Color;
 import language.LanguageAssets;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 /**
  * Represents a piece of text in the game.

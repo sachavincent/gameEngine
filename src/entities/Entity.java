@@ -1,7 +1,7 @@
 package entities;
 
 import models.TexturedModel;
-import util.vector.Vector3f;
+import util.math.Vector3f;
 
 public class Entity {
 
@@ -27,7 +27,7 @@ public class Entity {
         this.rotY = rotY;
         this.rotZ = rotZ;
 
-        this.scale = 1f / model.getRawModel().getWidth();
+        this.scale = 1f;
     }
 
     public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale,

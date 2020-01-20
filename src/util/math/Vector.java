@@ -1,4 +1,4 @@
-package util.vector;
+package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;

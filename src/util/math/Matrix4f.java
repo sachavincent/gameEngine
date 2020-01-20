@@ -1,4 +1,4 @@
-package util.vector;
+package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
@@ -412,6 +412,9 @@ public class Matrix4f extends Matrix implements Serializable {
     }
 
     public static Matrix4f translate(Vector3f vec, Matrix4f src, Matrix4f dest) {
+        if(vec == null || src == null)
+            return null;
+
         if (dest == null) {
             dest = new Matrix4f();
         }

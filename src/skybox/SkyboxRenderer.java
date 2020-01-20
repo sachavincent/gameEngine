@@ -4,7 +4,7 @@ import entities.Camera;
 import models.RawModel;
 import renderEngine.Loader;
 import shaders.SkyboxShader;
-import util.vector.Matrix4f;
+import util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;

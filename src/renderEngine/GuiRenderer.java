@@ -27,7 +27,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL42;
 import shaders.GuiShader;
 import util.Maths;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public class GuiRenderer {
 

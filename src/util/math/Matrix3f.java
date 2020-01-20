@@ -1,4 +1,4 @@
-package util.vector;
+package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
@@ -23,7 +23,6 @@ public class Matrix3f extends Matrix implements Serializable {
     public Matrix3f load(Matrix3f src) {
         return load(src, this);
     }
-
     public static Matrix3f load(Matrix3f src, Matrix3f dest) {
         if (dest == null) {
             dest = new Matrix3f();

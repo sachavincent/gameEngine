@@ -1,9 +1,9 @@
 package util;
 
 import entities.Camera;
-import util.vector.Matrix4f;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Matrix4f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public class Maths {
 
@@ -17,6 +17,9 @@ public class Maths {
     }
 
     public static Matrix4f createTransformationMatrix(Vector3f translation, float rx, float ry, float rz, float scale) {
+        if(translation == null)
+            return null;
+
         Matrix4f matrix = new Matrix4f();
         matrix.setIdentity();
 

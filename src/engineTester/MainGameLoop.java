@@ -4,10 +4,12 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
+import static renderEngine.DisplayManager.getWindow;
 
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
+import entities.Player;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
@@ -24,8 +26,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import language.TextConverter;
+import models.RawModel;
 import models.TexturedModel;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -46,8 +52,8 @@ import textures.TerrainTexturePack;
 import util.MousePicker;
 import util.MouseUtils;
 import util.Timer;
-import util.vector.Vector3f;
-import util.vector.Vector4f;
+import util.math.Vector3f;
+import util.math.Vector4f;
 import water.WaterFrameBuffers;
 import water.WaterRenderer;
 import water.WaterTile;
@@ -120,7 +126,7 @@ public class MainGameLoop {
         TerrainTexture bTexture = new TerrainTexture("blue.png");
 
         TerrainTexturePack texturePack = new TerrainTexturePack(backgroundTexture, rTexture, gTexture, bTexture);
-        TerrainTexture blendMap = new TerrainTexture("blendMap.png");
+        TerrainTexture blendMap = new TerrainTexture("white.png");
 
 //
 //        ModelData data = OBJFileLoader.loadOBJ("tree");
@@ -132,6 +138,7 @@ public class MainGameLoop {
 
         TexturedModel cube = new TexturedModel(OBJLoader.loadObjModel("cube", loader),
                 new ModelTexture("red.png"));
+
         cube.getModelTexture().setTransparent(true);
         cube.getModelTexture().setUseFakeLighting(true);
         cube.getModelTexture().setReflectivity(0);
@@ -155,7 +162,7 @@ public class MainGameLoop {
         Light sun = new Light(new Vector3f(0, 1000, 300), new Vector3f(0.4f, 0.4f, 0.4f));
         lights.add(sun);
 
-        Terrain terrain = new Terrain(0, -1, loader, texturePack, blendMap, "heightmap.png");
+        Terrain terrain = new Terrain(0, 0, loader, texturePack, blendMap, "black.png");
 
         List<Entity> entities = new ArrayList<>();
 //
@@ -176,113 +183,42 @@ public class MainGameLoop {
 //                entities.add(new Entity(fern, new Vector3f(x, y, z), 0, 0, 0, 0.6f, random.nextInt(4)));
 //        }
 
-        Entity e = new Entity(tree, new Vector3f(8.35, 0.5, 17.35), 0, 0, 0);
+        Entity e = new Entity(lamp, new Vector3f(125,0,-125), 0, 0, 0,0.5f);
         entities.add(e);
-        MasterRenderer renderer = new MasterRenderer(loader);
+        MasterRenderer renderer = MasterRenderer.getInstance();
 
-        Camera camera = new Camera(terrain, new Vector3f(0, 100, 0), 20);
-
+        RawModel bunnyModel = OBJLoader.loadObjModel("person", loader);
+        TexturedModel stanfordBunny = new TexturedModel(bunnyModel, new ModelTexture("playerTexture.png"));
+        Player player = new Player(stanfordBunny, new Vector3f(0, 5, 0), 0, 100, 0, 0.6f);
+        entities.add(player);
+//        Camera camera = new Camera(terrain, new Vector3f(0, 30, 0), 20);
+        Camera camera = new Camera(player);
 
         List<Gui> guis = new ArrayList<>();
 
 
         WaterFrameBuffers buffers = new WaterFrameBuffers();
         WaterShader waterShader = new WaterShader();
-        WaterRenderer waterRenderer = new WaterRenderer(loader, waterShader, renderer.getProjectionMatrix(), buffers);
+        WaterRenderer waterRenderer = new WaterRenderer(loader, waterShader, renderer.getProjectionMatrix(),
+                buffers);
         List<WaterTile> waters = new ArrayList<>();
         WaterTile water = new WaterTile(75, -75, 0);
-        waters.add(water);
+//        waters.add(water);
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
 
-//        Gui right_gui = new Gui(new GuiBackground<>(new Color(42, 42, 42)));
-//
-//        GuiConstraintsManager constraints = new GuiConstraintsManager();
-//        constraints.setDefault();
-//
-//        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT), new FadeTransition(400));
-////        right_gui.setTransitions(new SlidingTransition(400, SlidingDirection.LEFT));
-//        constraints.setWidthConstraint(new RelativeConstraint(0.1f));
-//        constraints.setHeightConstraint(new RelativeConstraint(0.75f));
-//        constraints.setxConstraint(new SideConstraint(Side.RIGHT));
-//        right_gui.setConstraints(constraints);
-//
-//        GuiBasics square = new GuiSquare(right_gui, new GuiBackground<>(new Color(109, 109, 109)));
-//        square.setHeightConstraint(new RelativeConstraint(0.24f));
-//        square.setYConstraint(new RelativeConstraint(0f));
-//        square.setOnClick(() -> {
-//            System.out.println("test");
-//        });
-//
-//        GuiConstraintsManager constraints2 = new GuiConstraintsManager();
-//        constraints2.setWidthConstraint(new PixelConstraint(100));
-//        constraints2.setHeightConstraint(new PixelConstraint(100));
-//
-////        GuiSlider slider = new GuiRectangleSlider(right_gui, Color.GREEN, Color.BLACK, constraints2);
-//
-//
-//        GuiRectangle rect = new GuiRectangle(right_gui, new GuiBackground<>(Color.GREEN), new PixelConstraint(100),
-//                new PixelConstraint(38));
-//        GuiRectangleCheckbox gu = new GuiRectangleCheckbox(right_gui, Color.BLACK, constraints2);
-//        gu.setOutlineWidth(5);
-//
-//        gu.setCheckmark(rect);
-//
-//        slider.setColorOfLeftBase(Color.GREEN);
-//        GuiRectangleButton guiRectangleButton = new GuiRectangleButton(right_gui,
-//                new Text("jsp", .3f, font, Color.WHITE), Color.RED, constraints2);
-//        GuiRectangleButton guiCircularButton = new GuiRectangleButton(right_gui, "path.png", constraints2);
-//        GuiCircularButton b = new GuiCircularButton(right_gui, Color.BLACK, constraints2);
-//        b.setBorder(Color.WHITE);
-//        GuiRectangle guiCircle = new GuiRectangle(right_gui, Color.BLACK, new PixelConstraint(100),
-//                new PixelConstraint(100), false);
-//        guiCircle.setOutlineWidth(5);
-//        guiCircle.setWidthConstraint(new RelativeConstraint(1f));
-
-//        System.out.println(guiCircle);
-//       new GuiOval(right_gui, Color.DARK_GRAY, new RelativeConstraint(1f), new RelativeConstraint(1f));
-
-//        guis.add(right_gui);
-
-//
-//        Gui menuGui = new Gui(new GuiBackground<>(new Color(109, 109, 109, 80)));
-//
-//
-//        GuiConstraintsManager menuConstraints = new GuiConstraintsManager();
-//        menuConstraints.setDefault();
-//
-//        menuConstraints.setHeightConstraint(new RelativeConstraint(0.9f));
-//        menuConstraints.setWidthConstraint(new RelativeConstraint(0.2f));
-//        menuGui.setConstraints(menuConstraints);
-
-
-//        GuiConstraintsManager b1Constraints = new GuiConstraintsManager();
-//        b1Constraints.setDefault();
-//        b1Constraints.setWidthConstraint(new RelativeConstraint(0.7f, menuGui));
-//        b1Constraints.setHeightConstraint(new AspectConstraint(0.25f));
-//        b1Constraints.setyConstraint(new RelativeConstraint(0.25f));
-//        GuiRectangleButton b1 = new GuiRectangleButton(menuGui, new GuiBackground<>(new Color(109, 109, 109, 100)),
-//                new Text("Resume", .7f, font, new Color(72, 72, 72)), b1Constraints);
-//
-//        GuiConstraintsManager b2Constraints = new GuiConstraintsManager();
-//        b2Constraints.setDefault();
-//        b2Constraints.setWidthConstraint(new RelativeConstraint(0.7f, menuGui));
-//        b2Constraints.setHeightConstraint(new AspectConstraint(0.25f));
-//        b2Constraints.setyConstraint(new RelativeConstraint(0.25f, b1));
-//        GuiRectangleButton b2 = new GuiRectangleButton(menuGui, new GuiBackground<>(new Color(109, 109, 109, 100)),
-//                new Text("Save & Quit", .7f, font, new Color(72, 72, 72)), b2Constraints);
-
-//        GuiEscapeMenu.instantiateEscapeMenu(new GuiBackground<>(new Color(109, 109, 109, 80)));
         new GuiEscapeMenu.Builder()
                 .setBackground(new GuiBackground<>(new Color(109, 109, 109, 80)))
-                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE, new GuiBackground<>(new Color(109, 109, 109, 100)))
+                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE,
+                        new GuiBackground<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
                         new GuiBackground<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
                         new GuiBackground<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.SETTINGS, ButtonType.RECTANGLE,
                         new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE, new GuiBackground<>(new Color(109, 109, 109, 100)))
+                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE,
+                        new GuiBackground<>(new Color(109, 109, 109, 100)))
                 .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
                         true)
                 .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
@@ -307,6 +243,8 @@ public class MainGameLoop {
 
         PostProcessing.init(loader);
 
+
+        Random random = new Random();
         while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
             boolean canRender = false;
 
@@ -334,31 +272,54 @@ public class MainGameLoop {
             }
 
             if (canRender) {
+                player.move(terrain);
                 camera.move();
 
                 picker.update();
 
                 GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
 
-                buffers.bindReflectionFrameBuffer();
+                GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
+                    if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                        if (action == GLFW.GLFW_PRESS) {
+                            Vector3f currentTerrainPoint = picker.getCurrentTerrainPoint();
+                            currentTerrainPoint.x = (float) Math.round(currentTerrainPoint.x);
+                            currentTerrainPoint.y = (float) Math.round(currentTerrainPoint.y);
+                            currentTerrainPoint.z = (float) Math.round(currentTerrainPoint.z);
+                            entities.add(new Entity(lamp, currentTerrainPoint, 0,
+                                    random.nextFloat() * 360, 0, 0.5f, 3));
+                            System.out.println(currentTerrainPoint);
+                            System.out.println("Player: " + player.getPosition());
+                        }
+                    } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+                        if (action == GLFW.GLFW_PRESS) {
+//                            camera.setMiddleButtonPressed(true);
+                            System.out.println("middle button");
+                        } else if (action == GLFW.GLFW_RELEASE) {
+//                            camera.setMiddleButtonPressed(false);
+                        }
+                    }
+                });
 
-                float distance = 2 * (camera.getPosition().y - water.getHeight());
-                camera.getPosition().y -= distance;
-                camera.invertPitch();
-
-                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
-                        new Vector4f(0, 1, 0, -water.getHeight() + 1f));
-
-                camera.getPosition().y += distance;
-                camera.invertPitch();
-
-                buffers.bindRefractionFrameBuffer();
-                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
-                        new Vector4f(0, -1, 0, water.getHeight() + 1f));
-
-                GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
-
-                buffers.unbindCurrentFrameBuffer();
+//                buffers.bindReflectionFrameBuffer();
+//
+//                float distance = 2 * (camera.getPosition().y - water.getHeight());
+//                camera.getPosition().y -= distance;
+//                camera.invertPitch();
+//
+//                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
+//                        new Vector4f(0, 1, 0, -water.getHeight() + 1f));
+//
+//                camera.getPosition().y += distance;
+//                camera.invertPitch();
+//
+//                buffers.bindRefractionFrameBuffer();
+//                renderer.renderScene(entities, Collections.singletonList(terrain), lights, camera,
+//                        new Vector4f(0, -1, 0, water.getHeight() + 1f));
+//
+//                GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
+//
+//                buffers.unbindCurrentFrameBuffer();
 
                 if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
                     fbo.bindFrameBuffer();

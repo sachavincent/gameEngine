@@ -1,4 +1,4 @@
-package util.vector;
+package util.math;
 
 public interface WritableVector3f extends WritableVector2f {
 

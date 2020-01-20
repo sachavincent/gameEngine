@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import models.RawModel;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public class OBJLoader {
 
@@ -122,7 +122,7 @@ public class OBJLoader {
         for (int i = 0; i < indices.size(); i++)
             indicesArray[i] = indices.get(i);
 
-        return loader.loadToVAO(verticesArray, textureArray, normalsArray, indicesArray, width, depth, height);
+        return loader.loadToVAO(verticesArray, textureArray, normalsArray, indicesArray);
     }
 
 

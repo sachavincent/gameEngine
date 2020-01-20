@@ -4,7 +4,7 @@ import entities.Camera;
 import entities.Light;
 import renderEngine.MasterRenderer;
 import util.Maths;
-import util.vector.Matrix4f;
+import util.math.Matrix4f;
 
 public class WaterShader extends ShaderProgram {
 

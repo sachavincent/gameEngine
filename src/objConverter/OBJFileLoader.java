@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public class OBJFileLoader {
 

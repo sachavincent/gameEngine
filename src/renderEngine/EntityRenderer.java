@@ -8,7 +8,7 @@ import models.TexturedModel;
 import shaders.StaticShader;
 import textures.ModelTexture;
 import util.Maths;
-import util.vector.Matrix4f;
+import util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -76,6 +76,9 @@ public class EntityRenderer {
     private void prepareInstance(Entity entity) {
         Matrix4f transformationMatrix = Maths.createTransformationMatrix(entity.getPosition(),
                 entity.getRotX(), entity.getRotY(), entity.getRotZ(), entity.getScale());
+
+        if(transformationMatrix == null)
+            return;
 
         shader.loadTransformationMatrix(transformationMatrix);
         shader.loadOffset(entity.getTextureXOffset(), entity.getTextureYOffset());

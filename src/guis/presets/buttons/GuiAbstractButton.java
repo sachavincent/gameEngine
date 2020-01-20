@@ -13,7 +13,7 @@ import guis.presets.GuiPreset;
 import java.awt.Color;
 import java.util.List;
 import javax.naming.SizeLimitExceededException;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public abstract class GuiAbstractButton extends GuiPreset {
 

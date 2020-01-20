@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import renderEngine.DisplayManager;
 import util.Timer;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public class Gui implements GuiInterface {
 

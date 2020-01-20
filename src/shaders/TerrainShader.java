@@ -4,9 +4,9 @@ import java.util.List;
 import entities.Camera;
 import entities.Light;
 import util.Maths;
-import util.vector.Matrix4f;
-import util.vector.Vector3f;
-import util.vector.Vector4f;
+import util.math.Matrix4f;
+import util.math.Vector3f;
+import util.math.Vector4f;
 
 public class TerrainShader extends ShaderProgram {
 

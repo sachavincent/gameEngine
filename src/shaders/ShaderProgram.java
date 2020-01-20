@@ -7,10 +7,10 @@ import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-import util.vector.Matrix4f;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
-import util.vector.Vector4f;
+import util.math.Matrix4f;
+import util.math.Vector2f;
+import util.math.Vector3f;
+import util.math.Vector4f;
 
 public abstract class ShaderProgram {
 

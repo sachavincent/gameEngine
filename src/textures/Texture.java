@@ -14,9 +14,9 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
-import util.vector.Vector3f;
+import util.math.Vector3f;
 
-public abstract class Texture<E> {
+public abstract class Texture {
 
     private int textureID, width, height;
 

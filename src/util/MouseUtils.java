@@ -1,6 +1,5 @@
 package util;
 
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 import static util.Maths.isPosInBounds;
 
@@ -12,11 +11,10 @@ import guis.basics.GuiEllipse;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public class MouseUtils {
 
@@ -44,7 +42,7 @@ public class MouseUtils {
     }
 
 
-    public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
+    public static boolean isCursorInGuiComponent(GuiComponent<?> guiComponent) {
         if (guiComponent instanceof GuiEllipse) {
             Vector2f cursorPos = getCursorPos();
 
@@ -72,38 +70,45 @@ public class MouseUtils {
 
         guisClone.add(GuiEscapeMenu.getEscapeMenu());
 
-        GLFW.glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                if (action == GLFW.GLFW_PRESS) {
-                    guisClone.stream()
-                            .filter(Gui::isDisplayed)
-                            .filter(MouseUtils::isCursorInGui)
-                            .forEach(gui -> {
-                                gui.getComponents().keySet().stream()
-                                        .filter(MouseUtils::isCursorInGuiComponent)
-                                        .filter(gui::areTransitionsOfComponentDone)
-                                        .forEach(GuiComponent::onClick);
-                            });
-
-                } else if (action == GLFW_RELEASE) {
-                    guisClone.forEach(gui -> {
-                        List<GuiComponent> guiComponents = gui.getComponents().keySet()
-                                .stream().filter(GuiComponent::isClicked).collect(Collectors.toList());
-
-
-                        if (gui.isDisplayed() && MouseUtils.isCursorInGui(gui)) {
-                            guiComponents.stream()
-//                                    .filter(guiComponent -> guiComponent.isClicked())
-                                    .filter(MouseUtils::isCursorInGuiComponent)
-                                    .filter(gui::areTransitionsOfComponentDone)
-                                    .forEach(GuiComponent::onPress);
-                        }
-
-                        guiComponents.forEach(GuiComponent::onRelease);
-                    });
-                }
-            }
-        });
+//        GLFW.glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
+//            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+//                if (action == GLFW.GLFW_PRESS) {
+//                    guisClone.stream()
+//                            .filter(Gui::isDisplayed)
+//                            .filter(MouseUtils::isCursorInGui)
+//                            .forEach(gui -> {
+//                                gui.getComponents().keySet().stream()
+//                                        .filter(MouseUtils::isCursorInGuiComponent)
+//                                        .filter(gui::areTransitionsOfComponentDone)
+//                                        .forEach(GuiComponent::onClick);
+//                            });
+//                    System.out.println(MousePicker.getInstance().getCurrentTerrainPoint());
+//                } else if (action == GLFW_RELEASE) {
+//                    guisClone.forEach(gui -> {
+//                        List<GuiComponent<?>> guiComponents = gui.getComponents().keySet()
+//                                .stream().filter(GuiComponent::isClicked).collect(Collectors.toList());
+//
+//
+//                        if (gui.isDisplayed() && MouseUtils.isCursorInGui(gui)) {
+//                            guiComponents.stream()
+////                                    .filter(guiComponent -> guiComponent.isClicked())
+//                                    .filter(MouseUtils::isCursorInGuiComponent)
+//                                    .filter(gui::areTransitionsOfComponentDone)
+//                                    .forEach(GuiComponent::onPress);
+//                        }
+//
+//                        guiComponents.forEach(GuiComponent::onRelease);
+//                    });
+//                }
+//            } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+//                if (action == GLFW.GLFW_PRESS) {
+//                    camera.setMiddleButtonPressed(true);
+//                    System.out.println("middle button");
+//                } else if (action == GLFW.GLFW_RELEASE) {
+//                    camera.setMiddleButtonPressed(false);
+//                }
+//            }
+//        });
 
 
 //        GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
@@ -115,25 +120,25 @@ public class MouseUtils {
 
         });
 
-        GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
-            guisClone.forEach(gui -> {
-                gui.getComponents().keySet().stream()
-                        .filter(gui::areTransitionsOfComponentDone)
-                        .forEach(GuiComponent::onLeave);
-            });
-
-            guisClone.stream()
-                    .filter(Gui::isDisplayed)
-                    .filter(MouseUtils::isCursorInGui)
-                    .forEach(gui -> {
-                        gui.getComponents().keySet().stream()
-                                .filter(MouseUtils::isCursorInGuiComponent)
-                                .filter(gui::areTransitionsOfComponentDone)
-                                .forEach(guiComponent -> {
-                                    guiComponent.onHover();
-                                    guiComponent.onEnter();
-                                });
-                    });
-        });
+//        GLFW.glfwSetCursorPosCallback(window, (w, button, action) -> {
+//            guisClone.forEach(gui -> {
+//                gui.getComponents().keySet().stream()
+//                        .filter(gui::areTransitionsOfComponentDone)
+//                        .forEach(GuiComponent::onLeave);
+//            });
+//
+//            guisClone.stream()
+//                    .filter(Gui::isDisplayed)
+//                    .filter(MouseUtils::isCursorInGui)
+//                    .forEach(gui -> {
+//                        gui.getComponents().keySet().stream()
+//                                .filter(MouseUtils::isCursorInGuiComponent)
+//                                .filter(gui::areTransitionsOfComponentDone)
+//                                .forEach(guiComponent -> {
+//                                    guiComponent.onHover();
+//                                    guiComponent.onEnter();
+//                                });
+//                    });
+//        });
     }
 }

@@ -1,7 +1,7 @@
 package shaders;
 
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public class FontShader extends ShaderProgram {
 

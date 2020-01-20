@@ -1,8 +1,8 @@
 package entities;
 
 import terrains.Terrain;
-import util.vector.Vector2f;
-import util.vector.Vector3f;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public abstract class Focusable {
 

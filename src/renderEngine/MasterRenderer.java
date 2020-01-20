@@ -3,7 +3,6 @@ package renderEngine;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
-import guis.Gui;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,8 +13,8 @@ import shaders.StaticShader;
 import shaders.TerrainShader;
 import skybox.SkyboxRenderer;
 import terrains.Terrain;
-import util.vector.Matrix4f;
-import util.vector.Vector4f;
+import util.math.Matrix4f;
+import util.math.Vector4f;
 
 public class MasterRenderer {
 
@@ -40,13 +39,19 @@ public class MasterRenderer {
     private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
     private List<Terrain>                    terrains = new ArrayList<>();
 
-    public MasterRenderer(Loader loader) {
+    private static MasterRenderer instance;
+
+    public static MasterRenderer getInstance() {
+        return instance == null ? (instance = new MasterRenderer()) : instance;
+    }
+
+    private MasterRenderer() {
         enableCulling();
 
         createProjectionMatrix();
         renderer = new EntityRenderer(shader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
-        skyboxRenderer = new SkyboxRenderer(loader, projectionMatrix);
+        skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
     }
 
     public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights,

@@ -13,7 +13,7 @@ import inputs.callbacks.*;
 import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.MouseUtils;
-import util.vector.Vector2f;
+import util.math.Vector2f;
 
 public abstract class GuiComponent<E> implements GuiInterface {
 

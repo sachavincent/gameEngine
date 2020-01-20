@@ -33,8 +33,7 @@ public class Loader {
     private Loader() {
     }
 
-    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices, float width,
-            float depth, float height) {
+    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
         int vaoID = createVAO();
         bindIndicesBuffer(indices);
 
@@ -43,17 +42,17 @@ public class Loader {
         storeDataInAttributeList(2, 3, normals);
         unbindVAO();
 
-        return new RawModel(vaoID, indices.length, width, depth, height);
+        return new RawModel(vaoID, indices.length);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions) {
         int vaoID = createVAO();
 
-        this.storeDataInAttributeList(0, dimensions, positions);
+        storeDataInAttributeList(0, dimensions, positions);
 
         unbindVAO();
 
-        return new RawModel(vaoID, positions.length / dimensions, 0, 0, 0);
+        return new RawModel(vaoID, positions.length / dimensions);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions, int attributeNumber) {
@@ -63,7 +62,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, positions.length / dimensions, 0, 0, 0);
+        return new RawModel(vaoID, positions.length / dimensions);
     }
 
     public int loadToVAO(float[] positions, float[] textureCoords) {

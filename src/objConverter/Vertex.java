@@ -1,7 +1,7 @@
 package objConverter;
 
 
-import util.vector.Vector3f;
+import util.math.Vector3f;
 
 public class Vertex {
 
