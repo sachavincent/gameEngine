@@ -3,6 +3,7 @@ package terrains;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import models.RawModel;
 import renderEngine.Loader;
@@ -169,7 +170,7 @@ public class Terrain {
             }
         }
 
-        generateGridTerrain(15, 15, textureCoords, image);
+        generateGridTerrain(150 / 2, 150 / 2, textureCoords, image);
 
         return loader.loadToVAO(vertices, textureCoords, normals, indices);
     }

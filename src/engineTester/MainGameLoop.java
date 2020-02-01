@@ -21,6 +21,8 @@ import guis.transitions.SlidingDirection;
 import guis.transitions.SlidingTransition;
 import guis.transitions.Transition.Trigger;
 import inputs.KeyboardUtils;
+import items.DirtRoadItem;
+import items.StraightRoad;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import language.TextConverter;
 import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -157,9 +158,14 @@ public class MainGameLoop {
         TexturedModel lamp = new TexturedModel(OBJLoader.loadObjModel("lamp", loader),
                 new ModelTexture("lampTexture.png"));
 
+        TexturedModel path_turn = new TexturedModel(OBJLoader.loadObjModel("turn", loader),
+                new ModelTexture("turn.png"));
+        TexturedModel path_straight = new TexturedModel(OBJLoader.loadObjModel("straight", loader),
+                new ModelTexture("straight.png"));
+
         List<Light> lights = new ArrayList<>();
 
-        Light sun = new Light(new Vector3f(0, 1000, 300), new Vector3f(0.4f, 0.4f, 0.4f));
+        Light sun = new Light(new Vector3f(10000, 10000, -10000), new Vector3f(1.3f, 1.3f, 1.3f));
         lights.add(sun);
 
         Terrain terrain = new Terrain(0, 0, loader, texturePack, blendMap, "black.png");
@@ -183,14 +189,14 @@ public class MainGameLoop {
 //                entities.add(new Entity(fern, new Vector3f(x, y, z), 0, 0, 0, 0.6f, random.nextInt(4)));
 //        }
 
-        Entity e = new Entity(lamp, new Vector3f(125,0,-125), 0, 0, 0,0.5f);
+        Entity e = new Entity(lamp, new Vector3f(0, 0, 0), 0, 0, 0, 0.5f);
         entities.add(e);
         MasterRenderer renderer = MasterRenderer.getInstance();
 
         RawModel bunnyModel = OBJLoader.loadObjModel("person", loader);
         TexturedModel stanfordBunny = new TexturedModel(bunnyModel, new ModelTexture("playerTexture.png"));
         Player player = new Player(stanfordBunny, new Vector3f(0, 5, 0), 0, 100, 0, 0.6f);
-        entities.add(player);
+//        entities.add(player);
 //        Camera camera = new Camera(terrain, new Vector3f(0, 30, 0), 20);
         Camera camera = new Camera(player);
 
@@ -243,7 +249,8 @@ public class MainGameLoop {
 
         PostProcessing.init(loader);
 
-
+        DirtRoadItem<StraightRoad> t = new DirtRoadItem<>(new StraightRoad());
+        final int[] rotY = {0};
         Random random = new Random();
         while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
             boolean canRender = false;
@@ -284,19 +291,30 @@ public class MainGameLoop {
                         if (action == GLFW.GLFW_PRESS) {
                             Vector3f currentTerrainPoint = picker.getCurrentTerrainPoint();
                             currentTerrainPoint.x = (float) Math.round(currentTerrainPoint.x);
-                            currentTerrainPoint.y = (float) Math.round(currentTerrainPoint.y);
+                            currentTerrainPoint.y = (float) Math.round(currentTerrainPoint.y) + 0.01f;
                             currentTerrainPoint.z = (float) Math.round(currentTerrainPoint.z);
-                            entities.add(new Entity(lamp, currentTerrainPoint, 0,
-                                    random.nextFloat() * 360, 0, 0.5f, 3));
+                            entities.add(new Entity(path_turn, currentTerrainPoint, 0,
+                                    90, 0, 1f, 3));
                             System.out.println(currentTerrainPoint);
                             System.out.println("Player: " + player.getPosition());
                         }
                     } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
                         if (action == GLFW.GLFW_PRESS) {
+                            rotY[0] = (rotY[0] + 90) % 180;
 //                            camera.setMiddleButtonPressed(true);
                             System.out.println("middle button");
+                            System.out.println(rotY[0]);
                         } else if (action == GLFW.GLFW_RELEASE) {
 //                            camera.setMiddleButtonPressed(false);
+                        }
+                    } else if (button == GLFW.GLFW_MOUSE_BUTTON_2) {
+                        if (action == GLFW.GLFW_PRESS) {
+                            Vector3f currentTerrainPoint = picker.getCurrentTerrainPoint();
+                            currentTerrainPoint.x = (float) Math.round(currentTerrainPoint.x);
+                            currentTerrainPoint.y = (float) Math.round(currentTerrainPoint.y) + 0.01f;
+                            currentTerrainPoint.z = (float) Math.round(currentTerrainPoint.z);
+                            entities.add(new Entity(path_straight, currentTerrainPoint, 0,
+                                    rotY[0], 0, 1f, 3));
                         }
                     }
                 });
