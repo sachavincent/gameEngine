@@ -3,14 +3,14 @@ package shaders;
 import java.util.List;
 import entities.Camera;
 import entities.Light;
-import util.Maths;
+import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 
 public class TerrainShader extends ShaderProgram {
 
-    private static final int MAX_LIGHTS = 4;
+    private static final int MAX_LIGHTS = 10;
 
     private static final String VERTEX_FILE   = "terrainVertexShader.glsl";
     private static final String FRAGMENT_FILE = "terrainFragmentShader.glsl";

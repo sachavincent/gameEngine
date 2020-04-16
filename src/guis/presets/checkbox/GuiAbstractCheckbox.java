@@ -5,7 +5,7 @@ import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiPreset;
 import java.awt.Color;
-import util.MouseUtils;
+import inputs.MouseUtils;
 
 public abstract class GuiAbstractCheckbox extends GuiPreset {
 

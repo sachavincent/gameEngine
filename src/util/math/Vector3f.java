@@ -2,6 +2,7 @@ package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
+import java.util.Objects;
 
 public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
 
@@ -86,19 +87,10 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.x = -this.x;
         this.y = -this.y;
         this.z = -this.z;
+
         return this;
     }
 
-    public Vector3f negate(Vector3f dest) {
-        if (dest == null) {
-            dest = new Vector3f();
-        }
-
-        dest.x = -this.x;
-        dest.y = -this.y;
-        dest.z = -this.z;
-        return dest;
-    }
 
     public Vector3f normalise(Vector3f dest) {
         float l = this.length();
@@ -212,5 +204,10 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
             Vector3f other = (Vector3f) obj;
             return this.x == other.x && this.y == other.y && this.z == other.z;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
     }
 }

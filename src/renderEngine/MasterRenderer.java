@@ -29,17 +29,21 @@ public class MasterRenderer {
     private Matrix4f projectionMatrix;
 
     private StaticShader   shader = new StaticShader();
-    private EntityRenderer renderer;
+    private EntityRenderer entityRenderer;
     private SkyboxRenderer skyboxRenderer;
 
     private TerrainRenderer terrainRenderer;
     private TerrainShader   terrainShader = new TerrainShader();
 
-
     private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
-    private List<Terrain>                    terrains = new ArrayList<>();
+
+    private Terrain                          terrain;
 
     private static MasterRenderer instance;
+
+    public EntityRenderer getEntityRenderer() {
+        return this.entityRenderer;
+    }
 
     public static MasterRenderer getInstance() {
         return instance == null ? (instance = new MasterRenderer()) : instance;
@@ -49,14 +53,14 @@ public class MasterRenderer {
         enableCulling();
 
         createProjectionMatrix();
-        renderer = new EntityRenderer(shader, projectionMatrix);
+        entityRenderer = new EntityRenderer(shader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
         skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
     }
 
-    public void renderScene(List<Entity> entities, List<Terrain> terrains, List<Light> lights,
+    public void renderScene(List<Entity> entities, Terrain terrain, List<Light> lights,
             Camera camera, Vector4f clipPlane) {
-        terrains.forEach(this::processTerrain);
+        processTerrain(terrain);
         entities.forEach(this::processEntity);
 
         render(lights, camera, clipPlane);
@@ -69,7 +73,7 @@ public class MasterRenderer {
         shader.loadSkyColor(RED, GREEN, BLUE);
         shader.loadLights(lights);
         shader.loadViewMatrix(camera);
-        renderer.render(entities);
+        entityRenderer.render(entities, terrain);
         shader.stop();
 
         terrainShader.start();
@@ -77,17 +81,16 @@ public class MasterRenderer {
         terrainShader.loadSkyColor(RED, GREEN, BLUE);
         terrainShader.loadLights(lights);
         terrainShader.loadViewMatrix(camera);
-        terrainRenderer.render(terrains);
+        terrainRenderer.render(terrain);
         terrainShader.stop();
 
 
         skyboxRenderer.render(camera);
-        terrains.clear();
         entities.clear();
     }
 
     private void processTerrain(Terrain terrain) {
-        terrains.add(terrain);
+        this.terrain = terrain;
     }
 
     private void processEntity(Entity entity) {
@@ -103,8 +106,9 @@ public class MasterRenderer {
     }
 
     static void enableCulling() {
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glCullFace(GL11.GL_BACK);
+//        GL11.glEnable(GL11.GL_CULL_FACE);
+//        GL11.glCullFace(GL11.GL_BACK);
+        //TODO
     }
 
 
@@ -119,7 +123,7 @@ public class MasterRenderer {
     }
 
     private void prepare() {
-//        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glClearColor(RED, GREEN, BLUE, 1);
     }

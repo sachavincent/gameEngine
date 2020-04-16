@@ -1,6 +1,7 @@
 package entities;
 
 import models.TexturedModel;
+import textures.ModelTexture;
 import util.math.Vector3f;
 
 public class Entity {
@@ -42,13 +43,21 @@ public class Entity {
     }
 
     public float getTextureXOffset() {
-        int column = textureIndex % model.getModelTexture().getNumberOfRows();
-        return (float) column / (float) model.getModelTexture().getNumberOfRows();
+        ModelTexture modelTexture = model.getModelTexture();
+        if (modelTexture == null)
+            return 0;
+
+        int column = textureIndex % modelTexture.getNumberOfRows();
+        return (float) column / (float) modelTexture.getNumberOfRows();
     }
 
     public float getTextureYOffset() {
-        int row = textureIndex / model.getModelTexture().getNumberOfRows();
-        return (float) row / (float) model.getModelTexture().getNumberOfRows();
+        ModelTexture modelTexture = model.getModelTexture();
+        if (modelTexture == null)
+            return 0;
+
+        int row = textureIndex / modelTexture.getNumberOfRows();
+        return (float) row / (float) modelTexture.getNumberOfRows();
     }
 
     public void increasePosition(float dx, float dy, float dz) {
@@ -110,4 +119,6 @@ public class Entity {
     public void setScale(float scale) {
         this.scale = scale;
     }
+
+
 }

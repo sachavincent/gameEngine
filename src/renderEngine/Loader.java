@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import textures.TextureData;
+import util.math.Vector3f;
 
 public class Loader {
 
@@ -31,6 +32,19 @@ public class Loader {
     }
 
     private Loader() {
+    }
+
+    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices,
+            Vector3f min, Vector3f max) {
+        int vaoID = createVAO();
+        bindIndicesBuffer(indices);
+
+        storeDataInAttributeList(0, 3, positions);
+        storeDataInAttributeList(1, 2, textureCoords);
+        storeDataInAttributeList(2, 3, normals);
+        unbindVAO();
+
+        return new RawModel(vaoID, indices.length, min, max);
     }
 
     public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {

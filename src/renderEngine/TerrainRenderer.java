@@ -1,7 +1,5 @@
 package renderEngine;
 
-import java.awt.Color;
-import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -11,7 +9,7 @@ import shaders.TerrainShader;
 import terrains.Terrain;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
-import util.Maths;
+import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 
@@ -29,25 +27,18 @@ public class TerrainRenderer {
         shader.stop();
     }
 
-    public void render(List<Terrain> terrains) {
-        for (Terrain terrain : terrains) {
+    public void render(Terrain terrain) {
             prepareTerrain(terrain);
             loadModelMatrix(terrain);
             GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             unbindTexturedModel();
 
-//            prepareColorlessTerrain(terrain, false);
-//            loadModelMatrix(terrain, 0.1f);
-//            GL11.glDrawElements(GL11.GL_LINES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+//            prepareColorlessTerrain(terrain);
+//            terrain.setY(terrain.getY() + 0.01f);
+//            loadModelMatrix(terrain);
+//            GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
 //            unbindTexturedModel();
-
-            prepareColorlessTerrain(terrain);
-            terrain.setY(terrain.getY() + 0.01f);
-            loadModelMatrix(terrain);
-            GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-            unbindTexturedModel();
-            terrain.setY(terrain.getY() - 0.01f);
-        }
+//            terrain.setY(terrain.getY() - 0.01f);
     }
 
     private void prepareTerrain(Terrain terrain) {

@@ -63,7 +63,7 @@ public class Camera {
         float offsetZ = (float) (horizDistance * Math.cos(Math.toRadians(theta)));
         position.x = player.getPosition().x - offsetX;
         position.z = player.getPosition().z - offsetZ;
-        position.y = player.getPosition().y + verticDistance + 4;
+        position.y = player.getPosition().y + verticDistance;
     }
 
     private float calculateHorizontalDistance() {

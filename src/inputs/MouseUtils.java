@@ -1,7 +1,7 @@
-package util;
+package inputs;
 
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static util.Maths.isPosInBounds;
+import static util.math.Maths.isPointIn2DBounds;
 
 import entities.Camera;
 import guis.Gui;
@@ -38,7 +38,7 @@ public class MouseUtils {
     }
 
     public static boolean isCursorInGui(Gui gui) {
-        return isPosInBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
+        return isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 
 
@@ -59,7 +59,7 @@ public class MouseUtils {
                     Math.pow(y - k, 2) / Math.pow(r2, 2)) <= 1;
         }
 
-        return isPosInBounds(getCursorPos(), guiComponent.getX(), guiComponent.getY(), guiComponent.getWidth(),
+        return isPointIn2DBounds(getCursorPos(), guiComponent.getX(), guiComponent.getY(), guiComponent.getWidth(),
                 guiComponent.getHeight());
     }
 
@@ -79,7 +79,7 @@ public class MouseUtils {
 //                            .forEach(gui -> {
 //                                gui.getComponents().keySet().stream()
 //                                        .filter(MouseUtils::isCursorInGuiComponent)
-//                                        .filter(gui::areTransitionsOfComponentDone)
+////                                        .filter(gui::areTransitionsOfComponentDone)
 //                                        .forEach(GuiComponent::onClick);
 //                            });
 //                    System.out.println(MousePicker.getInstance().getCurrentTerrainPoint());
@@ -93,7 +93,7 @@ public class MouseUtils {
 //                            guiComponents.stream()
 ////                                    .filter(guiComponent -> guiComponent.isClicked())
 //                                    .filter(MouseUtils::isCursorInGuiComponent)
-//                                    .filter(gui::areTransitionsOfComponentDone)
+////                                    .filter(gui::areTransitionsOfComponentDone) //TODO Not working yet
 //                                    .forEach(GuiComponent::onPress);
 //                        }
 //
@@ -102,10 +102,10 @@ public class MouseUtils {
 //                }
 //            } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
 //                if (action == GLFW.GLFW_PRESS) {
-//                    camera.setMiddleButtonPressed(true);
+////                    camera.setMiddleButtonPressed(true);
 //                    System.out.println("middle button");
-//                } else if (action == GLFW.GLFW_RELEASE) {
-//                    camera.setMiddleButtonPressed(false);
+//                } else if (action == GLFW_RELEASE) {
+////                    camera.setMiddleButtonPressed(false);
 //                }
 //            }
 //        });

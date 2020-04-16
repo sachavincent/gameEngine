@@ -8,7 +8,7 @@ import guis.constraints.RelativeConstraint;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import java.awt.Color;
-import util.MouseUtils;
+import inputs.MouseUtils;
 
 public abstract class GuiAbstractSlider extends GuiPreset {
 

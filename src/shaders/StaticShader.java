@@ -3,7 +3,7 @@ package shaders;
 import java.util.List;
 import entities.Camera;
 import entities.Light;
-import util.Maths;
+import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -18,11 +18,11 @@ public class StaticShader extends ShaderProgram {
 
     private int location_transformationMatrix;
     private int location_projectionMatrix;
-    private int location_viewMatrix;
-    private int location_lightPosition[];
-    private int location_lightColor[];
-    private int location_attenuation[];
-    private int location_shineDamper;
+    private int   location_viewMatrix;
+    private int[] location_lightPosition;
+    private int[] location_lightColor;
+    private int[] location_attenuation;
+    private int   location_shineDamper;
     private int location_reflectivity;
     private int location_useFakeLighting;
     private int location_skyColor;

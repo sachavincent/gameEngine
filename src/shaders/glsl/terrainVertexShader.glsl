@@ -6,7 +6,7 @@ in vec3 normal;
 
 out vec2 pass_textureCoords;
 out vec3 surfaceNormal;
-out vec3 toLightVector[4];
+out vec3 toLightVector[10];
 out vec3 toCameraVector;
 
 out float visibility;
@@ -14,7 +14,7 @@ out float visibility;
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 lightPosition[4];
+uniform vec3 lightPosition[10];
 
 uniform vec4 plane;
 
@@ -34,7 +34,7 @@ void main(void){
 
 	surfaceNormal = (transformationMatrix * vec4(normal,0.0)).xyz;
 
-  for(int i=0;i<4;i++) {
+  for(int i=0;i<10;i++) {
     toLightVector[i] = lightPosition[i] - worldPosition.xyz;
   }
 

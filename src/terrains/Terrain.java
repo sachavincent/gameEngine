@@ -1,21 +1,23 @@
 package terrains;
 
+import items.Item;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import models.RawModel;
 import renderEngine.Loader;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
-import util.Maths;
+import util.math.Maths;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class Terrain {
 
-    public static final  float SIZE             = 150;
+    public static final  int   SIZE             = 150;
     private static final float MAX_HEIGHT       = 40;
     private static final float MAX_PIXEL_COLOUR = 256 * 256 * 256;
 
@@ -27,6 +29,8 @@ public class Terrain {
     private TerrainTexture     blendMap;
 
     private float[][] heights;
+
+    private Map<Vector3f, Item> items = new HashMap<>();
 
     public Terrain(int gridX, int gridZ, Loader loader, TerrainTexturePack texturePack,
             TerrainTexture blendMap, String heightMap) {
@@ -170,7 +174,7 @@ public class Terrain {
             }
         }
 
-        generateGridTerrain(150 / 2, 150 / 2, textureCoords, image);
+//        generateGridTerrain(SIZE / 2, SIZE / 2, textureCoords, image);
 
         return loader.loadToVAO(vertices, textureCoords, normals, indices);
     }
@@ -211,7 +215,7 @@ public class Terrain {
             tab[vertexPointer * 3 + 2] = i;
             indicesTab[j] = j++;
 
-            normal = calculateNormal((int) SIZE, i, image);
+            normal = calculateNormal(SIZE, i, image);
             normalsTab[normalsPointer * 3] = normal.x;
             normalsTab[normalsPointer * 3 + 1] = normal.y;
             normalsTab[normalsPointer * 3 + 2] = normal.z;
@@ -241,7 +245,7 @@ public class Terrain {
             tab[vertexPointer * 3 + 2] = SIZE;
             indicesTab[j] = j++;
 
-            normal = calculateNormal(i, (int) SIZE, image);
+            normal = calculateNormal(i, SIZE, image);
             normalsTab[normalsPointer * 3] = normal.x;
             normalsTab[normalsPointer * 3 + 1] = normal.y;
             normalsTab[normalsPointer * 3 + 2] = normal.z;
@@ -262,7 +266,7 @@ public class Terrain {
 //        float heightR = getHeight(x + 1, z, generator);
 //        float heightD = getHeight(x, z - 1, generator);
 //        float heightU = getHeight(x, z + 1, generator);
-//
+//w
 //        Vector3f normal = new Vector3f(heightL - heightR, 2f, heightD - heightU);
 //        normal.normalise();
 //
@@ -344,5 +348,23 @@ public class Terrain {
 
     public RawModel getModel() {
         return model;
+    }
+
+    public void placeItem(Item item, Vector3f position) {
+        try {
+            if (position.x < 0 || position.x > SIZE || position.z < 0 || position.z > 150)
+                throw new IllegalStateException("Clicked out of terrain");
+            item.place(this, position);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeItem(Vector3f position) {
+        items.remove(position);
+    }
+
+    public Map<Vector3f, Item> getItems() {
+        return this.items;
     }
 }

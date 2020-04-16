@@ -4,15 +4,23 @@ import guis.presets.GuiBackground;
 
 public class ModelTexture extends Texture {
 
+    public final static ModelTexture DEFAULT_MODEL = new ModelTexture("purple.png", true);
+
     private float shineDamper = 1, reflectivity = 0;
 
-    private boolean transparent     = false;
-    private boolean useFakeLighting = false;
+    private boolean transparent;
+    private boolean useFakeLighting;
 
     private int numberOfRows = 1;
 
     public ModelTexture(String pathFile) {
         super(new GuiBackground<>(pathFile));
+    }
+
+    public ModelTexture(String pathFile, boolean useFakeLighting) {
+        super(new GuiBackground<>(pathFile));
+
+        this.useFakeLighting = useFakeLighting;
     }
 
     public float getShineDamper() {
@@ -40,7 +48,7 @@ public class ModelTexture extends Texture {
     }
 
 
-    public boolean isUseFakeLighting() {
+    public boolean doesUseFakeLighting() {
         return this.useFakeLighting;
     }
 

@@ -2,6 +2,8 @@ package inputs;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_H;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_K;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 
@@ -9,6 +11,7 @@ import guis.Gui;
 import guis.GuiEscapeMenu;
 import java.util.List;
 import renderEngine.DisplayManager;
+import renderEngine.MasterRenderer;
 
 public class KeyboardUtils {
 
@@ -23,6 +26,9 @@ public class KeyboardUtils {
                         break;
                     case GLFW_KEY_ESCAPE:
                         Gui.showGui(GuiEscapeMenu.getEscapeMenu());
+                        break;
+                    case GLFW_KEY_K:
+                        MasterRenderer.getInstance().getEntityRenderer().switchDisplayBoundingBoxes();
                         break;
                 }
             }

@@ -8,7 +8,7 @@ import renderEngine.DisplayManager;
 import renderEngine.Loader;
 import shaders.WaterShader;
 import textures.ModelTexture;
-import util.Maths;
+import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 import org.lwjgl.opengl.GL11;

@@ -1,7 +1,7 @@
 package shaders;
 
 import entities.Camera;
-import util.Maths;
+import util.math.Maths;
 import util.math.Matrix4f;
 
 public class SkyboxShader extends ShaderProgram {

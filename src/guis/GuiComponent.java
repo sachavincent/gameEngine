@@ -1,6 +1,6 @@
 package guis;
 
-import static util.Maths.isPosInBounds;
+import static util.math.Maths.isPointIn2DBounds;
 
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
@@ -12,7 +12,7 @@ import guis.presets.GuiPreset;
 import inputs.callbacks.*;
 import java.util.Objects;
 import renderEngine.DisplayManager;
-import util.MouseUtils;
+import inputs.MouseUtils;
 import util.math.Vector2f;
 
 public abstract class GuiComponent<E> implements GuiInterface {
@@ -390,7 +390,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
         if (!getParentGui(this).areTransitionsOfComponentDone(this))
             return;
 
-        if (!isPosInBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
+        if (!isPointIn2DBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
                 getParentGui(this).areTransitionsOfComponentDone(this))
             throw new IllegalArgumentException("New coordinates don't belong in parent");
 
