@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL11;
 import shaders.StaticShader;
 import shaders.TerrainShader;
 import skybox.SkyboxRenderer;
-import terrains.Terrain;
 import util.math.Matrix4f;
 import util.math.Vector4f;
 
@@ -37,8 +36,6 @@ public class MasterRenderer {
 
     private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
 
-    private Terrain                          terrain;
-
     private static MasterRenderer instance;
 
     public EntityRenderer getEntityRenderer() {
@@ -58,9 +55,8 @@ public class MasterRenderer {
         skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
     }
 
-    public void renderScene(List<Entity> entities, Terrain terrain, List<Light> lights,
+    public void renderScene(List<Entity> entities, List<Light> lights,
             Camera camera, Vector4f clipPlane) {
-        processTerrain(terrain);
         entities.forEach(this::processEntity);
 
         render(lights, camera, clipPlane);
@@ -73,7 +69,7 @@ public class MasterRenderer {
         shader.loadSkyColor(RED, GREEN, BLUE);
         shader.loadLights(lights);
         shader.loadViewMatrix(camera);
-        entityRenderer.render(entities, terrain);
+        entityRenderer.render(entities);
         shader.stop();
 
         terrainShader.start();
@@ -81,16 +77,12 @@ public class MasterRenderer {
         terrainShader.loadSkyColor(RED, GREEN, BLUE);
         terrainShader.loadLights(lights);
         terrainShader.loadViewMatrix(camera);
-        terrainRenderer.render(terrain);
+        terrainRenderer.render();
         terrainShader.stop();
 
 
         skyboxRenderer.render(camera);
         entities.clear();
-    }
-
-    private void processTerrain(Terrain terrain) {
-        this.terrain = terrain;
     }
 
     private void processEntity(Entity entity) {
@@ -146,6 +138,4 @@ public class MasterRenderer {
         projectionMatrix.m32 = -((2 * NEAR_PLANE * FAR_PLANE) / frustum_length);
         projectionMatrix.m33 = 0;
     }
-
-
 }

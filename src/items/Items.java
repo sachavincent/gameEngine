@@ -1,6 +1,6 @@
 package items;
 
-import items.buildings.Insula;
+import items.buildings.houses.Insula;
 import renderEngine.OBJLoader;
 
 public class Items {

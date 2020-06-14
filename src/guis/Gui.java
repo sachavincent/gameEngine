@@ -45,6 +45,7 @@ public class Gui implements GuiInterface {
     public void setBackground(GuiBackground<?> background) {
         this.background = new GuiTexture<>(background, new Vector2f(x, y), new Vector2f(width,
                 height));
+        System.out.println(width + "/" + height);
     }
 
     public Gui(int r, int g, int b) {
@@ -64,133 +65,157 @@ public class Gui implements GuiInterface {
         for (char s : constraints.getOrder()) {
             switch (s) {
                 case 'W':
-                    if (widthConstraint == null)
-                        break;
-                    float constraint = widthConstraint.constraint();
-
-                    switch (widthConstraint.getConstraint()) {
-                        case RELATIVE:
-                            this.width = constraint;
-                            break;
-                        case ASPECT:
-                            this.width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
-                            break;
-                        case PIXEL:
-                            this.width = constraint / DisplayManager.WIDTH;
-
-                            break;
-                        default:
-                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
-
-                    }
-
-                    if (this.width > 2 || this.width < 0)
-                        throw new IllegalGuiConstraintException("Width of component exceeded width of window");
-
+                    handleWidthConstraint(widthConstraint);
                     break;
                 case 'H':
-                    if (heightConstraint == null)
-                        break;
-
-                    constraint = heightConstraint.constraint();
-
-                    switch (heightConstraint.getConstraint()) {
-                        case RELATIVE:
-                            this.height = constraint;
-                            break;
-                        case ASPECT:
-                            this.height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
-                            break;
-                        case PIXEL:
-                            this.height = constraint / DisplayManager.HEIGHT;
-
-                            break;
-                        default:
-                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
-                    }
-
-                    if (this.height > 2 || this.height < 0)
-                        throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
-
+                    handleHeightConstraint(heightConstraint);
                     break;
                 case 'X':
-                    if (xConstraint == null)
-                        break;
-
-                    constraint = xConstraint.constraint();
-
-                    switch (xConstraint.getConstraint()) {
-                        case RELATIVE:
-                            this.x = 2 - this.width + (this.width - 2) * (2 - constraint * 2);
-                            break;
-                        case SIDE:
-                            switch (((SideConstraint) xConstraint).getSide()) {
-                                case LEFT:
-                                    this.x = -1 + constraint * 2 + this.width;
-                                    break;
-                                case RIGHT:
-                                    this.x = 1 - constraint * 2 - this.width;
-                                    break;
-                                default:
-                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
-                            }
-                            break;
-                        case PIXEL:
-                            this.x = constraint / DisplayManager.WIDTH;
-                            break;
-                        case CENTER:
-                            this.x = constraint;
-                            break;
-                        default:
-                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
-                    }
-
-                    if (x < -1 || x > 1)
-                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
-
+                    handleXConstraint(xConstraint);
                     break;
                 case 'Y':
-                    if (yConstraint == null)
-                        break;
-
-                    constraint = yConstraint.constraint();
-
-                    switch (yConstraint.getConstraint()) {
-                        case RELATIVE:
-                            this.y = 2 - this.height + (this.height - 2) * (2 - constraint * 2);
-                            break;
-                        case SIDE:
-                            switch (((SideConstraint) yConstraint).getSide()) {
-                                case BOTTOM:
-                                    this.y = -1 + constraint * 2 + this.height;
-                                    break;
-                                case TOP:
-                                    this.y = 1 - constraint * 2 - this.height;
-                                    break;
-                                default:
-                                    throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
-                            }
-
-                            break;
-                        case PIXEL:
-                            this.y = constraint / DisplayManager.HEIGHT;
-                            break;
-                        case CENTER:
-                            this.y = constraint;
-                            break;
-                        default:
-                            throw new IllegalGuiConstraintException("This constraint cannot be handled");
-                    }
-
-                    if (y < -1 || y > 1)
-                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
-
+                    handleYConstraint(yConstraint);
                     break;
             }
 
         }
 
         updateTexturePosition();
+    }
+
+    void handleYConstraint(GuiConstraints yConstraint) {
+        float constraint;
+        if (yConstraint == null)
+            return;
+
+        constraint = yConstraint.constraint();
+
+        switch (yConstraint.getConstraint()) {
+            case RELATIVE:
+                this.y = 2 - this.height + (this.height - 2) * (2 - constraint * 2);
+                break;
+            case SIDE:
+                switch (((SideConstraint) yConstraint).getSide()) {
+                    case BOTTOM:
+                        this.y = -1 + constraint * 2 + this.height;
+                        break;
+                    case TOP:
+                        this.y = 1 - constraint * 2 - this.height;
+                        break;
+                    default:
+                        throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
+                }
+
+                break;
+            case PIXEL:
+                this.y = constraint / DisplayManager.HEIGHT;
+                break;
+            case CENTER:
+                this.y = constraint;
+                break;
+            default:
+                throw new IllegalGuiConstraintException("This constraint cannot be handled");
+        }
+
+//                    if (y < -1 || y > 1)
+//                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
+//TODO En commentaire parce qu'une partie du gui peut être hors écran (ex: GuiSelectedItem)
+//        if (y < -1 || y > 1)
+//            System.err.println("Warning: Component y coordinate doesn't belong in parent");
+    }
+
+    void handleXConstraint(GuiConstraints xConstraint) {
+        float constraint;
+        if (xConstraint == null)
+            return;
+
+        constraint = xConstraint.constraint();
+
+        switch (xConstraint.getConstraint()) {
+            case RELATIVE:
+                this.x = 2 - this.width + (this.width - 2) * (2 - constraint * 2);
+                break;
+            case SIDE:
+                switch (((SideConstraint) xConstraint).getSide()) {
+                    case LEFT:
+                        this.x = -1 + constraint * 2 + this.width;
+                        break;
+                    case RIGHT:
+                        this.x = 1 - constraint * 2 - this.width;
+                        break;
+                    default:
+                        throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
+                }
+                break;
+            case PIXEL:
+                this.x = constraint / DisplayManager.WIDTH;
+                break;
+            case CENTER:
+                this.x = constraint;
+                break;
+            default:
+                throw new IllegalGuiConstraintException("This constraint cannot be handled");
+        }
+
+//                    if (x < -1 || x > 1)
+//                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
+//        if (x < -1 || x > 1)
+//            System.err.println("Warning: Component x coordinate doesn't belong in parent");
+    }
+
+    void handleHeightConstraint(GuiConstraints heightConstraint) {
+        float constraint;
+        if (heightConstraint == null)
+            return;
+
+        constraint = heightConstraint.constraint();
+
+        switch (heightConstraint.getConstraint()) {
+            case RELATIVE:
+                this.height = constraint;
+                break;
+            case ASPECT:
+                this.height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
+                break;
+            case PIXEL:
+                this.height = constraint / DisplayManager.HEIGHT;
+
+                break;
+            default:
+                throw new IllegalGuiConstraintException("This constraint cannot be handled");
+        }
+
+        if (this.height > 2 || this.height < 0)
+            throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
+    }
+
+    void handleWidthConstraint(GuiConstraints widthConstraint) {
+        if (widthConstraint == null)
+            return;
+        float constraint = widthConstraint.constraint();
+
+        switch (widthConstraint.getConstraint()) {
+            case RELATIVE:
+                this.width = constraint;
+                break;
+            case ASPECT:
+                this.width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
+                break;
+            case PIXEL:
+                this.width = constraint / DisplayManager.WIDTH;
+
+                break;
+            default:
+                throw new IllegalGuiConstraintException("This constraint cannot be handled");
+
+        }
+
+        if (this.width > 2 || this.width < 0)
+            throw new IllegalGuiConstraintException("Width of component exceeded width of window");
+    }
+
+    public void updateChildrenConstraints() {
+        getAllComponents().forEach(GuiComponent::updateConstraints);
     }
 
     public void updateTexturePosition() {
@@ -248,7 +273,7 @@ public class Gui implements GuiInterface {
         if (!isDisplayed())
             return;
 
-        System.out.println("hiding");
+//        System.out.println("hiding");
 
         if (getHideTransitions().isEmpty())
             setDisplayed(false);
@@ -613,14 +638,24 @@ public class Gui implements GuiInterface {
         if (gui == null)
             return;
 
-        final List<Transition> lTransitions = gui.getAllTransitions();
-        final Set<Transition> hideTransitions = gui.getHideTransitions();
-        final Set<Transition> showTransitions = gui.getShowTransitions();
+//        System.out.println("Showing gui");
+//        final List<Transition> lTransitions = gui.getAllTransitions();
+//        final Set<Transition> hideTransitions = gui.getHideTransitions();
+//        final Set<Transition> showTransitions = gui.getShowTransitions();
 
-        if (gui.isDisplayed())
-            gui.hide();
-        else
-            gui.show();
+        gui.show();
+    }
+
+    public static void hideGui(Gui gui) {
+        if (gui == null)
+            return;
+
+//        System.out.println("Hiding gui");
+//        final List<Transition> lTranshiitions = gui.getAllTransitions();
+//        final Set<Transition> hideTransitions = gui.getHideTransitions();
+//        final Set<Transition> showTransitions = gui.getShowTransitions();
+
+        gui.hide();
     }
 
     List<Transition> getAllTransitions() {

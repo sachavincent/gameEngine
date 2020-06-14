@@ -7,8 +7,8 @@ import static org.lwjgl.opengl.GL11.*;
 import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiComponent;
-import guis.GuiEscapeMenu;
 import guis.GuiInterface;
+import guis.GuiSelectedItem;
 import guis.GuiTexture;
 import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
@@ -66,7 +66,9 @@ public class GuiRenderer {
     }
 
     private void render() {
-        guis.add(GuiEscapeMenu.getEscapeMenu());
+//        guis.add(GuiEscapeMenu.getEscapeMenu());
+        if (GuiSelectedItem.getSelectedItemGui().isDisplayed())
+            guis.add(GuiSelectedItem.getSelectedItemGui());
 
         shader.start();
 
@@ -89,7 +91,8 @@ public class GuiRenderer {
 //                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone())))
                 .forEach(gui -> {
                     if (gui.isDisplayed() ||
-                            gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone() && transition.isStarted()))
+                            gui.getHideTransitions().stream()
+                                    .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                         renderQuad(gui, true);
 
                     gui.getComponents().keySet()

@@ -1,8 +1,8 @@
 package items;
 
+import entities.Camera.Direction;
+import java.util.Objects;
 import models.TexturedModel;
-import terrains.Terrain;
-import util.math.Vector3f;
 
 public abstract class Item {
 
@@ -11,14 +11,26 @@ public abstract class Item {
     protected String name;
     protected long   id;
 
+    protected int xWidth, height, zWidth;
+
     protected TexturedModel texture;
+    protected TexturedModel previewTexture;
+
     protected TexturedModel boundingBox;
     protected TexturedModel selectionBox;
 
-    protected int   rotation;
-    protected float scale = 1f;
+    protected Direction facingDirection = Direction.NORTH;
+    protected float     scale = 1f;
 
     protected boolean selected;
+
+    public TexturedModel getPreviewTexture() {
+        return this.previewTexture;
+    }
+
+    public void setPreviewTexture(TexturedModel previewTexture) {
+        this.previewTexture = previewTexture;
+    }
 
     public boolean isSelected() {
         return this.selected;
@@ -32,9 +44,12 @@ public abstract class Item {
         this.selected = false;
     }
 
-    public Item() {
+    public Item(int xWidth, int height, int zWidth) {
+        this.xWidth = xWidth;
+        this.height = height;
+        this.zWidth = zWidth;
+
         this.id = max_id++;
-        System.out.println(getClass());
     }
 
     public String getName() {
@@ -53,12 +68,16 @@ public abstract class Item {
         this.texture = texture;
     }
 
-    public int getRotation() {
-        return this.rotation;
+    public Direction getFacingDirection() {
+        return this.facingDirection;
+    }
+
+    public void setFacingDirection(Direction facingDirection) {
+        this.facingDirection = facingDirection;
     }
 
     public void setRotation(int rotation) {
-        this.rotation = rotation % 360;
+        this.facingDirection = Direction.getDirectionFromDegree(rotation);
     }
 
     public float getScale() {
@@ -85,5 +104,30 @@ public abstract class Item {
         this.selectionBox = selectionBox;
     }
 
-    public abstract void place(Terrain terrain, Vector3f position);
+    public int getxWidth() {
+        return this.xWidth;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public int getzWidth() {
+        return this.zWidth;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Item item = (Item) o;
+        return id == item.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

@@ -1,12 +1,13 @@
 package renderEngine;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.GL_PERSPECTIVE_CORRECTION_HINT;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengles.GLES20.GL_NICEST;
 
-import java.awt.Toolkit;
+import de.matthiasmann.twl.utils.PNGDecoder;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +16,12 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.glfw.GLFWImage;
 import util.Timer;
 
 public class DisplayManager {
 
-    public static int WIDTH              = 1280, HEIGHT = 720, FPS = 60;
+    public static int WIDTH = 2560, HEIGHT = 1440, FPS = 144;
 
     private static double  lastFrameTime;
     private static double  delta;
@@ -29,17 +30,21 @@ public class DisplayManager {
 
     private static List<Long> screens;
 
+    private static GLFWErrorCallback           callback;
+    private static GLFWFramebufferSizeCallback callback2;
+
     public static void createDisplay() {
         screens = new ArrayList<>();
 
         fullscreen = false;
 
-        glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err));
+        callback = glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err));
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
         //glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
 
         glfwWindowHint(GLFW_SAMPLES, 8);
@@ -66,17 +71,40 @@ public class DisplayManager {
         WIDTH = w.get(0);
         HEIGHT = h.get(0);
 
+        w.clear();
+        h.clear();
+
         glfwMakeContextCurrent(window);
         glfwShowWindow(window);
         lastFrameTime = getCurrentTime();
-        glfwSetFramebufferSizeCallback(window, new GLFWFramebufferSizeCallback() {
+        glfwSetFramebufferSizeCallback(window, (callback2 = new GLFWFramebufferSizeCallback() {
             @Override
             public void invoke(long window, int width, int height) {
                 WIDTH = width;
                 HEIGHT = height;
                 glViewport(0, 0, WIDTH, HEIGHT);
             }
-        });
+        }));
+        GLFWImage image = GLFWImage.malloc();
+        PNGDecoder dec = null;
+        try {
+            dec = new PNGDecoder(new FileInputStream("res/insula_preview.png"));
+            int width = dec.getWidth();
+            int height = dec.getHeight();
+            ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
+            dec.decode(buf, width * 4, PNGDecoder.Format.RGBA);
+            buf.flip();
+            image.set(width, height, buf);
+            GLFWImage.Buffer images = GLFWImage.malloc(1);
+            images.put(0, image);
+
+            glfwSetWindowIcon(window, images);
+            buf.clear();
+            images.free();
+            image.free();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void getScreens() {
@@ -88,9 +116,9 @@ public class DisplayManager {
 
         while (true) {
             try {
-                screens.add(pointerBuffer.get(i));
-                i++;
+                screens.add(pointerBuffer.get(i++));
             } catch (IndexOutOfBoundsException e) {
+//                pointerBuffer.free(); // Surtout pas free
                 break;
             }
         }
@@ -126,5 +154,12 @@ public class DisplayManager {
 
     public static long getWindow() {
         return window;
+    }
+
+    public static void freeCallbacks() {
+        if (callback != null)
+            callback.free();
+        if (callback2 != null)
+            callback2.free();
     }
 }

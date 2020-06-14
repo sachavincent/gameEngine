@@ -6,6 +6,10 @@ import util.MousePicker;
 
 public class Maths {
 
+    public static float clamp(float value, float min, float max) {
+        return Math.min(max, Math.min(max, value));
+    }
+
     public static float barryCentric(Vector3f p1, Vector3f p2, Vector3f p3, Vector2f pos) {
         float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
         float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
@@ -133,5 +137,17 @@ public class Maths {
         return picker.intersectionWithPlane(
                 new Vector3f(x, y, z), ll.x == lr.x ? 0 : depth, ll.y == ul.y ? 0 : height, ll.z == lr.z ? 0 : depth,
                 normalPlane, false);
+    }
+
+    public static boolean[] shiftArray(boolean[] array) {
+        if (array.length == 0)
+            return array;
+
+        boolean lastValue = array[array.length - 1];
+        boolean[] resArray = new boolean[array.length];
+        System.arraycopy(array, 0, resArray, 1, array.length - 1);
+        resArray[0] = lastValue;
+
+        return resArray;
     }
 }

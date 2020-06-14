@@ -40,6 +40,12 @@ public abstract class GuiBasics extends GuiComponent {
         initConstraints(width, height);
     }
 
+    public GuiBasics(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager guiConstraintsManager) {
+        super(parent, background);
+
+        setConstraints(guiConstraintsManager);
+    }
+
     public void setXConstraint(GuiConstraints xConstraint) {
         GuiConstraintsManager constraints = new GuiConstraintsManager();
         constraints.setxConstraint(xConstraint);

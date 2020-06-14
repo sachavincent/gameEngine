@@ -212,6 +212,6 @@ public class TexturedModel {
 
     public enum TypeModel {
         BOUNDING_BOX,
-        SELECTION_BOX;
+        SELECTION_BOX
     }
 }

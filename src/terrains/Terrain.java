@@ -1,11 +1,23 @@
 package terrains;
 
+import static entities.Camera.Direction.EAST;
+import static entities.Camera.Direction.NORTH;
+import static entities.Camera.Direction.SOUTH;
+import static entities.Camera.Direction.WEST;
+
+import abstractItem.AbstractItem;
+import entities.Camera.Direction;
+import items.ConnectableItem;
 import items.Item;
+import items.PlaceHolderConnectableItem;
+import items.PlaceHolderItem;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import models.RawModel;
 import renderEngine.Loader;
@@ -26,19 +38,71 @@ public class Terrain {
     private float    z;
     private RawModel model, modelGrid;
     private TerrainTexturePack texturePack;
+    private TerrainTexturePack redTexturePack;
     private TerrainTexture     blendMap;
 
     private float[][] heights;
 
-    private Map<Vector3f, Item> items = new HashMap<>();
+    private Vector2f            previewItemPosition;
+    private Map<Vector2f, Item> items = new HashMap<>();
 
-    public Terrain(int gridX, int gridZ, Loader loader, TerrainTexturePack texturePack,
-            TerrainTexture blendMap, String heightMap) {
-        this.texturePack = texturePack;
-        this.blendMap = blendMap;
-        this.x = gridX * SIZE;
-        this.z = gridZ * SIZE;
-        this.model = generateTerrain(loader, heightMap);
+    public static Terrain instance;
+
+    public static Terrain getInstance() {
+        return instance == null ? (instance = new Terrain()) : instance;
+    }
+
+    private Terrain() {
+        TerrainTexture backgroundTexture = new TerrainTexture("blue.png");
+        TerrainTexture rTexture = new TerrainTexture("red.png");
+        TerrainTexture gTexture = new TerrainTexture("green.png");
+        TerrainTexture bTexture = new TerrainTexture("blue.png");
+        this.texturePack = new TerrainTexturePack(backgroundTexture, bTexture, gTexture, bTexture);
+        this.redTexturePack = new TerrainTexturePack(rTexture, rTexture, rTexture, rTexture);
+        this.blendMap = new TerrainTexture("white.png");
+        this.x = 0.5f;
+        this.z = 0.5f;
+        this.model = generateTerrain("black.png");
+    }
+
+    public void placeItem(AbstractItem item, Vector2f position) {
+        try {
+            if (position.x < x || position.x > SIZE || position.y < z || position.y > 150)
+                throw new IllegalStateException("Clicked out of terrain");
+
+            if (position.equals(previewItemPosition)) {
+                items.remove(previewItemPosition);
+                resetPreviewItem();
+            }
+
+            item.place(this, position);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public TerrainTexturePack getRedTexturePack() {
+        return this.redTexturePack;
+    }
+
+    public Vector2f getPreviewItemPosition() {
+        return this.previewItemPosition;
+    }
+
+    public void setPreviewItem(Vector2f previewItemPosition, AbstractItem previewItem) {
+        if ((this.previewItemPosition != null && this.items.get(previewItemPosition) != null) ||
+                this.items.get(previewItemPosition) == null) { // Rien dans cet emplacement
+            this.items.remove(this.previewItemPosition);
+            resetPreviewItem();
+
+            this.previewItemPosition = previewItemPosition;
+
+            this.items.put(previewItemPosition, previewItem.getPreviewItem());
+        }
+    }
+
+    public void resetPreviewItem() {
+        this.previewItemPosition = null;
     }
 
     public RawModel getModelGrid() {
@@ -124,13 +188,15 @@ public class Terrain {
 //        }
 //        return loader.loadToVAO(vertices, textureCoords, normals, indices, width, depth, height);
 //    }
-    private RawModel generateTerrain(Loader loader, String heightMap) {
+    private RawModel generateTerrain(String heightMap) {
 
-        BufferedImage image = null;
+        BufferedImage image;
         try {
             image = ImageIO.read(new File("res/" + heightMap));
         } catch (IOException e) {
             e.printStackTrace();
+
+            return null;
         }
         int VERTEX_COUNT = image.getHeight();
 
@@ -174,9 +240,11 @@ public class Terrain {
             }
         }
 
-//        generateGridTerrain(SIZE / 2, SIZE / 2, textureCoords, image);
+        generateGridTerrain(SIZE, SIZE, textureCoords, image);
 
-        return loader.loadToVAO(vertices, textureCoords, normals, indices);
+        image.getGraphics().dispose();
+
+        return Loader.getInstance().loadToVAO(vertices, textureCoords, normals, indices);
     }
 
     public float getY() {
@@ -194,7 +262,7 @@ public class Terrain {
         int j = 0;
 
         for (int i = 0; i <= SIZE; i += SIZE / gridX) {
-//                float height = getHeight(j, i, image);
+//                float heighzt = getHeight(j, i, image);
             float height = 0f;
 
             tab[vertexPointer * 3] = 0;
@@ -345,26 +413,69 @@ public class Terrain {
         return z;
     }
 
-
     public RawModel getModel() {
         return model;
     }
 
-    public void placeItem(Item item, Vector3f position) {
-        try {
-            if (position.x < 0 || position.x > SIZE || position.z < 0 || position.z > 150)
-                throw new IllegalStateException("Clicked out of terrain");
-            item.place(this, position);
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public void removeItem(Vector3f position) {
+    public void removeItem(Vector2f position) {
         items.remove(position);
     }
 
-    public Map<Vector3f, Item> getItems() {
+    public Map<Vector2f, Item> getItems() {
         return this.items;
+    }
+
+    public Set<Item> getSelectedItems() {
+        return this.items.values().stream().filter(Item::isSelected).collect(Collectors.toSet());
+    }
+
+    public boolean putItemIfSpace(Vector2f position, Item item) {
+        int halfXWidth = item.getxWidth() / 2;
+        int halfZWidth = item.getzWidth() / 2;
+
+        Map<Vector2f, Item> tempItems = new HashMap<>(items);
+        for (int x = (int) (position.x - halfXWidth); x <= position.x + halfXWidth; x++) {
+            for (int z = (int) position.y - halfZWidth; z <= position.y + halfZWidth; z++) {
+                Vector2f pos = new Vector2f(x, z);
+                if (pos.equals(position))
+                    continue;
+
+                boolean addedItem = false;
+
+                Vector2f relativePosToItem = new Vector2f(position.x - x, position.y - z);
+                if (item instanceof ConnectableItem) {
+                    Direction direction = null;
+                    if (x == position.x - halfXWidth && z == position.y)
+                        direction = SOUTH;
+                    else if (x == position.x + halfXWidth && z == position.y)
+                        direction = NORTH;
+                    else if (z == position.y - halfZWidth && x == position.x)
+                        direction = WEST;
+                    else if (z == position.y + halfZWidth && x == position.x)
+                        direction = EAST;
+
+                    if (direction != null && ((ConnectableItem) item).getAccessPoints()[direction.ordinal()]) {
+                        PlaceHolderConnectableItem placeHolderConnectableItem = new PlaceHolderConnectableItem(
+                                (ConnectableItem) item, relativePosToItem);
+                        placeHolderConnectableItem.connect(direction);
+                        if (tempItems.putIfAbsent(pos, placeHolderConnectableItem) != null)
+                            return false;
+
+                        addedItem = true;
+                    }
+                }
+                if (!addedItem) {
+                    PlaceHolderItem placeHolderItem = new PlaceHolderItem(item, relativePosToItem);
+                    if (tempItems.putIfAbsent(pos, placeHolderItem) != null)
+                        return false;
+                }
+            }
+        }
+
+        tempItems.put(position, item);
+        items = tempItems;
+
+        return true;
     }
 }

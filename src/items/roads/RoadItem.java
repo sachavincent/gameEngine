@@ -1,12 +1,18 @@
 package items.roads;
 
+import entities.Camera.Direction;
+import items.ConnectableItem;
 import items.Item;
 import java.util.Map;
 import models.TexturedModel;
 import terrains.Terrain;
-import util.math.Vector3f;
+import util.math.Vector2f;
 
-public abstract class RoadItem extends Item {
+public abstract class RoadItem extends Item implements ConnectableItem {
+
+    private boolean[] connected = new boolean[]{false, false, false, false};
+
+    private RoadType roadType;
 
     TexturedModel straight;
     TexturedModel deadEnd;
@@ -14,91 +20,127 @@ public abstract class RoadItem extends Item {
     TexturedModel threeWay;
     TexturedModel fourWay;
 
+    public RoadItem() {
+        super(1, 0, 1);
+        setScale(.5f);
+    }
+
+    public Item updateNeighboursAndCenter(Terrain terrain, Vector2f center) {
+        Map<Vector2f, Item> items = terrain.getItems();
+
+        roadType = new StraightRoad();
+        setTexture(straight);
+        setRotation(90);
+
+        Vector2f northPosition = center.add(new Vector2f(1, 0));
+        Vector2f eastPosition = center.add(new Vector2f(0, 1));
+        Vector2f southPosition = center.add(new Vector2f(-1, 0));
+        Vector2f westPosition = center.add(new Vector2f(0, -1));
+
+        Item southItem = items.getOrDefault(southPosition, null);
+        Item northItem = items.getOrDefault(northPosition, null);
+        Item westItem = items.getOrDefault(westPosition, null);
+        Item eastItem = items.getOrDefault(eastPosition, null);
+
+        if (southItem instanceof ConnectableItem) {
+            ((ConnectableItem) southItem).connect(Direction.NORTH);
+            this.connect(Direction.SOUTH);
+        }
+
+        if (northItem instanceof ConnectableItem) {
+            ((ConnectableItem) northItem).connect(Direction.SOUTH);
+            this.connect(Direction.NORTH);
+        }
+
+        if (westItem instanceof ConnectableItem) {
+            ((ConnectableItem) westItem).connect(Direction.EAST);
+            this.connect(Direction.WEST);
+        }
+
+        if (eastItem instanceof ConnectableItem) {
+            ((ConnectableItem) eastItem).connect(Direction.WEST);
+            this.connect(Direction.EAST);
+        }
+
+        return this;
+    }
+
+    public RoadType getRoadType() {
+        return this.roadType;
+    }
+
     @Override
-    public void place(Terrain terrain, Vector3f position) {
-        Map<Vector3f, Item> items = terrain.getItems();
+    public void connect(Direction direction) {
+        this.connected[direction.ordinal()] = true;
 
-        Item item = items.getOrDefault(position, null);
-
-        if (item != null) {
-            terrain.removeItem(position);
-
-            updateNeighbours(terrain, position);
-
-            return;
-        }
-
-        items.put(position, updateNeighboursAndCenter(terrain, position));
-        updateNeighbours(terrain, position);
+        updateTexture();
     }
 
-    private void updateNeighbours(Terrain terrain, Vector3f center) {
-        Vector3f left = center.add(new Vector3f(2, 0, 0));
-        Vector3f right = center.add(new Vector3f(-2, 0, 0));
-        Vector3f back = center.add(new Vector3f(0, 0, -2));
-        Vector3f front = center.add(new Vector3f(0, 0, 2));
+    @Override
+    public void disconnect(Direction direction) {
+        this.connected[direction.ordinal()] = false;
 
-        updateNeighboursAndCenter(terrain, right);
-        updateNeighboursAndCenter(terrain, left);
-        updateNeighboursAndCenter(terrain, back);
-        updateNeighboursAndCenter(terrain, front);
+        updateTexture();
     }
 
-    private Item updateNeighboursAndCenter(Terrain terrain, Vector3f center) {
-        Map<Vector3f, Item> items = terrain.getItems();
+    private void updateTexture() {
+        boolean northConnected = this.connected[Direction.NORTH.ordinal()];
+        boolean southConnected = this.connected[Direction.SOUTH.ordinal()];
+        boolean eastConnected = this.connected[Direction.EAST.ordinal()];
+        boolean westConnected = this.connected[Direction.WEST.ordinal()];
 
-        Item item = items.getOrDefault(center, null);
-
-        if (item == null)
-            item = this;
-
-        Vector3f left = center.add(new Vector3f(2, 0, 0));
-        Vector3f right = center.add(new Vector3f(-2, 0, 0));
-        Vector3f back = center.add(new Vector3f(0, 0, -2));
-        Vector3f front = center.add(new Vector3f(0, 0, 2));
-
-        Item rightItem = items.getOrDefault(right, null);
-        Item leftItem = items.getOrDefault(left, null);
-        Item backItem = items.getOrDefault(back, null);
-        Item frontItem = items.getOrDefault(front, null);
-
-        if (frontItem != null && backItem != null && leftItem != null && rightItem != null) { // FourWay
-            item.setTexture(fourWay);
-        } else if (backItem != null && leftItem != null && rightItem != null) { // ThreeWay w/o front
-            item.setTexture(threeWay);
-            item.setRotation(0);
-        } else if (frontItem != null && backItem != null && rightItem != null) { // ThreeWay w/o left
-            item.setTexture(threeWay);
-            item.setRotation(90);
-        } else if (frontItem != null && leftItem != null && rightItem != null) { // ThreeWay w/o back
-            item.setTexture(threeWay);
-            item.setRotation(180);
-        } else if (frontItem != null && backItem != null && leftItem != null) { // ThreeWay w/o right
-            item.setTexture(threeWay);
-            item.setRotation(270);
-        } else if (frontItem != null && rightItem != null) { // Turn with front & right
-            item.setTexture(turn);
-            item.setRotation(270);
-        } else if (frontItem != null && leftItem != null) { // Turn with front & left
-            item.setTexture(turn);
-            item.setRotation(0);
-        } else if (backItem != null && rightItem != null) { // Turn with back & right
-            item.setTexture(turn);
-            item.setRotation(180);
-        } else if (backItem != null && leftItem != null) { // Turn with back & left
-            item.setTexture(turn);
-            item.setRotation(90);
-        } else if (leftItem != null || rightItem != null) {
-            item.setTexture(straight);
-            item.setRotation(90);
-        } else if (backItem != null || frontItem != null) {
-            item.setTexture(straight);
-            item.setRotation(0);
+        if (eastConnected && westConnected && northConnected && southConnected) { // FourWay
+            roadType = new FourWayRoad();
+            setTexture(fourWay);
+        } else if (westConnected && northConnected && southConnected) { // ThreeWay w/o eastPosition
+            roadType = new ThreeWayRoad();
+            setTexture(threeWay);
+            setRotation(0);
+        } else if (eastConnected && westConnected && southConnected) { // ThreeWay w/o northPosition
+            roadType = new ThreeWayRoad();
+            setTexture(threeWay);
+            setRotation(90);
+        } else if (eastConnected && northConnected && southConnected) { // ThreeWay w/o westPosition
+            roadType = new ThreeWayRoad();
+            setTexture(threeWay);
+            setRotation(180);
+        } else if (eastConnected && westConnected && northConnected) { // ThreeWay w/o southPosition
+            roadType = new ThreeWayRoad();
+            setTexture(threeWay);
+            setRotation(270);
+        } else if (eastConnected && southConnected) { // Turn with eastPosition & southPosition
+            roadType = new TurnRoad();
+            setTexture(turn);
+            setRotation(270);
+        } else if (eastConnected && northConnected) { // Turn with eastPosition & northPosition
+            roadType = new TurnRoad();
+            setTexture(turn);
+            setRotation(0);
+        } else if (westConnected && southConnected) { // Turn with westPosition & southPosition
+            roadType = new TurnRoad();
+            setTexture(turn);
+            setRotation(180);
+        } else if (westConnected && northConnected) { // Turn with westPosition & northPosition
+            roadType = new TurnRoad();
+            setTexture(turn);
+            setRotation(90);
+        } else if (northConnected || southConnected) {
+            roadType = new StraightRoad();
+            setTexture(straight);
+            setRotation(90);
+        } else if (westConnected || eastConnected) {
+            roadType = new StraightRoad();
+            setTexture(straight);
+            setRotation(0);
         } else {
-            item.setTexture(straight);
-            item.setRotation(0);
+            roadType = new StraightRoad();
+            setTexture(straight);
+            setRotation(0);
         }
+    }
 
-        return item;
+    @Override
+    public boolean[] getAccessPoints() {
+        return new boolean[]{true, true, true, true};
     }
 }

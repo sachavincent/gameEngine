@@ -54,8 +54,13 @@ public abstract class Texture {
         IntBuffer comp = BufferUtils.createIntBuffer(1);
         ByteBuffer byteBuffer = STBImage.stbi_load("res/" + fileName, width, height, comp, 4);
 
-        if (byteBuffer == null)
+        if (byteBuffer == null) {
+            width.clear();
+            height.clear();
+            comp.clear();
+
             return;
+        }
 
         textureID = GL11.glGenTextures();
 
@@ -80,6 +85,11 @@ public abstract class Texture {
         } else {
             // TODO
         }
+
+        width.clear();
+        height.clear();
+        comp.clear();
+
         STBImage.stbi_image_free(byteBuffer);
     }
 

@@ -1,9 +1,6 @@
 package entities;
 
 import models.TexturedModel;
-import org.lwjgl.glfw.GLFW;
-import renderEngine.DisplayManager;
-import terrains.Terrain;
 import util.math.Vector3f;
 
 public class Player extends Entity {
@@ -24,22 +21,24 @@ public class Player extends Entity {
         super(model, position, rotX, rotY, rotZ, scale);
     }
 
-    public void move(Terrain terrain) {
-        checkInputs();
-        super.increaseRotation(0, (float) (currentTurnSpeed * DisplayManager.getFrameTimeSeconds()), 0);
-        float distance = (float) (currentSpeed * DisplayManager.getFrameTimeSeconds());
-        float dx = (float) (distance * Math.sin(Math.toRadians(super.getRotY())));
-        float dz = (float) (distance * Math.cos(Math.toRadians(super.getRotY())));
-        super.increasePosition(dx, 0, dz);
-        upwardsSpeed += GRAVITY * DisplayManager.getFrameTimeSeconds();
-        super.increasePosition(0, (float) (upwardsSpeed * DisplayManager.getFrameTimeSeconds()), 0);
-        float terrainHeight = terrain.getHeightOfTerrain(getPosition().x, getPosition().z);
-        if (super.getPosition().y < terrainHeight) {
-            upwardsSpeed = 0;
-            isInAir = false;
-            super.getPosition().y = terrainHeight;
-        }
-    }
+//    public void move(Terrain terrain) {
+//        checkInputs();
+//        super.increaseRotation(0, (float) (currentTurnSpeed * DisplayManager.getFrameTimeSeconds()), 0);
+//        float distance = (float) (currentSpeed * DisplayManager.getFrameTimeSeconds());
+//        float dx = (float) (distance * Math.sin(Math.toRadians(super.getRotY())));
+//        float dz = (float) (distance * Math.cos(Math.toRadians(super.getRotY())));
+//        super.increasePosition(dx, 0, dz);
+//        upwardsSpeed += GRAVITY * DisplayManager.getFrameTimeSeconds();
+//        super.increasePosition(0, (float) (upwardsSpeed * DisplayManager.getFrameTimeSeconds()), 0);
+//        float terrainHeight = terrain.getHeightOfTerrain(getPosition().x, getPosition().z);
+//        if (super.getPosition().y < terrainHeight) {
+//            upwardsSpeed = 0;
+//            isInAir = false;
+//            super.getPosition().y = terrainHeight;
+//        }
+//
+//
+//    }
 
     private void jump() {
         if (!isInAir) {
@@ -47,27 +46,27 @@ public class Player extends Entity {
             isInAir = true;
         }
     }
-
-    private void checkInputs() {
-        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
-            this.currentSpeed = RUN_SPEED;
-        } else if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) {
-            this.currentSpeed = -RUN_SPEED;
-        } else {
-            this.currentSpeed = 0;
-        }
-
-        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) {
-            this.currentTurnSpeed = -TURN_SPEED;
-        } else if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) {
-            this.currentTurnSpeed = TURN_SPEED;
-        } else {
-            this.currentTurnSpeed = 0;
-        }
-
-        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) {
-            jump();
-        }
-    }
+//
+//    private void checkInputs() {
+//        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
+//            this.currentSpeed = RUN_SPEED;
+//        } else if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) {
+//            this.currentSpeed = -RUN_SPEED;
+//        } else {
+//            this.currentSpeed = 0;
+//        }
+//
+//        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) {
+//            this.currentTurnSpeed = -TURN_SPEED;
+//        } else if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) {
+//            this.currentTurnSpeed = TURN_SPEED;
+//        } else {
+//            this.currentTurnSpeed = 0;
+//        }
+//
+//        if (GLFW.glfwGetKey(DisplayManager.getWindow(), GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS) {
+//            jump();
+//        }
+//    }
 
 }

@@ -80,7 +80,7 @@ public abstract class Transition {
 
     public enum Trigger {
         SHOW,
-        HIDE;
+        HIDE
     }
 
     @Override

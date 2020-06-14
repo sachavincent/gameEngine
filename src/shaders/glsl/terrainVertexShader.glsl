@@ -23,25 +23,25 @@ const float gradient = 5.0;
 
 void main(void){
 
-	vec4 worldPosition = transformationMatrix * vec4(position,1.0);
+    vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
 
-  gl_ClipDistance[0] = dot(worldPosition, plane);
+    gl_ClipDistance[0] = dot(worldPosition, plane);
 
-  vec4 positionRelativeToCam = viewMatrix * worldPosition;
+    vec4 positionRelativeToCam = viewMatrix * worldPosition;
 
-	gl_Position = projectionMatrix * positionRelativeToCam;
-	pass_textureCoords = textureCoords;
+    gl_Position = projectionMatrix * positionRelativeToCam;
+    pass_textureCoords = textureCoords;
 
-	surfaceNormal = (transformationMatrix * vec4(normal,0.0)).xyz;
+    surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
 
-  for(int i=0;i<10;i++) {
-    toLightVector[i] = lightPosition[i] - worldPosition.xyz;
-  }
+    for (int i=0;i<10;i++) {
+        toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+    }
 
-	toCameraVector = (inverse(viewMatrix) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPosition.xyz;
+    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
 
-  float distance = length(positionRelativeToCam.xyz);
-  visibility = exp(-pow((distance * density), gradient));
-  visibility = clamp(visibility, 0.0,1.0);
+    float distance = length(positionRelativeToCam.xyz);
+    visibility = exp(-pow((distance * density), gradient));
+    visibility = clamp(visibility, 0.0, 1.0);
 }

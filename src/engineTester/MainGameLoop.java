@@ -1,41 +1,31 @@
 package engineTester;
 
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
 import static renderEngine.DisplayManager.getWindow;
 
+import abstractItem.AbstractDirtRoadItem;
+import abstractItem.AbstractInsula;
+import abstractItem.AbstractItem;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
-import entities.Player;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
 import guis.Gui;
-import guis.GuiEscapeMenu;
-import guis.GuiEscapeMenu.MenuButton;
-import guis.presets.GuiBackground;
-import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.transitions.SlidingDirection;
-import guis.transitions.SlidingTransition;
-import guis.transitions.Transition.Trigger;
+import guis.GuiSelectedItem;
+import guis.GuiSelectedItem.Builder;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
-import items.Item;
-import items.buildings.Insula;
-import items.roads.DirtRoadItem;
-import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Random;
 import language.TextConverter;
 import models.RawModel;
 import models.TexturedModel;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -51,11 +41,9 @@ import shaders.WaterShader;
 import terrains.Terrain;
 import textures.FontTexture;
 import textures.ModelTexture;
-import textures.TerrainTexture;
-import textures.TerrainTexturePack;
 import util.MousePicker;
 import util.Timer;
-import util.math.Maths;
+import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import water.WaterFrameBuffers;
@@ -65,6 +53,8 @@ import water.WaterTile;
 public class MainGameLoop {
 
     public static void main(String[] args) {
+//        Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
+
         glfwInit();
         DisplayManager.createDisplay();
         glfwSwapInterval(1);
@@ -119,18 +109,9 @@ public class MainGameLoop {
         Loader loader = Loader.getInstance();
 
         TextMaster.init(loader);
-
         FontTexture roboto = new FontTexture("roboto.png");
 
         FontType font = new FontType(roboto.getTextureID(), new File("res/roboto.fnt"));
-
-        TerrainTexture backgroundTexture = new TerrainTexture("blue.png");
-        TerrainTexture rTexture = new TerrainTexture("blue.png");
-        TerrainTexture gTexture = new TerrainTexture("green.png");
-        TerrainTexture bTexture = new TerrainTexture("blue.png");
-
-        TerrainTexturePack texturePack = new TerrainTexturePack(backgroundTexture, rTexture, gTexture, bTexture);
-        TerrainTexture blendMap = new TerrainTexture("white.png");
 
 //
 //        ModelData data = OBJFileLoader.loadOBJ("tree");
@@ -163,7 +144,7 @@ public class MainGameLoop {
         Light sun = new Light(new Vector3f(10000, 10000, -10000), new Vector3f(1.3f, 1.3f, 1.3f));
         lights.add(sun);
 
-        Terrain terrain = new Terrain(0, 0, loader, texturePack, blendMap, "black.png");
+        Terrain terrain = Terrain.getInstance();
 
         List<Entity> entities = new ArrayList<>();
 //
@@ -188,10 +169,10 @@ public class MainGameLoop {
 
         RawModel bunnyModel = OBJLoader.loadObjModel("person", loader);
         TexturedModel stanfordBunny = new TexturedModel(bunnyModel, new ModelTexture("playerTexture.png"));
-        Player player = new Player(stanfordBunny, new Vector3f(0, 5, 0), 0, 100, 0, 0.6f);
+//        Player player = new Player(stanfordBunny, new Vector3f(0, 5, 0), 0, 100, 0, 0.6f);
 //        entities.add(player);
 //        Camera camera = new Camera(terrain, new Vector3f(0, 30, 0), 20);
-        Camera camera = new Camera(player);
+        Camera camera = Camera.getInstance();
 
         List<Gui> guis = new ArrayList<>();
 
@@ -204,30 +185,30 @@ public class MainGameLoop {
         WaterTile water = new WaterTile(75, -75, 0);
 //        waters.add(water);
 
-        MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
+        MousePicker picker = MousePicker.getInstance();
 
-        new GuiEscapeMenu.Builder()
-                .setBackground(new GuiBackground<>(new Color(109, 109, 109, 80)))
-                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.SETTINGS, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
-                .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
-                        true)
-                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
-                        true)
-                //.setFont TODO
-                .setTransitions(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT))
-                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
-                .create();
+//        new GuiEscapeMenu.Builder()
+//                .setBackground(new GuiBackground<>(new Color(109, 109, 109, 80)))
+//                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE,
+//                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+//                .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
+//                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+//                .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
+//                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+//                .addButton(MenuButton.SETTINGS, ButtonType.RECTANGLE,
+//                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+//                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE,
+//                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+//                .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
+//                        true)
+//                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
+//                        true)
+//                //.setFont TODO
+//                .setTransitions(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT))
+//                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
+//                .create();
 
-        MouseUtils.setupListeners(guis, camera);
+        MouseUtils.setupListeners(guis);
         KeyboardUtils.setupListeners(guis);
 
         Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
@@ -242,16 +223,23 @@ public class MainGameLoop {
 
         PostProcessing.init(loader);
 
-        DirtRoadItem dirtRoad = new DirtRoadItem();
+        AbstractDirtRoadItem dirtRoad = new AbstractDirtRoadItem();
 
         final int[] rotY = {0};
         Random random = new Random();
-        Insula item1 = new Insula();
+        AbstractInsula abstractInsula = new AbstractInsula();
 //        item1.setScale(.5f);
-        terrain.placeItem(item1, new Vector3f(0, 0.01, 0));
-        while (!glfwWindowShouldClose(DisplayManager.getWindow())) {
-            boolean canRender = false;
+        abstractInsula.place(terrain, new Vector2f(5, 5));
+//        terrain.placeItem(abstractInsula, new Vector3f(0, 0.01, 0));
 
+
+        new Builder().create();
+
+//        GuiSelectedItem.getSelectedItemGui().setSelectedItem(abstractInsula);
+        GuiSelectedItem.getSelectedItemGui().setSelectedItem(dirtRoad);
+
+        while (!glfwWindowShouldClose(getWindow())) {
+            boolean canRender = false;
             double time2 = Timer.getTime();
             double diff = time2 - time;
             unprocessed += diff;
@@ -266,118 +254,52 @@ public class MainGameLoop {
 //                    DisplayManager.closeDisplay();
 
 
-                DisplayManager.updateDisplay();
-
                 if (frameTime >= 1.0) {
                     frameTime = 0;
-
 //                    System.out.println("FPS: " + frames);
                 }
             }
 
             if (canRender) {
-                player.move(terrain);
+                DisplayManager.updateDisplay();
+//                player.move(terrain);
+                picker.update();
                 camera.move();
+                GuiSelectedItem.getSelectedItemGui().updatePosition();
 
-//                picker.update();
+                if (picker.getCurrentTerrainPoint() == null) { // Le curseur n'est pas sur le terrain
+                    if (!GuiSelectedItem.getSelectedItemGui().isDisplayed())
+                        Gui.showGui(GuiSelectedItem.getSelectedItemGui());
+
+                    terrain.removeItem(terrain.getPreviewItemPosition());
+                    terrain.resetPreviewItem();
+                } else {
+                    Vector2f terrainPoint = new Vector2f(picker.getCurrentTerrainPoint().getX(),
+                            picker.getCurrentTerrainPoint().getZ());
+                    terrain.removeItem(terrain.getPreviewItemPosition());
+                    terrain.resetPreviewItem();
+
+//                    terrainPoint.x = 2 * (float) Math.floor(terrainPoint.x / 2) + 1;
+//                    terrainPoint.y = 2 * (float) Math.floor(terrainPoint.y / 2) + 1;
+                    terrainPoint.x = (float) Math.rint(terrainPoint.x);
+                    terrainPoint.y = (float) Math.rint(terrainPoint.y);
+
+                    if (terrain.getItems().get(terrainPoint) == null) {
+                        if (GuiSelectedItem.getSelectedItemGui().isDisplayed())
+                            Gui.hideGui(GuiSelectedItem.getSelectedItemGui());
+
+                        AbstractItem selectedItem = GuiSelectedItem.getSelectedItemGui().getSelectedItem();
+                        terrain.setPreviewItem(terrainPoint, selectedItem);
+                    } else {
+                        if (!GuiSelectedItem.getSelectedItemGui().isDisplayed())
+                            Gui.showGui(GuiSelectedItem.getSelectedItemGui());
+                    }
+                }
 
                 GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
-
-                GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
-                    if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                        if (action == GLFW.GLFW_PRESS) {
-                            picker.update();
-                            Vector3f currentTerrainPoint = picker.getCurrentTerrainPoint();
-
-                            if (currentTerrainPoint == null)
-                                return;
-
-                            currentTerrainPoint.x = 2 * (float) Math.floor(currentTerrainPoint.x / 2) + 1;
-                            currentTerrainPoint.y = (float) Math.round(currentTerrainPoint.y) + 0.01f;
-                            currentTerrainPoint.z = 2 * (float) Math.floor(currentTerrainPoint.z / 2) + 1;
-//                            entities.add(new Entity(dirtRoad.getTexture(), currentTerrainPoint, 0,
-//                                    90, 0, 1f, 3));
-//                            System.out.println(currentTerrainPoint);
-//                            System.out.println("Player: " + player.getPosition());
-                            Insula item2 = new Insula();
-////                            DirtRoadItem item = new DirtRoadItem();
-//                            item.onClick(() -> {
 //
-//                            });
-//                            item2.setScale(.5f);
-                            terrain.placeItem(item2, currentTerrainPoint);
-                        }
-                    } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
-                        if (action == GLFW.GLFW_PRESS) {
-//                            camera.setMiddleButtonPressed(true);
-                            System.out.println("middle button");
-                        } else if (action == GLFW.GLFW_RELEASE) {
-//                            camera.setMiddleButtonPressed(false);
-                        }
-                    } else if (button == GLFW_MOUSE_BUTTON_2) {
-                        if (action == GLFW.GLFW_PRESS) {
-                            picker.update();
-                            for (Entry<Vector3f, Item> entry : terrain.getItems().entrySet()) {
-                                Vector3f pos = entry.getKey();
-                                Item item = entry.getValue();
-
-                                Vector3f min = item.getBoundingBox().getRawModel().getMin();
-                                Vector3f max = item.getBoundingBox().getRawModel().getMax();
-
-                                float minX = min.x;
-                                float minY = min.y;
-                                float minZ = min.z;
-
-                                float maxX = max.x;
-                                float maxY = max.y;
-                                float maxZ = max.z;
-
-                                Vector3f[] rec1 = new Vector3f[4];
-                                Vector3f[] rec2 = new Vector3f[4];
-
-                                rec1[0] = new Vector3f(minX + pos.x, minY + pos.y, minZ + pos.z);
-                                rec1[1] = new Vector3f(minX + pos.x, maxY + pos.y, minZ + pos.z);
-                                rec1[2] = new Vector3f(minX + pos.x, minY + pos.y, maxZ + pos.z);
-                                rec1[3] = new Vector3f(minX + pos.x, maxY + pos.y, maxZ + pos.z);
-
-                                rec2[0] = new Vector3f(maxX + pos.x, minY + pos.y, minZ + pos.z);
-                                rec2[1] = new Vector3f(maxX + pos.x, maxY + pos.y, minZ + pos.z);
-                                rec2[2] = new Vector3f(maxX + pos.x, minY + pos.y, maxZ + pos.z);
-                                rec2[3] = new Vector3f(maxX + pos.x, maxY + pos.y, maxZ + pos.z);
-
-                                Vector3f p = Maths.temp(rec1, rec2, camera.getPosition(), picker);
-
-                                if (p == null) {
-                                    rec1[0] = new Vector3f(minX + pos.x, minY + pos.y, maxZ + pos.z);
-                                    rec1[1] = new Vector3f(minX + pos.x, maxY + pos.y, maxZ + pos.z);
-                                    rec1[2] = new Vector3f(maxX + pos.x, minY + pos.y, maxZ + pos.z);
-                                    rec1[3] = new Vector3f(maxX + pos.x, maxY + pos.y, maxZ + pos.z);
-
-                                    rec2[0] = new Vector3f(minX + pos.x, minY + pos.y, minZ + pos.z);
-                                    rec2[1] = new Vector3f(minX + pos.x, maxY + pos.y, minZ + pos.z);
-                                    rec2[2] = new Vector3f(maxX + pos.x, minY + pos.y, minZ + pos.z);
-                                    rec2[3] = new Vector3f(maxX + pos.x, maxY + pos.y, minZ + pos.z);
-
-                                    p = Maths.temp(rec1, rec2, camera.getPosition(), picker);
-                                }
-
-                                if (p != null) {
-                                    if (!item.isSelected())
-                                        item.select();
-                                    else
-                                        item.unselect();
-
-                                    System.out.println("Intersection avec " + item.getId());
-
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                });
-
 //                buffers.bindReflectionFrameBuffer();
-//
+
 //                float distance = 2 * (camera.getPosition().y - water.getHeight());
 //                camera.getPosition().y -= distance;
 //                camera.invertPitch();
@@ -395,25 +317,28 @@ public class MainGameLoop {
 //                GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
 //
 //                buffers.unbindCurrentFrameBuffer();
-
-                if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
-                    fbo.bindFrameBuffer();
-
-                    renderer.renderScene(entities, terrain, lights, camera,
-                            new Vector4f(0, -1, 0, 1000000));
-                    waterRenderer.render(waters, camera, sun);
-                    fbo.unbindFrameBuffer();
-
-                    PostProcessing.doPostProcessing(fbo.getColourTexture());
-                } else {
-                    renderer.renderScene(entities, terrain, lights, camera,
-                            new Vector4f(0, -1, 0, 1000000));
-                    waterRenderer.render(waters, camera, sun);
-                }
+//
+//                if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
+//                    fbo.bindFrameBuffer();
+//
+//                    renderer.renderScene(entities, terrain, lights, camera,
+//                            new Vector4f(0, -1, 0, 1000000));
+//                    waterRenderer.render(waters, camera, sun);
+//                    fbo.unbindFrameBuffer();
+//
+//                    PostProcessing.doPostProcessing(fbo.getColourTexture());
+//                } else {
+//                    renderer.renderScene(entities, terrain, lights, camera,
+//                            new Vector4f(0, -1, 0, 1000000));
+//                    waterRenderer.render(waters, camera, sun);
+//                }
+                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
+                waterRenderer.render(waters, camera, sun);
 
                 guiRenderer.renderGuis(guis);
 
                 TextMaster.render();//TODO: Handle double rendering w/ GuiRenderer
+                System.gc();
             }
         }
 
@@ -425,6 +350,12 @@ public class MainGameLoop {
         guiRenderer.cleanUp();
         loader.cleanUp();
         TextMaster.cleanUp();
+
+        MouseUtils.freeCallbacks();
+        KeyboardUtils.freeCallbacks();
+        DisplayManager.freeCallbacks();
+
+        GL.setCapabilities(null);
         DisplayManager.closeDisplay();
     }
 

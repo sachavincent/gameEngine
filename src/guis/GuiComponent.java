@@ -9,10 +9,10 @@ import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
+import inputs.MouseUtils;
 import inputs.callbacks.*;
 import java.util.Objects;
 import renderEngine.DisplayManager;
-import inputs.MouseUtils;
 import util.math.Vector2f;
 
 public abstract class GuiComponent<E> implements GuiInterface {
@@ -40,7 +40,8 @@ public abstract class GuiComponent<E> implements GuiInterface {
 
     private boolean displayed;
 
-    private boolean clicked;
+    private boolean               clicked;
+    private GuiConstraintsManager constraints;
 
     public GuiComponent(GuiInterface parent) {
         this.parent = parent;
@@ -61,6 +62,14 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this(parent);
 
         this.texture = new GuiTexture<E>(texture, new Vector2f(x, y), new Vector2f(width, height));
+    }
+
+    /**
+     * Parent's constraints have changed, children constraints change too
+     */
+    public void updateConstraints() {
+        if (this.constraints != null)
+            setConstraints(this.constraints);
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -135,8 +144,11 @@ public abstract class GuiComponent<E> implements GuiInterface {
                         case RELATIVE:
                             GuiInterface relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
-                                this.x = relativeTo.getX() - this.width -
-                                        (parent.getWidth() / 2 + this.width) * constraint * 2;
+                                if (constraint == 0)
+                                    this.x = relativeTo.getX();
+                                else
+                                    this.x = relativeTo.getX() - this.width -
+                                            (parent.getWidth() / 2 + this.width) * constraint * 2;
                             } else {
                                 // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
                                 this.x = parent.getX() + parent.getWidth() - this.width +
@@ -171,9 +183,13 @@ public abstract class GuiComponent<E> implements GuiInterface {
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
-                    if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
-                            (x + this.width) > (parent.getX() + parent.getWidth()))
-                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
+//                    if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
+//                            (x + this.width) > (parent.getX() + parent.getWidth()))
+//                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
+
+//                    if ((x - this.width) < (parent.getX() - parent.getWidth()) ||
+//                            (x + this.width) > (parent.getX() + parent.getWidth()))
+//                        System.err.println("Warning: Component x coordinate doesn't belong in parent");
 
                     break;
                 case 'Y':
@@ -185,11 +201,15 @@ public abstract class GuiComponent<E> implements GuiInterface {
                         case RELATIVE:
                             GuiInterface relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
                             if (relativeTo != null) { // Relatif à un autre élément
-                                this.y = relativeTo.getY() - this.height -
-                                        (parent.getHeight() / 2 + this.height) * constraint * 2;
+                                if (constraint == 0)
+                                    this.y = relativeTo.getY();
+                                else
+                                    this.y = relativeTo.getY() - this.height -
+                                            (parent.getHeight() / 2 + this.height) * constraint * 2;
                             } else {
                                 // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent : fonctionne.
-                                this.y = (parent.getY() + parent.getHeight() - this.height) - (parent.getHeight() - this.height) * 2 * constraint;
+                                this.y = (parent.getY() + parent.getHeight() - this.height) -
+                                        (parent.getHeight() - this.height) * 2 * constraint;
                             }
                             break;
                         case SIDE:
@@ -222,10 +242,10 @@ public abstract class GuiComponent<E> implements GuiInterface {
                             throw new IllegalGuiConstraintException("This constraint cannot be handled");
                     }
 
-                    if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
-                            ((y + this.height) > parent.getY() + parent.getHeight()))
-                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
-
+//                    if ((y - this.height) < (parent.getY() - parent.getHeight()) ||
+//                            ((y + this.height) > parent.getY() + parent.getHeight()))
+//                        throw new IllegalGuiConstraintException("Component y coordinate doesn't belong in parent");
+//                        System.err.println("Warning: Component y coordinate doesn't belong in parent");
                     break;
             }
         }
@@ -233,6 +253,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.finalHeight = height;
         this.finalWidth = width;
 
+        this.constraints = constraints;
         updateTexturePosition();
     }
 
@@ -390,7 +411,8 @@ public abstract class GuiComponent<E> implements GuiInterface {
         if (!getParentGui(this).areTransitionsOfComponentDone(this))
             return;
 
-        if (!isPointIn2DBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight()) &&
+        if (!isPointIn2DBounds(new Vector2f(x, y), parent.getX(), parent.getY(), parent.getWidth(),
+                parent.getHeight()) &&
                 getParentGui(this).areTransitionsOfComponentDone(this))
             throw new IllegalArgumentException("New coordinates don't belong in parent");
 

@@ -6,11 +6,15 @@ import textures.ModelTexture;
 public class DirtRoadItem extends RoadItem {
 
     public DirtRoadItem() {
+        super();
+
         this.straight = Models.straight;
         this.deadEnd = Models.deadEnd;
         this.turn = Models.turn;
         this.threeWay = Models.threeWay;
         this.fourWay = Models.fourWay;
+
+        setPreviewTexture(this.straight);
     }
 
     public static class Models {

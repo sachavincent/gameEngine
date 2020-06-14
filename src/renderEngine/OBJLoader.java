@@ -72,6 +72,7 @@ public class OBJLoader {
             RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox");
 
             item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", true)));
+            item.setPreviewTexture(item.getTexture());
 
             line = handleVertices(reader, vertices);
             final float[] textureArray = new float[vertices.size() * 2];

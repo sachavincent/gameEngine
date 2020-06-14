@@ -2,7 +2,6 @@ package guis.constraints;
 
 import guis.exceptions.IllegalGuiConstraintException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GuiConstraintsManager {
@@ -11,13 +10,13 @@ public class GuiConstraintsManager {
 
     private List<Character> order = new ArrayList<>();
 
-    public void setDefault() {
-        this.xConstraint = new CenterConstraint();
-        this.yConstraint = new CenterConstraint();
-        this.widthConstraint = new RelativeConstraint(0.1f);
-        this.heightConstraint = new RelativeConstraint(0.1f);
+    public GuiConstraintsManager setDefault() {
+        setxConstraint(new CenterConstraint());
+        setyConstraint(new CenterConstraint());
+        setWidthConstraint(new RelativeConstraint(0.1f));
+        setHeightConstraint(new RelativeConstraint(0.1f));
 
-        this.order = new ArrayList<>(Arrays.asList('X', 'Y', 'W', 'H'));
+        return this;
     }
 
     public GuiConstraints getxConstraint() {

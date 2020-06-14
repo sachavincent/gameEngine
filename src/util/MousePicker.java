@@ -3,8 +3,8 @@ package util;
 
 import entities.Camera;
 import inputs.MouseUtils;
-import java.text.DecimalFormat;
 import renderEngine.DisplayManager;
+import renderEngine.MasterRenderer;
 import terrains.Terrain;
 import util.math.Maths;
 import util.math.Matrix4f;
@@ -29,17 +29,15 @@ public class MousePicker {
     private static MousePicker instance;
 
 
-    public MousePicker(Camera cam, Matrix4f projection, Terrain terrain) {
-        camera = cam;
-        projectionMatrix = projection;
-        viewMatrix = Maths.createViewMatrix(camera);
-        this.terrain = terrain;
-
-        instance = this;
+    private MousePicker() {
+        this.camera = Camera.getInstance();
+        this.projectionMatrix = MasterRenderer.getInstance().getProjectionMatrix();
+        this.viewMatrix = Maths.createViewMatrix(camera);
+        this.terrain = Terrain.getInstance();
     }
 
     public static MousePicker getInstance() {
-        return instance;
+        return instance == null ? (instance = new MousePicker()) : instance;
     }
 
     public Vector3f getCurrentTerrainPoint() {
@@ -142,39 +140,39 @@ public class MousePicker {
         return new Vector2f(x, y);
     }
 
-    private Vector3f getPointOnRay(Vector3f ray, float distance) {
-        Vector3f camPos = camera.getPosition();
-        Vector3f start = new Vector3f(camPos.x, camPos.y, camPos.z);
-        Vector3f scaledRay = new Vector3f(ray.x * distance, ray.y * distance, ray.z * distance);
+//    private Vector3f getPointOnRay(Vector3f ray, float distance) {
+//        Vector3f camPos = camera.getPosition();
+//        Vector3f start = new Vector3f(camPos.x, camPos.y, camPos.z);
+//        Vector3f scaledRay = new Vector3f(ray.x * distance, ray.y * distance, ray.z * distance);
+//
+//        return Vector3f.add(start, scaledRay, null);
+//    }
 
-        return Vector3f.add(start, scaledRay, null);
-    }
+//    private Vector3f binarySearch(int count, float start, float finish, Vector3f ray) {
+//        float half = start + ((finish - start) / 2f);
+//        if (count >= RECURSION_COUNT)
+//            return getPointOnRay(ray, half);
+//
+//        if (intersectionInRange(start, half, ray)) {
+//            return binarySearch(count + 1, start, half, ray);
+//        } else {
+//            return binarySearch(count + 1, half, finish, ray);
+//        }
+//    }
 
-    private Vector3f binarySearch(int count, float start, float finish, Vector3f ray) {
-        float half = start + ((finish - start) / 2f);
-        if (count >= RECURSION_COUNT)
-            return getPointOnRay(ray, half);
+//    private boolean intersectionInRange(float start, float finish, Vector3f ray) {
+//        Vector3f startPoint = getPointOnRay(ray, start);
+//        Vector3f endPoint = getPointOnRay(ray, finish);
+//
+//        return !isUnderGround(startPoint) && isUnderGround(endPoint);
+//    }
 
-        if (intersectionInRange(start, half, ray)) {
-            return binarySearch(count + 1, start, half, ray);
-        } else {
-            return binarySearch(count + 1, half, finish, ray);
-        }
-    }
-
-    private boolean intersectionInRange(float start, float finish, Vector3f ray) {
-        Vector3f startPoint = getPointOnRay(ray, start);
-        Vector3f endPoint = getPointOnRay(ray, finish);
-
-        return !isUnderGround(startPoint) && isUnderGround(endPoint);
-    }
-
-    private boolean isUnderGround(Vector3f testPoint) {
-        float height = 0;
-        if (terrain != null)
-            height = terrain.getHeightOfTerrain(testPoint.getX(), testPoint.getZ());
-
-        return testPoint.y < height;
-    }
+//    private boolean isUnderGround(Vector3f testPoint) {
+//        float height = 0;
+//        if (terrain != null)
+//            height = terrain.getHeightOfTerrain(testPoint.getX(), testPoint.getZ());
+//
+//        return testPoint.y < height;
+//    }
 
 }

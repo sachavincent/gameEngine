@@ -47,7 +47,6 @@ public class ModelTexture extends Texture {
         this.transparent = transparent;
     }
 
-
     public boolean doesUseFakeLighting() {
         return this.useFakeLighting;
     }

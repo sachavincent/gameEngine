@@ -2,6 +2,7 @@ package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
+import java.util.Objects;
 
 public class Vector2f extends Vector implements Serializable, ReadableVector2f, WritableVector2f {
 
@@ -84,7 +85,15 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
             dls = 1.0F;
         }
 
-        return (float) Math.acos((double) dls);
+        return (float) Math.acos(dls);
+    }
+
+
+    public Vector2f add(Vector2f vec) {
+        if (vec == null)
+            return this;
+
+        return new Vector2f(x + vec.x, y + vec.y);
     }
 
     public static Vector2f add(Vector2f left, Vector2f right, Vector2f dest) {
@@ -160,6 +169,11 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
             Vector2f other = (Vector2f) obj;
             return this.x == other.x && this.y == other.y;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 
     public double distanceSquared(Vector2f v) {

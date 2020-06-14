@@ -72,7 +72,7 @@ public class MetaFile {
         String line = null;
         try {
             line = reader.readLine();
-        } catch (IOException e1) {
+        } catch (IOException ignored) {
         }
         if (line == null) {
             return false;

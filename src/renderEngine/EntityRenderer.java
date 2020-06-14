@@ -40,9 +40,16 @@ public class EntityRenderer {
         shader.stop();
     }
 
-    public void render(Map<TexturedModel, List<Entity>> entities, Terrain terrain) {
-        terrain.getItems().forEach((pos, item) -> {
-            TexturedModel texture = item.getTexture();
+    public void render(Map<TexturedModel, List<Entity>> entities) {
+       final Terrain terrain = Terrain.getInstance();
+        terrain.getItems().forEach((p, item) -> {
+            Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
+
+                TexturedModel texture = item.getTexture();
+            if (terrain.getPreviewItemPosition() != null && terrain.getPreviewItemPosition().equals(p)) {
+                texture = item.getPreviewTexture();
+            }
+
             handleTexture(entities, pos, item, texture);
             if (displayBoundingBoxes) {
                 texture = item.getBoundingBox();
@@ -51,15 +58,22 @@ public class EntityRenderer {
             }
             if (item.isSelected()) {
                 texture = item.getSelectionBox();
-
                 handleTexture(entities, pos, item, texture);
             }
+
         });
 
-        entities.forEach((texturedModel, batch) -> {
+//        Vector3f pos = terrain.getPreviewItemPosition();
+//        if (pos != null) { // Preview
+//            Item previewItem = terrain.getPreviewItem();
+//            handleTexture(entities, pos, previewItem, previewItem.getPreviewTexture());
+//        }
+
+        entities.entrySet().stream().filter(entry -> entry.getKey() != null).forEach(entry -> {
+            TexturedModel texturedModel = entry.getKey();
             prepareTexturedModel(texturedModel);
 
-            batch.forEach(entity -> {
+            entry.getValue().forEach(entity -> {
                 prepareInstance(entity);
                 GL11.glDrawElements(GL11.GL_TRIANGLES, texturedModel.getRawModel().getVertexCount(),
                         GL11.GL_UNSIGNED_INT, 0);
@@ -75,7 +89,7 @@ public class EntityRenderer {
             entities.put(texture, new ArrayList<>());
 
         entities.get(texture).add(new Entity(texture, pos, 0,
-                item.getRotation(), 0, item.getScale(), 3));
+                item.getFacingDirection().getDegree(), 0, item.getScale(), 3));
     }
 
     private void prepareTexturedModel(TexturedModel texturedModel) {

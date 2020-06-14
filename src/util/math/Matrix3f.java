@@ -201,10 +201,9 @@ public class Matrix3f extends Matrix implements Serializable {
     }
 
     public float determinant() {
-        float f = this.m00 * (this.m11 * this.m22 - this.m12 * this.m21) +
+        return this.m00 * (this.m11 * this.m22 - this.m12 * this.m21) +
                 this.m01 * (this.m12 * this.m20 - this.m10 * this.m22) +
                 this.m02 * (this.m10 * this.m21 - this.m11 * this.m20);
-        return f;
     }
 
     public String toString() {
