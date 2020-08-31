@@ -2,6 +2,7 @@ package renderEngine;
 
 import entities.Entity;
 import items.Item;
+import items.buildings.BuildingItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,26 +42,28 @@ public class EntityRenderer {
     }
 
     public void render(Map<TexturedModel, List<Entity>> entities) {
-       final Terrain terrain = Terrain.getInstance();
+        final Terrain terrain = Terrain.getInstance();
         terrain.getItems().forEach((p, item) -> {
-            Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
+            if (!(item instanceof BuildingItem)) {
+
+                Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
 
                 TexturedModel texture = item.getTexture();
-            if (terrain.getPreviewItemPosition() != null && terrain.getPreviewItemPosition().equals(p)) {
-                texture = item.getPreviewTexture();
-            }
-
-            handleTexture(entities, pos, item, texture);
-            if (displayBoundingBoxes) {
-                texture = item.getBoundingBox();
+                if (terrain.getPreviewItemPosition() != null && terrain.getPreviewItemPosition().equals(p)) {
+                    texture = item.getPreviewTexture();
+                }
 
                 handleTexture(entities, pos, item, texture);
-            }
-            if (item.isSelected()) {
-                texture = item.getSelectionBox();
-                handleTexture(entities, pos, item, texture);
-            }
+                if (displayBoundingBoxes) {
+                    texture = item.getBoundingBox();
 
+                    handleTexture(entities, pos, item, texture);
+                }
+                if (item.isSelected()) {
+                    texture = item.getSelectionBox();
+                    handleTexture(entities, pos, item, texture);
+                }
+            }
         });
 
 //        Vector3f pos = terrain.getPreviewItemPosition();

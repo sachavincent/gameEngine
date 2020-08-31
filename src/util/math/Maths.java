@@ -74,6 +74,9 @@ public class Maths {
     }
 
     public static float roundFloat(float value, int nbDecimals) {
+        if (Float.isNaN(value))
+            return -1;
+
         if (nbDecimals <= 0)
             return value;
 

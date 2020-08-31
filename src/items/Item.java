@@ -3,6 +3,7 @@ package items;
 import entities.Camera.Direction;
 import java.util.Objects;
 import models.TexturedModel;
+import util.math.Vector2f;
 
 public abstract class Item {
 
@@ -11,7 +12,7 @@ public abstract class Item {
     protected String name;
     protected long   id;
 
-    protected int xWidth, height, zWidth;
+    protected int xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset;
 
     protected TexturedModel texture;
     protected TexturedModel previewTexture;
@@ -20,7 +21,7 @@ public abstract class Item {
     protected TexturedModel selectionBox;
 
     protected Direction facingDirection = Direction.NORTH;
-    protected float     scale = 1f;
+    protected float     scale           = 1f;
 
     protected boolean selected;
 
@@ -44,12 +45,19 @@ public abstract class Item {
         this.selected = false;
     }
 
-    public Item(int xWidth, int height, int zWidth) {
-        this.xWidth = xWidth;
+    public Item(String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
+            int zPositiveOffset) {
+        this.xNegativeOffset = xNegativeOffset;
+        this.xPositiveOffset = xPositiveOffset;
+
         this.height = height;
-        this.zWidth = zWidth;
+
+        this.zNegativeOffset = zNegativeOffset;
+        this.zPositiveOffset = zPositiveOffset;
 
         this.id = max_id++;
+
+        this.name = name;
     }
 
     public String getName() {
@@ -104,16 +112,43 @@ public abstract class Item {
         this.selectionBox = selectionBox;
     }
 
-    public int getxWidth() {
-        return this.xWidth;
+    public int getxNegativeOffset() {
+        return this.xNegativeOffset;
+    }
+
+    public int getxPositiveOffset() {
+        return this.xPositiveOffset;
+    }
+
+    public int getzNegativeOffset() {
+        return this.zNegativeOffset;
+    }
+
+    public int getzPositiveOffset() {
+        return this.zPositiveOffset;
+    }
+
+    public Vector2f getOffset(Direction direction) {
+        Vector2f res = new Vector2f(0, 0);
+        switch (direction) {
+            case NORTH:
+                res.x = this.xPositiveOffset;
+                break;
+            case SOUTH:
+                res.x = -this.xNegativeOffset;
+                break;
+            case WEST:
+                res.y = -this.zNegativeOffset;
+                break;
+            case EAST:
+                res.y = this.zPositiveOffset;
+                break;
+        }
+        return res;
     }
 
     public int getHeight() {
         return this.height;
-    }
-
-    public int getzWidth() {
-        return this.zWidth;
     }
 
     @Override

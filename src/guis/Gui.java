@@ -3,10 +3,12 @@ package guis;
 import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
+import guis.presets.buttons.GuiAbstractButton;
 import guis.transitions.Transition;
 import guis.transitions.Transition.Trigger;
 import java.awt.Color;
@@ -33,6 +35,8 @@ public class Gui implements GuiInterface {
 
     private float finalWidth, finalHeight;
 
+    private float cornerRadius = Gui.CORNER_RADIUS;
+
     private boolean focused, displayed;
 
     public Gui(GuiBackground<?> background) {
@@ -45,7 +49,6 @@ public class Gui implements GuiInterface {
     public void setBackground(GuiBackground<?> background) {
         this.background = new GuiTexture<>(background, new Vector2f(x, y), new Vector2f(width,
                 height));
-        System.out.println(width + "/" + height);
     }
 
     public Gui(int r, int g, int b) {
@@ -77,13 +80,12 @@ public class Gui implements GuiInterface {
                     handleYConstraint(yConstraint);
                     break;
             }
-
         }
 
         updateTexturePosition();
     }
 
-    void handleYConstraint(GuiConstraints yConstraint) {
+    protected void handleYConstraint(GuiConstraints yConstraint) {
         float constraint;
         if (yConstraint == null)
             return;
@@ -92,7 +94,16 @@ public class Gui implements GuiInterface {
 
         switch (yConstraint.getConstraint()) {
             case RELATIVE:
-                this.y = 2 - this.height + (this.height - 2) * (2 - constraint * 2);
+                GuiInterface relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
+                if (relativeTo != null) { // Relatif à un autre élément
+                    if (constraint == 0)
+                        this.y = relativeTo.getY();
+                    else
+                        this.y = relativeTo.getY() - this.height + (1f / 2f + this.height) * constraint * 2;
+                } else {
+                    // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent : fonctionne.
+                    this.y = (1 - this.height) - (1 - this.height) * 2 * constraint;
+                }
                 break;
             case SIDE:
                 switch (((SideConstraint) yConstraint).getSide()) {
@@ -124,7 +135,7 @@ public class Gui implements GuiInterface {
 //            System.err.println("Warning: Component y coordinate doesn't belong in parent");
     }
 
-    void handleXConstraint(GuiConstraints xConstraint) {
+    protected void handleXConstraint(GuiConstraints xConstraint) {
         float constraint;
         if (xConstraint == null)
             return;
@@ -133,7 +144,16 @@ public class Gui implements GuiInterface {
 
         switch (xConstraint.getConstraint()) {
             case RELATIVE:
-                this.x = 2 - this.width + (this.width - 2) * (2 - constraint * 2);
+                GuiInterface relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
+                if (relativeTo != null) { // Relatif à un autre élément
+                    if (constraint == 0)
+                        this.x = relativeTo.getX();
+                    else
+                        this.x = relativeTo.getX() - this.width + (1f / 2f + this.width) * constraint * 2;
+                } else {
+                    // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent
+                    this.x = 1 - this.width + (this.width - 1) * (2 - constraint * 2);
+                }
                 break;
             case SIDE:
                 switch (((SideConstraint) xConstraint).getSide()) {
@@ -179,7 +199,6 @@ public class Gui implements GuiInterface {
                 break;
             case PIXEL:
                 this.height = constraint / DisplayManager.HEIGHT;
-
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -255,8 +274,8 @@ public class Gui implements GuiInterface {
                         component.setDisplayed(true);
                     else
                         lTransitions.forEach(transition -> {
-                            transition.setStarted(
-                                    false); // Started from previous iteration, set to false before it begins
+                            transition.setStarted(false);
+                            // Started from previous iteration, set to false before it begins
 
                             Timer.scheduleTransition(transition, component);
                         });
@@ -265,11 +284,12 @@ public class Gui implements GuiInterface {
         getHideTransitions().forEach(transition -> transition.setDone(false));
 
         getComponentsHideTransitions()
-                .forEach((guiComponent, lTransitions) -> lTransitions.forEach(transition -> transition.setDone(false)));
+                .forEach((guiComponent, lTransitions) -> lTransitions
+                        .forEach(transition -> transition.setDone(false)));
     }
 
 
-    void hide() {
+    protected void hide() {
         if (!isDisplayed())
             return;
 
@@ -296,7 +316,8 @@ public class Gui implements GuiInterface {
         getShowTransitions().forEach(transition -> transition.setDone(false));
 
         getComponentsShowTransitions()
-                .forEach((guiComponent, lTransitions) -> lTransitions.forEach(transition -> transition.setDone(false)));
+                .forEach((guiComponent, lTransitions) -> lTransitions
+                        .forEach(transition -> transition.setDone(false)));
     }
 
     public boolean areTransitionsDone() {
@@ -367,7 +388,7 @@ public class Gui implements GuiInterface {
             }
         });
 
-        Map<GuiComponent, Set<Transition>> map =
+        Map<GuiComponent<?>, Set<Transition>> map =
                 isDisplayed() ? getComponentsShowTransitions() : getComponentsHideTransitions();
 
         map.forEach((guiComponent, lTransitions) -> lTransitions.stream().filter(transition -> !transition.isDone())
@@ -409,7 +430,7 @@ public class Gui implements GuiInterface {
         this.transitions = new HashSet<>(Arrays.asList(transitions));
     }
 
-    public void setComponentTransitions(GuiComponent guiComponent, Transition... transitions) {
+    public void setComponentTransitions(GuiComponent<?> guiComponent, Transition... transitions) {
         if (!components.containsKey(guiComponent))
             throw new IllegalArgumentException("Component does not belong to parent gui");
 
@@ -434,8 +455,8 @@ public class Gui implements GuiInterface {
                 .collect(Collectors.toSet());
     }
 
-    public Map<GuiComponent, Set<Transition>> getComponentsHideTransitions() {
-        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
+    public Map<GuiComponent<?>, Set<Transition>> getComponentsHideTransitions() {
+        Map<GuiComponent<?>, Set<Transition>> transitions = new HashMap<>();
 
         components.forEach((guiComponent, transitionSet) ->
                 transitions.put(guiComponent,
@@ -445,8 +466,8 @@ public class Gui implements GuiInterface {
         return transitions;
     }
 
-    public Map<GuiComponent, Set<Transition>> getComponentsShowTransitions() {
-        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
+    public Map<GuiComponent<?>, Set<Transition>> getComponentsShowTransitions() {
+        Map<GuiComponent<?>, Set<Transition>> transitions = new HashMap<>();
 
         components.forEach((guiComponent, transitionSet) ->
                 transitions.put(guiComponent,
@@ -484,8 +505,8 @@ public class Gui implements GuiInterface {
         this.height = height;
     }
 
-    public List<GuiComponent> getAllComponents() {
-        final List<GuiComponent> guiComponents = new ArrayList<>();
+    public List<GuiComponent<?>> getAllComponents() {
+        final List<GuiComponent<?>> guiComponents = new ArrayList<>();
         getComponents().keySet().forEach(guiComponent -> {
             if (guiComponent instanceof GuiPreset) {
                 guiComponents.addAll(((GuiPreset) guiComponent).getBasics());
@@ -634,6 +655,16 @@ public class Gui implements GuiInterface {
     }
 
 
+    public static void toggleGui(Gui gui) {
+        if (gui == null)
+            return;
+
+        if (gui.isDisplayed())
+            gui.hide();
+        else//TODO: boolean attribute transitioning to make sure
+            gui.show();
+    }
+
     public static void showGui(Gui gui) {
         if (gui == null)
             return;
@@ -658,11 +689,25 @@ public class Gui implements GuiInterface {
         gui.hide();
     }
 
-    List<Transition> getAllTransitions() {
+    protected List<Transition> getAllTransitions() {
         final List<Transition> lTransitions = new ArrayList<>();
         this.components.values().forEach(lTransitions::addAll);
         lTransitions.addAll(getTransitions());
 
         return lTransitions;
+    }
+
+    public List<Gui> getTooltipGuis() {
+        return getAllComponents().stream().filter(GuiAbstractButton.class::isInstance)
+                .map(GuiAbstractButton.class::cast).map(GuiAbstractButton::getTooltipGui).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public float getCornerRadius() {
+        return this.cornerRadius;
+    }
+
+    public void setCornerRadius(float cornerRadius) {
+        this.cornerRadius = cornerRadius;
     }
 }

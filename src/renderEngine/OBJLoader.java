@@ -18,7 +18,7 @@ import util.math.Vector3f;
 
 public class OBJLoader {
 
-    public static RawModel loadObjModel(String fileName, Loader loader) {
+    public static RawModel loadObjModel(String fileName) {
         FileReader fr;
         try {
             fr = new FileReader(new File("res/" + fileName + ".obj"));
@@ -35,8 +35,8 @@ public class OBJLoader {
         try {
             rawModel = handleIndicesTexturesNormalsVertex(reader, null);
 
-        } catch (IOException e) {
-            System.err.println("Oops");
+        } catch (IOException | IllegalArgumentException e) {
+            System.err.println("Something went wrong");
             e.printStackTrace();
         } finally {
             try {
@@ -51,11 +51,46 @@ public class OBJLoader {
         return rawModel;
     }
 
-
-    public static Item loadObjForItem(Item item) {
+    public static RawModel[] loadRoadModel(String fileName) {
         FileReader fr;
         try {
-            fr = new FileReader(new File("res/" + item.getName() + ".obj"));
+            fr = new FileReader(new File("res/roads/" + fileName + ".obj"));
+        } catch (FileNotFoundException e) {
+            System.err.println("Couldn't load obj file!");
+            e.printStackTrace();
+
+            return null;
+        }
+
+        RawModel[] rawModels = new RawModel[4];
+        BufferedReader reader = new BufferedReader(fr);
+
+        try {
+            rawModels[0] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED EAST");
+            rawModels[1] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED WEST");
+            rawModels[2] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED");
+            rawModels[3] = handleIndicesTexturesNormalsVertex(reader, null);
+        } catch (IOException e) {
+            System.err.println("Oops");
+            e.printStackTrace();
+        } finally {
+            try {
+                reader.close();
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return rawModels;
+    }
+
+
+    public static Item loadObjForItem(Item item, boolean doesUseDirectionalColor) {
+        FileReader fr;
+        try {
+            fr = new FileReader(new File("res/" + item.getName().toLowerCase() + ".obj"));
         } catch (FileNotFoundException e) {
             System.err.println("Couldn't load obj file!");
             e.printStackTrace();
@@ -73,6 +108,7 @@ public class OBJLoader {
 
             item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", true)));
             item.setPreviewTexture(item.getTexture());
+            item.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
 
             line = handleVertices(reader, vertices);
             final float[] textureArray = new float[vertices.size() * 2];
@@ -180,7 +216,7 @@ public class OBJLoader {
     }
 
     private static RawModel handleIndicesTexturesNormalsVertex(BufferedReader reader, String nextSegment)
-            throws IOException {
+            throws IOException, IllegalArgumentException {
         List<Vector3f> vertices = new ArrayList<>();
         List<Vector2f> textures = new ArrayList<>();
         List<Vector3f> normals = new ArrayList<>();
@@ -190,6 +226,7 @@ public class OBJLoader {
         float[] textureArray = null;
 
         String line;
+
         while ((line = reader.readLine()) != null) {
             String[] currentLine = line.split(" ");
 
@@ -214,7 +251,7 @@ public class OBJLoader {
         }
 
         while (line != null) {
-            if (nextSegment != null && line.startsWith(nextSegment))
+            if (line.equalsIgnoreCase(nextSegment))
                 break;
 
             if (!line.startsWith("f ")) {
@@ -269,9 +306,15 @@ public class OBJLoader {
 
         indicesArray = indices.stream().mapToInt(i -> i).toArray();
 
-        return Loader.getInstance()
+        if (textureArray == null || normalsArray == null || indicesArray == null)
+            throw new IllegalArgumentException("Incorrect OBJ file format");
+        RawModel rawModel = Loader.getInstance()
                 .loadToVAO(verticesArray, textureArray, normalsArray, indicesArray, new Vector3f(minX, minY, minZ),
                         new Vector3f(maxX, maxY, maxZ));
+        if (rawModel == null)
+            throw new IllegalArgumentException("Model null");
+
+        return rawModel;
     }
 
     private static int[] handleIndicesVertex(BufferedReader reader, String line, String nextSegment)

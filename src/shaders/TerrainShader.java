@@ -1,8 +1,8 @@
 package shaders;
 
-import java.util.List;
 import entities.Camera;
 import entities.Light;
+import java.util.List;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
@@ -17,11 +17,11 @@ public class TerrainShader extends ShaderProgram {
 
     private int location_transformationMatrix;
     private int location_projectionMatrix;
-    private int location_viewMatrix;
-    private int location_lightPosition[];
-    private int location_lightColor[];
-    private int location_attenuation[];
-    private int location_shineDamper;
+    private int   location_viewMatrix;
+    private int[] location_lightPosition;
+    private int[] location_lightColor;
+    private int[] location_attenuation;
+    private int   location_shineDamper;
     private int location_reflectivity;
     private int location_skyColor;
     private int location_backgroundTexture;
@@ -29,6 +29,7 @@ public class TerrainShader extends ShaderProgram {
     private int location_gTexture;
     private int location_bTexture;
     private int location_blendMap;
+    private int location_uniformColor;
     private int location_plane;
 
     public TerrainShader() {
@@ -56,6 +57,7 @@ public class TerrainShader extends ShaderProgram {
         location_gTexture = super.getUniformLocation("gTexture");
         location_bTexture = super.getUniformLocation("bTexture");
         location_blendMap = super.getUniformLocation("blendMap");
+        location_uniformColor = super.getUniformLocation("uniformColor");
         location_plane = super.getUniformLocation("plane");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
@@ -88,6 +90,10 @@ public class TerrainShader extends ShaderProgram {
     public void loadShineVariables(float damper, float reflectivity) {
         super.loadFloat(location_shineDamper, damper);
         super.loadFloat(location_reflectivity, reflectivity);
+    }
+
+    public void loadUniformColor(boolean uniformColor) {
+        super.loadBoolean(location_uniformColor, uniformColor);
     }
 
     public void loadTransformationMatrix(Matrix4f matrix) {

@@ -1,5 +1,7 @@
 package items.buildings;
 
+import static items.ConnectableItem.Connections.NONE;
+
 import entities.Camera.Direction;
 import items.ConnectableItem;
 import items.Item;
@@ -9,13 +11,13 @@ import util.math.Maths;
 
 public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem {
 
-    private boolean[] accessPoints = new boolean[]{false, false, false, false};
-    private boolean[] connected    = new boolean[]{false, false, false, false};
+    // WEST NORTH EAST SOUTH
+    private boolean[]     accessPoints = new boolean[]{false, false, false, false};
+    private Connections[] connected    = new Connections[]{NONE, NONE, NONE, NONE};
 
-    public BuildingItem(String name, Item copy, int xWidth, int height, int zWidth, Direction... directions) {
-        super(xWidth, height, zWidth);
-
-        this.name = name;
+    public BuildingItem(String name, Item copy, int xNegativeOffset, int xPositiveOffset, int height,
+            int zNegativeOffset, int zPositiveOffset, Direction... directions) {
+        super(name, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset);
 
         if (copy != null) {
             this.texture = copy.getTexture();
@@ -38,18 +40,18 @@ public abstract class BuildingItem extends Item implements RotatableItem, Connec
     }
 
     @Override
-    public void connect(Direction direction) {
+    public void connect(Direction direction, Connections connections) {
         if (this.accessPoints[direction.ordinal()])
-            this.connected[direction.ordinal()] = true;
+            this.connected[direction.ordinal()] = connections;
     }
 
     @Override
     public void disconnect(Direction direction) {
-        this.connected[direction.ordinal()] = false;
+        this.connected[direction.ordinal()] = NONE;
     }
 
     public boolean isConnected(Direction direction) {
-        return this.connected[direction.ordinal()];
+        return this.connected[direction.ordinal()] != NONE;
     }
 
     @Override

@@ -4,11 +4,12 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Objects;
 
-public class Vector2f extends Vector implements Serializable, ReadableVector2f, WritableVector2f {
+public class Vector2f extends Vector implements Serializable, ReadableVector2f, WritableVector2f, Comparable<Vector2f> {
 
-    private static final long  serialVersionUID = 1L;
-    public               float x;
-    public               float y;
+    private static final long serialVersionUID = 1L;
+
+    public float x;
+    public float y;
 
     public Vector2f() {
     }
@@ -184,5 +185,14 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     public double distance(Vector2f v) {
         return Math.sqrt(distanceSquared(v));
+    }
+
+    @Override
+    public int compareTo(Vector2f o) {
+        int i = Float.compare(x, o.x);
+        if (i != 0)
+            return i;
+
+        return Float.compare(y, o.y);
     }
 }

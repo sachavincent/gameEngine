@@ -1,6 +1,7 @@
 package entities;
 
 import util.MousePicker;
+import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class Camera {
@@ -272,6 +273,21 @@ public class Camera {
 
         public Direction getOppositeDirection() {
             return getDirectionFromDegree(degree + 180);
+        }
+
+        public static Vector2f toRelativeDistance(Direction direction) {
+            switch (direction) {
+                case WEST:
+                    return new Vector2f(0, -1);
+                case NORTH:
+                    return new Vector2f(1, 0);
+                case EAST:
+                    return new Vector2f(0, 1);
+                case SOUTH:
+                    return new Vector2f(-1, 0);
+            }
+
+            return null;
         }
     }
 }

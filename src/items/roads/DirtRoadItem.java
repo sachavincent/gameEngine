@@ -1,12 +1,15 @@
 package items.roads;
 
+import models.RawModel;
 import models.TexturedModel;
 import textures.ModelTexture;
 
 public class DirtRoadItem extends RoadItem {
 
+    public final static String NAME = "Dirt Road";
+
     public DirtRoadItem() {
-        super();
+        super(NAME);
 
         this.straight = Models.straight;
         this.deadEnd = Models.deadEnd;
@@ -14,26 +17,26 @@ public class DirtRoadItem extends RoadItem {
         this.threeWay = Models.threeWay;
         this.fourWay = Models.fourWay;
 
-        setPreviewTexture(this.straight);
+        setPreviewTexture(this.straight[0]);
     }
 
     public static class Models {
-        static TexturedModel straight;
-        static TexturedModel deadEnd;
-        static TexturedModel turn;
-        static TexturedModel threeWay;
-        static TexturedModel fourWay;
 
-        static {
-            straight = new TexturedModel(StraightRoad.getModel(), new ModelTexture(StraightRoad.getName() + ".png", true));
+        static TexturedModel[] straight = initModels(new StraightRoad());
+        static TexturedModel[] deadEnd  = initModels(new DeadEndRoad());
+        static TexturedModel[] turn     = initModels(new TurnRoad());
+        static TexturedModel[] threeWay = initModels(new ThreeWayRoad());
+        static TexturedModel[] fourWay  = initModels(new FourWayRoad());
 
-            deadEnd = new TexturedModel(DeadEndRoad.getModel(), new ModelTexture(DeadEndRoad.getName() + ".png", true));
 
-            turn = new TexturedModel(TurnRoad.getModel(), new ModelTexture(TurnRoad.getName() + ".png", true));
+        static TexturedModel[] initModels(RoadType roadType) {
+            TexturedModel[] models = new TexturedModel[4];
+            int i = 0;
+            for (RawModel rawModel : roadType.getModels())
+                models[i++] = new TexturedModel(rawModel,
+                        new ModelTexture(PATH + roadType.getName() + ".png", true));
 
-            threeWay = new TexturedModel(ThreeWayRoad.getModel(), new ModelTexture(ThreeWayRoad.getName() + ".png", true));
-
-            fourWay = new TexturedModel(FourWayRoad.getModel(), new ModelTexture(FourWayRoad.getName() + ".png", true));
+            return models;
         }
     }
 }

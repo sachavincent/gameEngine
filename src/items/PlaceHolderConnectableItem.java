@@ -5,18 +5,18 @@ import util.math.Vector2f;
 
 public class PlaceHolderConnectableItem extends Item implements ConnectableItem {
 
-    private ConnectableItem item;
+    private ConnectableItem parent;
     private Vector2f        relativePosition;
 
-    public PlaceHolderConnectableItem(ConnectableItem item, Vector2f relativePosToItem) {
-        super(1, 1, 1);
+    public PlaceHolderConnectableItem(ConnectableItem parent, Vector2f relativePosToItem) {
+        super(((Item) parent).getName(), 1, 1, 1, 1, 1);
 
-        this.item = item;
+        this.parent = parent;
         this.relativePosition = relativePosToItem;
     }
 
-    public ConnectableItem getItem() {
-        return this.item;
+    public ConnectableItem getParent() {
+        return this.parent;
     }
 
     public Vector2f getRelativePosition() {
@@ -24,17 +24,35 @@ public class PlaceHolderConnectableItem extends Item implements ConnectableItem 
     }
 
     @Override
-    public void connect(Direction direction) {
-        item.connect(direction);
+    public void connect(Direction direction, Connections connections) {
+        parent.connect(direction, connections);
     }
 
     @Override
     public void disconnect(Direction direction) {
-        item.disconnect(direction);
+        parent.disconnect(direction);
     }
 
     @Override
     public boolean[] getAccessPoints() {
-        return item.getAccessPoints();
+        return parent.getAccessPoints();
+    }
+
+    @Override
+    public boolean isConnected(Direction direction) {
+        return parent.isConnected(direction);
+    }
+
+    @Override
+    public Vector2f getOffset(Direction direction) {
+        return ((Item) parent).getOffset(direction);
+    }
+
+    @Override
+    public String toString() {
+        return "PlaceHolderConnectableItem{" +
+                "parent=" + parent +
+                ", relativePosition=" + relativePosition +
+                "} " + super.toString();
     }
 }

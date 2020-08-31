@@ -4,11 +4,14 @@ import static org.lwjgl.glfw.GLFW.*;
 
 import entities.Camera;
 import guis.Gui;
-import guis.GuiEscapeMenu;
+import guis.prefabs.GuiEscapeMenu;
+import guis.prefabs.GuiItemSelection;
 import items.RotatableItem;
+import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.system.Callback;
 import renderEngine.DisplayManager;
+import renderEngine.GuiRenderer;
 import renderEngine.MasterRenderer;
 import terrains.Terrain;
 
@@ -16,22 +19,24 @@ public class KeyboardUtils {
 
     private static Callback callback;
 
-    public static void setupListeners(List<Gui> guis) {
+    public static void setupListeners() {
         long window = DisplayManager.getWindow();
+
+        final List<Gui> guisClone = new ArrayList<>(GuiRenderer.getInstance().getGuis());
 
         callback = glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS) {
                 Terrain terrain = Terrain.getInstance();
                 switch (key) {
                     case GLFW_KEY_H:
-                        guis.forEach(Gui::showGui);
+                        guisClone.forEach(Gui::showGui);
                         break;
                     case GLFW_KEY_R:
                         terrain.getSelectedItems().stream().filter(RotatableItem.class::isInstance)
                                 .forEach(item -> item.setRotation(item.getFacingDirection().getDegree() + 90));
                         break;
                     case GLFW_KEY_ESCAPE:
-                        Gui.showGui(GuiEscapeMenu.getEscapeMenu());
+                        Gui.toggleGui(GuiEscapeMenu.getEscapeMenu());
                         break;
                     case GLFW_KEY_K:
                         MasterRenderer.getInstance().getEntityRenderer().switchDisplayBoundingBoxes();
@@ -47,6 +52,9 @@ public class KeyboardUtils {
                         break;
                     case GLFW_KEY_D:
                         Camera.getInstance().moveTo(Camera.getInstance().getYaw() + 90);
+                        break;
+                    case GLFW_KEY_M:
+                        Gui.toggleGui(GuiItemSelection.getItemSelectionGui());
                         break;
                 }
             } else if (action == GLFW_RELEASE) {
@@ -66,4 +74,5 @@ public class KeyboardUtils {
         if (callback != null)
             callback.free();
     }
+
 }

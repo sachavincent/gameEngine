@@ -55,7 +55,7 @@ public class Text {
         this.lineMaxSize = maxLineLength;
         this.centerText = centered;
 
-        TextMaster.loadText(this);
+        TextMaster.getInstance().loadText(this);
     }
 
     public Text(String text, float fontSize, FontType font, Color color) {
@@ -65,14 +65,14 @@ public class Text {
 
         setColor(color);
 
-        TextMaster.loadText(this);
+        TextMaster.getInstance().loadText(this);
     }
 
     /**
      * Remove the text from the screen.
      */
     public void remove() {
-        TextMaster.removeText(this);
+        TextMaster.getInstance().removeText(this);
     }
 
     /**

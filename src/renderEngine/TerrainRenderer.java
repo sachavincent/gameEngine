@@ -18,6 +18,8 @@ public class TerrainRenderer {
 
     private Terrain terrain;
 
+    private RawModel path;
+
     public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
         terrain = Terrain.getInstance();
 
@@ -30,18 +32,41 @@ public class TerrainRenderer {
         shader.stop();
     }
 
+    public void setPath(RawModel path) {
+        this.path = path;
+    }
+
     public void render() {
+        GL11.glLineWidth(2);
+
         prepareTerrain();
         loadModelMatrix();
         GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         unbindTexturedModel();
 
+        shader.loadUniformColor(true);
         prepareColorlessTerrain();
-        loadModelMatrix();
+//        loadModelMatrix();
         terrain.setY(terrain.getY() + 0.01f);
         GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         unbindTexturedModel();
         terrain.setY(terrain.getY() - 0.01f);
+
+
+        if (path != null) {
+            GL30.glBindVertexArray(path.getVaoID());
+            GL20.glEnableVertexAttribArray(0);
+            GL20.glEnableVertexAttribArray(1);
+            GL20.glEnableVertexAttribArray(2);
+            shader.loadUniformColor(true);
+            bindTextures(terrain.getBlueTexturePack());
+
+            GL11.glLineWidth(5);
+            GL11.glDrawElements(GL11.GL_LINES, path.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+            unbindTexturedModel();
+        }
+
+        shader.loadUniformColor(false);
     }
 
     private void prepareTerrain() {

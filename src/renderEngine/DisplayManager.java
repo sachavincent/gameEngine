@@ -60,13 +60,15 @@ public class DisplayManager {
 //            return;
 
         int screen = 1; //TODO temp
+//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
+//                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
+//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
+//                screens.get(1), 0);
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
-        glfwMaximizeWindow(window);
-
+                0, 0);
         if (window == 0)
             throw new RuntimeException("Failed to create window");
-
+        glfwMaximizeWindow(window);
         glfwGetWindowSize(window, w, h);
         WIDTH = w.get(0);
         HEIGHT = h.get(0);
@@ -86,9 +88,8 @@ public class DisplayManager {
             }
         }));
         GLFWImage image = GLFWImage.malloc();
-        PNGDecoder dec = null;
         try {
-            dec = new PNGDecoder(new FileInputStream("res/insula_preview.png"));
+            PNGDecoder dec = new PNGDecoder(new FileInputStream("res/insula_preview.png"));
             int width = dec.getWidth();
             int height = dec.getHeight();
             ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
@@ -118,7 +119,6 @@ public class DisplayManager {
             try {
                 screens.add(pointerBuffer.get(i++));
             } catch (IndexOutOfBoundsException e) {
-//                pointerBuffer.free(); // Surtout pas free
                 break;
             }
         }

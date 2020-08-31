@@ -8,19 +8,28 @@ import static entities.Camera.Direction.WEST;
 import abstractItem.AbstractItem;
 import entities.Camera.Direction;
 import items.ConnectableItem;
+import items.ConnectableItem.Connections;
 import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.PlaceHolderItem;
+import items.buildings.houses.RequireBuilding;
+import items.roads.RoadItem;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import models.RawModel;
+import pathfinding.NormalRoad;
+import pathfinding.Road;
+import pathfinding.RoadGraph;
+import pathfinding.RoadNode;
+import pathfinding.RouteFinder;
+import pathfinding.RouteRoad;
 import renderEngine.Loader;
+import renderEngine.MasterRenderer;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
 import util.math.Maths;
@@ -39,12 +48,15 @@ public class Terrain {
     private RawModel model, modelGrid;
     private TerrainTexturePack texturePack;
     private TerrainTexturePack redTexturePack;
+    private TerrainTexturePack blueTexturePack;
     private TerrainTexture     blendMap;
 
     private float[][] heights;
 
     private Vector2f            previewItemPosition;
     private Map<Vector2f, Item> items = new HashMap<>();
+
+    private RoadGraph roadGraph;
 
     public static Terrain instance;
 
@@ -59,13 +71,19 @@ public class Terrain {
         TerrainTexture bTexture = new TerrainTexture("blue.png");
         this.texturePack = new TerrainTexturePack(backgroundTexture, bTexture, gTexture, bTexture);
         this.redTexturePack = new TerrainTexturePack(rTexture, rTexture, rTexture, rTexture);
+        this.blueTexturePack = new TerrainTexturePack(bTexture, bTexture, bTexture, bTexture);
         this.blendMap = new TerrainTexture("white.png");
         this.x = 0.5f;
         this.z = 0.5f;
         this.model = generateTerrain("black.png");
+        //TODO: add items from save
+        this.roadGraph = createRoadGraph();
     }
 
     public void placeItem(AbstractItem item, Vector2f position) {
+        if (item == null)
+            return;
+
         try {
             if (position.x < x || position.x > SIZE || position.y < z || position.y > 150)
                 throw new IllegalStateException("Clicked out of terrain");
@@ -90,6 +108,9 @@ public class Terrain {
     }
 
     public void setPreviewItem(Vector2f previewItemPosition, AbstractItem previewItem) {
+        if (previewItem == null)
+            return;
+
         if ((this.previewItemPosition != null && this.items.get(previewItemPosition) != null) ||
                 this.items.get(previewItemPosition) == null) { // Rien dans cet emplacement
             this.items.remove(this.previewItemPosition);
@@ -251,7 +272,11 @@ public class Terrain {
         return this.y;
     }
 
-    public void generateGridTerrain(int gridX, int gridZ, float[] textureCoords, BufferedImage image) {
+    public TerrainTexturePack getBlueTexturePack() {
+        return this.blueTexturePack;
+    }
+
+    private void generateGridTerrain(int gridX, int gridZ, float[] textureCoords, BufferedImage image) {
         float[] tab = new float[(gridX + 1) * 6 + (gridZ + 1) * 6];
         int[] indicesTab = new int[(gridX + 1) * (gridZ + 1) * 2];
         float[] normalsTab = new float[(gridX + 1) * 6 + (gridZ + 1) * 6];
@@ -417,7 +442,6 @@ public class Terrain {
         return model;
     }
 
-
     public void removeItem(Vector2f position) {
         items.remove(position);
     }
@@ -431,41 +455,46 @@ public class Terrain {
     }
 
     public boolean putItemIfSpace(Vector2f position, Item item) {
-        int halfXWidth = item.getxWidth() / 2;
-        int halfZWidth = item.getzWidth() / 2;
+        int xNegativeOffset = item.getxNegativeOffset();
+        int xPositiveOffset = item.getxPositiveOffset();
+        int zNegativeOffset = item.getzNegativeOffset();
+        int zPositiveOffset = item.getzPositiveOffset();
 
         Map<Vector2f, Item> tempItems = new HashMap<>(items);
-        for (int x = (int) (position.x - halfXWidth); x <= position.x + halfXWidth; x++) {
-            for (int z = (int) position.y - halfZWidth; z <= position.y + halfZWidth; z++) {
+        for (int x = (int) (position.x - xNegativeOffset); x <= position.x + xPositiveOffset; x++) {
+            for (int z = (int) position.y - zNegativeOffset; z <= position.y + zPositiveOffset; z++) {
                 Vector2f pos = new Vector2f(x, z);
                 if (pos.equals(position))
                     continue;
 
-                boolean addedItem = false;
+                final boolean[] addedItem = {false};
 
-                Vector2f relativePosToItem = new Vector2f(position.x - x, position.y - z);
+                Vector2f relativePosToItem = new Vector2f(position.x - x, z - position.y);
                 if (item instanceof ConnectableItem) {
-                    Direction direction = null;
-                    if (x == position.x - halfXWidth && z == position.y)
-                        direction = SOUTH;
-                    else if (x == position.x + halfXWidth && z == position.y)
-                        direction = NORTH;
-                    else if (z == position.y - halfZWidth && x == position.x)
-                        direction = WEST;
-                    else if (z == position.y + halfZWidth && x == position.x)
-                        direction = EAST;
+                    Set<Direction> directions = new HashSet<>();
+                    if (x == position.x - xNegativeOffset)
+                        directions.add(SOUTH);
+                    else if (x == position.x + xPositiveOffset)
+                        directions.add(NORTH);
 
-                    if (direction != null && ((ConnectableItem) item).getAccessPoints()[direction.ordinal()]) {
+                    if (z == position.y - zNegativeOffset)
+                        directions.add(EAST);
+                    else if (z == position.y + zPositiveOffset)
+                        directions.add(WEST);
+
+                    if (!directions.isEmpty()) {
                         PlaceHolderConnectableItem placeHolderConnectableItem = new PlaceHolderConnectableItem(
                                 (ConnectableItem) item, relativePosToItem);
-                        placeHolderConnectableItem.connect(direction);
-                        if (tempItems.putIfAbsent(pos, placeHolderConnectableItem) != null)
-                            return false;
-
-                        addedItem = true;
+                        directions.forEach(direction -> {
+                            if (((ConnectableItem) item).isConnected(direction))
+                                placeHolderConnectableItem
+                                        .connect(direction.getOppositeDirection(), Connections.ROAD);//TODO ROAD ET BUILDING? Normalement pas
+                        });
+                        if (tempItems.putIfAbsent(pos, placeHolderConnectableItem) == null)
+                            addedItem[0] = true;
                     }
                 }
-                if (!addedItem) {
+                if (!addedItem[0]) {
                     PlaceHolderItem placeHolderItem = new PlaceHolderItem(item, relativePosToItem);
                     if (tempItems.putIfAbsent(pos, placeHolderItem) != null)
                         return false;
@@ -477,5 +506,149 @@ public class Terrain {
         items = tempItems;
 
         return true;
+    }
+
+    // Check everything for requirements
+    // TODO: Optimize (no need to check everything?)
+    public void updateRequirements() {
+        final RouteFinder routeFinder = new RouteFinder(getRoadGraph());
+        items.entrySet().stream().filter(entry -> entry.getValue() instanceof RequireBuilding)
+                .forEach(entry -> {
+                    RequireBuilding requireBuilding = (RequireBuilding) entry.getValue();
+                    requireBuilding.getRequirements().forEach((neededBuilding, maxLength) -> {
+                        ConnectableItem connectableItem = (ConnectableItem) entry.getValue();
+
+                        Set<Set<RouteRoad>> foundRoutes = new TreeSet<>(
+                                Comparator.comparingInt(o -> o.stream().mapToInt(RouteRoad::getgScore).sum()));
+                        for (Direction direction : Direction.values()) {
+                            if (connectableItem.isConnected(direction)) {
+                                Vector2f roadPos = entry.getKey().add(entry.getValue().getOffset(direction)
+                                        .add(Direction.toRelativeDistance(direction)));
+                                routeFinder.findRoute(roadPos, neededBuilding, maxLength);
+                                Set<RouteRoad> route = routeFinder.getRoute();
+                                if (route != null && !route.isEmpty())
+                                    foundRoutes.add(route);
+                            }
+                        }
+                        Set<RouteRoad> route = foundRoutes.stream().findFirst().orElse(new LinkedHashSet<>());
+                        requireBuilding.meetRequirements();
+                        setHightlightedPath(route);
+                    });
+                });
+    }
+
+    public Direction[] getConnectionsToRoadItem(Vector2f itemPosition, boolean onlyRoad) {
+        Item item = items.get(itemPosition);
+
+        if (item == null && onlyRoad || (!(item instanceof RoadItem) && !onlyRoad))
+            return new Direction[0];
+
+        if (!(item instanceof ConnectableItem))
+            return new Direction[0];
+
+        Set<Direction> directions = new HashSet<>();
+        ConnectableItem connectableItem = (ConnectableItem) item;
+        boolean[] accessPoints = connectableItem.getAccessPoints();
+
+        for (Direction direction : Direction.values()) {
+            if (accessPoints[direction.ordinal()]) {
+                Vector2f connectedItemPosition = new Vector2f(itemPosition)
+                        .add(Direction.toRelativeDistance(direction));
+                Item connectedItem = items.get(connectedItemPosition);
+                if (connectedItem instanceof RoadItem || !onlyRoad)
+                    directions.add(direction);
+            }
+        }
+        return directions.toArray(new Direction[0]);
+    }
+
+    public void updateRoadGraph() {
+        this.roadGraph = createRoadGraph();
+    }
+
+    public void setHightlightedPath(Set<RouteRoad> unsortedRoutes) {
+        SortedSet<RouteRoad> routes = new TreeSet<>((o1, o2) -> {
+            if (o1.getStart().equals(o2.getEnd()) && o1.getEnd().equals(o2.getStart()))
+                return 0;
+
+            return o1.compareTo(o2);
+        });
+//        routes.addAll(this.roadGraph.getRoutes());
+
+        routes.addAll(unsortedRoutes);
+        if (routes.size() == 0)
+            return;
+
+        Set<Vector2f> positions = new LinkedHashSet<>();
+        routes.forEach(routeRoad -> {
+            List<Road> roads = new ArrayList<>(routeRoad.getRoute());
+            Collections.reverse(roads);
+            Vector2f startPos = routeRoad.getEnd().getPosition();
+            positions.add(new Vector2f(startPos.x - .5f, startPos.y - .5f));
+
+            roads.stream().map(Road::getPosition)
+                    .forEach(pos -> {
+                        positions.add(new Vector2f(pos.x - .5f, pos.y - .5f));
+                    });
+//            indices.remove(indices.size() - 1);
+//            indices.remove(indices.size() - 1);
+            Vector2f endPos = routeRoad.getStart().getPosition();
+            positions.add(new Vector2f(endPos.x - .5f, endPos.y - .5f));
+        });
+
+        float[] positionsFloat = new float[positions.size() * 3];
+        int i = 0;
+        for (Vector2f pos : positions) {
+            positionsFloat[i++] = pos.x;
+            positionsFloat[i++] = .5f;
+            positionsFloat[i++] = pos.y;
+        }
+        int[] indicesTab = new int[positions.size() * 2 - 2];
+        int j = 0;
+        for (i = 0; i < indicesTab.length; i++) {
+            indicesTab[i++] = j++;
+            indicesTab[i] = j;
+        }
+
+        RawModel path = Loader.getInstance()
+                .loadToVAO(positionsFloat, new float[]{0}, new float[]{0, 1, 0}, indicesTab);
+        MasterRenderer.getInstance().getTerrainRenderer().setPath(path);
+    }
+
+    public RoadGraph getRoadGraph() {
+        return this.roadGraph;
+    }
+
+    public Direction[] getRoadDirections(Vector2f position) {
+        return getConnectionsToRoadItem(position, false);
+    }
+
+    private RoadGraph createRoadGraph() {
+        RoadGraph roadGraph = new RoadGraph();
+        Map<RoadNode, Direction[]> nodes = new HashMap<>();
+
+        items.entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem).map(Entry::getKey)
+                .forEach(pos -> {
+                    Direction[] directions = getRoadDirections(pos);
+                    if (directions.length >= 3)
+                        nodes.put(new RoadNode(pos), directions);
+                });
+
+        for (Entry<RoadNode, Direction[]> node : nodes.entrySet()) {
+            RoadNode roadNode = node.getKey();
+            if (!roadGraph.getNodes().contains(roadNode))
+                roadGraph.searchForNextNode(roadNode.getPosition(), node.getValue(), null);
+        }
+
+        return roadGraph;
+    }
+
+    public Road getRoad(Vector2f roadPosition) {
+        Direction[] roadDirections = getConnectionsToRoadItem(roadPosition, false);
+
+        if (roadDirections.length == 0)
+            return null;
+
+        return roadDirections.length > 2 ? new RoadNode(roadPosition) : new NormalRoad(roadPosition);
     }
 }

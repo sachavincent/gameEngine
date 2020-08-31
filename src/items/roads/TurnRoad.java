@@ -1,18 +1,20 @@
 package items.roads;
 
 import models.RawModel;
-import renderEngine.Loader;
 import renderEngine.OBJLoader;
 
 public class TurnRoad implements RoadType {
 
-    private final static RawModel model = OBJLoader.loadObjModel(getName(), Loader.getInstance());
+    private final static String     name   = "turn";
+    private final static RawModel[] models = OBJLoader.loadRoadModel(name);
 
-    public static RawModel getModel() {
-        return model;
+    @Override
+    public RawModel[] getModels() {
+        return models;
     }
 
-    public static String getName() {
-        return "turn";
+    @Override
+    public String getName() {
+        return name;
     }
 }

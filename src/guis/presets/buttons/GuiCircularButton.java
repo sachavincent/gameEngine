@@ -10,6 +10,20 @@ import java.awt.Color;
 
 public class GuiCircularButton extends GuiAbstractButton {
 
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipText,
+            GuiConstraintsManager constraintsManager) {
+        super(parent, background, text, tooltipText, constraintsManager);
+    }
+
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipText) {
+        super(parent, background, text, tooltipText);
+    }
+
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipText,
+            int cornerRadius) {
+        super(parent, background, text, tooltipText, cornerRadius);
+    }
+
     public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
         super(parent, background, text, constraintsManager);
@@ -18,6 +32,21 @@ public class GuiCircularButton extends GuiAbstractButton {
     public GuiCircularButton(GuiInterface parent, GuiBackground<?> background,
             GuiConstraintsManager constraintsManager) {
         this(parent, background, null, constraintsManager);
+    }
+
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipText,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        super(parent, background, text, tooltipText, constraintsManager, cornerRadius);
+    }
+
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background, Text text,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        super(parent, background, text, constraintsManager, cornerRadius);
+    }
+
+    public GuiCircularButton(GuiInterface parent, GuiBackground<?> background,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        this(parent, background, null, constraintsManager, cornerRadius);
     }
 
     @Override

@@ -4,8 +4,8 @@ import guis.GuiInterface;
 import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiPreset;
-import java.awt.Color;
 import inputs.MouseUtils;
+import java.awt.Color;
 
 public abstract class GuiAbstractCheckbox extends GuiPreset {
 
@@ -39,14 +39,6 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
     }
 
     private void setListeners() {
-        setOnClick(() -> {
-            System.out.println("Click");
-
-            setClicked(true);
-
-            updateTexturesOnClick();
-        });
-
         setOnRelease(() -> {
             System.out.println("Release");
 
@@ -61,7 +53,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
         setOnPress(() -> {
             System.out.println("Press");
 
-            setClicked(false);
+            setClicked(true);
 
             updateTexturesOnClick();
         });

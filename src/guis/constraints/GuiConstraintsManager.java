@@ -1,14 +1,14 @@
 package guis.constraints;
 
 import guis.exceptions.IllegalGuiConstraintException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class GuiConstraintsManager {
 
     private GuiConstraints xConstraint, yConstraint, widthConstraint, heightConstraint;
 
-    private List<Character> order = new ArrayList<>();
+    private Set<Character> order = new LinkedHashSet<>();
 
     public GuiConstraintsManager setDefault() {
         setxConstraint(new CenterConstraint());
@@ -41,7 +41,7 @@ public class GuiConstraintsManager {
 
         this.xConstraint = xConstraint;
 
-        this.order.remove(Character.valueOf('X'));
+        this.order.remove('X');
         this.order.add('X');
     }
 
@@ -51,7 +51,7 @@ public class GuiConstraintsManager {
 
         this.yConstraint = yConstraint;
 
-        this.order.remove(Character.valueOf('Y'));
+        this.order.remove('Y');
         this.order.add('Y');
     }
 
@@ -61,7 +61,7 @@ public class GuiConstraintsManager {
 
         this.widthConstraint = widthConstraint;
 
-        this.order.remove(Character.valueOf('W'));
+        this.order.remove('W');
         this.order.add('W');
     }
 
@@ -71,11 +71,11 @@ public class GuiConstraintsManager {
 
         this.heightConstraint = heightConstraint;
 
-        this.order.remove(Character.valueOf('H'));
+        this.order.remove('H');
         this.order.add('H');
     }
 
-    public List<Character> getOrder() {
+    public Set<Character> getOrder() {
         return this.order;
     }
 
@@ -84,6 +84,7 @@ public class GuiConstraintsManager {
         CENTER,
         RELATIVE,
         SIDE,
+        PATTERN,
         PIXEL
     }
 

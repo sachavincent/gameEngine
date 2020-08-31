@@ -8,7 +8,7 @@ public class PlaceHolderItem extends Item {
     private Vector2f relativePosition;
 
     public PlaceHolderItem(Item item, Vector2f relativePosToItem) {
-        super(1, 1, 1);
+        super(item.getName(), 1, 1, 1, 1, 1);
 
         this.item = item;
         this.relativePosition = relativePosToItem;

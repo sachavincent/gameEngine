@@ -8,7 +8,7 @@ import guis.constraints.GuiConstraintsManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GuiPreset extends GuiComponent {
+public abstract class GuiPreset extends GuiComponent<GuiBasics> {
 
     private List<GuiBasics> basics = new ArrayList<>();
 
@@ -18,11 +18,18 @@ public abstract class GuiPreset extends GuiComponent {
         setConstraints(constraintsManager);
     }
 
+    protected GuiPreset(GuiInterface parent) {
+        super(parent);
+    }
+
     public List<GuiBasics> getBasics() {
         return this.basics;
     }
 
     protected void addBasic(GuiBasics guiBasics) {
+        if (guiBasics == null)
+            return;
+
         this.basics.add(guiBasics);
 
 //        if (getParent() instanceof Gui)
@@ -30,6 +37,9 @@ public abstract class GuiPreset extends GuiComponent {
     }
 
     protected void removeBasic(GuiBasics guiBasics) {
+        if (guiBasics == null)
+            return;
+
         this.basics.remove(guiBasics);
 //
 //        if (getParent() instanceof Gui)
@@ -40,6 +50,8 @@ public abstract class GuiPreset extends GuiComponent {
     public void updateTexturePosition() {
         super.updateTexturePosition();
 
+        if (this.basics == null)
+            this.basics = new ArrayList<>();
         this.basics.forEach(GuiComponent::updateTexturePosition);
     }
 

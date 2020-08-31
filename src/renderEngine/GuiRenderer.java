@@ -8,7 +8,6 @@ import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.GuiInterface;
-import guis.GuiSelectedItem;
 import guis.GuiTexture;
 import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
@@ -18,6 +17,7 @@ import guis.presets.GuiPreset;
 import guis.transitions.Transition;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
@@ -59,17 +59,11 @@ public class GuiRenderer {
         this.guis = new ArrayList<>();
     }
 
-    public void renderGuis(List<Gui> guis) {
-        guis.forEach(this::processGui);
-
-        render();
+    public void addGui(Gui gui) {
+        this.guis.add(gui);
     }
 
-    private void render() {
-//        guis.add(GuiEscapeMenu.getEscapeMenu());
-        if (GuiSelectedItem.getSelectedItemGui().isDisplayed())
-            guis.add(GuiSelectedItem.getSelectedItemGui());
-
+    public void render() {
         shader.start();
 
         if (quad == null)
@@ -93,7 +87,7 @@ public class GuiRenderer {
                     if (gui.isDisplayed() ||
                             gui.getHideTransitions().stream()
                                     .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
-                        renderQuad(gui, true);
+                        renderQuad(gui, true, gui.getCornerRadius());
 
                     gui.getComponents().keySet()
                             .stream().filter(guiComponent -> guiComponent.isDisplayed() ||
@@ -101,7 +95,8 @@ public class GuiRenderer {
                                     .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiPreset) {
-                                    ((GuiPreset) guiComponent).getBasics().forEach(this::handleBasicsRendering);
+                                    ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
+                                            .forEach(this::handleBasicsRendering);
                                 } else
                                     handleBasicsRendering(guiComponent);
                             });
@@ -117,12 +112,12 @@ public class GuiRenderer {
                                 if (guiComponent instanceof GuiText) {
                                     GuiText guiText = (GuiText) guiComponent;
 
-                                    TextMaster.removeText(guiText.getText());
+                                    TextMaster.getInstance().removeText(guiText.getText());
                                 } else if (guiComponent instanceof GuiPreset) {
                                     List<GuiBasics> guiBasics = ((GuiPreset) guiComponent).getBasics();
                                     guiBasics.stream().filter(GuiText.class::isInstance)
                                             .map(guiText -> ((GuiText) guiText).getText())
-                                            .forEach(TextMaster::removeText);
+                                            .forEach(text -> TextMaster.getInstance().removeText(text));
                                 }
                             });
                 });
@@ -134,11 +129,15 @@ public class GuiRenderer {
         GL20.glDisableVertexAttribArray(0);
         GL30.glBindVertexArray(0);
 
-        guis.clear();
         shader.stop();
     }
 
+    public List<Gui> getGuis() {
+        return this.guis;
+    }
+
     private void handleBasicsRendering(GuiComponent<?> guiComponent) {
+        TextMaster textMaster = TextMaster.getInstance();
         if (guiComponent instanceof GuiEllipse) {
             GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
             this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
@@ -146,14 +145,14 @@ public class GuiRenderer {
             renderCircle(guiEllipse, guiEllipse.isFilled());
         } else if (guiComponent instanceof GuiShape) {
             GuiShape guiShape = (GuiShape) guiComponent;
-            renderQuad(guiShape, guiShape.isFilled());
+            renderQuad(guiShape, guiShape.isFilled(), guiComponent.getCornerRadius());
         } else if (guiComponent instanceof GuiText) {
             GuiText guiText = (GuiText) guiComponent;
 
-            TextMaster.removeText(guiText.getText());
-            TextMaster.loadText(guiText.getText());
+            textMaster.removeText(guiText.getText());
+            textMaster.loadText(guiText.getText());
         } else
-            renderQuad(guiComponent, true);
+            renderQuad(guiComponent, true, guiComponent.getCornerRadius());
     }
 
     private void renderCircle(GuiShape guiShape, boolean filled) {
@@ -161,15 +160,15 @@ public class GuiRenderer {
         GL20.glEnableVertexAttribArray(0);
 
         if (!filled) { // Probably temp
-            renderUnfilledShape(guiShape, GL11.GL_LINE_STRIP);
+            renderUnfilledShape(guiShape, GL11.GL_LINE_STRIP, 0);
         } else {
-            renderTexture(guiShape.getTexture());
+            renderTexture(guiShape.getTexture(), 0);
 
             GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, quad.getVertexCount());
         }
     }
 
-    private void renderUnfilledShape(GuiShape guiShape, int renderingMode) {
+    private void renderUnfilledShape(GuiShape guiShape, int renderingMode, float cornerRadius) {
         glDisable(GL_BLEND);
 
         Vector2f textureScale = guiShape.getTexture().getScale();
@@ -180,7 +179,7 @@ public class GuiRenderer {
 
             textureScale.y -= (float) width / DisplayManager.HEIGHT;
 
-            renderTexture(guiShape.getTexture());
+            renderTexture(guiShape.getTexture(), cornerRadius);
 
             textureScale.x = x;
             textureScale.y = y;
@@ -191,7 +190,7 @@ public class GuiRenderer {
         glEnable(GL_BLEND);
     }
 
-    private void renderQuad(GuiInterface guiComponent, boolean filled) {
+    private void renderQuad(GuiInterface guiComponent, boolean filled, float cornerRadius) {
         this.quad = filled ? defaultFilledQuad : defaultUnfilledQuad;
 
         GL30.glBindVertexArray(quad.getVaoID());
@@ -199,20 +198,20 @@ public class GuiRenderer {
 
         if (!filled) {
             if (guiComponent instanceof GuiShape)
-                renderUnfilledShape((GuiShape) guiComponent, GL11.GL_LINE_LOOP);
+                renderUnfilledShape((GuiShape) guiComponent, GL11.GL_LINE_LOOP, cornerRadius);
             else {
-                renderTexture(guiComponent.getTexture());
+                renderTexture(guiComponent.getTexture(), cornerRadius);
 
                 GL11.glDrawArrays(GL11.GL_LINE_LOOP, 0, quad.getVertexCount());
             }
         } else {
-            renderTexture(guiComponent.getTexture());
+            renderTexture(guiComponent.getTexture(), cornerRadius);
 
             GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.getVertexCount());
         }
     }
 
-    private void renderTexture(GuiTexture<?> guiTexture) {
+    private void renderTexture(GuiTexture<?> guiTexture, float cornerRadius) {
         if (guiTexture == null)
             return;
 
@@ -229,7 +228,7 @@ public class GuiRenderer {
         shader.loadAlpha(guiTexture.getAlpha());
         shader.loadColor(guiTexture.getColor());
 
-        shader.loadRadius(Gui.CORNER_RADIUS);
+        shader.loadRadius(cornerRadius);
     }
 
     private RawModel drawFilledCircle() {
@@ -276,10 +275,6 @@ public class GuiRenderer {
 
     public void cleanUp() {
         shader.cleanUp();
-    }
-
-    private void processGui(Gui gui) {
-        guis.add(gui);
     }
 
 }

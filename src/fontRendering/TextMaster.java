@@ -11,33 +11,35 @@ import renderEngine.Loader;
 
 public class TextMaster {
 
-    private static Loader                    loader;
-    private static Map<FontType, List<Text>> texts = new HashMap<>();
-    private static FontRenderer              renderer;
+    private Map<FontType, List<Text>> texts    = new HashMap<>();
+    private FontRenderer              renderer = new FontRenderer();
 
-    public static void init(Loader loader) {
-        renderer = new FontRenderer();
+    private static TextMaster instance;
 
-        TextMaster.loader = loader;
+    public static TextMaster getInstance() {
+        return instance == null ? (instance = new TextMaster()) : instance;
     }
 
-    public static void render() {
+    private TextMaster() {
+    }
+
+    public void render() {
         renderer.render(texts);
     }
 
-    public static void loadText(Text text) {
+    public void loadText(Text text) {
         if (text == null)
             throw new IllegalArgumentException("Invalid text.");
 
         FontType font = text.getFont();
         TextMeshData data = font.loadText(text);
-        int vao = loader.loadToVAO(data.getVertexPositions(), data.getTextureCoords());
+        int vao = Loader.getInstance().loadToVAO(data.getVertexPositions(), data.getTextureCoords());
         text.setMeshInfo(vao, data.getVertexCount());
         List<Text> textBatch = texts.computeIfAbsent(font, k -> new ArrayList<>());
         textBatch.add(text);
     }
 
-    public static void removeText(Text text) {
+    public void removeText(Text text) {
         if (text == null)
             return;
 
@@ -50,11 +52,11 @@ public class TextMaster {
             texts.remove(text.getFont());
     }
 
-    public static void removeText() {
+    public void removeText() {
         texts = new HashMap<>();
     }
 
-    public static void cleanUp() {
+    public void cleanUp() {
         renderer.cleanUp();
     }
 

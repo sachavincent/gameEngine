@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
+import shaders.BuildingShader;
 import shaders.StaticShader;
 import shaders.TerrainShader;
 import skybox.SkyboxRenderer;
@@ -27,19 +28,29 @@ public class MasterRenderer {
 
     private Matrix4f projectionMatrix;
 
-    private StaticShader   shader = new StaticShader();
-    private EntityRenderer entityRenderer;
-    private SkyboxRenderer skyboxRenderer;
+    private StaticShader   shader         = new StaticShader();
+    private BuildingShader buildingShader = new BuildingShader();
+    private TerrainShader  terrainShader  = new TerrainShader();
 
-    private TerrainRenderer terrainRenderer;
-    private TerrainShader   terrainShader = new TerrainShader();
+    private EntityRenderer   entityRenderer;
+    private BuildingRenderer buildingRenderer;
+    private SkyboxRenderer   skyboxRenderer;
+    private TerrainRenderer  terrainRenderer;
 
     private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
 
     private static MasterRenderer instance;
 
+    public TerrainRenderer getTerrainRenderer() {
+        return this.terrainRenderer;
+    }
+
     public EntityRenderer getEntityRenderer() {
         return this.entityRenderer;
+    }
+
+    public BuildingRenderer getBuildingRenderer() {
+        return this.buildingRenderer;
     }
 
     public static MasterRenderer getInstance() {
@@ -51,6 +62,7 @@ public class MasterRenderer {
 
         createProjectionMatrix();
         entityRenderer = new EntityRenderer(shader, projectionMatrix);
+        buildingRenderer = new BuildingRenderer(buildingShader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
         skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
     }
@@ -71,6 +83,14 @@ public class MasterRenderer {
         shader.loadViewMatrix(camera);
         entityRenderer.render(entities);
         shader.stop();
+
+        buildingShader.start();
+        buildingShader.loadClipPlane(clipPlane);
+        buildingShader.loadSkyColor(RED, GREEN, BLUE);
+        buildingShader.loadLights(lights);
+        buildingShader.loadViewMatrix(camera);
+        buildingRenderer.render(entities);
+        buildingShader.stop();
 
         terrainShader.start();
         terrainShader.loadClipPlane(clipPlane);

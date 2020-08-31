@@ -16,7 +16,10 @@ public abstract class AbstractItem {
     }
 
     public void place(Terrain terrain, Vector2f position) {
-        terrain.putItemIfSpace(position, getItemInstance());
+        boolean done = terrain.putItemIfSpace(position, getItemInstance());
+
+        if (done)
+            terrain.updateRequirements();
     }
 
     public Item getPreviewItem() {

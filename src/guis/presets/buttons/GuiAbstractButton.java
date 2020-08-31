@@ -3,11 +3,14 @@ package guis.presets.buttons;
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshCreator;
+import guis.Gui;
 import guis.GuiInterface;
 import guis.basics.GuiBasics;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.PixelConstraint;
+import guis.constraints.RelativeConstraint;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import java.awt.Color;
@@ -26,12 +29,28 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     private GuiText text;
 
+    private Gui tooltipGui;
+
     GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         addBackgroundComponent(background);
+
         setupText(text);
+
+        setupComponents();
+    }
+
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui,
+            GuiConstraintsManager constraintsManager) {
+        super(parent, constraintsManager);
+
+        addBackgroundComponent(background);
+
+        setupText(text);
+        setupTooltipText(tooltipGui);
+
         setupComponents();
     }
 
@@ -42,14 +61,74 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setupComponents();
     }
 
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        super(parent, constraintsManager);
+
+        addBackgroundComponent(background);
+
+        setupText(text);
+
+        setupComponents();
+
+        setCornerRadius(cornerRadius);
+    }
+
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        super(parent, constraintsManager);
+
+        addBackgroundComponent(background);
+
+        setupText(text);
+        setupTooltipText(tooltipGui);
+
+        setupComponents();
+
+        setCornerRadius(cornerRadius);
+        this.tooltipGui.setCornerRadius(cornerRadius);
+    }
+
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui, int cornerRadius) {
+        super(parent);
+
+        addBackgroundComponent(background);
+
+        setupText(text);
+        setupTooltipText(tooltipGui);
+
+        setupComponents();
+
+        setCornerRadius(cornerRadius);
+        this.tooltipGui.setCornerRadius(cornerRadius);
+    }
+
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui) {
+        super(parent);
+
+        addBackgroundComponent(background);
+
+        setupText(text);
+        setupTooltipText(tooltipGui);
+
+        setupComponents();
+    }
+
+    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager constraintsManager,
+            int cornerRadius) {
+        super(parent, constraintsManager);
+
+        addBackgroundComponent(background);
+        setupComponents();
+
+        setCornerRadius(cornerRadius);
+    }
+
     private void setupComponents() {
         this.filterLayout.getTexture().setFinalAlpha(FILTER_TRANSPARENCY); // Filter on hover
         this.filterLayout.getTexture().setAlpha(0f); // Invisible by default
 
         setListeners();
-
-        if (this.text != null)
-            addBasic(this.text);
 
         addBasic(this.buttonLayout);
         addBasic(this.filterLayout);
@@ -61,15 +140,20 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
         setText(text);
 
-        addBasic(this.text);
+        if (this.text != null)
+            addBasic(this.text);
+    }
+
+    public void setupTooltipText(Text text) {
+        setTooltipGui(text);
     }
 
     protected abstract void addBackgroundComponent(GuiBackground<?> background);
 
     private void setListeners() {
-        setOnClick(() -> {
+        setOnPress(() -> {
             setClicked(true);
-            System.out.println("Click");
+            System.out.println("Press");
 
             updateTexturesOnClick();
         });
@@ -77,13 +161,6 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setOnRelease(() -> {
             setClicked(false);
             System.out.println("Release");
-
-            updateTexturesOnClick();
-        });
-
-        setOnPress(() -> {
-            setClicked(false);
-            System.out.println("Press");
 
             updateTexturesOnClick();
         });
@@ -97,6 +174,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
             filterLayout.getTexture().setAlpha(0f);
 
             filterLayout.updateTexturePosition();
+            if (tooltipGui != null) {
+                Gui.hideGui(tooltipGui);
+            }
         });
 
         setOnEnter(() -> {
@@ -104,6 +184,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
             filterLayout.getTexture().setAlpha(1f);
 
             filterLayout.updateTexturePosition();
+            if (tooltipGui != null) {
+                Gui.showGui(tooltipGui);
+            }
         });
     }
 
@@ -180,6 +263,47 @@ public abstract class GuiAbstractButton extends GuiPreset {
         this.text = new GuiText(this, text);
     }
 
+    private void setTooltipGui(Text text) {
+        if (text == null)
+            return;
+
+        List<Line> lines = text.getFont().getLoader().getLines(text);
+
+        Line line = lines.get(0);
+
+        if (line == null) {
+            try {
+                throw new IllegalArgumentException("Invalid text.");
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+
+                return;
+            }
+        }
+
+        double textHeight = TextMeshCreator.LINE_HEIGHT * text.getFontSize() * 2;
+
+
+        tooltipGui = new Gui(new GuiBackground<>(new Color(64, 64, 64, 100)));
+        GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager();
+        guiConstraintsManager.setxConstraint(new RelativeConstraint(0, this));
+        guiConstraintsManager.setyConstraint(new RelativeConstraint(.1f, this));
+        guiConstraintsManager.setHeightConstraint(new PixelConstraint(30));
+        guiConstraintsManager.setWidthConstraint(new RelativeConstraint(.05f));
+        tooltipGui.setConstraints(guiConstraintsManager);
+
+        text.setLineMaxSize(tooltipGui.getWidth());
+        text.setCentered(true);
+        text.setPosition(new Vector2f(tooltipGui.getX() - tooltipGui.getWidth() + line.getLineLength(),
+                -tooltipGui.getY() - textHeight / 2));
+        GuiText guiText = new GuiText(tooltipGui, text);
+        guiText.setDisplayed(false);
+        tooltipGui.addComponent(guiText);
+    }
+
+    public Gui getTooltipGui() {
+        return this.tooltipGui;
+    }
 
     public void setBorder(float r, float g, float b) {
         setBorder(new Color(r, g, b));

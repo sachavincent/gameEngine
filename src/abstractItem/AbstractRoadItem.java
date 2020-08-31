@@ -17,19 +17,15 @@ public abstract class AbstractRoadItem extends AbstractItem {
     public void place(Terrain terrain, Vector2f position) {
         Map<Vector2f, Item> items = terrain.getItems();
 
-//        Item item = items.getOrDefault(position, null);
-//
-//        if (item != null) {
-//            terrain.removeItem(position);
-//
-//            ((RoadItem) getItem()).updateNeighbours(terrain, position);
-//
-//            return;
-//        }
         if (items.get(position) != null)
             return;
 
         RoadItem itemInstance = (RoadItem) getItemInstance();
-        items.put(position, itemInstance.updateNeighboursAndCenter(terrain, position));
+        boolean done = items.put(position, itemInstance.updateNeighboursAndCenter(terrain, position)) == null;
+
+        terrain.updateRoadGraph();
+
+        if (done)
+            terrain.updateRequirements();
     }
 }

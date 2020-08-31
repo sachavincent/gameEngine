@@ -11,6 +11,8 @@ public class ModelTexture extends Texture {
     private boolean transparent;
     private boolean useFakeLighting;
 
+    private boolean directionalColor;
+
     private int numberOfRows = 1;
 
     public ModelTexture(String pathFile) {
@@ -21,6 +23,14 @@ public class ModelTexture extends Texture {
         super(new GuiBackground<>(pathFile));
 
         this.useFakeLighting = useFakeLighting;
+    }
+
+    public boolean doesUseDirectionalColor() {
+        return this.directionalColor;
+    }
+
+    public void setDirectionalColor(boolean directionalColor) {
+        this.directionalColor = directionalColor;
     }
 
     public float getShineDamper() {
