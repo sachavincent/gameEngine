@@ -50,41 +50,41 @@ public class OBJLoader {
 
         return rawModel;
     }
-
-    public static RawModel[] loadRoadModel(String fileName) {
-        FileReader fr;
-        try {
-            fr = new FileReader(new File("res/roads/" + fileName + ".obj"));
-        } catch (FileNotFoundException e) {
-            System.err.println("Couldn't load obj file!");
-            e.printStackTrace();
-
-            return null;
-        }
-
-        RawModel[] rawModels = new RawModel[4];
-        BufferedReader reader = new BufferedReader(fr);
-
-        try {
-            rawModels[0] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED EAST");
-            rawModels[1] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED WEST");
-            rawModels[2] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED");
-            rawModels[3] = handleIndicesTexturesNormalsVertex(reader, null);
-        } catch (IOException e) {
-            System.err.println("Oops");
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                fr.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        return rawModels;
-    }
+//
+//    public static RawModel[] loadRoadModel(String fileName) {
+//        FileReader fr;
+//        try {
+//            fr = new FileReader(new File("res/roads/" + fileName + ".obj"));
+//        } catch (FileNotFoundException e) {
+//            System.err.println("Couldn't load obj file!");
+//            e.printStackTrace();
+//
+//            return null;
+//        }
+//
+//        RawModel[] rawModels = new RawModel[4];
+//        BufferedReader reader = new BufferedReader(fr);
+//
+//        try {
+//            rawModels[0] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED EAST");
+//            rawModels[1] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED WEST");
+//            rawModels[2] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED");
+//            rawModels[3] = handleIndicesTexturesNormalsVertex(reader, null);
+//        } catch (IOException e) {
+//            System.err.println("Oops");
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                reader.close();
+//                fr.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//
+//        return rawModels;
+//    }
 
 
     public static Item loadObjForItem(Item item, boolean doesUseDirectionalColor) {
@@ -106,7 +106,7 @@ public class OBJLoader {
         try {
             RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox");
 
-            item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", true)));
+            item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", false)));
             item.setPreviewTexture(item.getTexture());
             item.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
 

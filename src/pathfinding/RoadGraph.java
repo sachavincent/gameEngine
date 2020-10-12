@@ -8,8 +8,8 @@ import util.math.Vector2f;
 
 public class RoadGraph {
 
-    private Set<RoadNode>        nodes;
-    private SortedSet<RouteRoad> routes;
+    private       Set<RoadNode>        nodes;
+    private final SortedSet<RouteRoad> routes;
 
     public RoadGraph() {
         this.nodes = new HashSet<>();
@@ -20,14 +20,18 @@ public class RoadGraph {
         if (currentRoute == null) {
             RoadNode start = new RoadNode(position);
             currentRoute = new RouteRoad(start);
+
             nodes.add(start);
         }
 
+        assert currentRoute.getEnd() == null;
+
+        Terrain terrain = Terrain.getInstance();
         for (Direction direction : directions) {
             Vector2f nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
-            Terrain terrain = Terrain.getInstance();
-            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
+//            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
+            Direction[] directionsNextRoad = terrain.getConnectionsToRoadItem(nextRoadPosition, true);
             Direction[] directionsNextRoadOnlyRoads = terrain.getConnectionsToRoadItem(nextRoadPosition, true);
 
             Direction oppositeDirection = direction.getOppositeDirection();
@@ -42,18 +46,18 @@ public class RoadGraph {
             if (directionsNextRoad.length > 2) {
                 // Node found (directionsNextRoad.length > 3 && directionsNextRoad.length <= 4)
                 RoadNode newNode = new RoadNode(nextRoadPosition);
-                currentRoute.setEnd(newNode);
+                RouteRoad newRoute = new RouteRoad(currentRoute);
+                newRoute.setEnd(newNode);
+                newRoute.addRoad(newNode);
 
-                routes.add(currentRoute);
-                RouteRoad e = currentRoute.invertRoute();
-                routes.add(e);
+                routes.add(newRoute);
+                routes.add(newRoute.invertRoute());
 
                 directionsNextRoad = directionsNextRoadOnlyRoads;
                 List<Direction> directionList = new ArrayList<>(Arrays.asList(directionsNextRoad));
                 directionList.remove(oppositeDirection);
                 if (!nodes.contains(new RoadNode(nextRoadPosition)))
                     searchForNextNode(nextRoadPosition, directionList.toArray(new Direction[0]), null);
-
                 continue;
             }
 

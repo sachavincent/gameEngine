@@ -12,8 +12,8 @@ import util.math.Maths;
 public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem {
 
     // WEST NORTH EAST SOUTH
-    private boolean[]     accessPoints = new boolean[]{false, false, false, false};
-    private Connections[] connected    = new Connections[]{NONE, NONE, NONE, NONE};
+    private       boolean[]     accessPoints = new boolean[]{true, true, true, true};
+    private final Connections[] connected    = new Connections[]{NONE, NONE, NONE, NONE};
 
     public BuildingItem(String name, Item copy, int xNegativeOffset, int xPositiveOffset, int height,
             int zNegativeOffset, int zPositiveOffset, Direction... directions) {
@@ -52,6 +52,15 @@ public abstract class BuildingItem extends Item implements RotatableItem, Connec
 
     public boolean isConnected(Direction direction) {
         return this.connected[direction.ordinal()] != NONE;
+    }
+
+    @Override
+    public boolean isConnected() {
+        for (Direction direction : Direction.values()) {
+            if (getAccessPoints()[direction.ordinal()] && isConnected(direction))
+                return true;
+        }
+        return false;
     }
 
     @Override

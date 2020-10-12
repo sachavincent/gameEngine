@@ -1,5 +1,7 @@
 package renderEngine;
 
+import java.util.ArrayList;
+import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -14,11 +16,11 @@ import util.math.Vector3f;
 
 public class TerrainRenderer {
 
-    private TerrainShader shader;
+    private final TerrainShader shader;
 
-    private Terrain terrain;
+    private final Terrain terrain;
 
-    private RawModel path;
+    private List<RawModel> paths = new ArrayList<>();
 
     public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
         terrain = Terrain.getInstance();
@@ -32,8 +34,8 @@ public class TerrainRenderer {
         shader.stop();
     }
 
-    public void setPath(RawModel path) {
-        this.path = path;
+    public void setPaths(List<RawModel> paths) {
+        this.paths = paths;
     }
 
     public void render() {
@@ -52,16 +54,15 @@ public class TerrainRenderer {
         unbindTexturedModel();
         terrain.setY(terrain.getY() - 0.01f);
 
-
-        if (path != null) {
+        GL11.glLineWidth(5);
+        shader.loadUniformColor(true);
+        for (RawModel path : paths) {
             GL30.glBindVertexArray(path.getVaoID());
             GL20.glEnableVertexAttribArray(0);
             GL20.glEnableVertexAttribArray(1);
             GL20.glEnableVertexAttribArray(2);
-            shader.loadUniformColor(true);
             bindTextures(terrain.getBlueTexturePack());
 
-            GL11.glLineWidth(5);
             GL11.glDrawElements(GL11.GL_LINES, path.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             unbindTexturedModel();
         }

@@ -40,7 +40,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
 
     private void setListeners() {
         setOnRelease(() -> {
-            System.out.println("Release");
+            //System.out.println("Release");
 
             if (isClicked() && MouseUtils.isCursorInGuiComponent(this) && checkmark != null)
                 checkmark.setDisplayed(!checkmark.isDisplayed());

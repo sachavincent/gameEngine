@@ -4,21 +4,29 @@ import util.math.Vector2f;
 
 public class PlaceHolderItem extends Item {
 
-    private Item     item;
-    private Vector2f relativePosition;
+    protected Item     parent;
+    protected Vector2f relativePosition;
 
-    public PlaceHolderItem(Item item, Vector2f relativePosToItem) {
-        super(item.getName(), 1, 1, 1, 1, 1);
+    public PlaceHolderItem(Item parent, Vector2f relativePosToItem) {
+        super(parent);
 
-        this.item = item;
+        this.parent = parent;
         this.relativePosition = relativePosToItem;
     }
 
-    public Item getItem() {
-        return this.item;
+    public Item getParent() {
+        return this.parent;
     }
 
     public Vector2f getRelativePosition() {
         return this.relativePosition;
+    }
+
+    @Override
+    public String toString() {
+        return "PlaceHolderItem{" +
+                "item=" + parent +
+                ", relativePosition=" + relativePosition +
+                "} " + super.toString();
     }
 }

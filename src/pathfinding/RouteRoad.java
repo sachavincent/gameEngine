@@ -14,7 +14,7 @@ public class RouteRoad implements Comparable<RouteRoad> {
     private final Road start;
     private       Road end;
 
-    public RouteRoad(RoadNode start) {
+    public RouteRoad(Road start) {
         this(start, null);
     }
 
@@ -24,9 +24,11 @@ public class RouteRoad implements Comparable<RouteRoad> {
         this.end = end;
     }
 
-    RouteRoad(RoadNode start, RoadNode end) {
+    public RouteRoad(Road start, Road end) {
         this.start = start;
         this.end = end;
+
+        this.route.add(start);
     }
 
     public RouteRoad(RouteRoad currentRoute) {
@@ -56,7 +58,7 @@ public class RouteRoad implements Comparable<RouteRoad> {
     }
 
 
-    public void setEnd(RoadNode end) {
+    public void setEnd(Road end) {
         this.end = end;
     }
 
@@ -69,10 +71,10 @@ public class RouteRoad implements Comparable<RouteRoad> {
     }
 
     public int getgScore() {
-        if (end == null)
+        if (start == null || end == null)
             return 0; // Route not completed
 
-        return route.stream().mapToInt(Road::getScore).sum() + start.getScore() + end.getScore();
+        return route.stream().filter(Objects::nonNull).mapToInt(Road::getScore).sum();
     }
 
     public boolean addRoad(Road road) {

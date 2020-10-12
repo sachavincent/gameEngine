@@ -9,4 +9,6 @@ public class Items {
     public static final Item INSULA = OBJLoader.loadObjForItem(new Insula(), true);
 
     public static final Item MARKET = OBJLoader.loadObjForItem(new Market(), false);
+
+    public static final Item EMPTY = new EmptyItem(true);
 }

@@ -39,7 +39,7 @@ public class KeyboardUtils {
                         Gui.toggleGui(GuiEscapeMenu.getEscapeMenu());
                         break;
                     case GLFW_KEY_K:
-                        MasterRenderer.getInstance().getEntityRenderer().switchDisplayBoundingBoxes();
+                        MasterRenderer.getInstance().getBuildingRenderer().switchDisplayBoundingBoxes();
                         break;
                     case GLFW_KEY_W:
                         Camera.getInstance().moveTo(Camera.getInstance().getYaw());

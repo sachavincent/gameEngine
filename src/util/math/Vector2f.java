@@ -41,6 +41,11 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         return this.x * this.x + this.y * this.y;
     }
 
+    public void invertPosition() {
+        float temp = x;
+        x = y;
+        y = temp;
+    }
     public Vector2f translate(float x, float y) {
         this.x += x;
         this.y += y;
@@ -194,5 +199,17 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
             return i;
 
         return Float.compare(y, o.y);
+    }
+
+    public static Vector2f[] toVectorArray(int[] roadPositions) {
+        if (roadPositions.length % 2 != 0)
+            return null;
+
+        Vector2f[] roads = new Vector2f[roadPositions.length / 2];
+        for (int i = 0; i < roads.length; i++) {
+            roads[i] = new Vector2f(roadPositions[i*2], roadPositions[i * 2 +1]);
+        }
+
+        return roads;
     }
 }

@@ -19,12 +19,12 @@ public class MousePicker {
 
     private Vector3f currentRay = new Vector3f();
 
-    private Matrix4f projectionMatrix;
-    private Matrix4f viewMatrix;
-    private Camera   camera;
+    private final Matrix4f projectionMatrix;
+    private       Matrix4f viewMatrix;
+    private final Camera   camera;
 
-    private Terrain  terrain;
-    private Vector3f currentTerrainPoint;
+    private final Terrain  terrain;
+    private       Vector3f currentTerrainPoint;
 
     private static MousePicker instance;
 
@@ -48,7 +48,7 @@ public class MousePicker {
         return currentRay;
     }
 
-    public void update() {
+    public Vector3f update() {
         viewMatrix = Maths.createViewMatrix(camera);
 
         currentRay = calculateMouseRay();
@@ -67,6 +67,8 @@ public class MousePicker {
 //            System.out.println(currentTerrainPoint);
 //        } else
 //            currentTerrainPoint = null;
+
+        return currentTerrainPoint;
     }
 
     public Vector3f intersectionWithPlane(Vector3f pointPlane, float width, float height, float depth,

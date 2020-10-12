@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class HouseItem extends BuildingItem implements RequireBuilding {
 
-    private int peopleCapacity;
+    private final int peopleCapacity;
 
     private boolean meetRequirements;
 
@@ -36,7 +36,7 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
     public Map<BuildingItem, Integer> getRequirements() {
         Map<BuildingItem, Integer> requirements = new HashMap<>();
 
-        requirements.put(AbstractMarket.getAbstractInstance(), 22);
+        requirements.put(AbstractMarket.getAbstractInstance(), 0);
 
         return requirements;
     }

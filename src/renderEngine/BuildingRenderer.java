@@ -21,7 +21,7 @@ import util.math.Vector3f;
 
 public class BuildingRenderer {
 
-    private BuildingShader shader;
+    private final BuildingShader shader;
 
     private boolean displayBoundingBoxes;
 
@@ -49,7 +49,7 @@ public class BuildingRenderer {
 
 
                 TexturedModel texture = item.getTexture();
-                if (terrain.getPreviewItemPosition() != null && terrain.getPreviewItemPosition().equals(p)) {
+                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().equals(p)) {
                     texture = item.getPreviewTexture();
                 }
 

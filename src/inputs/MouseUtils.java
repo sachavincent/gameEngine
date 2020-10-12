@@ -9,6 +9,7 @@ import static renderEngine.DisplayManager.getWindow;
 import static util.math.Maths.isPointIn2DBounds;
 
 import abstractItem.AbstractItem;
+import abstractItem.AbstractRoadItem;
 import entities.Camera;
 import guis.Gui;
 import guis.GuiComponent;
@@ -22,6 +23,10 @@ import java.util.Map.Entry;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
+import pathfinding.Road;
+import pathfinding.RouteFinder;
+import pathfinding.RouteFinder.Route;
+import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import terrains.Terrain;
@@ -32,6 +37,10 @@ import util.math.Vector3f;
 
 public class MouseUtils {
 
+    // Represents the position clicked before releasing M1
+    private static Vector2f startTerrainPos;
+    private static Vector2f lastTerrainPos;
+
     public static boolean middleMouseButtonPressed;
     public static int     previousYaw;
     public static float   previousPitch;
@@ -41,6 +50,8 @@ public class MouseUtils {
     private static Callback callback1;
     private static Callback callback2;
     private static Callback callback3;
+
+    private static int clicks;
 
     public static Vector2f getCursorPos() {
         long windowID = DisplayManager.getWindow();
@@ -70,7 +81,6 @@ public class MouseUtils {
         return isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 
-
     public static boolean isCursorInGuiComponent(GuiComponent<?> guiComponent) {
         if (guiComponent instanceof GuiEllipse) {
             Vector2f cursorPos = getCursorPos();
@@ -95,16 +105,16 @@ public class MouseUtils {
     public static void setupListeners() {
         long window = DisplayManager.getWindow();
 
-        final List<Gui> guisClone = new ArrayList<>(GuiRenderer.getInstance().getGuis());
+        final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
-            boolean inGui = guisClone.stream()
+            boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
             if (!inGui)
                 onClickOnTerrain(button, action);
             else if (button == GLFW_MOUSE_BUTTON_1) {
-                guisClone.stream()
+                guis.stream()
                         .filter(Gui::isDisplayed).forEach(
                         gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
                                 .filter(MouseUtils::isCursorInGuiComponent)
@@ -129,7 +139,7 @@ public class MouseUtils {
         });
 
         callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> {
-            boolean inGui = guisClone.stream()
+            boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
 
@@ -140,9 +150,9 @@ public class MouseUtils {
                     selectedItemGui.getSelectedItem() != null)
                 Gui.showGui(selectedItemGui);
 
-            terrain.removeItem(terrain.getPreviewItemPosition());
-            terrain.resetPreviewItem();
             selectedItemGui.updatePosition();
+            if (startTerrainPos == null)
+                terrain.resetPreviewItems(true);
 
             if (!inGui) {
                 MousePicker picker = MousePicker.getInstance();
@@ -153,21 +163,38 @@ public class MouseUtils {
                     return;
 
                 Vector2f terrainPoint = new Vector2f(point.getX(), point.getZ());
-//                terrain.removeItem(terrain.getPreviewItemPosition());
-//                terrain.resetPreviewItem();
 
                 terrainPoint.x = (float) Math.rint(terrainPoint.x);
                 terrainPoint.y = (float) Math.rint(terrainPoint.y);
 
-                if (terrain.getItems().get(terrainPoint) == null) {
+                if (!terrain.getItems().containsKey(terrainPoint) ||
+                        terrain.getPreviewItemPositions().contains(terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         Gui.hideGui(selectedItemGui);
 
                     AbstractItem selectedItem = selectedItemGui.getSelectedItem();
                     if (selectedItem == null)
                         Gui.hideGui(selectedItemGui);
-                    else
-                        terrain.setPreviewItem(terrainPoint, selectedItem);
+                    else {
+                        if (selectedItem instanceof AbstractRoadItem && !terrainPoint.equals(lastTerrainPos)) {
+                            lastTerrainPos = new Vector2f(terrainPoint);
+                            if (startTerrainPos == null || terrainPoint.equals(startTerrainPos))
+                                terrain.addPreviewItem(terrainPoint, selectedItem);
+                            else {
+                                RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
+                                Route<RouteRoad> unobstructedRoute = routeFinder
+                                        .findUnobstructedRouteV1(startTerrainPos, terrainPoint);
+                                if (unobstructedRoute.isEmpty())
+                                    unobstructedRoute = routeFinder
+                                            .findUnobstructedRouteV2(startTerrainPos, terrainPoint);
+
+                                terrain.resetPreviewItems(true);
+                                unobstructedRoute.getAllRoads().stream().map(Road::getPosition)
+                                        .forEach(pos -> terrain.addPreviewItem(pos, selectedItem));
+                            }
+                        } else
+                            terrain.addPreviewItem(terrainPoint, selectedItem);
+                    }
                 } else {
                     if (!selectedItemGui.isDisplayed())
                         Gui.showGui(selectedItemGui);
@@ -200,13 +227,13 @@ public class MouseUtils {
             } else {
 //                Gui.hideGui(GuiSelectedItem.getSelectedItemGui());
 
-                guisClone.forEach(gui -> {
+                guis.forEach(gui -> {
                     gui.getComponents().keySet().stream()
                             .filter(gui::areTransitionsOfComponentDone)
                             .forEach(GuiComponent::onLeave);
                 });
 
-                guisClone.stream()
+                guis.stream()
                         .filter(Gui::isDisplayed)
                         .filter(MouseUtils::isCursorInGui)
                         .forEach(gui -> {
@@ -222,36 +249,54 @@ public class MouseUtils {
         });
     }
 
-    private static void onClickOnTerrain(int button, int action) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-            MousePicker picker = MousePicker.getInstance();
-            Terrain terrain = Terrain.getInstance();
-            if (action == GLFW_PRESS) {
-                picker.update();
-                if (picker.getCurrentTerrainPoint() == null)
-                    return;
-                Vector2f currentTerrainPoint = new Vector2f(picker.getCurrentTerrainPoint().getX(),
-                        picker.getCurrentTerrainPoint().getZ());
 
-//                    currentTerrainPoint.x = 2 * (float) Math.floor(currentTerrainPoint.x / 2) + 1;
-//                    currentTerrainPoint.y = 2 * (float) Math.floor(currentTerrainPoint.y / 2) + 1;
-                currentTerrainPoint.x = (float) Math.rint(currentTerrainPoint.x);
-                currentTerrainPoint.y = (float) Math.rint(currentTerrainPoint.y);
-//                            entities.add(new Entity(dirtRoad.getTexture(), currentTerrainPoint, 0,
-//                            entities.add(new Entity(dirtRoad.getTexture(), currentTerrainPoint, 0,
-//                                    90, 0, 1f, 3));
-//                            System.out.println(currentTerrainPoint);
-//                            System.out.println("Player: " + player.getPosition());
-//                            AbstractInsula abstractInsula2 = new AbstractInsula();
-//                            terrain.placeItem(new AbstractDirtRoadItem(), currentTerrainPoint);
-//                            terrain.placeItem(abstractInsula2, currentTerrainPoint);
-                terrain.placeItem(GuiSelectedItem.getSelectedItemGui().getSelectedItem(), currentTerrainPoint);
+    private static void onClickOnTerrain(int button, int action) {
+        System.out.println("CLICK");
+        MousePicker picker = MousePicker.getInstance();
+        Terrain terrain = Terrain.getInstance();
+        Vector3f terrainPoint;
+        if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+            terrainPoint = picker.update();
+            if (terrainPoint == null)
+                return;
+
+            Vector2f currentTerrainPoint = new Vector2f(terrainPoint.getX(),
+                    terrainPoint.getZ());
+
+            currentTerrainPoint.x = (float) Math.rint(currentTerrainPoint.x);
+            currentTerrainPoint.y = (float) Math.rint(currentTerrainPoint.y);
+
+            System.out.println(currentTerrainPoint);
+            switch (action) {
+                case GLFW_PRESS:
+                    System.out.println("Press");
+                    startTerrainPos = currentTerrainPoint;
+                    lastTerrainPos = startTerrainPos;
+                    terrain.resetPreviewItems(true);
+
+                    terrain.setPreviewedItem(GuiSelectedItem.getSelectedItemGui().getSelectedItem());
+                    terrain.addPreviewItem(startTerrainPos, GuiSelectedItem.getSelectedItemGui().getSelectedItem());
+//                    System.out.println("startTerrainPos: " + currentTerrainPoint);
+//                    terrain.placeItem(GuiSelectedItem.getSelectedItemGui().getSelectedItem(), startTerrainPos);
+                    clicks = 2;
+                case GLFW_RELEASE:
+                    clicks--;
+                    if (startTerrainPos != null && clicks == 0) {
+                        System.out.println("Release");
+//                        System.out.println("startTerrainPos != null, currentTerrainPoint: " + currentTerrainPoint);
+//                        if(startTerrainPos.equals(currentTerrainPoint))
+//                        terrain.placeItem(GuiSelectedItem.getSelectedItemGui().getSelectedItem(), currentTerrainPoint);
+
+                        terrain.placePreviewItems();
+                        terrain.resetPreviewItems(false);
+
+                        startTerrainPos = null;
+                        lastTerrainPos = null;
+                    }
             }
         } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
             onMiddleMouseButton(action);
         } else if (button == GLFW_MOUSE_BUTTON_2) {
-            MousePicker picker = MousePicker.getInstance();
-            Terrain terrain = Terrain.getInstance();
             if (action == GLFW_PRESS) {
                 picker.update();
                 for (Entry<Vector2f, Item> entry : terrain.getItems().entrySet()) {

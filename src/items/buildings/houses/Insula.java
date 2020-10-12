@@ -6,8 +6,8 @@ import items.Items;
 public class Insula extends HouseItem {
 
     private final static int MAX_PEOPLE_CAPACITY = 10;
-    private final static int X_POSITIVE_OFFSET   = 2;
-    private final static int X_NEGATIVE_OFFSET   = 3;
+    private final static int X_POSITIVE_OFFSET   = 3;
+    private final static int X_NEGATIVE_OFFSET   = 2;
     private final static int HEIGHT              = 3;
     private final static int Z_POSITIVE_OFFSET   = 2;
     private final static int Z_NEGATIVE_OFFSET   = 2;

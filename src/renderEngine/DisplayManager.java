@@ -62,10 +62,10 @@ public class DisplayManager {
         int screen = 1; //TODO temp
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
-//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-//                screens.get(1), 0);
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                0, 0);
+                screens.get(1), 0);
+//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
+//                0, 0);
         if (window == 0)
             throw new RuntimeException("Failed to create window");
         glfwMaximizeWindow(window);

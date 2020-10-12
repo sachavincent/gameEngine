@@ -6,6 +6,8 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
 import static renderEngine.DisplayManager.getWindow;
 
+import abstractItem.AbstractInsula;
+import abstractItem.AbstractMarket;
 import abstractItem.ItemPreviews;
 import entities.Camera;
 import entities.Entity;
@@ -39,6 +41,7 @@ import renderEngine.MasterRenderer;
 import shaders.WaterShader;
 import textures.FontTexture;
 import util.Timer;
+import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import water.WaterFrameBuffers;
@@ -110,7 +113,7 @@ public class MainGameLoop {
 
         List<Light> lights = new ArrayList<>();
 
-        Light sun = new Light(new Vector3f(10000, 10000, -10000), new Vector3f(1.3f, 1.3f, 1.3f));
+        Light sun = new Light(new Vector3f(75, 200, 75), new Vector3f(1.3f, 1.3f, 1.3f));
         lights.add(sun);
 
 
@@ -173,8 +176,16 @@ public class MainGameLoop {
         PostProcessing.init(loader);
 
         new GuiSelectedItem.Builder().create();
-
         TextMaster textMaster = TextMaster.getInstance();
+
+        AbstractMarket abstractMarket = new AbstractMarket();
+        abstractMarket.place(new Vector2f(50, 50));
+
+        AbstractInsula abstractInsula = new AbstractInsula();
+        abstractInsula.place(new Vector2f(35, 50));
+
+        abstractMarket.place(new Vector2f(20, 20));
+        abstractInsula.place(new Vector2f(15, 10));
         while (!glfwWindowShouldClose(getWindow())) {
             boolean canRender = false;
             double time2 = Timer.getTime();

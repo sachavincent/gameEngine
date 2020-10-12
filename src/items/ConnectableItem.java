@@ -10,9 +10,12 @@ public interface ConnectableItem {
 
     void disconnect(Direction direction);
 
+    // WEST NORTH EAST SOUTH
     boolean[] getAccessPoints();
 
     boolean isConnected(Direction direction);
+
+    boolean isConnected();
 
     enum Connections {
         BUILDING,
@@ -21,7 +24,7 @@ public interface ConnectableItem {
 
         public static Connections getConnections(ConnectableItem connectableItem) {
             if (connectableItem instanceof PlaceHolderConnectableItem)
-                connectableItem = ((PlaceHolderConnectableItem) connectableItem).getParent();
+                connectableItem = (ConnectableItem) ((PlaceHolderConnectableItem) connectableItem).getParent();
             if (connectableItem instanceof BuildingItem)
                 return BUILDING;
             if (connectableItem instanceof RoadItem)

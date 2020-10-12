@@ -9,4 +9,13 @@ public class RoadNode extends Road {
     public RoadNode(Vector2f position) {
         super(position, SCORE);
     }
+
+    @Override
+    public String toString() {
+        return "RoadNode{" +
+                "position=" + super.getPosition() +
+                ", score=" + super.getScore() +
+                ", hScore=" + super.gethScore() +
+                '}';
+    }
 }

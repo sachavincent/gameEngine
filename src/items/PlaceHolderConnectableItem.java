@@ -1,51 +1,70 @@
 package items;
 
+import static items.ConnectableItem.Connections.NONE;
+
 import entities.Camera.Direction;
 import util.math.Vector2f;
 
-public class PlaceHolderConnectableItem extends Item implements ConnectableItem {
+public class PlaceHolderConnectableItem extends PlaceHolderItem implements ConnectableItem {
 
-    private ConnectableItem parent;
-    private Vector2f        relativePosition;
+    private final Connections[] individualConnections = new Connections[]{NONE, NONE, NONE, NONE};
 
     public PlaceHolderConnectableItem(ConnectableItem parent, Vector2f relativePosToItem) {
-        super(((Item) parent).getName(), 1, 1, 1, 1, 1);
-
-        this.parent = parent;
-        this.relativePosition = relativePosToItem;
-    }
-
-    public ConnectableItem getParent() {
-        return this.parent;
-    }
-
-    public Vector2f getRelativePosition() {
-        return this.relativePosition;
+        super(((Item) parent), relativePosToItem);
     }
 
     @Override
     public void connect(Direction direction, Connections connections) {
-        parent.connect(direction, connections);
+        if (getAccessPoints()[direction.ordinal()]) {
+            ((ConnectableItem) parent).connect(direction, connections);
+            individualConnections[direction.ordinal()] = connections;
+        } else
+            System.err.println("Error");
     }
 
     @Override
     public void disconnect(Direction direction) {
-        parent.disconnect(direction);
+        ((ConnectableItem) parent).disconnect(direction);
+        individualConnections[direction.ordinal()] = NONE;
     }
 
+    // WEST NORTH EAST SOUTH
     @Override
     public boolean[] getAccessPoints() {
-        return parent.getAccessPoints();
+        boolean[] accessPoints = new boolean[4];
+        if (relativePosition.y < 0)
+            accessPoints[0] = true;
+        if (relativePosition.x < 0)
+            accessPoints[1] = true;
+        if (relativePosition.y > 0)
+            accessPoints[2] = true;
+        if (relativePosition.x > 0)
+            accessPoints[3] = true;
+
+        return accessPoints;
+    }
+
+    public boolean isParentConnected(Direction direction) {
+        return ((ConnectableItem) parent).isConnected(direction);
     }
 
     @Override
     public boolean isConnected(Direction direction) {
-        return parent.isConnected(direction);
+        return individualConnections[direction.ordinal()] != NONE;
+    }
+
+    @Override
+    public boolean isConnected() {
+        for (Direction direction : Direction.values())
+            if (isConnected(direction))
+                return true;
+
+        return false;
     }
 
     @Override
     public Vector2f getOffset(Direction direction) {
-        return ((Item) parent).getOffset(direction);
+        return parent.getOffset(direction);
     }
 
     @Override

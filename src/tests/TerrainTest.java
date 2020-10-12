@@ -1,20 +1,27 @@
 package tests;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
 import abstractItem.AbstractDirtRoadItem;
 import abstractItem.AbstractInsula;
 import entities.Camera.Direction;
-import java.util.ArrayList;
-import java.util.List;
+import items.Item;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import pathfinding.NormalRoad;
+import pathfinding.RoadGraph;
+import pathfinding.RoadNode;
 import pathfinding.RouteFinder;
+import pathfinding.RouteFinder.Route;
+import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
 import terrains.Terrain;
 import util.math.Vector2f;
@@ -33,15 +40,17 @@ class TerrainTest {
 
     @BeforeEach
     public void resetTerrainItems() {
-        Terrain.getInstance().getItems().clear();
+        Terrain.getInstance().resetItems();
+        Terrain.getInstance().updateRequirements();
+        Terrain.getInstance().updateRoadGraph();
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        abstractDirtRoadItem.place(terrain, new Vector2f(50, 50));
+        abstractDirtRoadItem.place(new Vector2f(50, 50));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(new Vector2f(50, 50), true);
@@ -49,15 +58,15 @@ class TerrainTest {
         assertArrayEquals(new Direction[0], directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem2() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -65,15 +74,15 @@ class TerrainTest {
         assertArrayEquals(new Direction[]{Direction.EAST}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem3() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -81,15 +90,15 @@ class TerrainTest {
         assertArrayEquals(new Direction[]{Direction.WEST}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem4() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -97,15 +106,15 @@ class TerrainTest {
         assertArrayEquals(new Direction[]{Direction.SOUTH}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem5() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -114,7 +123,7 @@ class TerrainTest {
     }
 
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem6() {
         Terrain terrain = Terrain.getInstance();
 
@@ -122,17 +131,17 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem3.place(terrain, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
 
-        assertArrayEquals(new Direction[]{Direction.SOUTH, Direction.NORTH}, directions);
+        assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem7() {
         Terrain terrain = Terrain.getInstance();
 
@@ -141,18 +150,18 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         AbstractInsula abstractInsula = new AbstractInsula();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem3.place(terrain, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
-        abstractInsula.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
 
-        assertArrayEquals(new Direction[]{Direction.SOUTH, Direction.NORTH}, directions);
+        assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem8() {
         Terrain terrain = Terrain.getInstance();
 
@@ -161,10 +170,10 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         AbstractInsula abstractInsula = new AbstractInsula();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem3.place(terrain, center.add(Direction.toRelativeDistance(Direction.WEST)));
-        abstractInsula.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -172,7 +181,7 @@ class TerrainTest {
         assertArrayEquals(new Direction[]{Direction.WEST, Direction.EAST}, directions);
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testGetRoadConnectionsToRoadItem9() {
         Terrain terrain = Terrain.getInstance();
 
@@ -182,20 +191,20 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
         Vector2f center = new Vector2f(50, 50);
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem3.place(terrain, center.add(Direction.toRelativeDistance(Direction.WEST)));
-        abstractDirtRoadItem4.place(terrain, center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem5.place(terrain, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center);
+        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractDirtRoadItem4.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem5.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
-
-        assertArrayEquals(new Direction[]{Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST},
+        assertArrayEquals(new Direction[]{Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH},
                 directions);
     }
-//
-//    @org.junit.jupiter.api.Test
+
+    //
+//    @Test
 //    void testGetRoadGraph() {
 //        Terrain terrain = Terrain.getInstance();
 //
@@ -205,11 +214,11 @@ class TerrainTest {
 //        AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
 //        AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
 //        Vector2f center = new Vector2f(50, 50);
-//        abstractDirtRoadItem.place(terrain, center);
-//        abstractDirtRoadItem2.place(terrain, center.add(Direction.toRelativeDistance(Direction.EAST)));
-//        abstractDirtRoadItem3.place(terrain, center.add(Direction.toRelativeDistance(Direction.WEST)));
-//        abstractDirtRoadItem4.place(terrain, center.add(Direction.toRelativeDistance(Direction.NORTH)));
-//        abstractDirtRoadItem5.place(terrain, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+//        abstractDirtRoadItem.place(center);
+//        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+//        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+//        abstractDirtRoadItem4.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+//        abstractDirtRoadItem5.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 //
 //        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
 //
@@ -222,7 +231,7 @@ class TerrainTest {
 //        assertEquals(expected, res);
 //    }
 //
-//    @org.junit.jupiter.api.Test
+//    @Test
 //    void testGetRoadGraph2() {
 //        Terrain terrain = Terrain.getInstance();
 //
@@ -236,14 +245,14 @@ class TerrainTest {
 //        Vector2f v4 = new Vector2f(53, 51);
 //        Vector2f v5 = new Vector2f(53, 49);
 //
-//        abstractDirtRoadItem.place(terrain, center);
-//        abstractDirtRoadItem.place(terrain, v0);
-//        abstractDirtRoadItem.place(terrain, v00);
-//        abstractDirtRoadItem.place(terrain, v1);
-//        abstractDirtRoadItem.place(terrain, v2);
-//        abstractDirtRoadItem.place(terrain, v3);
-//        abstractDirtRoadItem.place(terrain, v4);
-//        abstractDirtRoadItem.place(terrain, v5);
+//        abstractDirtRoadItem.place(center);
+//        abstractDirtRoadItem.place(v0);
+//        abstractDirtRoadItem.place(v00);
+//        abstractDirtRoadItem.place(v1);
+//        abstractDirtRoadItem.place(v2);
+//        abstractDirtRoadItem.place(v3);
+//        abstractDirtRoadItem.place(v4);
+//        abstractDirtRoadItem.place(v5);
 //
 //        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
 //
@@ -260,131 +269,2179 @@ class TerrainTest {
 //
 //        assertEquals(expected, res);
 //    }
+    @Test
+    void testInvertRoute1() {
+        Vector2f v1 = new Vector2f(50, 50);
 
-    @org.junit.jupiter.api.Test
-    void testFindRoute() {
+        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
+        route.add(routeRoad);
+
+        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        expectedRoute.add(routeRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testInvertRoute2() {
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+
+        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
+        routeRoad.setEnd(new RoadNode(v2));
+        route.add(routeRoad);
+
+        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad.setEnd(new RoadNode(v1));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testInvertRoute3() {
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+
+        RouteFinder.Route<RouteRoad> route = new Route<>();
+        // Expected individual routes
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
+        routeRoad.setEnd(new RoadNode(v4));
+        routeRoad.addRoad(new NormalRoad(v2));
+        routeRoad.addRoad(new NormalRoad(v3));
+        route.add(routeRoad);
+
+        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad.setEnd(new RoadNode(v1));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testInvertRoute4() {
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(56, 50);
+
+        RouteFinder.Route<RouteRoad> route = new Route<>();
+
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
+        routeRoad.setEnd(new RoadNode(v4));
+        routeRoad.addRoad(new NormalRoad(v2));
+        routeRoad.addRoad(new NormalRoad(v3));
+        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(v4));
+        routeRoad2.setEnd(new RoadNode(v7));
+        routeRoad2.addRoad(new NormalRoad(v5));
+        routeRoad2.addRoad(new NormalRoad(v6));
+        route.add(routeRoad);
+        route.add(routeRoad2);
+
+        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad.setEnd(new RoadNode(v1));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v7));
+        expectedRouteRoad2.setEnd(new RoadNode(v4));
+        expectedRouteRoad2.addRoad(new NormalRoad(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        expectedRoute.add(expectedRouteRoad2);
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testInvertRoute5() {
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(56, 50);
+        Vector2f v8 = new Vector2f(57, 50);
+        Vector2f v9 = new Vector2f(58, 50);
+        Vector2f v10 = new Vector2f(59, 50);
+
+        RouteFinder.Route<RouteRoad> route = new Route<>();
+
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
+        routeRoad.setEnd(new RoadNode(v4));
+        routeRoad.addRoad(new NormalRoad(v2));
+        routeRoad.addRoad(new NormalRoad(v3));
+        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(v4));
+        routeRoad2.setEnd(new RoadNode(v7));
+        routeRoad2.addRoad(new NormalRoad(v5));
+        routeRoad2.addRoad(new NormalRoad(v6));
+        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(v7));
+        routeRoad3.setEnd(new RoadNode(v10));
+        routeRoad3.addRoad(new NormalRoad(v8));
+        routeRoad3.addRoad(new NormalRoad(v9));
+        route.add(routeRoad);
+        route.add(routeRoad2);
+        route.add(routeRoad3);
+
+        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad.setEnd(new RoadNode(v1));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v7));
+        expectedRouteRoad2.setEnd(new RoadNode(v4));
+        expectedRouteRoad2.addRoad(new NormalRoad(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v10));
+        expectedRouteRoad3.setEnd(new RoadNode(v7));
+        expectedRouteRoad3.addRoad(new NormalRoad(v9));
+        expectedRouteRoad3.addRoad(new NormalRoad(v8));
+        expectedRoute.add(expectedRouteRoad3);
+        expectedRoute.add(expectedRouteRoad2);
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 1. Node 2 Node
+     */
+    @Test
+    void testPathfinding1() {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v0 = new Vector2f(49, 50);
-        Vector2f v00 = new Vector2f(50, 51);
-        Vector2f center = new Vector2f(50, 50);
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+
+        // v1 -> v2 -> v3 -> v4
+        abstractDirtRoadItem.place(new Vector2f(50, 49));
+        Map<Vector2f, Item> items = terrain.getItems();
+        abstractDirtRoadItem.place(new Vector2f(50, 51));
+        abstractDirtRoadItem.place(new Vector2f(53, 49));
+        abstractDirtRoadItem.place(new Vector2f(53, 51));
+        abstractDirtRoadItem.place(v1);
+        abstractDirtRoadItem.place(v2);
+        abstractDirtRoadItem.place(v3);
+        abstractDirtRoadItem.place(v4);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v4, 0);
+
+        // Expected global route
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 2. Node 2 Node through Node
+     */
+    @Test
+    void testPathfinding2() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+
+        // v1 -> v2 -> v3 -> v4 -> v5
+        abstractDirtRoadItem.place(new Vector2f(49, 50));
+        abstractDirtRoadItem.place(new Vector2f(50, 49));
+        abstractDirtRoadItem.place(new Vector2f(52, 49));
+        abstractDirtRoadItem.place(new Vector2f(54, 49));
+        abstractDirtRoadItem.place(new Vector2f(55, 50));
+        abstractDirtRoadItem.place(v1);
+        abstractDirtRoadItem.place(v2);
+        abstractDirtRoadItem.place(v3);
+        abstractDirtRoadItem.place(v4);
+        abstractDirtRoadItem.place(v5);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+
+        // Expected global route
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
+        expectedRouteRoad2.setEnd(new RoadNode(v5));
+        expectedRouteRoad2.addRoad(new NormalRoad(v4));
+
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 3. Node 2 Node Choice
+     */
+    @Test
+    void testPathfinding3() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(50, 49);
+        Vector2f v3 = new Vector2f(50, 48);
+        Vector2f v4 = new Vector2f(51, 48);
+        Vector2f v5 = new Vector2f(52, 48);
+
+        // v1 -> v2 -> v3 -> v4 -> v5
+        int[] roadPositions = new int[]{
+                49, 50,
+                51, 50,
+                52, 50,
+                53, 50,
+                54, 50,
+                55, 50,
+                53, 48,
+                54, 48,
+                55, 48,
+                55, 49,
+                52, 47,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+
+        // Expected global route
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v5));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v4));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 4. Node 2 Node through 2 Nodes
+     */
+    @Test
+    void testPathfinding4() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(55, 49);
+        Vector2f v8 = new Vector2f(56, 49);
+        Vector2f v9 = new Vector2f(57, 49);
+
+        // v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7 -> v8 -> v9
+        int[] roadPositions = new int[]{
+                50, 49,
+                49, 50,
+                53, 49,
+                55, 48,
+                58, 49,
+                57, 50,
+                57, 48,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y,
+                (int) v9.x, (int) v9.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v9, 0);
+
+        // Expected global route
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new RoadNode(v7));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        expectedRouteRoad2.addRoad(new NormalRoad(v6));
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v7));
+        expectedRouteRoad3.setEnd(new RoadNode(v9));
+        expectedRouteRoad3.addRoad(new NormalRoad(v8));
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+        expectedRoute.add(expectedRouteRoad3);
+
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 5. Node 2 Node Multiple nodes and choices (v1)
+     */
+    @Test
+    void testPathfinding5() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(50, 49);
+        Vector2f v6 = new Vector2f(50, 48);
+        Vector2f v7 = new Vector2f(51, 48);
+        Vector2f v8 = new Vector2f(52, 48);
+        Vector2f v9 = new Vector2f(53, 48);
+        Vector2f v10 = new Vector2f(53, 49);
+        Vector2f v11 = new Vector2f(54, 48);
+        Vector2f v12 = new Vector2f(55, 48);
+
+        /*
+        v1 -> v2 -> v3 -> v4
+        ↓                 ↓
+        v5               v10
+        ↓                 ↓
+        v6 -> v7 -> v8 -> v9 -> v11 -> v12
+         */
+        int[] roadPositions = new int[]{
+                49, 50,
+                54, 50,
+                49, 48,
+                55, 49,
+                50, 47,
+                50, 46,
+                51, 46,
+                52, 46,
+                53, 46,
+                54, 46,
+                55, 46,
+                55, 47,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y,
+                (int) v9.x, (int) v9.y,
+                (int) v10.x, (int) v10.y,
+                (int) v11.x, (int) v11.y,
+                (int) v12.x, (int) v12.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v12, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new RoadNode(v9));
+        expectedRouteRoad2.addRoad(new NormalRoad(v10));
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v9));
+        expectedRouteRoad3.setEnd(new RoadNode(v12));
+        expectedRouteRoad3.addRoad(new NormalRoad(v11));
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+        expectedRoute.add(expectedRouteRoad3);
+
+        expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v6));
+        expectedRouteRoad.addRoad(new NormalRoad(v5));
+        expectedRouteRoad2 = new RouteRoad(new RoadNode(v6));
+        expectedRouteRoad2.setEnd(new RoadNode(v9));
+        expectedRouteRoad2.addRoad(new NormalRoad(v7));
+        expectedRouteRoad2.addRoad(new NormalRoad(v8));
+        expectedRoute2.add(expectedRouteRoad);
+        expectedRoute2.add(expectedRouteRoad2);
+        expectedRoute2.add(expectedRouteRoad3);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute) || foundRoute.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 6. Node 2 Node Multiple nodes and choices (v2)
+     */
+    @Test
+    void testPathfinding6() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(50, 49);
+        Vector2f v6 = new Vector2f(50, 48);
+        Vector2f v7 = new Vector2f(51, 48);
+        Vector2f v8 = new Vector2f(52, 48);
+        Vector2f v9 = new Vector2f(53, 48);
+        Vector2f v10 = new Vector2f(53, 49);
+        Vector2f v11 = new Vector2f(53, 47);
+        Vector2f v12 = new Vector2f(53, 46);
+        Vector2f v13 = new Vector2f(54, 46);
+
+        /*
+        v1 -> v2 -> v3 -> v4
+        ↓                 ↓
+        v5               v10
+        ↓                 ↓
+        v6 -> v7 -> v8 -> v9
+                          ↓
+                         v11
+                          ↓
+                         v12 -> v13
+         */
+        int[] roadPositions = new int[]{
+                49, 50,
+                54, 50,
+                55, 50,
+                56, 50,
+                57, 50,
+                53, 51,
+                55, 51,
+                49, 48,
+                48, 48,
+                50, 47,
+                56, 49,
+                56, 48,
+                55, 48,
+                55, 47,
+                55, 46,
+                54, 45,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y,
+                (int) v9.x, (int) v9.y,
+                (int) v10.x, (int) v10.y,
+                (int) v11.x, (int) v11.y,
+                (int) v12.x, (int) v12.y,
+                (int) v13.x, (int) v13.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v13, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new RoadNode(v9));
+        expectedRouteRoad2.addRoad(new NormalRoad(v10));
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v9));
+        expectedRouteRoad3.setEnd(new RoadNode(v13));
+        expectedRouteRoad3.addRoad(new NormalRoad(v11));
+        expectedRouteRoad3.addRoad(new NormalRoad(v12));
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+        expectedRoute.add(expectedRouteRoad3);
+
+        expectedRouteRoad = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v6));
+        expectedRouteRoad.addRoad(new NormalRoad(v5));
+        expectedRouteRoad2 = new RouteRoad(new RoadNode(v6));
+        expectedRouteRoad2.setEnd(new RoadNode(v9));
+        expectedRouteRoad2.addRoad(new NormalRoad(v7));
+        expectedRouteRoad2.addRoad(new NormalRoad(v8));
+        expectedRoute2.add(expectedRouteRoad);
+        expectedRoute2.add(expectedRouteRoad2);
+        expectedRoute2.add(expectedRouteRoad3);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute) || foundRoute.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 7. Road 2 Node through Node
+     */
+    @Test
+    void testPathfinding7() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+
+        /*
+        v1 -> v2 -> v3 -> v4 -> v5
+         */
+        int[] roadPositions = new int[]{
+                51, 49,
+                54, 49,
+                55, 50,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad2.setEnd(new RoadNode(v5));
+        expectedRouteRoad2.addRoad(new NormalRoad(v3));
+        expectedRouteRoad2.addRoad(new NormalRoad(v4));
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 8. Road 2 Node Choice
+     */
+    @Test
+    void testPathfinding8() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(53, 49);
+        Vector2f v6 = new Vector2f(53, 48);
+
+        /*
+        v1 -> v2 -> v3 -> v4
+                          ↓
+                          v5
+                          ↓
+                          v6
+         */
+        int[] roadPositions = new int[]{
+                54, 50,
+                50, 49,
+                50, 48,
+                51, 48,
+                54, 48,
+                50, 47,
+                53, 47,
+                50, 46,
+                51, 46,
+                52, 46,
+                53, 46,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v6, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v1, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new RoadNode(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
+
+        Route<RouteRoad> expectedRoute2 = expectedRoute.invertRoute();
+
+        System.out.println(expectedRoute);
+        System.out.println(foundRoute);
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 9. Road 2 Road
+     */
+    @Test
+    void testPathfinding9() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+
+        /*
+        v1 -> v2 -> v3 -> v4 -> v5
+         */
+        int[] roadPositions = new int[]{
+                //    49,50,
+                //    55,50,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new NormalRoad(v5));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v4));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 10. Road 2 Node (both ways)
+     */
+    @Test
+    void testPathfinding10() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(53, 49);
+
+        /*
+        v2 -> v3 -> v4
+         */
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v4, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v2, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2;
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
+        expectedRouteRoad.setEnd(new RoadNode(v4));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRoute1.add(expectedRouteRoad);
+
+        expectedRoute2 = expectedRoute1.invertRoute();
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 11. Road 2 Road (ignore nodes)
+     */
+    @Test
+    void testPathfinding11() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(56, 50);
+        Vector2f v8 = new Vector2f(51, 49);
+        Vector2f v9 = new Vector2f(55, 49);
+
+        /*
+        v3 -> v4 -> v5
+         */
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y,
+                (int) v9.x, (int) v9.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v3, v5, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v3));
+        expectedRouteRoad.setEnd(new NormalRoad(v5));
+        expectedRouteRoad.addRoad(new NormalRoad(v4));
+        expectedRoute.add(expectedRouteRoad);
+
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 12. Road 2 Road through node
+     */
+    @Test
+    void testPathfinding12() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(50, 49);
+        Vector2f v8 = new Vector2f(53, 49);
+
+        /*
+        v2 -> v3 -> v4 -> v5 -> v6
+         */
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v6, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v2, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v2));
+        expectedRouteRoad1.setEnd(new RoadNode(v4));
+        expectedRouteRoad1.addRoad(new NormalRoad(v3));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new NormalRoad(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        expectedRoute1.add(expectedRouteRoad1);
+        expectedRoute1.add(expectedRouteRoad2);
+
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new NormalRoad(v6));
+        expectedRouteRoad3.setEnd(new RoadNode(v4));
+        expectedRouteRoad3.addRoad(new NormalRoad(v5));
+        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad4.setEnd(new NormalRoad(v2));
+        expectedRouteRoad4.addRoad(new NormalRoad(v3));
+        expectedRoute2.add(expectedRouteRoad3);
+        expectedRoute2.add(expectedRouteRoad4);
+
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 13. Road 2 Road (disconnected)
+     */
+    @Test
+    void testPathfinding13() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(54, 50);
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v4, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 14. Road 2 Node (disconnected)
+     */
+    @Test
+    void testPathfinding14() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+
+        Vector2f v4 = new Vector2f(56, 50);
+        Vector2f v5 = new Vector2f(56, 49);
+        Vector2f v6 = new Vector2f(56, 48);
+        Vector2f v7 = new Vector2f(55, 49);
+        Vector2f v8 = new Vector2f(57, 49);
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v5, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v5, v1, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute));
+        assertTrue(foundRoute1.compareCost(expectedRoute));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute));
+        assertTrue(foundRoute2.compareCost(expectedRoute));
+    }
+
+    /**
+     * 15. Node 2 Node (disconnected)
+     */
+    @Test
+    void testPathfinding15() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(51, 49);
+
+        Vector2f v5 = new Vector2f(55, 50);
+        Vector2f v6 = new Vector2f(56, 50);
+        Vector2f v7 = new Vector2f(57, 50);
+        Vector2f v8 = new Vector2f(56, 49);
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v6, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 16. Road 2 Road (close)
+     */
+    @Test
+    void testPathfinding16() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(52, 49);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
+        expectedRouteRoad.setEnd(new NormalRoad(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 17. Road 2 Node (close)
+     */
+    @Test
+    void testPathfinding17() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(51, 49);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v3, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v3, v2, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2;
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad1.setEnd(new NormalRoad(v3));
+        expectedRoute1.add(expectedRouteRoad1);
+
+        expectedRoute2 = expectedRoute1.invertRoute();
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 18. Node 2 Node (close)
+     */
+    @Test
+    void testPathfinding18() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(51, 51);
+        Vector2f v6 = new Vector2f(52, 49);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad.setEnd(new RoadNode(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 19. Node 2 Node (close) Choice
+     */
+    @Test
+    void testPathfinding19() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+
+        Vector2f v5 = new Vector2f(51, 51);
+        Vector2f v6 = new Vector2f(52, 51);
+
+        Vector2f v7 = new Vector2f(51, 49);
+        Vector2f v8 = new Vector2f(52, 49);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad.setEnd(new RoadNode(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 20. Road 2 Node (close) Choice
+     */
+    @Test
+    void testPathfinding20() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(51, 51);
+        Vector2f v5 = new Vector2f(52, 51);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
+        expectedRouteRoad.setEnd(new NormalRoad(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 21. Road 2 Road (close) Choice
+     */
+    @Test
+    void testPathfinding21() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(50, 49);
+        Vector2f v4 = new Vector2f(51, 49);
+
+
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new NormalRoad(v3));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 22. Road 2 Road (ignore Nodes) Choice
+     */
+    @Test
+    void testPathfinding22() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(52, 50);
+        Vector2f v2 = new Vector2f(53, 50);
+        Vector2f v3 = new Vector2f(54, 50);
+
+
+        /*
+            v1 -> v2 -> v3
+         */
+        int[] roadPositions = new int[]{
+                50, 50,
+                51, 50,
+                55, 50,
+                56, 50,
+                51, 49,
+                51, 48,
+                52, 48,
+                53, 48,
+                54, 48,
+                55, 48,
+                55, 49,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 23. Road 2 Road (ignore Nodes) Choice (v2)
+     */
+    @Test
+    void testPathfinding23() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(52, 48);
+        Vector2f v2 = new Vector2f(53, 48);
+        Vector2f v3 = new Vector2f(54, 48);
+
+
+        /*
+            v1 -> v2 -> v3
+         */
+        int[] roadPositions = new int[]{
+                50, 50,
+                51, 50,
+                55, 50,
+                56, 50,
+                51, 49,
+                51, 48,
+                52, 50,
+                53, 50,
+                54, 50,
+                55, 48,
+                55, 49,
+                50, 48,
+                56, 48,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 24. Road 2 Road (loop)
+     */
+    @Test
+    void testPathfinding24() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+
+
+        /*
+            v1 -> v2 -> v3 -> v4 -> v5
+         */
+        int[] roadPositions = new int[]{
+                50, 49,
+                50, 48,
+                51, 48,
+                52, 48,
+                53, 48,
+                54, 48,
+                54, 49,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad.setEnd(new NormalRoad(v5));
+        expectedRouteRoad.addRoad(new NormalRoad(v2));
+        expectedRouteRoad.addRoad(new NormalRoad(v3));
+        expectedRouteRoad.addRoad(new NormalRoad(v4));
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 25. Road 2 Road (through node) x 2
+     */
+    @Test
+    void testPathfinding25() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(60, 50);
+        Vector2f v7 = new Vector2f(61, 50);
+        Vector2f v8 = new Vector2f(62, 50);
+        Vector2f v9 = new Vector2f(63, 50);
+        Vector2f v10 = new Vector2f(64, 50);
+
+        /*
+            v1 -> v2 -> v3 -> v4 -> v5
+                        ||
+            v6 -> v7 -> v8 -> v9 -> v10
+         */
+        int[] roadPositions = new int[]{
+                52, 49,
+                52, 51,
+                62, 49,
+                62, 51,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y,
+                (int) v8.x, (int) v8.y,
+                (int) v9.x, (int) v9.y,
+                (int) v10.x, (int) v10.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v5, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v10, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad1.setEnd(new RoadNode(v3));
+        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
+        expectedRouteRoad2.setEnd(new NormalRoad(v5));
+        expectedRouteRoad2.addRoad(new NormalRoad(v4));
+
+        expectedRoute1.add(expectedRouteRoad1);
+        expectedRoute1.add(expectedRouteRoad2);
+
+        // v2
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new NormalRoad(v6));
+        expectedRouteRoad3.setEnd(new RoadNode(v8));
+        expectedRouteRoad3.addRoad(new NormalRoad(v7));
+        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v8));
+        expectedRouteRoad4.setEnd(new NormalRoad(v10));
+        expectedRouteRoad4.addRoad(new NormalRoad(v9));
+
+        expectedRoute2.add(expectedRouteRoad3);
+        expectedRoute2.add(expectedRouteRoad4);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 26. Road 2 Road x 2
+     */
+    @Test
+    void testPathfinding26() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+
+        Vector2f v4 = new Vector2f(56, 49);
+        Vector2f v5 = new Vector2f(56, 50);
+        Vector2f v6 = new Vector2f(56, 51);
+
+        /*
+                                v4
+                                ↓
+            v1 -> v2 -> v3  ||  v5
+                                ↓
+                                v6
+         */
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v6, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad1.setEnd(new NormalRoad(v3));
+        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+
+        expectedRoute1.add(expectedRouteRoad1);
+
+        // v2
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new NormalRoad(v4));
+        expectedRouteRoad2.setEnd(new NormalRoad(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+
+        expectedRoute2.add(expectedRouteRoad2);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 27. Node 2 Road x 2
+     */
+    @Test
+    void testPathfinding27() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         Vector2f v1 = new Vector2f(51, 50);
         Vector2f v2 = new Vector2f(52, 50);
         Vector2f v3 = new Vector2f(53, 50);
-        Vector2f v4 = new Vector2f(53, 51);
-        Vector2f v5 = new Vector2f(53, 49);
 
-        abstractDirtRoadItem.place(terrain, center);
-        abstractDirtRoadItem.place(terrain, v0);
-        abstractDirtRoadItem.place(terrain, v00);
-        abstractDirtRoadItem.place(terrain, v1);
-        abstractDirtRoadItem.place(terrain, v2);
-        abstractDirtRoadItem.place(terrain, v3);
-        abstractDirtRoadItem.place(terrain, v4);
-        abstractDirtRoadItem.place(terrain, v5);
+        Vector2f v4 = new Vector2f(56, 50);
+        Vector2f v5 = new Vector2f(57, 50);
+        Vector2f v6 = new Vector2f(58, 50);
 
-//        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
-//
-//        RoadNode roadNode = new RoadNode(center);
-//        RoadNode roadNode2 = new RoadNode(v3);
-//
-//
-//        RoadGraph roadGraph = new RoadGraph(res);
-//        RouteFinder routeFinder = new RouteFinder(roadGraph);
-//
-//        routeFinder.findRoute(roadNode, roadNode2);
-//        Set<RoadNode> expected = new HashSet<>();
-//        expected.add(roadNode);
-//        expected.add(roadNode2);
-//
-//        assertEquals(routeFinder.getRouteNodes(), expected);
-//        assertEquals(2, routeFinder.getRouteCost());
+        /*
+            v1 -> v2 -> v3  ||  v4 -> v5 -> v6
+         */
+        int[] roadPositions = new int[]{
+                50, 50,
+                51, 49,
+                55, 50,
+                56, 51,
+                56, 49,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v3, v1, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute3 = routeFinder.findRoute(v4, v6, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute4 = routeFinder.findRoute(v6, v4, 0);
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute3 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute4 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad1.setEnd(new NormalRoad(v3));
+        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+
+        expectedRoute1.add(expectedRouteRoad1);
+
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new NormalRoad(v3));
+        expectedRouteRoad2.setEnd(new RoadNode(v1));
+        expectedRouteRoad2.addRoad(new NormalRoad(v2));
+
+        expectedRoute2.add(expectedRouteRoad2);
+
+        // v2
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad3.setEnd(new NormalRoad(v6));
+        expectedRouteRoad3.addRoad(new NormalRoad(v5));
+
+        expectedRoute3.add(expectedRouteRoad3);
+
+        RouteRoad expectedRouteRoad4 = new RouteRoad(new NormalRoad(v6));
+        expectedRouteRoad4.setEnd(new RoadNode(v4));
+        expectedRouteRoad4.addRoad(new NormalRoad(v5));
+
+        expectedRoute4.add(expectedRouteRoad4);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+
+        assertTrue(foundRoute3.compareRoutes(expectedRoute3));
+        assertTrue(foundRoute3.compareCost(expectedRoute3));
+
+        assertTrue(foundRoute4.compareRoutes(expectedRoute4));
+        assertTrue(foundRoute4.compareCost(expectedRoute4));
     }
 
-    @org.junit.jupiter.api.Test
-    void testFindRoute2() {
+    /**
+     * 28. Node 2 Node x2
+     */
+    @Test
+    void testPathfinding28() {
         Terrain terrain = Terrain.getInstance();
+
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(51, 50);
+        Vector2f v2 = new Vector2f(52, 50);
+        Vector2f v3 = new Vector2f(53, 50);
 
-        List<Vector2f> roadList = new ArrayList<>();
-//        roadList.add(new Vector2f(53, 50));
-//        roadList.add(new Vector2f(52, 50));
-//        roadList.add(new Vector2f(51, 50));
-//        roadList.add(new Vector2f(50, 50));
-//        roadList.add(new Vector2f(49, 50));
-//        roadList.add(new Vector2f(48, 50));
-//        roadList.add(new Vector2f(47, 50));
-//        roadList.add(new Vector2f(46, 50));
-//        roadList.add(new Vector2f(45, 50));
-//
-//        roadList.add(new Vector2f(53, 49));
-//        roadList.add(new Vector2f(53, 48));
-//        roadList.add(new Vector2f(53, 47));
-//        roadList.add(new Vector2f(53, 46));
-//        roadList.add(new Vector2f(53, 45));
-//        roadList.add(new Vector2f(53, 44));
-//
-//        roadList.add(new Vector2f(52, 44));
-//        roadList.add(new Vector2f(51, 44));
-//        roadList.add(new Vector2f(50, 44));
-//        roadList.add(new Vector2f(49, 44));
-//
-//        roadList.add(new Vector2f(49, 45));
-//        roadList.add(new Vector2f(49, 46));
-//        roadList.add(new Vector2f(49, 47));
-//
-//        roadList.add(new Vector2f(48, 47));
-//        roadList.add(new Vector2f(47, 47));
-//
-//        roadList.add(new Vector2f(47, 46));
-//
-//        roadList.add(new Vector2f(46, 46));
-//        roadList.add(new Vector2f(45, 46));
-//
-//        roadList.add(new Vector2f(45, 47));
-//        roadList.add(new Vector2f(45, 48));
-//        roadList.add(new Vector2f(45, 49));
-//
-//        roadList.add(new Vector2f(51, 49));
-//        roadList.add(new Vector2f(51, 48));
-//        roadList.add(new Vector2f(51, 47));
-//        roadList.add(new Vector2f(51, 46));
-//        roadList.add(new Vector2f(51, 45));
-//
-//        roadList.add(new Vector2f(51, 51));
-//        roadList.add(new Vector2f(51, 52));
-//        roadList.add(new Vector2f(51, 53));
-//        roadList.add(new Vector2f(51, 54));
-//        roadList.add(new Vector2f(51, 55));
-//
-//        roadList.add(new Vector2f(52, 48));
-//
-//        roadList.add(new Vector2f(48, 51));
-////        roadList.add(new Vector2f(48, 52));
-//        roadList.add(new Vector2f(48, 53));
-//        roadList.add(new Vector2f(48, 54));
-//        //tmp
-//        roadList.add(new Vector2f(47, 53));
-//        roadList.add(new Vector2f(47, 52));
-//        roadList.add(new Vector2f(47, 51));
-//// fin tmp
-//        roadList.add(new Vector2f(49, 54));
-//        roadList.add(new Vector2f(50, 54));
-//        roadList.add(new Vector2f(52, 54));
-        roadList.add(new Vector2f(60, 60));
-        roadList.add(new Vector2f(60, 61));
-        roadList.add(new Vector2f(60, 62));
+        Vector2f v4 = new Vector2f(57, 51);
+        Vector2f v5 = new Vector2f(58, 51);
+        Vector2f v6 = new Vector2f(58, 50);
 
-        roadList.forEach(pos -> terrain.placeItem(abstractDirtRoadItem, pos));
-        terrain.updateRoadGraph();
+        /*
+            v1 -> v2 -> v3  ||  v4 -> v5
+                                      ↓
+                                      v6
+         */
+        int[] roadPositions = new int[]{
+                50, 50,
+                51, 49,
+                53, 49,
+                54, 50,
+                56, 51,
+                57, 52,
+                58, 49,
+                59, 50,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y
+        };
 
-//        System.out.println(roadGraph);
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
 
-        RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
+        abstractDirtRoadItem.place(roads);
 
-        routeFinder.findRoute(new Vector2f(60, 60), new Vector2f(60, 62), 0);
-        System.out.println(routeFinder.getRoute());
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v6, 0);
+
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v1));
+        expectedRouteRoad1.setEnd(new RoadNode(v3));
+        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+
+        expectedRoute1.add(expectedRouteRoad1);
+
+        // v2
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad2.setEnd(new RoadNode(v6));
+        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+
+        expectedRoute2.add(expectedRouteRoad2);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
     }
 
+    /**
+     * 29. Road 2 Road (choice found in practice)
+     */
+    @Test
+    void testPathfinding29() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v7 = new Vector2f(56, 50);
+
+        /*
+            v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7
+         */
+        int[] roadPositions = new int[]{
+                52, 51,
+                53, 51,
+                54, 51,
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v7.x, (int) v7.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v7, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v7, v1, 0);
+
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad1.setEnd(new RoadNode(v3));
+        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
+        expectedRouteRoad2.setEnd(new RoadNode(v4));
+        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad3.setEnd(new RoadNode(v5));
+        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad4.setEnd(new NormalRoad(v7));
+        expectedRouteRoad4.addRoad(new NormalRoad(v6));
+
+        expectedRoute1.add(expectedRouteRoad1);
+        expectedRoute1.add(expectedRouteRoad2);
+        expectedRoute1.add(expectedRouteRoad3);
+        expectedRoute1.add(expectedRouteRoad4);
+
+        // v2
+        RouteRoad expectedRouteRoad5 = new RouteRoad(new NormalRoad(v7));
+        expectedRouteRoad5.setEnd(new RoadNode(v5));
+        expectedRouteRoad5.addRoad(new NormalRoad(v6));
+        RouteRoad expectedRouteRoad6 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad6.setEnd(new RoadNode(v4));
+        RouteRoad expectedRouteRoad7 = new RouteRoad(new RoadNode(v4));
+        expectedRouteRoad7.setEnd(new RoadNode(v3));
+        RouteRoad expectedRouteRoad8 = new RouteRoad(new RoadNode(v3));
+        expectedRouteRoad8.setEnd(new NormalRoad(v1));
+        expectedRouteRoad8.addRoad(new NormalRoad(v2));
+
+        expectedRoute2.add(expectedRouteRoad5);
+        expectedRoute2.add(expectedRouteRoad6);
+        expectedRoute2.add(expectedRouteRoad7);
+        expectedRoute2.add(expectedRouteRoad8);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
+        assertTrue(foundRoute2.compareCost(expectedRoute2));
+    }
+
+    /**
+     * 30. Road 2 Road (choice found in practice)
+     */
+    @Test
+    void testPathfinding30() {
+        Terrain terrain = Terrain.getInstance();
+
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(51, 50);
+        Vector2f v3 = new Vector2f(52, 50);
+        Vector2f v4 = new Vector2f(53, 50);
+        Vector2f v5 = new Vector2f(54, 50);
+        Vector2f v6 = new Vector2f(55, 50);
+        Vector2f v6b = new Vector2f(54, 51);
+        Vector2f v7 = new Vector2f(55, 51);
+
+        /*
+                                    v6b -> v7
+                                     ↑     ↑
+            v1 -> v2 -> v3 -> v4 -> v5  -> v6
+         */
+        int[] roadPositions = new int[]{
+                (int) v1.x, (int) v1.y,
+                (int) v2.x, (int) v2.y,
+                (int) v3.x, (int) v3.y,
+                (int) v4.x, (int) v4.y,
+                (int) v5.x, (int) v5.y,
+                (int) v6.x, (int) v6.y,
+                (int) v6b.x, (int) v6b.y,
+                (int) v7.x, (int) v7.y
+        };
+
+        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v7, 0);
+        routeFinder.reset();
+
+        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v7, v1, 0);
+
+
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute1v1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2v1 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute1v2 = new Route<>();
+        RouteFinder.Route<RouteRoad> expectedRoute2v2 = new Route<>();
+
+        // Expected individual routes
+
+        // v1
+        RouteRoad expectedRouteRoad1v1 = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad1v1.setEnd(new RoadNode(v5));
+        expectedRouteRoad1v1.addRoad(new NormalRoad(v2));
+        expectedRouteRoad1v1.addRoad(new NormalRoad(v3));
+        expectedRouteRoad1v1.addRoad(new NormalRoad(v4));
+        RouteRoad expectedRouteRoad2v1 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad2v1.setEnd(new NormalRoad(v7));
+        expectedRouteRoad2v1.addRoad(new NormalRoad(v6));
+
+        expectedRoute1v1.add(expectedRouteRoad1v1);
+        expectedRoute1v1.add(expectedRouteRoad2v1);
+
+        RouteRoad expectedRouteRoad3v1 = new RouteRoad(new NormalRoad(v1));
+        expectedRouteRoad3v1.setEnd(new RoadNode(v5));
+        expectedRouteRoad3v1.addRoad(new NormalRoad(v2));
+        expectedRouteRoad3v1.addRoad(new NormalRoad(v3));
+        expectedRouteRoad3v1.addRoad(new NormalRoad(v4));
+        RouteRoad expectedRouteRoad4v1 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad4v1.setEnd(new NormalRoad(v7));
+        expectedRouteRoad4v1.addRoad(new NormalRoad(v6b));
+
+        expectedRoute2v1.add(expectedRouteRoad3v1);
+        expectedRoute2v1.add(expectedRouteRoad4v1);
+
+        // v2
+        RouteRoad expectedRouteRoad1v2 = new RouteRoad(new NormalRoad(v7));
+        expectedRouteRoad1v2.setEnd(new RoadNode(v5));
+        expectedRouteRoad1v2.addRoad(new NormalRoad(v6));
+        RouteRoad expectedRouteRoad2v2 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad2v2.setEnd(new NormalRoad(v1));
+        expectedRouteRoad2v2.addRoad(new NormalRoad(v4));
+        expectedRouteRoad2v2.addRoad(new NormalRoad(v3));
+        expectedRouteRoad2v2.addRoad(new NormalRoad(v2));
+
+        expectedRoute1v2.add(expectedRouteRoad1v2);
+        expectedRoute1v2.add(expectedRouteRoad2v2);
+
+        RouteRoad expectedRouteRoad3v2 = new RouteRoad(new NormalRoad(v7));
+        expectedRouteRoad3v2.setEnd(new RoadNode(v5));
+        expectedRouteRoad3v2.addRoad(new NormalRoad(v6b));
+        RouteRoad expectedRouteRoad4v2 = new RouteRoad(new RoadNode(v5));
+        expectedRouteRoad4v2.setEnd(new NormalRoad(v1));
+        expectedRouteRoad4v2.addRoad(new NormalRoad(v4));
+        expectedRouteRoad4v2.addRoad(new NormalRoad(v3));
+        expectedRouteRoad4v2.addRoad(new NormalRoad(v2));
+
+        expectedRoute2v2.add(expectedRouteRoad3v2);
+        expectedRoute2v2.add(expectedRouteRoad4v2);
+
+        assertTrue(foundRoute1.compareRoutes(expectedRoute1v1) || foundRoute1.compareRoutes(expectedRoute2v1));
+        assertTrue(foundRoute1.compareCost(expectedRoute1v1) || foundRoute1.compareCost(expectedRoute2v1));
+
+        assertTrue(foundRoute2.compareRoutes(expectedRoute1v2) || foundRoute2.compareRoutes(expectedRoute2v2));
+        assertTrue(foundRoute2.compareCost(expectedRoute1v2) || foundRoute2.compareCost(expectedRoute2v2));
+    }
+
+
+    @Test
+    void testUnobstrusiveRoute1() {
+        Terrain terrain = Terrain.getInstance();
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        Vector2f v1 = new Vector2f(50, 50);
+        Vector2f v2 = new Vector2f(60, 50);
+
+        Vector2f[] positions = new Vector2f[]{
+                new Vector2f(51, 50),
+                new Vector2f(52, 50),
+                new Vector2f(53, 50),
+                new Vector2f(54, 50),
+                new Vector2f(55, 50),
+                new Vector2f(56, 50),
+                new Vector2f(57, 50),
+                new Vector2f(58, 50),
+                new Vector2f(59, 50),
+        };
+        Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        NormalRoad end = new NormalRoad(v2);
+        expectedRouteRoad.setEnd(end);
+        for (Vector2f pos : positions)
+            expectedRouteRoad.addRoad(new NormalRoad(pos));
+
+        expectedRouteRoad.addRoad(end);
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testUnobstrusiveRoute2() {
+        Terrain terrain = Terrain.getInstance();
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        Vector2f v1 = new Vector2f(49, 50);
+        Vector2f v2 = new Vector2f(55, 60);
+
+        Vector2f[] positions = new Vector2f[]{
+                new Vector2f(51, 50),
+                new Vector2f(52, 50),
+                new Vector2f(53, 50),
+                new Vector2f(54, 50),
+                new Vector2f(55, 50),
+                new Vector2f(56, 50),
+                new Vector2f(57, 50),
+                new Vector2f(58, 50),
+                new Vector2f(59, 50),
+        };
+        Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
+        System.out.println(foundRoute);
+        // Expected global routes
+        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+
+        // Expected individual routes
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
+        NormalRoad end = new NormalRoad(v2);
+        expectedRouteRoad.setEnd(end);
+        for (Vector2f pos : positions)
+            expectedRouteRoad.addRoad(new NormalRoad(pos));
+
+
+        expectedRouteRoad.addRoad(end);
+        expectedRoute.add(expectedRouteRoad);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
 }

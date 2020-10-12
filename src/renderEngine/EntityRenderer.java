@@ -21,7 +21,7 @@ import util.math.Vector3f;
 
 public class EntityRenderer {
 
-    private StaticShader shader;
+    private final StaticShader shader;
 
     private boolean displayBoundingBoxes;
 
@@ -49,7 +49,7 @@ public class EntityRenderer {
                 Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
 
                 TexturedModel texture = item.getTexture();
-                if (terrain.getPreviewItemPosition() != null && terrain.getPreviewItemPosition().equals(p)) {
+                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().equals(p)) {
                     texture = item.getPreviewTexture();
                 }
 

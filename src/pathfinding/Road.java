@@ -5,9 +5,9 @@ import util.math.Vector2f;
 
 public abstract class Road {
 
-    private Vector2f position;
-    private int      score;
-    private int      hScore;
+    protected Vector2f position;
+    protected int      score;
+    protected int      hScore;
 
     public Road(Vector2f position, int score) {
         this.position = position;

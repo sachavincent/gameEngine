@@ -160,7 +160,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
         setOnRelease(() -> {
             setClicked(false);
-            System.out.println("Release");
+            //System.out.println("Release");
 
             updateTexturesOnClick();
         });

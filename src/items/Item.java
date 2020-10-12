@@ -25,6 +25,26 @@ public abstract class Item {
 
     protected boolean selected;
 
+    public Item(String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
+            int zPositiveOffset) {
+        this.xNegativeOffset = xNegativeOffset;
+        this.xPositiveOffset = xPositiveOffset;
+
+        this.height = height;
+
+        this.zNegativeOffset = zNegativeOffset;
+        this.zPositiveOffset = zPositiveOffset;
+
+        this.id = max_id++;
+
+        this.name = name;
+    }
+
+    public Item(Item parent) {
+        this.name = parent.getName();
+        this.id = parent.getId();
+    }
+
     public TexturedModel getPreviewTexture() {
         return this.previewTexture;
     }
@@ -45,20 +65,6 @@ public abstract class Item {
         this.selected = false;
     }
 
-    public Item(String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
-            int zPositiveOffset) {
-        this.xNegativeOffset = xNegativeOffset;
-        this.xPositiveOffset = xPositiveOffset;
-
-        this.height = height;
-
-        this.zNegativeOffset = zNegativeOffset;
-        this.zPositiveOffset = zPositiveOffset;
-
-        this.id = max_id++;
-
-        this.name = name;
-    }
 
     public String getName() {
         return this.name;
