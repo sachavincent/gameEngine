@@ -24,9 +24,10 @@ public class Text {
     private float    lineMaxSize;
     private int      numberOfLines;
 
-    private FontType font;
+    private final FontType font;
 
     private boolean centerText;
+    private boolean stringChanged;
 
     /**
      * Creates a new text, loads the text's quads into a VAO, and adds the text
@@ -231,5 +232,19 @@ public class Text {
      */
     public String getTextString() {
         return textString;
+    }
+
+    public void setTextString(String textString) {
+        this.textString = textString;
+
+        this.stringChanged = true;
+    }
+
+    public boolean isStringChanged() {
+        return this.stringChanged;
+    }
+
+    public void setStringChanged(boolean stringChanged) {
+        this.stringChanged = stringChanged;
     }
 }

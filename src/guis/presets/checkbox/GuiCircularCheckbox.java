@@ -19,7 +19,7 @@ public class GuiCircularCheckbox extends GuiAbstractCheckbox {
                 new RelativeConstraint(1, this), false);
     }
 
-    public void setOutlineWidth(int width) {
+    public void setOutlineWidth(double width) {
         ((GuiEllipse) this.checkboxLayout).setOutlineWidth(width);
     }
 

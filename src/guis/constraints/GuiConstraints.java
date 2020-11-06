@@ -7,9 +7,9 @@ public abstract class GuiConstraints {
 
     float constraint;
 
-    private Constraints constraints;
+    private final Constraints constraints;
 
-    private ConstraintsType constraintsType;
+    private final ConstraintsType constraintsType;
 
     public GuiConstraints(ConstraintsType constraintsType, Constraints constraints) {
         this.constraintsType = constraintsType;

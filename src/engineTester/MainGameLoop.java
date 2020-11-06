@@ -1,7 +1,6 @@
 package engineTester;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
 import static renderEngine.DisplayManager.getWindow;
@@ -30,7 +29,6 @@ import java.util.List;
 import language.TextConverter;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
@@ -55,10 +53,6 @@ public class MainGameLoop {
 
         glfwInit();
         DisplayManager.createDisplay();
-        glfwSwapInterval(1);
-        GL.createCapabilities();
-        GL11.glEnable(GL13.GL_MULTISAMPLE);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
         int hotspotX = 3;
         int hotspotY = 6;
         /*InputStream stream = null;
@@ -173,9 +167,10 @@ public class MainGameLoop {
 
         GuiRenderer guiRenderer = GuiRenderer.getInstance();
 
-        PostProcessing.init(loader);
+        PostProcessing.init();
 
         new GuiSelectedItem.Builder().create();
+
         TextMaster textMaster = TextMaster.getInstance();
 
         AbstractMarket abstractMarket = new AbstractMarket();
@@ -238,8 +233,8 @@ public class MainGameLoop {
                     renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
                     waterRenderer.render(waters, camera, sun);
                 }
-                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
-                waterRenderer.render(waters, camera, sun);
+//                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
+//                waterRenderer.render(waters, camera, sun);
 
                 guiRenderer.render();
 

@@ -6,9 +6,9 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class PixelConstraint extends GuiConstraints {
 
-    private GuiComponent<?> relativeTo;
+    private GuiComponent relativeTo;
 
-    public PixelConstraint(int pixel, GuiComponent<?> relativeTo) {
+    public PixelConstraint(int pixel, GuiComponent relativeTo) {
         super(ConstraintsType.BOTH, Constraints.PIXEL);
 
         this.relativeTo = relativeTo;
@@ -21,7 +21,7 @@ public class PixelConstraint extends GuiConstraints {
         this.constraint = pixel;
     }
 
-    public GuiComponent<?> getRelativeTo() {
+    public GuiComponent getRelativeTo() {
         return this.relativeTo;
     }
 }

@@ -133,10 +133,6 @@ public class Maths {
         depth = lr.z != ll.z ? lr.z - ll.z : lr.x - ll.x;
 
         Vector3f normalPlane = new Vector3f(ll.x == lr.x ? 1 : 0, ll.y == ul.y ? 1 : 0, ll.z == lr.z ? 1 : 0);
-        System.out.println(normalPlane);
-        System.out.println(ll.x == lr.x ? 0 : depth);
-        System.out.println(ll.y == ul.y ? 0 : height);
-        System.out.println(ll.z == lr.z ? 0 : depth);
         return picker.intersectionWithPlane(
                 new Vector3f(x, y, z), ll.x == lr.x ? 0 : depth, ll.y == ul.y ? 0 : height, ll.z == lr.z ? 0 : depth,
                 normalPlane, false);

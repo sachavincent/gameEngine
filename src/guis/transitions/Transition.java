@@ -9,8 +9,8 @@ public abstract class Transition {
 
     private boolean done;
 
-    private Trigger trigger;
-    private int     delay;
+    private final Trigger trigger;
+    private       int     delay;
 
     protected boolean started = false;
 

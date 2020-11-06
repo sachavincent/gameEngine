@@ -12,6 +12,7 @@ import items.EmptyItem;
 import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.PlaceHolderItem;
+import items.buildings.houses.HouseItem;
 import items.buildings.houses.RequireBuilding;
 import items.roads.RoadItem;
 import java.awt.image.BufferedImage;
@@ -61,6 +62,8 @@ public class Terrain {
 
     private RoadGraph roadGraph;
 
+    private int numberOfPeople;
+
     public static Terrain instance;
 
     public static Terrain getInstance() {
@@ -97,11 +100,6 @@ public class Terrain {
             if (position.x < x || position.x > SIZE || position.y < z || position.y > 150)
                 throw new IllegalStateException("Clicked out of terrain");
 
-            if (previewItemPositions.size() == 1 && previewItemPositions.contains(position)) {
-                removeItem(position);
-                previewItemPositions.remove(position);
-            }
-
             item.place(position);
         } catch (IllegalStateException e) {
             e.printStackTrace();
@@ -127,6 +125,10 @@ public class Terrain {
     public void addPreviewItem(Vector2f previewItemPosition, AbstractItem previewItem) {
         if (previewItem == null)
             return;
+
+        if (this.previewedItem == null)
+            setPreviewedItem(previewItem);
+
 //Check previewItem = previewedItem TODO
         if (this.items.get(previewItemPosition) instanceof EmptyItem) { // Rien dans cet emplacement
 //            removeItem(this.previewItemPosition);
@@ -151,7 +153,9 @@ public class Terrain {
     public void resetPreviewItems(boolean safeDelete) {
         if (safeDelete)
             removeItems(this.previewItemPositions);
+
         this.previewItemPositions = new HashSet<>();
+        this.previewedItem = null;
     }
 
     public RawModel getModelGrid() {
@@ -476,6 +480,32 @@ public class Terrain {
         }
     }
 
+    public int getNumberOfPeople() {
+        return this.numberOfPeople;
+    }
+
+    public boolean addPerson() {
+        if (numberOfPeople >= getMaxPeopleCapacity())
+            return false;
+
+        numberOfPeople++;
+
+        return true;
+    }
+
+    public int getMaxPeopleCapacity() {
+        return this.items.values().stream().filter(HouseItem.class::isInstance)
+                .mapToInt(item -> ((HouseItem) item).getMaxPeopleCapacity()).sum();
+    }
+
+
+    public void removePerson() {
+        if (numberOfPeople <= 0)
+            return;
+
+        numberOfPeople--;
+    }
+
     public void removeItems(Collection<Vector2f> positions) {
         for (Vector2f position : positions) {
 //            if (!(items.get(position) instanceof EmptyItem)) {
@@ -573,6 +603,7 @@ public class Terrain {
             }
         }
 
+
         tempItems.put(position, item);
 
         tempItems.forEach(this::addItem);
@@ -610,6 +641,7 @@ public class Terrain {
 //                foundRoutes.stream().filter(routeRoads -> routeRoads.getCost() == bestRoute.getCost()).forEach(paths::add);
             }
         });
+
         setHightlightedPaths(paths);
     }
 
@@ -649,12 +681,12 @@ public class Terrain {
     public void setHightlightedPaths(List<Route<RouteRoad>> routeList) {
         List<RawModel> paths = new ArrayList<>();
         if (!routeList.isEmpty()) {
-            System.out.println("Highlighted paths: ");
+//            System.out.println("Highlighted paths: ");
 
             for (Route<RouteRoad> routes : routeList) {
-                System.out.println("\tPath: " + routes);
-                System.out.println();
-                System.out.println();
+//                System.out.println("\tPath: " + routes);
+//                System.out.println();
+//                System.out.println();
                 if (routes.size() == 0)
                     continue;
 
@@ -698,23 +730,31 @@ public class Terrain {
 //    }
 
     private RoadGraph createRoadGraph() {
-        RoadGraph roadGraph = new RoadGraph();
-        Map<RoadNode, Direction[]> nodes = new HashMap<>();
+        final RoadGraph roadGraph = new RoadGraph();
 
-        getRoads().keySet().forEach(pos -> {
+        Thread t = new Thread(() -> {
+            Map<RoadNode, Direction[]> nodes = new HashMap<>();
+
+            getRoads().keySet().forEach(pos -> {
 //                    Direction[] directions = getRoadDirections(pos);
-            Direction[] directions = getConnectionsToRoadItem(pos, true);
-            if (directions.length >= 3)
-                nodes.put(new RoadNode(pos), directions);
+                Direction[] directions = getConnectionsToRoadItem(pos, true);
+                if (directions.length >= 3)
+                    nodes.put(new RoadNode(pos), directions);
+            });
+
+            for (Entry<RoadNode, Direction[]> node : nodes.entrySet()) {
+                RoadNode roadNode = node.getKey();
+                if (!roadGraph.getNodes().contains(roadNode))
+                    roadGraph.searchForNextNode(roadNode.getPosition(), node.getValue(), null);
+            }
         });
 
-        for (Entry<RoadNode, Direction[]> node : nodes.entrySet()) {
-            RoadNode roadNode = node.getKey();
-            if (!roadGraph.getNodes().contains(roadNode))
-                roadGraph.searchForNextNode(roadNode.getPosition(), node.getValue(), null);
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
-        System.out.println(roadGraph);
         return roadGraph;
     }
 
@@ -740,6 +780,12 @@ public class Terrain {
     }
 
     public void placePreviewItems() {
-        this.previewItemPositions.forEach(pos -> placeItem(previewedItem, pos));
+        if (this.previewedItem == null)
+            return;
+
+        removeItems(this.previewItemPositions);
+        Vector2f[] pos = this.previewItemPositions.toArray(new Vector2f[0]);
+
+        this.previewedItem.place(pos);
     }
 }

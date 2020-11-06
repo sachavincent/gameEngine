@@ -6,6 +6,8 @@ import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
+import guis.constraints.StickyConstraint;
+import guis.constraints.StickyConstraint.StickySide;
 import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
@@ -21,7 +23,7 @@ import java.util.Objects;
 import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
-public abstract class GuiComponent<E> implements GuiInterface {
+public abstract class GuiComponent implements GuiInterface {
 
     private float x, y;
 
@@ -32,9 +34,9 @@ public abstract class GuiComponent<E> implements GuiInterface {
 
     private float finalWidth, finalHeight;
 
-    private GuiInterface parent;
+    private final GuiInterface parent;
 
-    private GuiTexture<?> texture;
+    private GuiTexture texture;
 
     private ReleaseCallback onReleaseCallback;
     private EnterCallback   onEnterCallback;
@@ -51,6 +53,9 @@ public abstract class GuiComponent<E> implements GuiInterface {
     private float cornerRadius = Gui.CORNER_RADIUS;
 
     public GuiComponent(GuiInterface parent) {
+        if (parent == null)
+            throw new NullPointerException("Parent null");
+
         this.parent = parent;
         this.width = parent.getWidth();
         this.finalWidth = parent.getWidth();
@@ -68,7 +73,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
     public GuiComponent(GuiInterface parent, GuiBackground<?> texture) {
         this(parent);
 
-        this.texture = new GuiTexture<E>(texture, new Vector2f(x, y), new Vector2f(width, height));
+        this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height));
     }
 
     public float getCornerRadius() {
@@ -88,11 +93,18 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
+        if (constraints == null)
+            return;
+
         final GuiConstraints xConstraint = constraints.getxConstraint();
         final GuiConstraints yConstraint = constraints.getyConstraint();
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();
         final GuiConstraints heightConstraint = constraints.getHeightConstraint();
 
+        handleWidthConstraint(widthConstraint);
+        handleHeightConstraint(heightConstraint);
+        handleXConstraint(xConstraint);
+        handleYConstraint(yConstraint);
         for (char s : constraints.getOrder()) {
             switch (s) {
                 case 'W':
@@ -118,15 +130,16 @@ public abstract class GuiComponent<E> implements GuiInterface {
     private void handleYConstraint(GuiConstraints yConstraint) {
         if (yConstraint == null)
             return;
-
+        GuiInterface relativeTo;
         float constraint = yConstraint.constraint();
+
         switch (yConstraint.getConstraint()) {
             case RELATIVE:
-                GuiInterface relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
+                relativeTo = ((RelativeConstraint) yConstraint).getRelativeTo();
                 if (relativeTo != null)  // Relatif à un autre élément
-                    this.y = relativeTo.getY() + (relativeTo.getHeight() - this.height) * constraint;
+                    this.y = relativeTo.getY() - (relativeTo.getHeight() - this.height) * constraint;
                 else {
-                    // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent : fonctionne.
+                    // Cadre la position dans le parent avec 0 > constraint < 1 qui définit la position du composant dans le parent : fonctionne ?.
                     this.y = (parent.getY() + parent.getHeight() - this.height) -
                             (parent.getHeight() - this.height) * 2 * constraint;
                 }
@@ -156,6 +169,17 @@ public abstract class GuiComponent<E> implements GuiInterface {
                 break;
             case CENTER:
                 this.y = parent.getY();
+
+                break;
+            case STICKY:
+                relativeTo = ((StickyConstraint) yConstraint).getRelativeTo();
+                if ((int) yConstraint.constraint() == StickySide.DOWN.ordinal()) {
+                    this.y = relativeTo.getY() - relativeTo.getHeight() - this.height;
+                } else if ((int) yConstraint.constraint() == StickySide.UP.ordinal()) {
+                    this.y = relativeTo.getY() + relativeTo.getHeight() + this.height;
+                } else
+                    this.y = relativeTo.getY(); // weird champ
+
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -165,11 +189,11 @@ public abstract class GuiComponent<E> implements GuiInterface {
     private void handleXConstraint(GuiConstraints xConstraint) {
         if (xConstraint == null)
             return;
-
+        GuiInterface relativeTo;
         float constraint = xConstraint.constraint();
         switch (xConstraint.getConstraint()) {
             case RELATIVE:
-                GuiInterface relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
+                relativeTo = ((RelativeConstraint) xConstraint).getRelativeTo();
                 if (relativeTo != null)  // Relatif à un autre élément
                     this.x = relativeTo.getX() + (relativeTo.getWidth() - this.width) * constraint;
                 else {
@@ -202,6 +226,16 @@ public abstract class GuiComponent<E> implements GuiInterface {
             case CENTER:
                 this.x = parent.getX();
                 break;
+            case STICKY:
+                relativeTo = ((StickyConstraint) xConstraint).getRelativeTo();
+                if ((int) xConstraint.constraint() == StickySide.LEFT.ordinal()) {
+                    this.x = relativeTo.getX() - relativeTo.getWidth() - this.width;
+                } else if ((int) xConstraint.constraint() == StickySide.RIGHT.ordinal()) {
+                    this.x = relativeTo.getX() + relativeTo.getWidth() + this.width;
+                } else
+                    this.x = relativeTo.getX(); // weird champ
+
+                break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
         }
@@ -214,17 +248,22 @@ public abstract class GuiComponent<E> implements GuiInterface {
         float constraint = heightConstraint.constraint();
         switch (heightConstraint.getConstraint()) {
             case RELATIVE:
-                height = constraint * parent.getHeight();
+                GuiInterface relativeTo = ((RelativeConstraint) heightConstraint).getRelativeTo();
+                if (relativeTo != null)
+                    this.height = constraint * relativeTo.getHeight();
+                else
+                    this.height = constraint * parent.getHeight();
+
                 break;
             case ASPECT:
-                height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
+                this.height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.width;
                 break;
             case PIXEL:
                 if (constraint > DisplayManager.HEIGHT) // Nb of pixels > height
                     throw new IllegalGuiConstraintException(
                             "Height of component exceeded height of window");
 
-                height = constraint / DisplayManager.HEIGHT;
+                this.height = constraint / DisplayManager.HEIGHT;
 
                 break;
             default:
@@ -244,7 +283,12 @@ public abstract class GuiComponent<E> implements GuiInterface {
         float constraint = widthConstraint.constraint();
         switch (widthConstraint.getConstraint()) {
             case RELATIVE:
-                this.width = constraint * parent.getWidth();
+                GuiInterface relativeTo = ((RelativeConstraint) widthConstraint).getRelativeTo();
+                if (relativeTo != null)
+                    this.width = constraint * relativeTo.getWidth();
+                else
+                    this.width = constraint * parent.getWidth();
+
                 break;
             case ASPECT:
                 this.width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.height;
@@ -368,7 +412,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.onScrollCallback = onScrollCallback;
     }
 
-    public void setTexture(GuiTexture<?> texture) {
+    public void setTexture(GuiTexture texture) {
         this.texture = texture;
     }
 
@@ -439,7 +483,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
     }
 
     @Override
-    public GuiTexture<?> getTexture() {
+    public GuiTexture getTexture() {
         return this.texture;
     }
 
@@ -453,11 +497,11 @@ public abstract class GuiComponent<E> implements GuiInterface {
         this.height = finalHeight;
     }
 
-    public static Gui getParentGui(GuiComponent<?> guiComponent) {
+    public static Gui getParentGui(GuiComponent guiComponent) {
         if (guiComponent.getParent() instanceof Gui)
             return (Gui) guiComponent.getParent();
 
-        return getParentGui((GuiComponent<?>) guiComponent.getParent());
+        return getParentGui((GuiComponent) guiComponent.getParent());
     }
 
     public GuiInterface getParent() {
@@ -604,7 +648,7 @@ public abstract class GuiComponent<E> implements GuiInterface {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        GuiComponent<?> that = (GuiComponent<?>) o;
+        GuiComponent that = (GuiComponent) o;
         return Float.compare(that.x, x) == 0 &&
                 Float.compare(that.y, y) == 0 &&
                 Float.compare(that.width, width) == 0 &&

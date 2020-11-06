@@ -6,10 +6,11 @@ import entities.Camera.Direction;
 import items.ConnectableItem;
 import items.Item;
 import items.RotatableItem;
+import items.SelectableItem;
 import java.util.Arrays;
 import util.math.Maths;
 
-public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem {
+public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem, SelectableItem {
 
     // WEST NORTH EAST SOUTH
     private       boolean[]     accessPoints = new boolean[]{true, true, true, true};

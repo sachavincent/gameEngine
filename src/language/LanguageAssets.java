@@ -33,8 +33,11 @@ public class LanguageAssets {
     }
 
     public String getWord(String key) {
-        if (currentLanguage == null || !currentLanguage.containsKey(key))
-            throw new UnknownLanguageException("Couldn't find word: \"" + key + "\"");
+        if (currentLanguage == null || !currentLanguage.containsKey(key)) {
+            System.out.println("Couldn't find word: \"" + key + "\"");
+
+            return key;
+        }
 
         return currentLanguage.get(key);
     }

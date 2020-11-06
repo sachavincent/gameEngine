@@ -11,7 +11,7 @@ public class PatternConstraints extends GuiGlobalConstraints {
     }
 
     @Override
-    public GuiConstraintsManager addElement(GuiComponent<?> guiComponent) {
+    public GuiConstraintsManager addElement(GuiComponent guiComponent) {
         if (guiComponent == null)
             return null;
 

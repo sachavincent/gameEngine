@@ -1,6 +1,5 @@
 package guis.prefabs;
 
-import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.constraints.AspectConstraint;
@@ -10,24 +9,17 @@ import guis.constraints.RelativeConstraint;
 import guis.presets.GuiBackground;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.presets.buttons.GuiCircularButton;
-import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import inputs.callbacks.PressCallback;
 import java.awt.Color;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import language.Words;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
-import textures.FontTexture;
 
 public class GuiEscapeMenu extends Gui {
-
-    private final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
 
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.9f)};
@@ -68,6 +60,32 @@ public class GuiEscapeMenu extends Gui {
 
     public void setButtonDimensions(MenuButton menuButton, GuiConstraintsManager constraints) {
 
+    }
+
+    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+            PressCallback onPress, Transition... transitions) {
+        GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
+                .setDefault()
+                .setWidthConstraint(new RelativeConstraint(0.7f, this))
+                .setHeightConstraint(new AspectConstraint(0.25f))
+                .create();
+
+        GuiAbstractButton button;
+
+        List<MenuButton> l = new ArrayList<>(EnumSet.allOf(MenuButton.class));
+        float y = (l.indexOf(menuButton) + 1) / (l.size() + 1f);
+
+        constraints.setyConstraint(new RelativeConstraint(y));
+
+        System.out.println("y: " + y);
+        button = createButton(buttonType, background,
+                new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)), null, constraints);
+        if (button != null) {
+            button.setDisplayed(false);
+            button.setOnPress(onPress);
+
+            setComponentTransitions(button, transitions);
+        }
     }
 
     public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
@@ -122,47 +140,8 @@ public class GuiEscapeMenu extends Gui {
     }
 
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
-            PressCallback onPress, Transition... transitions) {
-        GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
-                .setDefault()
-                .setWidthConstraint(new RelativeConstraint(0.7f, instance))
-                .setHeightConstraint(new AspectConstraint(0.25f))
-                .create();
-
-        GuiAbstractButton button;
-
-        List<MenuButton> l = new ArrayList<>(EnumSet.allOf(MenuButton.class));
-        float y = (l.indexOf(menuButton) + 1) / (l.size() + 1f);
-
-        constraints.setyConstraint(new RelativeConstraint(y));
-
-        button = createButton(menuButton, buttonType, background, constraints);
-        if (button != null) {
-            button.setDisplayed(false);
-            button.setOnPress(onPress);
-
-            setComponentTransitions(button, transitions);
-        }
-    }
-
     private void quitFunction() {
         DisplayManager.closeDisplay();
-    }
-
-    private GuiAbstractButton createButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
-            GuiConstraintsManager constraints) {
-        switch (buttonType) {
-            case CIRCULAR:
-                return new GuiCircularButton(this, background,
-                        new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)),
-                        constraints); //TODO: Handle fontSize automatically (text length with button width)
-            // TODO: Add color parameter
-            case RECTANGLE:
-                return new GuiRectangleButton(this, background,
-                        new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)), constraints);
-        }
-        return null;
     }
 
     public void setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
@@ -182,19 +161,20 @@ public class GuiEscapeMenu extends Gui {
         return instance;
     }
 
-    public enum MenuButton {
+    public enum MenuButton implements MenuButtons {
         RESUME(Words.RESUME),
         SAVE_AND_QUIT(Words.SAVE_AND_QUIT),
         QUICK_SAVE(Words.QUICK_SAVE),//TODO: Quick save
         SETTINGS(Words.SETTINGS),
         QUIT(Words.QUIT);
 
-        private String string;
+        private final String string;
 
         MenuButton(String string) {
             this.string = string;
         }
 
+        @Override
         public String getString() {
             return this.string;
         }
@@ -202,7 +182,7 @@ public class GuiEscapeMenu extends Gui {
 
     public static class Builder {
 
-        private GuiEscapeMenu guiEscapeMenu;
+        private final GuiEscapeMenu guiEscapeMenu;
 
         public Builder() {
             guiEscapeMenu = new GuiEscapeMenu();

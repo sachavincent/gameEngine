@@ -6,8 +6,8 @@ import shaders.VerticalBlurShader;
 
 public class VerticalBlur {
 
-    private ImageRenderer      renderer;
-    private VerticalBlurShader shader;
+    private final ImageRenderer      renderer;
+    private final VerticalBlurShader shader;
 
     public VerticalBlur(int targetFboWidth, int targetFboHeight) {
         shader = new VerticalBlurShader();
@@ -24,7 +24,7 @@ public class VerticalBlur {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
 
-        renderer.renderQuad(true);
+        renderer.renderQuad(false);
         shader.stop();
     }
 

@@ -7,7 +7,7 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public abstract class GuiGlobalConstraints extends GuiConstraints {
 
-    private Object[] args;
+    private final Object[] args;
 
     protected int nbElements;
 
@@ -27,5 +27,5 @@ public abstract class GuiGlobalConstraints extends GuiConstraints {
         return this.args;
     }
 
-    public abstract GuiConstraintsManager addElement(GuiComponent<?> guiComponent);
+    public abstract GuiConstraintsManager addElement(GuiComponent guiComponent);
 }

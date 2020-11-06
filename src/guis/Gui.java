@@ -1,5 +1,7 @@
 package guis;
 
+import fontMeshCreator.FontType;
+import fontMeshCreator.Text;
 import guis.basics.GuiBasics;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
@@ -9,12 +11,17 @@ import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import guis.presets.buttons.GuiAbstractButton;
+import guis.presets.buttons.GuiAbstractButton.ButtonType;
+import guis.presets.buttons.GuiCircularButton;
+import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import guis.transitions.Transition.Trigger;
 import java.awt.Color;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import renderEngine.DisplayManager;
+import textures.FontTexture;
 import util.Timer;
 import util.math.Vector2f;
 
@@ -22,8 +29,12 @@ public class Gui implements GuiInterface {
 
     public final static float CORNER_RADIUS = 8f;
 
-    private GuiTexture<?>                         background;
-    private Map<GuiComponent<?>, Set<Transition>> components;
+    protected final static FontType DEFAULT_FONT = new FontType(
+            new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
+
+    private final Map<GuiComponent, Set<Transition>> components;
+
+    private GuiTexture background;
 
     private Set<Transition> transitions;
 
@@ -47,7 +58,7 @@ public class Gui implements GuiInterface {
     }
 
     public void setBackground(GuiBackground<?> background) {
-        this.background = new GuiTexture<>(background, new Vector2f(x, y), new Vector2f(width,
+        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
                 height));
     }
 
@@ -65,6 +76,10 @@ public class Gui implements GuiInterface {
         final GuiConstraints widthConstraint = constraints.getWidthConstraint();
         final GuiConstraints heightConstraint = constraints.getHeightConstraint();
 
+        handleWidthConstraint(widthConstraint);
+        handleHeightConstraint(heightConstraint);
+        handleXConstraint(xConstraint);
+        handleYConstraint(yConstraint);
         for (char s : constraints.getOrder()) {
             switch (s) {
                 case 'W':
@@ -222,7 +237,6 @@ public class Gui implements GuiInterface {
                 break;
             case PIXEL:
                 this.width = constraint / DisplayManager.WIDTH;
-
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -256,7 +270,7 @@ public class Gui implements GuiInterface {
     }
 
 
-    private void show() {
+    protected void show() {
         if (isDisplayed())
             return;
 
@@ -329,9 +343,9 @@ public class Gui implements GuiInterface {
                     .allMatch(Transition::isDone);
     }
 
-    public boolean areTransitionsOfComponentDone(GuiComponent<?> guiComponent) {
+    public boolean areTransitionsOfComponentDone(GuiComponent guiComponent) {
         if (!this.components.containsKey(guiComponent) && guiComponent instanceof GuiBasics)
-            guiComponent = (GuiComponent<?>) guiComponent.getParent();
+            guiComponent = (GuiComponent) guiComponent.getParent();
 
         if (!this.components.containsKey(guiComponent))
             return false;
@@ -342,7 +356,7 @@ public class Gui implements GuiInterface {
         return this.components.get(guiComponent).stream().allMatch(Transition::isDone);
     }
 
-    public void addComponent(GuiComponent<?> guiComponent, Transition... transitions) {
+    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
         if (guiComponent == null)
             return;
 
@@ -354,7 +368,7 @@ public class Gui implements GuiInterface {
             this.components.put(guiComponent, new HashSet<>(Arrays.asList(transitions)));
     }
 
-    public void removeComponent(GuiComponent<?> guiComponent) {
+    public void removeComponent(GuiComponent guiComponent) {
         if (guiComponent == null)
             return;
 
@@ -388,7 +402,7 @@ public class Gui implements GuiInterface {
             }
         });
 
-        Map<GuiComponent<?>, Set<Transition>> map =
+        Map<GuiComponent, Set<Transition>> map =
                 isDisplayed() ? getComponentsShowTransitions() : getComponentsHideTransitions();
 
         map.forEach((guiComponent, lTransitions) -> lTransitions.stream().filter(transition -> !transition.isDone())
@@ -430,7 +444,7 @@ public class Gui implements GuiInterface {
         this.transitions = new HashSet<>(Arrays.asList(transitions));
     }
 
-    public void setComponentTransitions(GuiComponent<?> guiComponent, Transition... transitions) {
+    public void setComponentTransitions(GuiComponent guiComponent, Transition... transitions) {
         if (!components.containsKey(guiComponent))
             throw new IllegalArgumentException("Component does not belong to parent gui");
 
@@ -455,8 +469,8 @@ public class Gui implements GuiInterface {
                 .collect(Collectors.toSet());
     }
 
-    public Map<GuiComponent<?>, Set<Transition>> getComponentsHideTransitions() {
-        Map<GuiComponent<?>, Set<Transition>> transitions = new HashMap<>();
+    public Map<GuiComponent, Set<Transition>> getComponentsHideTransitions() {
+        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
 
         components.forEach((guiComponent, transitionSet) ->
                 transitions.put(guiComponent,
@@ -466,8 +480,8 @@ public class Gui implements GuiInterface {
         return transitions;
     }
 
-    public Map<GuiComponent<?>, Set<Transition>> getComponentsShowTransitions() {
-        Map<GuiComponent<?>, Set<Transition>> transitions = new HashMap<>();
+    public Map<GuiComponent, Set<Transition>> getComponentsShowTransitions() {
+        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
 
         components.forEach((guiComponent, transitionSet) ->
                 transitions.put(guiComponent,
@@ -505,8 +519,8 @@ public class Gui implements GuiInterface {
         this.height = height;
     }
 
-    public List<GuiComponent<?>> getAllComponents() {
-        final List<GuiComponent<?>> guiComponents = new ArrayList<>();
+    public List<GuiComponent> getAllComponents() {
+        final List<GuiComponent> guiComponents = new ArrayList<>();
         getComponents().keySet().forEach(guiComponent -> {
             if (guiComponent instanceof GuiPreset) {
                 guiComponents.addAll(((GuiPreset) guiComponent).getBasics());
@@ -519,7 +533,7 @@ public class Gui implements GuiInterface {
     }
 
     @Override
-    public GuiTexture<?> getTexture() {
+    public GuiTexture getTexture() {
         return this.background;
     }
 
@@ -528,7 +542,7 @@ public class Gui implements GuiInterface {
         this.displayed = displayed;
     }
 
-    public Map<GuiComponent<?>, Set<Transition>> getComponents() {
+    public Map<GuiComponent, Set<Transition>> getComponents() {
         return this.components;
     }
 
@@ -709,5 +723,18 @@ public class Gui implements GuiInterface {
 
     public void setCornerRadius(float cornerRadius) {
         this.cornerRadius = cornerRadius;
+    }
+
+    protected GuiAbstractButton createButton(ButtonType buttonType, GuiBackground<?> background, Text text,
+            Text tooltipText, GuiConstraintsManager constraints) {
+        switch (buttonType) {
+            case CIRCULAR:
+                return new GuiCircularButton(this, background, text, tooltipText,
+                        constraints); //TODO: Handle fontSize automatically (text length with button width)
+            // TODO: Add color parameter
+            case RECTANGLE:
+                return new GuiRectangleButton(this, background, text, tooltipText, constraints);
+        }
+        return null;
     }
 }

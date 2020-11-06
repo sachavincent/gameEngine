@@ -17,7 +17,7 @@ public class ImageRenderer {
         if (fbo != null && !lastRender)
             fbo.bindFrameBuffer();
 
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
         if (fbo != null && !lastRender)
             fbo.unbindFrameBuffer();

@@ -57,8 +57,8 @@ public class GuiRectangleButton extends GuiAbstractButton {
 
     @Override
     public void setBorder(Color color) {
-        borderLayout = new GuiRectangle(this, new GuiBackground<>(color), new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this), false);
+        addBorderLayout(new GuiRectangle(this, new GuiBackground<>(color), new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this), false));
     }
 
     @Override

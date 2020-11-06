@@ -5,7 +5,7 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class SideConstraint extends GuiConstraints {
 
-    private Side side;
+    private final Side side;
 
     private final static float DISTANCE_FROM_SIDE = 0.01f;
 

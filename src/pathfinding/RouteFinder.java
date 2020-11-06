@@ -748,6 +748,7 @@ public class RouteFinder {
         return routeRoads;
     }
 
+    @Deprecated
     private @NotNull
     Route<RouteRoad> findUnobstructedRoute(final Vector2f startPos, final Vector2f endPos,
             Route<RouteRoad> currentRoute, Map<Vector2f, Integer> positionValues, final Vector2f finalStartPos,

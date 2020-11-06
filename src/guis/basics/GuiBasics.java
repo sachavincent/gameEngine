@@ -6,7 +6,7 @@ import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiBackground;
 
-public abstract class GuiBasics extends GuiComponent<GuiBasics> {
+public abstract class GuiBasics extends GuiComponent {
 
     private float baseWidth, baseHeight;
 

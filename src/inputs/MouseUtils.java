@@ -16,10 +16,15 @@ import guis.GuiComponent;
 import guis.basics.GuiEllipse;
 import guis.prefabs.GuiSelectedItem;
 import items.Item;
+import items.SelectableItem;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+import models.RawModel;
+import models.TexturedModel;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
@@ -81,7 +86,7 @@ public class MouseUtils {
         return isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 
-    public static boolean isCursorInGuiComponent(GuiComponent<?> guiComponent) {
+    public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
         if (guiComponent instanceof GuiEllipse) {
             Vector2f cursorPos = getCursorPos();
 
@@ -105,15 +110,16 @@ public class MouseUtils {
     public static void setupListeners() {
         long window = DisplayManager.getWindow();
 
-        final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
+            final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
+
             boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
-            if (!inGui)
+            if (!inGui) {
                 onClickOnTerrain(button, action);
-            else if (button == GLFW_MOUSE_BUTTON_1) {
+            } else if (button == GLFW_MOUSE_BUTTON_1) {
                 guis.stream()
                         .filter(Gui::isDisplayed).forEach(
                         gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
@@ -139,6 +145,8 @@ public class MouseUtils {
         });
 
         callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> {
+            final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
+
             boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
@@ -196,8 +204,8 @@ public class MouseUtils {
                             terrain.addPreviewItem(terrainPoint, selectedItem);
                     }
                 } else {
-                    if (!selectedItemGui.isDisplayed())
-                        Gui.showGui(selectedItemGui);
+//                    if (!selectedItemGui.isDisplayed())
+//                        Gui.showGui(selectedItemGui);
                 }
 
                 Camera camera = Camera.getInstance();
@@ -251,12 +259,10 @@ public class MouseUtils {
 
 
     private static void onClickOnTerrain(int button, int action) {
-        System.out.println("CLICK");
         MousePicker picker = MousePicker.getInstance();
         Terrain terrain = Terrain.getInstance();
-        Vector3f terrainPoint;
+        Vector3f terrainPoint = picker.update();
         if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-            terrainPoint = picker.update();
             if (terrainPoint == null)
                 return;
 
@@ -266,10 +272,8 @@ public class MouseUtils {
             currentTerrainPoint.x = (float) Math.rint(currentTerrainPoint.x);
             currentTerrainPoint.y = (float) Math.rint(currentTerrainPoint.y);
 
-            System.out.println(currentTerrainPoint);
             switch (action) {
                 case GLFW_PRESS:
-                    System.out.println("Press");
                     startTerrainPos = currentTerrainPoint;
                     lastTerrainPos = startTerrainPos;
                     terrain.resetPreviewItems(true);
@@ -282,7 +286,6 @@ public class MouseUtils {
                 case GLFW_RELEASE:
                     clicks--;
                     if (startTerrainPos != null && clicks == 0) {
-                        System.out.println("Release");
 //                        System.out.println("startTerrainPos != null, currentTerrainPoint: " + currentTerrainPoint);
 //                        if(startTerrainPos.equals(currentTerrainPoint))
 //                        terrain.placeItem(GuiSelectedItem.getSelectedItemGui().getSelectedItem(), currentTerrainPoint);
@@ -298,13 +301,22 @@ public class MouseUtils {
             onMiddleMouseButton(action);
         } else if (button == GLFW_MOUSE_BUTTON_2) {
             if (action == GLFW_PRESS) {
-                picker.update();
-                for (Entry<Vector2f, Item> entry : terrain.getItems().entrySet()) {
+                Set<Entry<Vector2f, Item>> entrySet = terrain.getItems().entrySet().stream()
+                        .filter(entry -> entry.getValue() instanceof SelectableItem).collect(Collectors.toSet());
+                for (Entry<Vector2f, Item> entry : entrySet) {
                     Vector2f pos = entry.getKey();
                     Item item = entry.getValue();
 
-                    Vector3f min = item.getBoundingBox().getRawModel().getMin();
-                    Vector3f max = item.getBoundingBox().getRawModel().getMax();
+                    TexturedModel boundingBox = item.getBoundingBox();
+                    if (boundingBox == null)
+                        continue;
+
+                    RawModel boundingBoxRawModel = boundingBox.getRawModel();
+                    if (boundingBoxRawModel == null)
+                        continue;
+
+                    Vector3f min = boundingBoxRawModel.getMin();
+                    Vector3f max = boundingBoxRawModel.getMax();
 
                     float minX = min.x;
                     float minY = min.y;

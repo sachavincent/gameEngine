@@ -19,7 +19,7 @@ public class GuiRectangleCheckbox extends GuiAbstractCheckbox {
                 new RelativeConstraint(1, this), false);
     }
 
-    public void setOutlineWidth(int width) {
+    public void setOutlineWidth(double width) {
         ((GuiRectangle) this.checkboxLayout).setOutlineWidth(width);
     }
 

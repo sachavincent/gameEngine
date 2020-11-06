@@ -17,8 +17,6 @@ import guis.constraints.SideConstraint.Side;
 import guis.presets.GuiBackground;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.presets.buttons.GuiCircularButton;
-import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import inputs.callbacks.PressCallback;
 import items.buildings.Market;
@@ -45,7 +43,7 @@ public class GuiItemSelection extends Gui {
 
     private static GuiItemSelection instance;
 
-    private EnumSet<MenuButton> buttons = EnumSet.noneOf(MenuButton.class);
+    private final EnumSet<MenuButton> buttons = EnumSet.noneOf(MenuButton.class);
 
     private GuiGlobalConstraints childrenConstraints;
 
@@ -112,7 +110,7 @@ public class GuiItemSelection extends Gui {
 
         GuiAbstractButton button;
 
-        button = createButton(menuButton, buttonType, background);
+        button = createButton(buttonType, background, null, new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
         if (button != null) {
             buttons.add(menuButton);
 
@@ -121,20 +119,6 @@ public class GuiItemSelection extends Gui {
 
             setComponentTransitions(button, transitions);
         }
-    }
-
-    private GuiAbstractButton createButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background) {
-        switch (buttonType) {
-            case CIRCULAR:
-                return new GuiCircularButton(this, background, null,
-                        new Text(menuButton.getTooltipName(), .55f, DEFAULT_FONT, Color.DARK_GRAY),
-                        0); //TODO: Handle fontSize automatically (text length with button width)
-            // TODO: Add color parameter
-            case RECTANGLE:
-                return new GuiRectangleButton(this, background, null,
-                        new Text(menuButton.getTooltipName(), .55f, DEFAULT_FONT, Color.DARK_GRAY), 0);
-        }
-        return null;
     }
 
     public void setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
@@ -151,7 +135,7 @@ public class GuiItemSelection extends Gui {
     }
 
     @Override
-    public void addComponent(GuiComponent<?> guiComponent, Transition... transitions) {
+    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
         if (guiComponent == null)
             return;
 
@@ -174,25 +158,26 @@ public class GuiItemSelection extends Gui {
         return instance;
     }
 
-    public enum MenuButton {
+    public enum MenuButton implements MenuButtons {
         DIRT_ROAD(DirtRoadItem.NAME),
         INSULA(Insula.NAME),
         MARKET(Market.NAME);
 
-        private String tooltipName;
+        private final String string;
 
-        MenuButton(String tooltipName) {
-            this.tooltipName = tooltipName;
+        MenuButton(String string) {
+            this.string = string;
         }
 
-        public String getTooltipName() {
-            return this.tooltipName;
+        @Override
+        public String getString() {
+            return string;
         }
     }
 
     public static class Builder {
 
-        private GuiItemSelection guiItemSelection;
+        private final GuiItemSelection guiItemSelection;
 
         public Builder() {
             guiItemSelection = new GuiItemSelection();

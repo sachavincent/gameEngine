@@ -15,7 +15,6 @@ import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
 import java.awt.Color;
 import java.util.List;
-import javax.naming.SizeLimitExceededException;
 import util.math.Vector2f;
 
 public abstract class GuiAbstractButton extends GuiPreset {
@@ -135,13 +134,15 @@ public abstract class GuiAbstractButton extends GuiPreset {
     }
 
     public void setupText(Text text) {
+        if (text == null)
+            return;
+
         if (this.text != null)
             removeBasic(this.text);
 
-        setText(text);
+        this.text = new GuiText(this, text);
 
-        if (this.text != null)
-            addBasic(this.text);
+        addBasic(this.text);
     }
 
     public void setupTooltipText(Text text) {
@@ -215,54 +216,6 @@ public abstract class GuiAbstractButton extends GuiPreset {
             this.borderLayout.updateTexturePosition();
     }
 
-    private void setText(Text text) {
-        if (text == null)
-            return;
-
-        text.setLineMaxSize(buttonLayout.getWidth());
-        text.setCentered(false);
-
-        List<Line> lines = text.getFont().getLoader().getLines(text);
-
-        if (lines.size() > 1) {
-            try {
-                throw new SizeLimitExceededException("Content must fit in one line.");
-            } catch (SizeLimitExceededException e) {
-                e.printStackTrace();
-                return;
-            }
-        }
-
-        Line line = lines.get(0);
-
-        if (line == null) {
-            try {
-                throw new IllegalArgumentException("Invalid text.");
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-
-                return;
-            }
-        }
-
-        double textHeight = TextMeshCreator.LINE_HEIGHT * text.getFontSize() * 2;
-
-        if (textHeight > buttonLayout.getHeight() * 2) {
-            try {
-                throw new SizeLimitExceededException("Font size too large.");
-            } catch (SizeLimitExceededException e) {
-                e.printStackTrace();
-
-                return;
-            }
-        }
-
-        text.setPosition(new Vector2f(buttonLayout.getX() - line.getLineLength(),
-                -buttonLayout.getY() - textHeight / 2));
-
-        this.text = new GuiText(this, text);
-    }
-
     private void setTooltipGui(Text text) {
         if (text == null)
             return;
@@ -299,6 +252,10 @@ public abstract class GuiAbstractButton extends GuiPreset {
         GuiText guiText = new GuiText(tooltipGui, text);
         guiText.setDisplayed(false);
         tooltipGui.addComponent(guiText);
+    }
+
+    public GuiText getText() {
+        return this.text;
     }
 
     public Gui getTooltipGui() {

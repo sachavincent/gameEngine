@@ -6,8 +6,8 @@ import shaders.HorizontalBlurShader;
 
 public class HorizontalBlur {
 
-    private ImageRenderer        renderer;
-    private HorizontalBlurShader shader;
+    private final ImageRenderer        renderer;
+    private final HorizontalBlurShader shader;
 
     public HorizontalBlur(int targetFboWidth, int targetFboHeight) {
         shader = new HorizontalBlurShader();

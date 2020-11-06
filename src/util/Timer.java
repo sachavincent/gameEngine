@@ -1,5 +1,6 @@
 package util;
 
+import events.Event;
 import guis.GuiInterface;
 import guis.transitions.Transition;
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ public class Timer {
 
     public final static Map<GuiInterface, List<TimerTask>> TASKS = new HashMap<>();
     public final static java.util.Timer                    TIMER = new java.util.Timer();
+
+    public final static List<TimerTask> MISC_TASKS = new ArrayList<>();
 
     public static double getTime() {
         return (double) System.nanoTime() / (double) 1000000000L;
@@ -41,5 +44,18 @@ public class Timer {
         TASKS.get(guiInterface).add(task);
 
         return task;
+    }
+
+    public static void scheduleEvent(Event event) {
+        TIMER.schedule(event, event.getDelay());
+        MISC_TASKS.add(event);
+    }
+
+    public static void removeMisc(Event event) {
+        MISC_TASKS.remove(event);
+    }
+
+    public static void cancelTask(TimerTask task) {
+        task.cancel();
     }
 }

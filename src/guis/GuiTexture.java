@@ -5,7 +5,7 @@ import java.awt.Color;
 import textures.Texture;
 import util.math.Vector2f;
 
-public class GuiTexture<E> extends Texture {
+public class GuiTexture extends Texture {
 
     private Vector2f position, scale;
 

@@ -1,14 +1,18 @@
 package guis.basics;
 
+import static renderEngine.DisplayManager.MAX_LINE_WIDTH;
+import static renderEngine.DisplayManager.MIN_LINE_WIDTH;
+
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.GuiBackground;
+import renderEngine.DisplayManager;
 
 public abstract class GuiShape extends GuiBasics {
 
     private boolean filled;
-    private int     outlineWidth = 1;
+    private double  outlineWidth = DisplayManager.MIN_LINE_WIDTH;
 
     public GuiShape(GuiInterface parent, GuiBackground<?> background, GuiConstraints width, GuiConstraints height,
             boolean filled) {
@@ -39,11 +43,16 @@ public abstract class GuiShape extends GuiBasics {
                 "} " + super.toString();
     }
 
-    public int getOutlineWidth() {
+    public double getOutlineWidth() {
         return this.outlineWidth;
     }
 
-    public void setOutlineWidth(int outlineWidth) {
+    public void setOutlineWidth(double outlineWidth) {
+        if (outlineWidth > MAX_LINE_WIDTH)
+            outlineWidth = MAX_LINE_WIDTH;
+        else if (outlineWidth < MIN_LINE_WIDTH)
+            outlineWidth = MIN_LINE_WIDTH;
+
         this.outlineWidth = outlineWidth;
     }
 }

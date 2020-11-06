@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public class GuiBackground<E> {
 
-    private E background;
+    private final E background;
 
     public GuiBackground(String texture) {
         background = (E) texture;
@@ -20,5 +20,12 @@ public class GuiBackground<E> {
 
     public E getBackground() {
         return this.background;
+    }
+
+    @Override
+    public String toString() {
+        return "GuiBackground{" +
+                "background=" + background +
+                '}';
     }
 }

@@ -16,18 +16,18 @@ import guis.basics.GuiText;
 import guis.presets.GuiPreset;
 import guis.transitions.Transition;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.IntStream;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL42;
 import shaders.GuiShader;
 import util.math.Maths;
-import util.math.Vector2f;
 
 public class GuiRenderer {
 
@@ -38,10 +38,10 @@ public class GuiRenderer {
     private final RawModel defaultFilledQuad;
     private final RawModel defaultUnfilledQuad;
 
-    private RawModel  quad;
-    private GuiShader shader;
+    private       RawModel  quad;
+    private final GuiShader shader;
 
-    private List<Gui> guis;
+    private final List<Gui> guis;
 
     public static GuiRenderer getInstance() {
         return instance == null ? (instance = new GuiRenderer()) : instance;
@@ -95,8 +95,16 @@ public class GuiRenderer {
                                     .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiPreset) {
-                                    ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
-                                            .forEach(this::handleBasicsRendering);
+                                    try {
+                                        ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
+                                                .forEach(guiBasics -> {
+                                                    try {
+                                                        handleBasicsRendering(guiBasics);
+                                                    } catch (ConcurrentModificationException ignored) {
+                                                    }
+                                                });
+                                    } catch (ConcurrentModificationException ignored) {
+                                    }
                                 } else
                                     handleBasicsRendering(guiComponent);
                             });
@@ -136,7 +144,7 @@ public class GuiRenderer {
         return this.guis;
     }
 
-    private void handleBasicsRendering(GuiComponent<?> guiComponent) {
+    private void handleBasicsRendering(GuiComponent guiComponent) {
         TextMaster textMaster = TextMaster.getInstance();
         if (guiComponent instanceof GuiEllipse) {
             GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
@@ -171,21 +179,13 @@ public class GuiRenderer {
     private void renderUnfilledShape(GuiShape guiShape, int renderingMode, float cornerRadius) {
         glDisable(GL_BLEND);
 
-        Vector2f textureScale = guiShape.getTexture().getScale();
-        float x = textureScale.x;
-        float y = textureScale.y;
-        IntStream.range(0, guiShape.getOutlineWidth()).forEach(width -> {
-            textureScale.x -= (float) width / DisplayManager.WIDTH;
+        GL33.glLineWidth((float) guiShape.getOutlineWidth());
 
-            textureScale.y -= (float) width / DisplayManager.HEIGHT;
+        renderTexture(guiShape.getTexture(), cornerRadius);
 
-            renderTexture(guiShape.getTexture(), cornerRadius);
+        GL33.glDrawArrays(renderingMode, 0, quad.getVertexCount());
 
-            textureScale.x = x;
-            textureScale.y = y;
-
-            GL11.glDrawArrays(renderingMode, 0, quad.getVertexCount());
-        });
+        GL33.glLineWidth(2);
 
         glEnable(GL_BLEND);
     }
@@ -211,7 +211,7 @@ public class GuiRenderer {
         }
     }
 
-    private void renderTexture(GuiTexture<?> guiTexture, float cornerRadius) {
+    private void renderTexture(GuiTexture guiTexture, float cornerRadius) {
         if (guiTexture == null)
             return;
 

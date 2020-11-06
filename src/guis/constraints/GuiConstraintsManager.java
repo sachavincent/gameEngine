@@ -8,7 +8,7 @@ public class GuiConstraintsManager {
 
     private GuiConstraints xConstraint, yConstraint, widthConstraint, heightConstraint;
 
-    private Set<Character> order = new LinkedHashSet<>();
+    private final Set<Character> order = new LinkedHashSet<>();
 
     public GuiConstraintsManager setDefault() {
         setxConstraint(new CenterConstraint());
@@ -85,7 +85,8 @@ public class GuiConstraintsManager {
         RELATIVE,
         SIDE,
         PATTERN,
-        PIXEL
+        PIXEL,
+        STICKY
     }
 
     public enum ConstraintsType {
@@ -96,7 +97,7 @@ public class GuiConstraintsManager {
 
     public static class Builder {
 
-        private GuiConstraintsManager guiConstraintsManager;
+        private final GuiConstraintsManager guiConstraintsManager;
 
         public Builder() {
             guiConstraintsManager = new GuiConstraintsManager();
@@ -129,6 +130,7 @@ public class GuiConstraintsManager {
         public Builder setyConstraint(GuiConstraints yConstraint) {
             guiConstraintsManager.setyConstraint(yConstraint);
 
+            System.out.println("yC: " + yConstraint.constraint);
             return this;
         }
 

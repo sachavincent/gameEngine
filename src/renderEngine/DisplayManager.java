@@ -3,6 +3,7 @@ package renderEngine;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import java.io.FileInputStream;
@@ -11,18 +12,23 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWImage;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 import util.Timer;
 
 public class DisplayManager {
 
     public static int WIDTH = 2560, HEIGHT = 1440, FPS = 144;
 
+    public static  float   MIN_LINE_WIDTH;
+    public static  float   MAX_LINE_WIDTH;
     private static double  lastFrameTime;
     private static double  delta;
     private static long    window;
@@ -77,6 +83,11 @@ public class DisplayManager {
         h.clear();
 
         glfwMakeContextCurrent(window);
+        GL.createCapabilities();
+        glfwSwapInterval(1);
+        GL11.glEnable(GL13.GL_MULTISAMPLE);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+
         glfwShowWindow(window);
         lastFrameTime = getCurrentTime();
         glfwSetFramebufferSizeCallback(window, (callback2 = new GLFWFramebufferSizeCallback() {
@@ -106,6 +117,13 @@ public class DisplayManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        float[] lineWidthRange = new float[2];
+        GL30.glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);
+        MIN_LINE_WIDTH = lineWidthRange[0];
+        MAX_LINE_WIDTH = lineWidthRange[1];
+
+        System.out.println("min: " + MIN_LINE_WIDTH);
+        System.out.println("max: " + MAX_LINE_WIDTH);
     }
 
     private static void getScreens() {
@@ -138,7 +156,8 @@ public class DisplayManager {
     }
 
     public static void closeDisplay() {
-        Timer.TASKS.values().forEach(timerTasks -> timerTasks.forEach(TimerTask::cancel));
+        Timer.TASKS.values().forEach(timerTasks -> timerTasks.forEach(Timer::cancelTask));
+        Timer.MISC_TASKS.forEach(Timer::cancelTask);
         Timer.TIMER.cancel();
 
         glfwSetWindowShouldClose(window, true);

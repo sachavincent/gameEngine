@@ -16,10 +16,12 @@ public class PostProcessing {
     private static ContrastChanger contrastChanger;
     private static HorizontalBlur  horizontalBlur;
     private static VerticalBlur    verticalBlur;
+    private static MonochromaticFilter    monochromaticFilter;
 
-    public static void init(Loader loader) {
-        quad = loader.loadToVAO(POSITIONS, 2);
+    public static void init() {
+        quad = Loader.getInstance().loadToVAO(POSITIONS, 2);
         contrastChanger = new ContrastChanger();
+        monochromaticFilter = new MonochromaticFilter();
 
         horizontalBlur = new HorizontalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
         verticalBlur = new VerticalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
@@ -28,10 +30,10 @@ public class PostProcessing {
     public static void doPostProcessing(int colourTexture) {
         start();
 
-        horizontalBlur.render(colourTexture);
-        verticalBlur.render(horizontalBlur.getOutputTexture());
+//        horizontalBlur.render(colourTexture);
+//        verticalBlur.render(horizontalBlur.getOutputTexture());
+        monochromaticFilter.render(colourTexture);
 //        contrastChanger.render(verticalBlur.getOutputTexture());
-
         end();
     }
 
@@ -39,6 +41,7 @@ public class PostProcessing {
         horizontalBlur.cleanUp();
         verticalBlur.cleanUp();
         contrastChanger.cleanUp();
+        monochromaticFilter.cleanUp();
     }
 
     private static void start() {
@@ -52,6 +55,4 @@ public class PostProcessing {
         GL30.glBindVertexArray(0);
         GL20.glDisableVertexAttribArray(0);
     }
-
-
 }

@@ -8,14 +8,15 @@ import guis.constraints.GuiConstraintsManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GuiPreset extends GuiComponent<GuiBasics> {
+public abstract class GuiPreset extends GuiComponent {
 
     private List<GuiBasics> basics = new ArrayList<>();
 
     protected GuiPreset(GuiInterface parent, GuiConstraintsManager constraintsManager) {
         super(parent);
 
-        setConstraints(constraintsManager);
+        if (constraintsManager != null)
+            setConstraints(constraintsManager);
     }
 
     protected GuiPreset(GuiInterface parent) {

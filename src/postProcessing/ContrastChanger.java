@@ -6,8 +6,8 @@ import shaders.ContrastShader;
 
 public class ContrastChanger {
 
-    private ImageRenderer  renderer;
-    private ContrastShader shader;
+    private final ImageRenderer  renderer;
+    private final ContrastShader shader;
 
     public ContrastChanger() {
         shader = new ContrastShader();
