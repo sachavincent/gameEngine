@@ -13,12 +13,16 @@ import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
+import guis.presets.GuiBackground;
 import guis.presets.GuiPreset;
+import guis.presets.graphs.GuiDonutGraph;
 import guis.transitions.Transition;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -28,6 +32,7 @@ import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL42;
 import shaders.GuiShader;
 import util.math.Maths;
+import util.math.Vector2f;
 
 public class GuiRenderer {
 
@@ -95,15 +100,19 @@ public class GuiRenderer {
                                     .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
                             .forEach(guiComponent -> {
                                 if (guiComponent instanceof GuiPreset) {
-                                    try {
-                                        ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
-                                                .forEach(guiBasics -> {
-                                                    try {
-                                                        handleBasicsRendering(guiBasics);
-                                                    } catch (ConcurrentModificationException ignored) {
-                                                    }
-                                                });
-                                    } catch (ConcurrentModificationException ignored) {
+                                    if (guiComponent instanceof GuiDonutGraph) {
+                                        drawDonut((GuiDonutGraph<?>) guiComponent);
+                                    } else {
+                                        try {
+                                            ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
+                                                    .forEach(guiBasics -> {
+                                                        try {
+                                                            handleBasicsRendering(guiBasics);
+                                                        } catch (ConcurrentModificationException ignored) {
+                                                        }
+                                                    });
+                                        } catch (ConcurrentModificationException ignored) {
+                                        }
                                     }
                                 } else
                                     handleBasicsRendering(guiComponent);
@@ -219,9 +228,8 @@ public class GuiRenderer {
         GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
         GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
 
-        shader.loadTransformation(
-                Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
-
+        shader.loadTransformation(Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
+        shader.loadIsDonut(false);
         shader.loadWidth(guiTexture.getScale().x);
         shader.loadHeight(guiTexture.getScale().y);
 
@@ -273,8 +281,42 @@ public class GuiRenderer {
         return loader.loadToVAO(allCircleVertices, 2);
     }
 
+    private void drawDonut(GuiDonutGraph<?> guiDonutGraph) {
+        this.quad = drawUnfilledCircle();
+
+        GL30.glBindVertexArray(this.quad.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+
+        GuiTexture guiTexture = new GuiTexture(GuiBackground.BLACK_BACKGROUND, guiDonutGraph.getOuterCircle());
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
+        GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
+
+//        System.out.println("pos : " + guiTexture.getPosition());
+        this.shader.loadTransformation(Maths.createTransformationMatrix(
+                guiTexture.getPosition(), guiTexture.getScale()));
+
+        this.shader.loadIsDonut(true);
+        this.shader.loadInnerCircleRadius(guiDonutGraph.getInnerCircle().getFinalWidth());
+        this.shader.loadOuterCircleRadius(guiDonutGraph.getOuterCircle().getFinalWidth());
+        Vector2f center = new Vector2f(0, 0);
+        this.shader.loadCenter(center);
+
+
+        List<Vector2f> points = guiDonutGraph.getRenderPoints();
+        Set<Color> colors = guiDonutGraph.getRenderColors();
+
+//        points.add(new Vector2f(.7f, 0f));
+        this.shader.loadDonutColors(colors);
+        this.shader.loadDonutLines(points);
+
+        GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, this.quad.getVertexCount());
+
+        renderCircle(guiDonutGraph.getInnerCircle(), false);
+        renderCircle(guiDonutGraph.getOuterCircle(), false);
+    }
+
     public void cleanUp() {
         shader.cleanUp();
     }
-
 }

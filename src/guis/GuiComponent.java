@@ -304,8 +304,9 @@ public abstract class GuiComponent implements GuiInterface {
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
         }
 
-        if (this.width > parent.getWidth() || this.width < 0)
-            throw new IllegalGuiConstraintException("Width of component exceeded width of parent");
+//        if (this.width > parent.getWidth() || this.width < 0)
+//            throw new IllegalGuiConstraintException(
+//                    "Width of component exceeded width of parent: " + this.width + " > " + parent.getWidth());
 
         this.finalWidth = width;
     }
@@ -544,22 +545,22 @@ public abstract class GuiComponent implements GuiInterface {
 
     @Override
     public float getStartX() {
-        return 0;
+        return startX;
     }
 
     @Override
     public float getStartY() {
-        return 0;
+        return startY;
     }
 
     @Override
     public float getFinalWidth() {
-        return 0;
+        return finalWidth;
     }
 
     @Override
     public float getFinalHeight() {
-        return 0;
+        return finalHeight;
     }
 
     @Override

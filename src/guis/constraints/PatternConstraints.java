@@ -34,7 +34,7 @@ public class PatternConstraints extends GuiGlobalConstraints {
         int row = nbElements / maxHorizontalElements;
         int nbElementsOnRow = nbElements % maxHorizontalElements;
         float x = -1 + distance * 2 * (nbElementsOnRow + 1) + itemWidth * 2.5f * nbElementsOnRow;
-        float y = 1 - (distance * 2 * (row + 1) + itemHeight * 3 * row);
+        float y = -1 + (distance * 2 * (row + 1) + itemHeight * 3 * row);
         guiConstraintsManager.setxConstraint(new RelativeConstraint(x, parent));
         guiConstraintsManager.setyConstraint(new RelativeConstraint(y, parent));
 

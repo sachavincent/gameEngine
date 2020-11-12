@@ -1,14 +1,14 @@
 package guis.constraints;
 
-import guis.GuiComponent;
+import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class StickyConstraint extends GuiConstraints {
 
-    private final GuiComponent relativeTo;
+    private final GuiInterface relativeTo;
 
-    public StickyConstraint(StickySide side, GuiComponent relativeTo) {
+    public StickyConstraint(StickySide side, GuiInterface relativeTo) {
         super(ConstraintsType.POSITION, Constraints.STICKY);
 
         if (relativeTo == null)
@@ -18,7 +18,7 @@ public class StickyConstraint extends GuiConstraints {
         this.constraint = side.getNum();
     }
 
-    public GuiComponent getRelativeTo() {
+    public GuiInterface getRelativeTo() {
         return this.relativeTo;
     }
 

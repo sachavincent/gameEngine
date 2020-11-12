@@ -141,6 +141,7 @@ public class Gui implements GuiInterface {
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
+
         }
 
 //                    if (y < -1 || y > 1)
@@ -148,6 +149,8 @@ public class Gui implements GuiInterface {
 //TODO En commentaire parce qu'une partie du gui peut être hors écran (ex: GuiSelectedItem)
 //        if (y < -1 || y > 1)
 //            System.err.println("Warning: Component y coordinate doesn't belong in parent");
+
+        setFinalY(this.y);
     }
 
     protected void handleXConstraint(GuiConstraints xConstraint) {
@@ -196,6 +199,8 @@ public class Gui implements GuiInterface {
 //                        throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in parent");
 //        if (x < -1 || x > 1)
 //            System.err.println("Warning: Component x coordinate doesn't belong in parent");
+
+        setFinalX(this.x);
     }
 
     void handleHeightConstraint(GuiConstraints heightConstraint) {
@@ -221,6 +226,8 @@ public class Gui implements GuiInterface {
 
         if (this.height > 2 || this.height < 0)
             throw new IllegalGuiConstraintException("Height of component exceeded height of parent");
+
+        setFinalHeight(this.height);
     }
 
     void handleWidthConstraint(GuiConstraints widthConstraint) {
@@ -245,6 +252,8 @@ public class Gui implements GuiInterface {
 
         if (this.width > 2 || this.width < 0)
             throw new IllegalGuiConstraintException("Width of component exceeded width of window");
+
+        setFinalWidth(this.width);
     }
 
     public void updateChildrenConstraints() {
@@ -615,8 +624,8 @@ public class Gui implements GuiInterface {
 
     @Override
     public void setStartX(float startX) {
-        if ((startX < -1 || startX > 1) && areTransitionsDone())
-            throw new IllegalArgumentException("New coordinates don't belong in window");
+//        if ((startX < -1 || startX > 1) && areTransitionsDone())
+//            throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.startX = startX;
     }
@@ -624,8 +633,8 @@ public class Gui implements GuiInterface {
 
     @Override
     public void setStartY(float startY) {
-        if ((startY < -1 || startY > 1) && areTransitionsDone())
-            throw new IllegalArgumentException("New coordinates don't belong in window");
+//        if ((startY < -1 || startY > 1) && areTransitionsDone())
+//            throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.startY = startY;
     }
@@ -633,8 +642,8 @@ public class Gui implements GuiInterface {
 
     @Override
     public void setFinalX(float finalX) {
-        if ((finalX < -1 || finalX > 1) && areTransitionsDone())
-            throw new IllegalArgumentException("New coordinates don't belong in window");
+//        if ((finalX < -1 || finalX > 1) && areTransitionsDone())
+//            throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.finalX = finalX;
     }
@@ -642,24 +651,24 @@ public class Gui implements GuiInterface {
 
     @Override
     public void setFinalY(float finalY) {
-        if ((finalY < -1 || finalY > 1) && areTransitionsDone())
-            throw new IllegalArgumentException("New coordinates don't belong in window");
+//        if ((finalY < -1 || finalY > 1) && areTransitionsDone())
+//            throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.finalY = finalY;
     }
 
     @Override
     public void setFinalWidth(float finalWidth) {
-        if ((finalWidth < 0 || finalWidth > 2) && areTransitionsDone())
-            throw new IllegalArgumentException("New width don't fit in window");
+//        if ((finalWidth < 0 || finalWidth > 2) && areTransitionsDone())
+//            throw new IllegalArgumentException("New width don't fit in window");
 
         this.finalWidth = finalWidth;
     }
 
     @Override
     public void setFinalHeight(float finalHeight) {
-        if ((finalHeight < 0 || finalHeight > 2) && areTransitionsDone())
-            throw new IllegalArgumentException("New height don't fit in window");
+//        if ((finalHeight < 0 || finalHeight > 2) && areTransitionsDone())
+//            throw new IllegalArgumentException("New height don't fit in window");
 
         this.finalHeight = finalHeight;
     }

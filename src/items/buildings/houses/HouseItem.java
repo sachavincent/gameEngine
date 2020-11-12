@@ -2,10 +2,12 @@ package items.buildings.houses;
 
 import abstractItem.AbstractMarket;
 import entities.Camera.Direction;
+import entities.people.SocialClass;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails;
 import items.Item;
 import items.buildings.BuildingItem;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import terrains.Terrain;
@@ -16,15 +18,22 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
 
     private int numberOfPeople;
 
+    private final EnumSet<SocialClass> possibleClasses;
+
     private boolean meetRequirements;
 
     public HouseItem(String name, Item copy, int maxPeopleCapacity, int xNegativeOffset, int xPositiveOffset,
-            int height,
-            int zNegativeOffset, int zPositiveOffset, Direction... directions) {
+            int height, int zNegativeOffset, int zPositiveOffset, EnumSet<SocialClass> socialClasses,
+            Direction... directions) {
         super(name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset, directions);
 
         this.maxPeopleCapacity = maxPeopleCapacity;
         this.numberOfPeople = 0;
+        this.possibleClasses = EnumSet.copyOf(socialClasses);
+    }
+
+    public EnumSet<SocialClass> getPossibleClasses() {
+        return this.possibleClasses;
     }
 
     public int getNumberOfPeople() {

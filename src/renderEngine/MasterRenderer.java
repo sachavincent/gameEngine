@@ -28,16 +28,16 @@ public class MasterRenderer {
 
     private Matrix4f projectionMatrix;
 
-    private StaticShader   shader         = new StaticShader();
-    private BuildingShader buildingShader = new BuildingShader();
-    private TerrainShader  terrainShader  = new TerrainShader();
+    private final StaticShader   shader         = new StaticShader();
+    private final BuildingShader buildingShader = new BuildingShader();
+    private final TerrainShader  terrainShader  = new TerrainShader();
 
-    private EntityRenderer   entityRenderer;
-    private BuildingRenderer buildingRenderer;
-    private SkyboxRenderer   skyboxRenderer;
-    private TerrainRenderer  terrainRenderer;
+    private final EntityRenderer   entityRenderer;
+    private final BuildingRenderer buildingRenderer;
+    private final SkyboxRenderer   skyboxRenderer;
+    private final TerrainRenderer  terrainRenderer;
 
-    private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
+    private final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
 
     private static MasterRenderer instance;
 

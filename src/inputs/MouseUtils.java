@@ -83,6 +83,9 @@ public class MouseUtils {
     }
 
     public static boolean isCursorInGui(Gui gui) {
+        if (gui instanceof GuiSelectedItem) // Doesn't make sense
+            return false;
+
         return isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
     }
 

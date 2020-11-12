@@ -16,9 +16,11 @@ public abstract class ShaderProgram {
 
     private static final String ROOT = "src/shaders/glsl/";
 
-    private static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+    private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-    private int programID, vertexShaderID, fragmentShaderID;
+    private final int programID;
+    private final int vertexShaderID;
+    private final int fragmentShaderID;
 
     ShaderProgram(String vertexFile, String fragmentFile) {
         vertexShaderID = loadShader(ROOT + vertexFile, GL20.GL_VERTEX_SHADER);

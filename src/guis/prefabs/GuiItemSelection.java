@@ -2,6 +2,7 @@ package guis.prefabs;
 
 import abstractItem.AbstractDirtRoadItem;
 import abstractItem.AbstractInsula;
+import abstractItem.AbstractItem;
 import abstractItem.AbstractMarket;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
@@ -19,6 +20,7 @@ import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.transitions.Transition;
 import inputs.callbacks.PressCallback;
+import items.Item;
 import items.buildings.Market;
 import items.buildings.houses.Insula;
 import items.roads.DirtRoadItem;
@@ -70,33 +72,57 @@ public class GuiItemSelection extends Gui {
             Transition... transitions) {
         PressCallback pressCallback;
 
+        final AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        final AbstractInsula abstractInsula = new AbstractInsula();
+        final AbstractMarket abstractMarket = new AbstractMarket();
         switch (menuButton) {
             case DIRT_ROAD:
                 pressCallback = () -> {
                     System.out.println("DirtRoad selected");
 
-                    GuiSelectedItem.getSelectedItemGui().setSelectedItem(new AbstractDirtRoadItem());
+                    selectOrUnselect(abstractDirtRoadItem);
                 };
                 break;
             case INSULA:
                 pressCallback = () -> {
                     System.out.println("Insula selected");
 
-                    GuiSelectedItem.getSelectedItemGui().setSelectedItem(new AbstractInsula());
+                    selectOrUnselect(abstractInsula);
                 };
                 break;
             case MARKET:
                 pressCallback = () -> {
                     System.out.println("Market selected");
 
-                    GuiSelectedItem.getSelectedItemGui().setSelectedItem(new AbstractMarket());
+                    selectOrUnselect(abstractMarket);
                 };
                 break;
             default:
                 throw new IllegalArgumentException("Incompatible button");
         }
 
+
         addButton(menuButton, buttonType, background, pressCallback, transitions);
+    }
+
+    private void selectOrUnselect(AbstractItem item) {
+        GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
+        AbstractItem selectedItem = selectedItemGui.getSelectedItem();
+
+        boolean select = false;
+
+        if (selectedItem == null)
+            select = true;
+        else {
+            Item itemInstance = selectedItem.getItemInstance();
+            if (item.getItemInstance().getClass() != itemInstance.getClass())
+                select = true;
+        }
+
+        if (select)
+            selectedItemGui.setSelectedItem(item);
+        else
+            selectedItemGui.removeSelectedItem();
     }
 
     public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
@@ -110,7 +136,8 @@ public class GuiItemSelection extends Gui {
 
         GuiAbstractButton button;
 
-        button = createButton(buttonType, background, null, new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
+        button = createButton(buttonType, background, null,
+                new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
         if (button != null) {
             buttons.add(menuButton);
 

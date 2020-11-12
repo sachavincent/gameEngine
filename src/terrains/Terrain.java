@@ -7,6 +7,7 @@ import static entities.Camera.Direction.WEST;
 
 import abstractItem.AbstractItem;
 import entities.Camera.Direction;
+import entities.people.SocialClass;
 import items.ConnectableItem;
 import items.EmptyItem;
 import items.Item;
@@ -39,6 +40,8 @@ import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class Terrain {
+
+    public final static int NB_SOCIAL_CLASSES = SocialClass.getNbClasses();
 
     public static final  int   SIZE             = 150;
     private static final float MAX_HEIGHT       = 40;

@@ -4,7 +4,8 @@ import util.math.Vector3f;
 
 public class RawModel {
 
-    private int vaoID, vertexCount;
+    private final int vaoID;
+    private final int vertexCount;
 
     private Vector3f min, max;
 
