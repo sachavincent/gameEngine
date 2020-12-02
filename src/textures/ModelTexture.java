@@ -1,6 +1,6 @@
 package textures;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 
 public class ModelTexture extends Texture {
 
@@ -16,11 +16,11 @@ public class ModelTexture extends Texture {
     private int numberOfRows = 1;
 
     public ModelTexture(String pathFile) {
-        super(new GuiBackground<>(pathFile));
+        super(new Background<>(pathFile));
     }
 
     public ModelTexture(String pathFile, boolean useFakeLighting) {
-        super(new GuiBackground<>(pathFile));
+        super(new Background<>(pathFile));
 
         this.useFakeLighting = useFakeLighting;
     }

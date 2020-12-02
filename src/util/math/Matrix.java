@@ -18,7 +18,7 @@ public abstract class Matrix implements Serializable {
 
     public abstract Matrix negate();
 
-    public abstract Matrix store(FloatBuffer var1);
+    public abstract FloatBuffer store(FloatBuffer var1);
 
     public abstract Matrix storeTranspose(FloatBuffer var1);
 

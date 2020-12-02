@@ -1,9 +1,7 @@
 package abstractItem;
 
-import events.ImmigrationEvent;
 import items.Item;
 import items.buildings.houses.Insula;
-import java.util.Random;
 
 public class AbstractInsula extends AbstractItem {
 
@@ -17,7 +15,7 @@ public class AbstractInsula extends AbstractItem {
     public Item getItemInstance() {
         Insula insula = new Insula();
 
-        new ImmigrationEvent(insula, new Random().nextInt(10000));
+//        new ImmigrationEvent(insula, new Random().nextInt(10000));
 
         return insula;
     }

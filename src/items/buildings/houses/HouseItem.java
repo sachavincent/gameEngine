@@ -2,23 +2,25 @@ package items.buildings.houses;
 
 import abstractItem.AbstractMarket;
 import entities.Camera.Direction;
-import entities.people.SocialClass;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails;
 import items.Item;
 import items.buildings.BuildingItem;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import people.Person;
+import people.SocialClass;
 import terrains.Terrain;
 
 public class HouseItem extends BuildingItem implements RequireBuilding {
 
     private final int maxPeopleCapacity;
 
-    private int numberOfPeople;
-
-    private final EnumSet<SocialClass> possibleClasses;
+    private final EnumMap<SocialClass, List<Person>> classes;
 
     private boolean meetRequirements;
 
@@ -28,37 +30,41 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
         super(name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset, directions);
 
         this.maxPeopleCapacity = maxPeopleCapacity;
-        this.numberOfPeople = 0;
-        this.possibleClasses = EnumSet.copyOf(socialClasses);
+        this.classes = new EnumMap<>(SocialClass.class);
+
+        for (SocialClass socialClass : socialClasses) {
+            classes.put(socialClass, new ArrayList<>());
+        }
     }
 
-    public EnumSet<SocialClass> getPossibleClasses() {
-        return this.possibleClasses;
+    public EnumMap<SocialClass, List<Person>> getClasses() {
+        return this.classes;
     }
 
     public int getNumberOfPeople() {
-        return this.numberOfPeople;
+        return this.classes.values().stream().mapToInt(List::size).sum();
     }
 
     public int getMaxPeopleCapacity() {
         return this.maxPeopleCapacity;
     }
 
-    public boolean addPerson() {
-        if (numberOfPeople >= maxPeopleCapacity)
+    public boolean addPerson(Person person) {
+        if (getNumberOfPeople() >= maxPeopleCapacity)
             return false;
 
-        numberOfPeople++;
+        this.classes.get(person.getSocialClass()).add(person);
 
         return Terrain.getInstance().addPerson();
     }
 
 
-    public void removePerson() {
-        if (numberOfPeople <= 0)
+    public void removePerson(Person person) {
+        if (getNumberOfPeople() <= 0)
             return;
 
-        numberOfPeople--;
+        this.classes.get(person.getSocialClass()).remove(person);
+
         Terrain.getInstance().removePerson();
     }
 

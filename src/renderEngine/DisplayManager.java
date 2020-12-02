@@ -25,7 +25,7 @@ import util.Timer;
 
 public class DisplayManager {
 
-    public static int WIDTH = 2560, HEIGHT = 1440, FPS = 144;
+    public static int WIDTH = 2560, HEIGHT = 1440, FPS = 1440;
 
     public static  float   MIN_LINE_WIDTH;
     public static  float   MAX_LINE_WIDTH;
@@ -50,7 +50,9 @@ public class DisplayManager {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+//        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
         //glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
 
         glfwWindowHint(GLFW_SAMPLES, 8);
@@ -68,10 +70,10 @@ public class DisplayManager {
         int screen = 1; //TODO temp
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
-//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-//                screens.get(1), 0);
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                0, 0);
+                screens.get(1), 0);
+//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
+//                0, 0);
         if (window == 0)
             throw new RuntimeException("Failed to create window");
 //        glfwMaximizeWindow(window);
@@ -81,13 +83,13 @@ public class DisplayManager {
 
         w.clear();
         h.clear();
-
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwMakeContextCurrent(window);
+        glfwSwapInterval(0);
+//        glfwSwapInterval(1);
         GL.createCapabilities();
-        glfwSwapInterval(1);
         GL11.glEnable(GL13.GL_MULTISAMPLE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-
         glfwShowWindow(window);
         lastFrameTime = getCurrentTime();
         glfwSetFramebufferSizeCallback(window, (callback2 = new GLFWFramebufferSizeCallback() {
@@ -122,8 +124,8 @@ public class DisplayManager {
         MIN_LINE_WIDTH = lineWidthRange[0];
         MAX_LINE_WIDTH = lineWidthRange[1];
 
-        System.out.println("min: " + MIN_LINE_WIDTH);
-        System.out.println("max: " + MAX_LINE_WIDTH);
+//        System.out.println("min: " + MIN_LINE_WIDTH);
+//        System.out.println("max: " + MAX_LINE_WIDTH);
     }
 
     private static void getScreens() {
@@ -146,8 +148,8 @@ public class DisplayManager {
         if (window == 0)
             return;
 
-        glfwPollEvents();
-        glfwSwapBuffers(window);
+//        glfwPollEvents();
+//        glfwSwapBuffers(window);
 
         double currentFrameTime = getCurrentTime();
         delta = (currentFrameTime - lastFrameTime) / 1000f;

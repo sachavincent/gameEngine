@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import models.BoundingBox;
 import models.RawModel;
-import models.TexturedModel;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
@@ -37,6 +37,7 @@ import renderEngine.GuiRenderer;
 import terrains.Terrain;
 import util.MousePicker;
 import util.math.Maths;
+import util.math.Plane3D;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
@@ -86,7 +87,12 @@ public class MouseUtils {
         if (gui instanceof GuiSelectedItem) // Doesn't make sense
             return false;
 
-        return isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
+        boolean res = isPointIn2DBounds(getCursorPos(), gui.getX(), gui.getY(), gui.getWidth(), gui.getHeight());
+
+        if (!res)
+            return gui.getAllComponents().stream().anyMatch(MouseUtils::isCursorInGuiComponent);
+
+        return true;
     }
 
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
@@ -149,7 +155,6 @@ public class MouseUtils {
 
         callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> {
             final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
-
             boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
@@ -264,7 +269,7 @@ public class MouseUtils {
     private static void onClickOnTerrain(int button, int action) {
         MousePicker picker = MousePicker.getInstance();
         Terrain terrain = Terrain.getInstance();
-        Vector3f terrainPoint = picker.update();
+        Vector3f terrainPoint = picker.getCurrentTerrainPoint();
         if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
             if (terrainPoint == null)
                 return;
@@ -310,7 +315,7 @@ public class MouseUtils {
                     Vector2f pos = entry.getKey();
                     Item item = entry.getValue();
 
-                    TexturedModel boundingBox = item.getBoundingBox();
+                    BoundingBox boundingBox = item.getBoundingBox();
                     if (boundingBox == null)
                         continue;
 
@@ -318,57 +323,28 @@ public class MouseUtils {
                     if (boundingBoxRawModel == null)
                         continue;
 
-                    Vector3f min = boundingBoxRawModel.getMin();
-                    Vector3f max = boundingBoxRawModel.getMax();
+                    boolean found = true;
+                    for (Plane3D plane3D : boundingBox.getPlanes()) {
+                        Plane3D plane = new Plane3D(plane3D);
+                        plane.rotate(-item.getFacingDirection().getDegree());
+                        plane.add(new Vector3f(pos.x, 0, pos.y)); //TODO temp 0
+                        found = MousePicker.getInstance().intersectionWithPlane(plane, true) != null;
 
-                    float minX = min.x;
-                    float minY = min.y;
-                    float minZ = min.z;
-
-                    float maxX = max.x;
-                    float maxY = max.y;
-                    float maxZ = max.z;
-
-                    Vector3f[] rec1 = new Vector3f[4];
-                    Vector3f[] rec2 = new Vector3f[4];
-
-                    rec1[0] = new Vector3f(minX + pos.x, minY, minZ + pos.y);
-                    rec1[1] = new Vector3f(minX + pos.x, maxY, minZ + pos.y);
-                    rec1[2] = new Vector3f(minX + pos.x, minY, maxZ + pos.y);
-                    rec1[3] = new Vector3f(minX + pos.x, maxY, maxZ + pos.y);
-
-                    rec2[0] = new Vector3f(maxX + pos.x, minY, minZ + pos.y);
-                    rec2[1] = new Vector3f(maxX + pos.x, maxY, minZ + pos.y);
-                    rec2[2] = new Vector3f(maxX + pos.x, minY, maxZ + pos.y);
-                    rec2[3] = new Vector3f(maxX + pos.x, maxY, maxZ + pos.y);
-
-                    Vector3f p = Maths.temp(rec1, rec2, Camera.getInstance().getPosition(), picker);
-
-                    if (p == null) {
-                        rec1[0] = new Vector3f(minX + pos.x, minY, maxZ + pos.y);
-                        rec1[1] = new Vector3f(minX + pos.x, maxY, maxZ + pos.y);
-                        rec1[2] = new Vector3f(maxX + pos.x, minY + pos.y, maxZ + pos.y);
-                        rec1[3] = new Vector3f(maxX + pos.x, maxY + pos.y, maxZ + pos.y);
-
-                        rec2[0] = new Vector3f(minX + pos.x, minY, minZ + pos.y);
-                        rec2[1] = new Vector3f(minX + pos.x, maxY, minZ + pos.y);
-                        rec2[2] = new Vector3f(maxX + pos.x, minY, minZ + pos.y);
-                        rec2[3] = new Vector3f(maxX + pos.x, maxY, minZ + pos.y);
-                        //Todo pour y, ajouter la hauteur du terrain sur l'item, pour l'instant 0
-
-                        p = Maths.temp(rec1, rec2, Camera.getInstance().getPosition(), picker);
+                        if (found)
+                            break;
                     }
 
-                    if (p != null) {
-                        if (!item.isSelected())
-                            item.select();
-                        else
-                            item.unselect();
+                    if (!found)
+                        continue;
 
-                        System.out.println("Intersection avec " + item.getId());
+                    if (!item.isSelected())
+                        item.select();
+                    else
+                        item.unselect();
 
-                        break;
-                    }
+                    System.out.println("Intersection avec " + item.getId());
+
+                    break;
                 }
             }
         }

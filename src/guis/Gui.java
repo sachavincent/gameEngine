@@ -8,7 +8,7 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.GuiPreset;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
@@ -50,24 +50,24 @@ public class Gui implements GuiInterface {
 
     private boolean focused, displayed;
 
-    public Gui(GuiBackground<?> background) {
+    public Gui(Background<?> background) {
         setBackground(background);
 
         this.components = new LinkedHashMap<>();
         this.transitions = new HashSet<>();
     }
 
-    public void setBackground(GuiBackground<?> background) {
+    public void setBackground(Background<?> background) {
         this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
                 height));
     }
 
     public Gui(int r, int g, int b) {
-        this(new GuiBackground<>(new Color(r, g, b)));
+        this(new Background<>(new Color(r, g, b)));
     }
 
     public Gui(float r, float g, float b) {
-        this(new GuiBackground<>(new Color(r, g, b)));
+        this(new Background<>(new Color(r, g, b)));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -734,7 +734,7 @@ public class Gui implements GuiInterface {
         this.cornerRadius = cornerRadius;
     }
 
-    protected GuiAbstractButton createButton(ButtonType buttonType, GuiBackground<?> background, Text text,
+    protected GuiAbstractButton createButton(ButtonType buttonType, Background<?> background, Text text,
             Text tooltipText, GuiConstraintsManager constraints) {
         switch (buttonType) {
             case CIRCULAR:

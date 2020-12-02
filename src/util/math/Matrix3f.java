@@ -66,7 +66,7 @@ public class Matrix3f extends Matrix implements Serializable {
         return this;
     }
 
-    public Matrix store(FloatBuffer buf) {
+    public FloatBuffer store(FloatBuffer buf) {
         buf.put(this.m00);
         buf.put(this.m01);
         buf.put(this.m02);
@@ -76,7 +76,7 @@ public class Matrix3f extends Matrix implements Serializable {
         buf.put(this.m20);
         buf.put(this.m21);
         buf.put(this.m22);
-        return this;
+        return buf;
     }
 
     public Matrix storeTranspose(FloatBuffer buf) {

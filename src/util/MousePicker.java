@@ -8,6 +8,7 @@ import renderEngine.MasterRenderer;
 import terrains.Terrain;
 import util.math.Maths;
 import util.math.Matrix4f;
+import util.math.Plane3D;
 import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
@@ -27,7 +28,6 @@ public class MousePicker {
     private       Vector3f currentTerrainPoint;
 
     private static MousePicker instance;
-
 
     private MousePicker() {
         this.camera = Camera.getInstance();
@@ -54,9 +54,9 @@ public class MousePicker {
         currentRay = calculateMouseRay();
         currentRay = (Vector3f) currentRay.normalise();
 
-
-        currentTerrainPoint = intersectionWithPlane(new Vector3f(0, 0, 0), Terrain.SIZE, 0, Terrain.SIZE,
-                new Vector3f(0, 1, 0), false);
+        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, Terrain.SIZE),
+                new Vector3f(Terrain.SIZE, 0, Terrain.SIZE), new Vector3f(Terrain.SIZE, 0, 0));
+        currentTerrainPoint = intersectionWithPlane(terrainPlane, false);
         if (currentTerrainPoint != null)
             currentTerrainPoint.y = terrain.getHeightOfTerrain(currentTerrainPoint.x, currentTerrainPoint.z);
         //TODO: Temp parce que le terrain est plat
@@ -71,41 +71,31 @@ public class MousePicker {
         return currentTerrainPoint;
     }
 
-    public Vector3f intersectionWithPlane(Vector3f pointPlane, float width, float height, float depth,
-            Vector3f normalPlane, boolean print) {
+    public Vector3f intersectionWithPlane(Plane3D plane, boolean print) {
         Vector3f origin = camera.getPosition();
 
-        normalPlane = (Vector3f) normalPlane.normalise();
+        Vector3f normalPlane = plane.getNormal();
         float dot_dn = Vector3f.dot(currentRay, normalPlane);
         if (dot_dn == 0)
             return null;
 
+        Vector3f pointPlane = plane.getPointA();
         float t = -(Vector3f.dot(Vector3f.sub(origin, pointPlane, null), normalPlane)) / dot_dn;
 
         Vector3f P = Vector3f.add((Vector3f) currentRay.scale(t), origin, null);
+        P.format();
 
-        P.x = Maths.roundFloat(P.x, 3);
-        P.y = Maths.roundFloat(P.y, 3);
-        P.z = Maths.roundFloat(P.z, 3);
-        pointPlane.x = Maths.roundFloat(pointPlane.x, 3);
-        pointPlane.y = Maths.roundFloat(pointPlane.y, 3);
-        pointPlane.z = Maths.roundFloat(pointPlane.z, 3);
-        if (print) {
-            System.out.println("t : " + t);
-            System.out.println("distance : " + pointPlane.distance(new Vector3f(0, 0, 0)));
-            System.out.println("x : " + pointPlane.x);
-            System.out.println("y : " + pointPlane.y);
-            System.out.println("z : " + pointPlane.z);
-            System.out.println("width : " + width);
-            System.out.println("height : " + height);
-            System.out.println("depth : " + depth);
-            System.out.println("P : " + P);
+        if (plane.isPointOnPlane(P)) {
+            if (print) {
+                System.out.println("t : " + t);
+                System.out.println("distance : " + pointPlane.distance(new Vector3f(0, 0, 0)));
+                System.out.println("plane : " + plane);
+                System.out.println("P : " + P);
+            }
+            return P;
         }
 
-        if (Maths.isPointIn3DBounds(P, pointPlane.x, pointPlane.y, pointPlane.z, width, height, depth))
-            return P;
-        else
-            return null;
+        return null;
     }
 
     private Vector3f calculateMouseRay() {

@@ -5,7 +5,7 @@ import guis.Gui;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
 import renderEngine.DisplayManager;
@@ -17,7 +17,7 @@ public class GuiSelectedItem extends Gui {
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new PixelConstraint(100), new PixelConstraint(100)};
 
-    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(new Color(255, 255, 255));
+    private final static Background<?> DEFAULT_BACKGROUND = new Background<>(new Color(255, 255, 255));
 
     private static GuiSelectedItem instance;
 
@@ -67,14 +67,14 @@ public class GuiSelectedItem extends Gui {
 
     public static class Builder {
 
-        private GuiSelectedItem guiSelectedItem;
+        private final GuiSelectedItem guiSelectedItem;
 
         public Builder() {
             guiSelectedItem = new GuiSelectedItem();
         }
 
-        public Builder setBackground(GuiBackground<?> guiBackground) {
-            guiSelectedItem.setBackground(guiBackground);
+        public Builder setBackground(Background<?> background) {
+            guiSelectedItem.setBackground(background);
 
             return this;
         }

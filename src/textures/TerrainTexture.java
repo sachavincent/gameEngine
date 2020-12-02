@@ -1,15 +1,15 @@
 package textures;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import java.awt.Color;
 
 public class TerrainTexture extends Texture {
 
     public TerrainTexture(String pathFile) {
-        super(new GuiBackground<>(pathFile));
+        super(new Background<>(pathFile));
     }
 
     public TerrainTexture(Color color) {
-        super(new GuiBackground<>(color));
+        super(new Background<>(color));
     }
 }

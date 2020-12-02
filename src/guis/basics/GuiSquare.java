@@ -5,15 +5,15 @@ import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 
 public class GuiSquare extends GuiShape {
 
-    public GuiSquare(GuiInterface gui, GuiBackground<?> background) {
+    public GuiSquare(GuiInterface gui, Background<?> background) {
         super(gui, background, new AspectConstraint(1f), new PixelConstraint(100), true);
     }
 
-    public GuiSquare(GuiInterface gui, GuiBackground<?> background, boolean filled) {
+    public GuiSquare(GuiInterface gui, Background<?> background, boolean filled) {
         super(gui, background, new AspectConstraint(1f), new PixelConstraint(100), filled);
     }
 

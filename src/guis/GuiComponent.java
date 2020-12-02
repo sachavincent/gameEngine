@@ -9,7 +9,7 @@ import guis.constraints.SideConstraint;
 import guis.constraints.StickyConstraint;
 import guis.constraints.StickyConstraint.StickySide;
 import guis.exceptions.IllegalGuiConstraintException;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.GuiPreset;
 import guis.presets.buttons.GuiAbstractButton;
 import inputs.MouseUtils;
@@ -70,7 +70,7 @@ public abstract class GuiComponent implements GuiInterface {
             ((Gui) parent).addComponent(this);
     }
 
-    public GuiComponent(GuiInterface parent, GuiBackground<?> texture) {
+    public GuiComponent(GuiInterface parent, Background<?> texture) {
         this(parent);
 
         this.texture = new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height));
@@ -335,10 +335,8 @@ public abstract class GuiComponent implements GuiInterface {
      * Click + release within component
      */
     public void onPress() {
-        if (onPressCallback == null) {
-            System.out.println("null");
+        if (onPressCallback == null)
             return;
-        }
 
         clicked = false;
 

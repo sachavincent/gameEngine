@@ -51,12 +51,12 @@ public class Matrix2f extends Matrix implements Serializable {
         return this;
     }
 
-    public Matrix store(FloatBuffer buf) {
+    public FloatBuffer store(FloatBuffer buf) {
         buf.put(this.m00);
         buf.put(this.m01);
         buf.put(this.m10);
         buf.put(this.m11);
-        return this;
+        return buf;
     }
 
     public Matrix storeTranspose(FloatBuffer buf) {

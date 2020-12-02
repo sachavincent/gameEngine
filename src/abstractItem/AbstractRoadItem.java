@@ -1,6 +1,6 @@
 package abstractItem;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import items.Item;
 import items.roads.RoadItem;
 import java.util.Map;
@@ -9,7 +9,7 @@ import util.math.Vector2f;
 
 public abstract class AbstractRoadItem extends AbstractItem {
 
-    public AbstractRoadItem(GuiBackground<?> modelTexture, Item item) {
+    public AbstractRoadItem(Background<?> modelTexture, Item item) {
         super(modelTexture, item);
     }
 

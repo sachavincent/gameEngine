@@ -1,5 +1,6 @@
 package models;
 
+import java.util.Objects;
 import util.math.Vector3f;
 
 public class RawModel {
@@ -35,5 +36,20 @@ public class RawModel {
 
     public Vector3f getMax() {
         return this.max;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        RawModel rawModel = (RawModel) o;
+        return vaoID == rawModel.vaoID;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vaoID);
     }
 }

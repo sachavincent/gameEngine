@@ -7,9 +7,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import models.BoundingBox;
+import models.InstancedRawModel;
 import models.RawModel;
 import models.TexturedModel;
 import textures.ModelTexture;
@@ -33,7 +36,7 @@ public class OBJLoader {
         BufferedReader reader = new BufferedReader(fr);
 
         try {
-            rawModel = handleIndicesTexturesNormalsVertex(reader, null);
+            rawModel = handleIndicesTexturesNormalsVertex(reader, null, false);
 
         } catch (IOException | IllegalArgumentException e) {
             System.err.println("Something went wrong");
@@ -86,10 +89,10 @@ public class OBJLoader {
 //        return rawModels;
 //    }
 
-
     public static Item loadObjForItem(Item item, boolean doesUseDirectionalColor) {
         FileReader fr;
         try {
+//            fr = new FileReader(new File("res/cube.obj"));
             fr = new FileReader(new File("res/" + item.getName().toLowerCase() + ".obj"));
         } catch (FileNotFoundException e) {
             System.err.println("Couldn't load obj file!");
@@ -104,24 +107,31 @@ public class OBJLoader {
         List<Vector3f> vertices = new ArrayList<>();
 
         try {
-            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox");
+            InstancedRawModel rawModel = (InstancedRawModel) handleIndicesTexturesNormalsVertex(reader, "BoundingBox",
+                    true);
 
             item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", false)));
+//            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));
             item.setPreviewTexture(item.getTexture());
             item.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
-
+//
             line = handleVertices(reader, vertices);
             final float[] textureArray = new float[vertices.size() * 2];
             final float[] normalsArray = new float[vertices.size() * 3];
 
             final int[] indicesArray = handleIndicesVertex(reader, line, "SelectionBox");
 
-            Map<float[], float[]> verticesMapResult = floatArrayToFloatList(vertices, true);
-            verticesMapResult.forEach((key, minMaxArray) -> item.setBoundingBox(new TexturedModel(
-                    Loader.getInstance().loadToVAO(key, textureArray, normalsArray,
-                            indicesArray, new Vector3f(minMaxArray[0], minMaxArray[1], minMaxArray[2]),
-                            new Vector3f(minMaxArray[3], minMaxArray[4], minMaxArray[5])))));
 
+            BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, item.getName());
+
+            item.setBoundingBox(boundingBox);
+
+            Map<float[], float[]> verticesMapResult = floatArrayToFloatList(vertices, true);
+
+//            verticesMapResult.forEach((key, minMaxArray) -> item.setBoundingBox(new TexturedModel(
+//                    Loader.getInstance().loadToVAO(key, textureArray, normalsArray,
+//                            indicesArray, new Vector3f(minMaxArray[0], minMaxArray[1], minMaxArray[2]),
+//                            new Vector3f(minMaxArray[3], minMaxArray[4], minMaxArray[5])))));
             vertices.clear();
 
             line = handleVertices(reader, vertices);
@@ -215,7 +225,8 @@ public class OBJLoader {
         return null;
     }
 
-    private static RawModel handleIndicesTexturesNormalsVertex(BufferedReader reader, String nextSegment)
+    private static RawModel handleIndicesTexturesNormalsVertex(BufferedReader reader, String nextSegment,
+            boolean instancedModel)
             throws IOException, IllegalArgumentException {
         List<Vector3f> vertices = new ArrayList<>();
         List<Vector2f> textures = new ArrayList<>();
@@ -251,22 +262,25 @@ public class OBJLoader {
         }
 
         while (line != null) {
-            if (line.equalsIgnoreCase(nextSegment))
+            if (line.equalsIgnoreCase("o " + nextSegment))
                 break;
 
             if (!line.startsWith("f ")) {
                 line = reader.readLine();
                 continue;
             }
-
             String[] currentLine = line.split(" ");
-            String[] vertex1 = currentLine[1].split("/");
-            String[] vertex2 = currentLine[2].split("/");
-            String[] vertex3 = currentLine[3].split("/");
-
-            processVertex(vertex1, indices, textures, normals, textureArray, normalsArray);
-            processVertex(vertex2, indices, textures, normals, textureArray, normalsArray);
-            processVertex(vertex3, indices, textures, normals, textureArray, normalsArray);
+            try {
+                String[] vertex1 = currentLine[1].split("/");
+                String[] vertex2 = currentLine[2].split("/");
+                String[] vertex3 = currentLine[3].split("/");
+                processVertex(vertex1, indices, textures, normals, textureArray, normalsArray);
+                processVertex(vertex2, indices, textures, normals, textureArray, normalsArray);
+                processVertex(vertex3, indices, textures, normals, textureArray, normalsArray);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                e.printStackTrace();
+                System.out.println(Arrays.toString(currentLine));
+            }
 
             line = reader.readLine();
         }
@@ -308,9 +322,15 @@ public class OBJLoader {
 
         if (textureArray == null || normalsArray == null || indicesArray == null)
             throw new IllegalArgumentException("Incorrect OBJ file format");
-        RawModel rawModel = Loader.getInstance()
-                .loadToVAO(verticesArray, textureArray, normalsArray, indicesArray, new Vector3f(minX, minY, minZ),
-                        new Vector3f(maxX, maxY, maxZ));
+        RawModel rawModel;
+        if (instancedModel)
+            rawModel = Loader.getInstance()
+                    .loadInstancesToVAO(verticesArray, textureArray, normalsArray, indicesArray,
+                            new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
+        else
+            rawModel = Loader.getInstance()
+                    .loadToVAO(verticesArray, textureArray, normalsArray, indicesArray,
+                            new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
         if (rawModel == null)
             throw new IllegalArgumentException("Model null");
 
@@ -321,7 +341,7 @@ public class OBJLoader {
             throws IOException {
         List<Integer> indices = new ArrayList<>();
         do {
-            if (nextSegment != null && line.startsWith(nextSegment))
+            if (nextSegment != null && line.equalsIgnoreCase("o " + nextSegment))
                 break;
 
             if (!line.startsWith("f ")) {
@@ -330,11 +350,10 @@ public class OBJLoader {
             }
 
             String[] currentLine = line.split(" ");
-            String[] vertexData = currentLine[1].split("/");
 
-            indices.add(Integer.parseInt(vertexData[0]) - 1);
-            indices.add(Integer.parseInt(vertexData[1]) - 1);
-            indices.add(Integer.parseInt(vertexData[2]) - 1);
+            indices.add(Integer.parseInt(currentLine[1]) - 1);
+            indices.add(Integer.parseInt(currentLine[2]) - 1);
+            indices.add(Integer.parseInt(currentLine[3]) - 1);
 
             line = reader.readLine();
         } while (line != null);

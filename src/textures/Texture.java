@@ -3,7 +3,7 @@ package textures;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -22,7 +22,7 @@ public abstract class Texture {
 
     private Vector3f color;
 
-    public Texture(GuiBackground<?> background) {
+    public Texture(Background<?> background) {
         if (background.getBackground() instanceof Color)
             instantiateWithColor((Color) background.getBackground());
         else if (background.getBackground() instanceof String)

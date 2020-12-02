@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 import guis.GuiInterface;
 import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
+import inputs.MouseUtils;
 import java.awt.Color;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,16 +18,17 @@ import util.math.Vector2f;
 
 public class GuiDonutGraph<ValueType> extends GuiGraph {
 
+    private final Set<Sector<ValueType>> sectors;
+
     private GuiEllipse outerCircle;
     private GuiEllipse innerCircle;
-
-    private final Set<Sector<ValueType>> sectors;
 
     public GuiDonutGraph(GuiInterface parent,
             GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         this.sectors = new LinkedHashSet<>();
+
     }
 
     public void addSector(Sector<ValueType> sector) {
@@ -56,6 +58,13 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         this.outerCircle = outerCircle;
         this.outerCircle.setOutlineWidth(1);
 
+        setOnHover(() -> {
+            Vector2f cursorPos = MouseUtils.getCursorPos();
+
+            if (MouseUtils.isCursorInGuiComponent(this.outerCircle) &&
+                    !MouseUtils.isCursorInGuiComponent(this.innerCircle))
+                System.out.println("hover on donut");
+        });
         addBasic(this.outerCircle);
     }
 
@@ -80,8 +89,10 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
 //                break;
 
             double alpha = 2 * Math.PI * sector.getValue() / total;
-            double x = BigDecimal.valueOf(prevLine.x * Math.cos(alpha) + prevLine.y * Math.sin(alpha)).setScale(3, RoundingMode.HALF_UP).doubleValue();
-            double y = BigDecimal.valueOf(-prevLine.x * Math.sin(alpha) + prevLine.y * Math.cos(alpha)).setScale(3, RoundingMode.HALF_UP).doubleValue();
+            double x = BigDecimal.valueOf(prevLine.x * Math.cos(alpha) + prevLine.y * Math.sin(alpha))
+                    .setScale(3, RoundingMode.HALF_UP).doubleValue();
+            double y = BigDecimal.valueOf(-prevLine.x * Math.sin(alpha) + prevLine.y * Math.cos(alpha))
+                    .setScale(3, RoundingMode.HALF_UP).doubleValue();
             points.add(prevLine = new Vector2f(x, y));
         }
 
@@ -153,5 +164,14 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         public String getDescription() {
             return this.description;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "GuiDonutGraph{" +
+                "outerCircle=" + outerCircle +
+                ", innerCircle=" + innerCircle +
+                ", sectors=" + sectors +
+                "} " + super.toString();
     }
 }

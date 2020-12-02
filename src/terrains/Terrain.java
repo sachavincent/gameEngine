@@ -7,12 +7,12 @@ import static entities.Camera.Direction.WEST;
 
 import abstractItem.AbstractItem;
 import entities.Camera.Direction;
-import entities.people.SocialClass;
 import items.ConnectableItem;
 import items.EmptyItem;
 import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.PlaceHolderItem;
+import items.buildings.BuildingItem;
 import items.buildings.houses.HouseItem;
 import items.buildings.houses.RequireBuilding;
 import items.roads.RoadItem;
@@ -31,6 +31,7 @@ import pathfinding.RoadNode;
 import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import pathfinding.RouteRoad;
+import people.SocialClass;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import textures.TerrainTexture;
@@ -95,19 +96,19 @@ public class Terrain {
         }
     }
 
-    public void placeItem(AbstractItem item, Vector2f position) {
-        if (item == null)
-            return;
-
-        try {
-            if (position.x < x || position.x > SIZE || position.y < z || position.y > 150)
-                throw new IllegalStateException("Clicked out of terrain");
-
-            item.place(position);
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-    }
+//    public void placeItem(AbstractItem item, Vector2f position) {
+//        if (item == null)
+//            return;
+//
+//        try {
+//            if (position.x < x || position.x > SIZE || position.y < z || position.y > 150)
+//                throw new IllegalStateException("Clicked out of terrain");
+//
+//            item.place(position);
+//        } catch (IllegalStateException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public TerrainTexturePack getRedTexturePack() {
         return this.redTexturePack;
@@ -518,9 +519,11 @@ public class Terrain {
     }
 
     public boolean addItem(Vector2f position, Item item) {
-        if (items.get(position) instanceof EmptyItem) {
+        if (item instanceof BuildingItem)
+            MasterRenderer.getInstance().getBuildingRenderer().setUpdateNeeded(true);
+
+        if (items.get(position) instanceof EmptyItem)
             return items.replace(position, item) != null;
-        }
 
         return false;
     }
@@ -535,12 +538,18 @@ public class Terrain {
     }
 
     public Map<Vector2f, Item> getRoads() {
-        return this.getItems().entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
+        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    }
+
+    public Map<Vector2f, BuildingItem> getBuildings() {
+        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof BuildingItem)
+                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), (BuildingItem) entry.getValue()))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     public Set<Vector2f> getRoadPositions() {
-        return this.getItems().entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
+        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
                 .map(Entry::getKey).collect(Collectors.toSet());
     }
 

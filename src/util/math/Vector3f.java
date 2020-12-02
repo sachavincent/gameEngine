@@ -2,6 +2,7 @@ package util.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
+import java.util.Locale;
 import java.util.Objects;
 
 public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
@@ -92,15 +93,11 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     }
 
 
-    public Vector3f normalise(Vector3f dest) {
+    public Vector3f normalize() {
         float l = this.length();
-        if (dest == null) {
-            dest = new Vector3f(this.x / l, this.y / l, this.z / l);
-        } else {
-            dest.set(this.x / l, this.y / l, this.z / l);
-        }
+        set(this.x / l, this.y / l, this.z / l);
 
-        return dest;
+        return this;
     }
 
     public static float dot(Vector3f left, Vector3f right) {
@@ -115,7 +112,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
             dls = 1.0F;
         }
 
-        return (float) Math.acos((double) dls);
+        return (float) Math.acos(dls);
     }
 
     public Vector load(FloatBuffer buf) {
@@ -209,5 +206,11 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     @Override
     public int hashCode() {
         return Objects.hash(x, y, z);
+    }
+
+    public void format() {
+        x = Float.parseFloat(String.format(Locale.ROOT, "%.4f", x));
+        y = Float.parseFloat(String.format(Locale.ROOT, "%.4f", y));
+        z = Float.parseFloat(String.format(Locale.ROOT, "%.4f", z));
     }
 }

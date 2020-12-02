@@ -30,6 +30,7 @@ public class BuildingShader extends ShaderProgram {
     private int   location_offset;
     private int   location_plane;
     private int   location_directionalColor;
+    private int   location_isInstanced;
 
     public BuildingShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -40,6 +41,7 @@ public class BuildingShader extends ShaderProgram {
         super.bindAttribute(0, "position");
         super.bindAttribute(1, "textureCoords");
         super.bindAttribute(2, "normal");
+        super.bindAttribute(3, "globalTransformationMatrix");
     }
 
     @Override
@@ -55,6 +57,7 @@ public class BuildingShader extends ShaderProgram {
         this.location_offset = super.getUniformLocation("offset");
         this.location_plane = super.getUniformLocation("plane");
         this.location_directionalColor = super.getUniformLocation("directionalColor");
+        this.location_isInstanced = super.getUniformLocation("isInstanced");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
@@ -102,6 +105,10 @@ public class BuildingShader extends ShaderProgram {
 
     public void loadProjectionMatrix(Matrix4f matrix) {
         super.loadMatrix(location_projectionMatrix, matrix);
+    }
+
+    public void loadIsInstanced(boolean isInstanced) {
+        super.loadBoolean(location_isInstanced, isInstanced);
     }
 
     public void loadLights(List<Light> lights) {

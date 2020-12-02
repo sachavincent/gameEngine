@@ -6,7 +6,7 @@ import static renderEngine.DisplayManager.MIN_LINE_WIDTH;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import renderEngine.DisplayManager;
 
 public abstract class GuiShape extends GuiBasics {
@@ -14,14 +14,14 @@ public abstract class GuiShape extends GuiBasics {
     private boolean filled;
     private double  outlineWidth = DisplayManager.MIN_LINE_WIDTH;
 
-    public GuiShape(GuiInterface parent, GuiBackground<?> background, GuiConstraints width, GuiConstraints height,
+    public GuiShape(GuiInterface parent, Background<?> background, GuiConstraints width, GuiConstraints height,
             boolean filled) {
         super(parent, background, width, height);
 
         this.filled = filled;
     }
 
-    public GuiShape(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager guiConstraintsManager,
+    public GuiShape(GuiInterface parent, Background<?> background, GuiConstraintsManager guiConstraintsManager,
             boolean filled) {
         super(parent, background, guiConstraintsManager);
 

@@ -13,7 +13,7 @@ import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.GuiPreset;
 import guis.presets.graphs.GuiDonutGraph;
 import guis.transitions.Transition;
@@ -287,7 +287,7 @@ public class GuiRenderer {
         GL30.glBindVertexArray(this.quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
 
-        GuiTexture guiTexture = new GuiTexture(GuiBackground.BLACK_BACKGROUND, guiDonutGraph.getOuterCircle());
+        GuiTexture guiTexture = new GuiTexture(Background.BLACK_BACKGROUND, guiDonutGraph.getOuterCircle());
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
         GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());

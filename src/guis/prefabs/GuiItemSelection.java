@@ -15,7 +15,7 @@ import guis.constraints.GuiGlobalConstraints;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.constraints.SideConstraint.Side;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.transitions.Transition;
@@ -41,7 +41,7 @@ public class GuiItemSelection extends Gui {
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.25f)};
 
-    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(Color.WHITE);
+    private final static Background<?> DEFAULT_BACKGROUND = new Background<>(Color.WHITE);
 
     private static GuiItemSelection instance;
 
@@ -62,13 +62,13 @@ public class GuiItemSelection extends Gui {
         setConstraints(menuConstraints);
     }
 
-    private GuiItemSelection(GuiBackground<?> background, GuiConstraintsManager constraintsManager) {
+    private GuiItemSelection(Background<?> background, GuiConstraintsManager constraintsManager) {
         super(background);
 
         setConstraints(constraintsManager);
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
             Transition... transitions) {
         PressCallback pressCallback;
 
@@ -125,7 +125,7 @@ public class GuiItemSelection extends Gui {
             selectedItemGui.removeSelectedItem();
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
             PressCallback onPress, Transition... transitions) {
 //        GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
 //                .setWidthConstraint(new RelativeConstraint(0.2f, this))
@@ -210,8 +210,8 @@ public class GuiItemSelection extends Gui {
             guiItemSelection = new GuiItemSelection();
         }
 
-        public Builder setBackground(GuiBackground<?> guiBackground) {
-            guiItemSelection.setBackground(guiBackground);
+        public Builder setBackground(Background<?> background) {
+            guiItemSelection.setBackground(background);
 
             return this;
         }
@@ -222,14 +222,14 @@ public class GuiItemSelection extends Gui {
             return this;
         }
 
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
                 PressCallback clickListener, Transition... transitions) {
             guiItemSelection.addButton(menuButton, buttonType, background, clickListener, transitions);
 
             return this;
         }
 
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
                 Transition... transitions) {
 //            if (!guiItemSelection.buttons.contains(menuButton))
             guiItemSelection.addButton(menuButton, buttonType, background, transitions);

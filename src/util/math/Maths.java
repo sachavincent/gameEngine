@@ -2,7 +2,6 @@ package util.math;
 
 import entities.Camera;
 import java.text.DecimalFormat;
-import util.MousePicker;
 
 public class Maths {
 
@@ -110,34 +109,6 @@ public class Maths {
         return closestDistanceRec1 < closestDistanceRec2;
     }
 
-    public static Vector3f temp(Vector3f[] rec1, Vector3f[] rec2, Vector3f point, MousePicker picker) {
-        boolean closestRectangle = closestRectangle(rec1, rec2, point);
-
-        float x, y, z, height, depth;
-        Vector3f ll, ul, lr;
-
-        if (closestRectangle) { // rec1 closest
-            ll = rec1[0];
-            ul = rec1[1];
-            lr = rec1[2];
-        } else { //rec2 closest
-            ll = rec2[0];
-            ul = rec2[1];
-            lr = rec2[2];
-        }
-
-        x = ll.x;
-        y = ll.y;
-        z = ll.z;
-        height = ul.y - ll.y;
-        depth = lr.z != ll.z ? lr.z - ll.z : lr.x - ll.x;
-
-        Vector3f normalPlane = new Vector3f(ll.x == lr.x ? 1 : 0, ll.y == ul.y ? 1 : 0, ll.z == lr.z ? 1 : 0);
-        return picker.intersectionWithPlane(
-                new Vector3f(x, y, z), ll.x == lr.x ? 0 : depth, ll.y == ul.y ? 0 : height, ll.z == lr.z ? 0 : depth,
-                normalPlane, false);
-    }
-
     public static boolean[] shiftArray(boolean[] array) {
         if (array.length == 0)
             return array;
@@ -148,5 +119,12 @@ public class Maths {
         resArray[0] = lastValue;
 
         return resArray;
+    }
+    public static float fma(float a, float b, float c) {
+        return a * b + c;
+    }
+
+    public static double fma(double a, double b, double c) {
+        return a * b + c;
     }
 }

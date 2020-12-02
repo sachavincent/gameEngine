@@ -1,16 +1,16 @@
 package abstractItem;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import items.Item;
 import terrains.Terrain;
 import util.math.Vector2f;
 
 public abstract class AbstractItem {
 
-    private final GuiBackground<?> modelTexture;
-    private final Item             item;
+    private final Background<?> modelTexture;
+    private final Item          item;
 
-    public AbstractItem(GuiBackground<?> modelTexture, Item item) {
+    public AbstractItem(Background<?> modelTexture, Item item) {
         this.modelTexture = modelTexture;
         this.item = item;
     }
@@ -51,7 +51,7 @@ public abstract class AbstractItem {
 
     public abstract Item getItemInstance();
 
-    public GuiBackground<?> getBackground() {
+    public Background<?> getBackground() {
         return this.modelTexture;
     }
 }

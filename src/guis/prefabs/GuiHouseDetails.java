@@ -10,7 +10,7 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.StickyConstraint;
 import guis.constraints.StickyConstraint.StickySide;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.graphs.GuiDonutGraph;
@@ -27,7 +27,7 @@ public class GuiHouseDetails extends Gui {
             new RelativeConstraint(.17f), new AspectConstraint(1.2f)};
 
     //    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(new Color(255, 255, 255, 0));
-    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>("gui2.png");
+    private final static Background<?> DEFAULT_BACKGROUND = new Background<>("gui2.png");
 
     private static GuiHouseDetails instance;
 
@@ -43,7 +43,7 @@ public class GuiHouseDetails extends Gui {
 
     private GuiRectangle outlineRectangle, outlineRectangle2;
 
-    private final static GuiBackground<Object> stickyFigureImage = new GuiBackground<>("stick_figure.png");
+    private final static Background<Object> stickyFigureImage = new Background<>("stick_figure.png");
 
     private GuiHouseDetails(HouseItem houseItem) {
         super(DEFAULT_BACKGROUND);
@@ -74,20 +74,20 @@ public class GuiHouseDetails extends Gui {
                 .setyConstraint(new RelativeConstraint(-1, this))
                 .create();
 
-        overallView = new GuiRectangle(this, new GuiBackground<>(new Color(0, 0, 0, 0)), upperRectangleConstraints);
+        overallView = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 0)), upperRectangleConstraints);
 
-        detailsView = new GuiRectangle(this, new GuiBackground<>(new Color(0, 0, 0, 120)),
+        detailsView = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
                 rightRectangleConstraints);
         removeComponent(detailsView);
 
         peopleButton = addPeopleButton();
 
-        outlineRectangle = new GuiRectangle(this, new GuiBackground<>(Color.BLACK),
+        outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
                 new RelativeConstraint(1, this), new RelativeConstraint(1, this), false);
         outlineRectangle.setOutlineWidth(.5);
 
         upperWidthConstraint = upperRectangleConstraints.getWidthConstraint();
-        outlineRectangle2 = new GuiRectangle(this, new GuiBackground<>(Color.BLACK),
+        outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
                 upperWidthConstraint, new RelativeConstraint(1, this), false);
         outlineRectangle2.setOutlineWidth(.5);
     }
@@ -128,7 +128,7 @@ public class GuiHouseDetails extends Gui {
 
 
         GuiAbstractButton button = createButton(ButtonType.RECTANGLE,
-                new GuiBackground<>(new Color(0, 0, 0, 50)), text, null, new GuiConstraintsManager.Builder()
+                new Background<>(new Color(0, 0, 0, 50)), text, null, new GuiConstraintsManager.Builder()
                         .setWidthConstraint(new RelativeConstraint(0.18f, overallView))
                         .setHeightConstraint(new RelativeConstraint(0.35f, overallView))
                         .setxConstraint(new RelativeConstraint(0, overallView))
@@ -207,24 +207,28 @@ public class GuiHouseDetails extends Gui {
                                     .setyConstraint(new RelativeConstraint(0, this.detailsView))
                                     .create());
 
-                    GuiEllipse outerCircle = new GuiEllipse(guiDonutGraph, GuiBackground.WHITE_BACKGROUND,
+                    GuiEllipse outerCircle = new GuiEllipse(guiDonutGraph, Background.WHITE_BACKGROUND,
                             new RelativeConstraint(1, guiDonutGraph),
                             new AspectConstraint(1), false);
 
-                    GuiEllipse innerCircle = new GuiEllipse(guiDonutGraph, GuiBackground.WHITE_BACKGROUND,
+                    GuiEllipse innerCircle = new GuiEllipse(guiDonutGraph, Background.WHITE_BACKGROUND,
                             new RelativeConstraint(.7f, guiDonutGraph),
                             new AspectConstraint(1), false);
 
                     guiDonutGraph.setOuterCircle(outerCircle);
                     guiDonutGraph.setInnerCircle(innerCircle);
 
-                    Sector<Integer> sector = new Sector<>(/*houseItem.getMaxPeopleCapacity() - houseItem.getNumberOfPeople() */ 2, Color.LIGHT_GRAY, "unused");
-//                    guiDonutGraph.addSector(sector);
+                    houseItem.getClasses().forEach((socialClass, people) -> {
+                        int size = people.size();
+                        if (size > 0)
+                            guiDonutGraph.addSector(new Sector<>(size, socialClass.getColor(), "unused"));
+                    });
 
-//                    guiDonutGraph.addSector(new Sector<>(1, Color.CYAN, "unused"));
-//                    guiDonutGraph.addSector(new Sector<>(9, Color.BLUE, "unused"));
-                    guiDonutGraph.addSector(new Sector<>(32, Color.RED, "unused"));
-
+                    if (houseItem.getNumberOfPeople() < houseItem.getMaxPeopleCapacity()) {
+                        guiDonutGraph.addSector(
+                                new Sector<>(houseItem.getMaxPeopleCapacity() - houseItem.getNumberOfPeople(),
+                                        Color.LIGHT_GRAY, "unused"));
+                    }
                     break;
                 default:
                     break;
@@ -233,11 +237,11 @@ public class GuiHouseDetails extends Gui {
             // Reset borders
             removeComponent(outlineRectangle);
             removeComponent(outlineRectangle2);
-            outlineRectangle = new GuiRectangle(this, new GuiBackground<>(Color.BLACK),
+            outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
                     new RelativeConstraint(1, this), new RelativeConstraint(1, this), false);
             outlineRectangle.setOutlineWidth(.5);
 
-            outlineRectangle2 = new GuiRectangle(this, new GuiBackground<>(Color.BLACK),
+            outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
                     upperWidthConstraint, new RelativeConstraint(1, this), false);
             outlineRectangle2.setOutlineWidth(.5);
         }

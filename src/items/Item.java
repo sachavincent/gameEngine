@@ -2,6 +2,7 @@ package items;
 
 import entities.Camera.Direction;
 import java.util.Objects;
+import models.BoundingBox;
 import models.TexturedModel;
 import util.math.Vector2f;
 
@@ -9,15 +10,16 @@ public abstract class Item {
 
     private static long max_id = 1;
 
+    protected final long   id;
+
     protected String name;
-    protected long   id;
 
     protected int xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset;
 
     protected TexturedModel texture;
     protected TexturedModel previewTexture;
 
-    protected TexturedModel boundingBox;
+    protected BoundingBox boundingBox;
     protected TexturedModel selectionBox;
 
     protected Direction facingDirection = Direction.NORTH;
@@ -106,11 +108,11 @@ public abstract class Item {
         return this.selectionBox;
     }
 
-    public TexturedModel getBoundingBox() {
+    public BoundingBox getBoundingBox() {
         return this.boundingBox;
     }
 
-    public void setBoundingBox(TexturedModel boundingBox) {
+    public void setBoundingBox(BoundingBox boundingBox) {
         this.boundingBox = boundingBox;
     }
 

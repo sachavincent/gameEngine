@@ -2,14 +2,16 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import renderEngine.Loader;
 import textures.ModelTexture;
 import util.math.Vector3f;
 
 public class TexturedModel {
 
-    private RawModel     rawModel;
-    private ModelTexture modelTexture;
+    protected ModelTexture modelTexture;
+
+    protected RawModel rawModel;
 
     public TexturedModel(RawModel rawModel, ModelTexture modelTexture) {
         this.rawModel = rawModel;
@@ -17,9 +19,10 @@ public class TexturedModel {
     }
 
     public TexturedModel(RawModel rawModel) {
-        this.rawModel = rawModel;
+        this(rawModel, ModelTexture.DEFAULT_MODEL);
+    }
 
-        this.modelTexture = ModelTexture.DEFAULT_MODEL;
+    public TexturedModel() {
     }
 
     @Deprecated
@@ -30,11 +33,11 @@ public class TexturedModel {
         switch (typeModel) {
             case BOUNDING_BOX:
                 this.rawModel = model;
-//                createBoundingBox(model);
+                createBoundingBox(model);
                 break;
             case SELECTION_BOX:
                 this.rawModel = model;
-//                createSelection(model);
+                createSelection(model);
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -195,6 +198,7 @@ public class TexturedModel {
         this.rawModel = Loader.getInstance().loadToVAO(verticesArray, new float[24], new float[24], indicesArray);
     }
 
+    @Deprecated
     private void addVertexToVerticesList(List<Float> vertices, Vector3f point) {
         vertices.add(point.x);
         vertices.add(point.y);
@@ -210,8 +214,28 @@ public class TexturedModel {
         return this.modelTexture;
     }
 
+    public void setRawModel(RawModel rawModel) {
+        this.rawModel = rawModel;
+    }
+
+    @Deprecated
     public enum TypeModel {
         BOUNDING_BOX,
         SELECTION_BOX
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        TexturedModel model = (TexturedModel) o;
+        return rawModel.equals(model.rawModel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rawModel);
     }
 }

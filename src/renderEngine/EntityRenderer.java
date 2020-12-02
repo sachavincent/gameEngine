@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL45;
 import shaders.StaticShader;
 import terrains.Terrain;
 import textures.ModelTexture;
@@ -36,9 +37,9 @@ public class EntityRenderer {
     public EntityRenderer(StaticShader shader, Matrix4f projectionMatrix) {
         this.shader = shader;
 
-        shader.start();
-        shader.loadProjectionMatrix(projectionMatrix);
-        shader.stop();
+        this.shader.start();
+        this.shader.loadProjectionMatrix(projectionMatrix);
+        this.shader.stop();
     }
 
     public void render(Map<TexturedModel, List<Entity>> entities) {
@@ -49,7 +50,7 @@ public class EntityRenderer {
                 Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
 
                 TexturedModel texture = item.getTexture();
-                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().equals(p)) {
+                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(p)) {
                     texture = item.getPreviewTexture();
                 }
 
@@ -78,7 +79,7 @@ public class EntityRenderer {
 
             entry.getValue().forEach(entity -> {
                 prepareInstance(entity);
-                GL11.glDrawElements(GL11.GL_TRIANGLES, texturedModel.getRawModel().getVertexCount(),
+                GL45.glDrawElements(GL11.GL_TRIANGLES, texturedModel.getRawModel().getVertexCount(),
                         GL11.GL_UNSIGNED_INT, 0);
             });
 
@@ -100,6 +101,8 @@ public class EntityRenderer {
             throw new IllegalArgumentException("TexturedModel null");
 
         RawModel model = texturedModel.getRawModel();
+        if (model == null)
+            return;
 
         GL30.glBindVertexArray(model.getVaoID());
 
@@ -120,6 +123,9 @@ public class EntityRenderer {
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
 
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureID());
+
+            if (texture.isTransparent())
+                MasterRenderer.enableCulling();
         } else {
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
 

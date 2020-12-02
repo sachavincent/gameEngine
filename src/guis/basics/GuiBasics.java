@@ -4,7 +4,7 @@ import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 
 public abstract class GuiBasics extends GuiComponent {
 
@@ -34,13 +34,13 @@ public abstract class GuiBasics extends GuiComponent {
         update(constraints);
     }
 
-    public GuiBasics(GuiInterface parent, GuiBackground<?> background, GuiConstraints width, GuiConstraints height) {
+    public GuiBasics(GuiInterface parent, Background<?> background, GuiConstraints width, GuiConstraints height) {
         super(parent, background);
 
         initConstraints(width, height);
     }
 
-    public GuiBasics(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager guiConstraintsManager) {
+    public GuiBasics(GuiInterface parent, Background<?> background, GuiConstraintsManager guiConstraintsManager) {
         super(parent, background);
 
         setConstraints(guiConstraintsManager);

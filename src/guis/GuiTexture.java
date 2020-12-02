@@ -1,6 +1,6 @@
 package guis;
 
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import java.awt.Color;
 import textures.Texture;
 import util.math.Vector2f;
@@ -11,12 +11,12 @@ public class GuiTexture extends Texture {
 
     private float finalAlpha, alpha;
 
-    public GuiTexture(GuiBackground<?> background, GuiInterface guiInterface) {
+    public GuiTexture(Background<?> background, GuiInterface guiInterface) {
         this(background, new Vector2f(guiInterface.getX(), guiInterface.getY()),
                 new Vector2f(guiInterface.getWidth(), guiInterface.getHeight()));
     }
 
-    public GuiTexture(GuiBackground<?> background, Vector2f position, Vector2f scale) {
+    public GuiTexture(Background<?> background, Vector2f position, Vector2f scale) {
         super(background);
 
         this.position = position;

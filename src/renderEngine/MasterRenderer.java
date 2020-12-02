@@ -89,7 +89,7 @@ public class MasterRenderer {
         buildingShader.loadSkyColor(RED, GREEN, BLUE);
         buildingShader.loadLights(lights);
         buildingShader.loadViewMatrix(camera);
-        buildingRenderer.render(entities);
+        buildingRenderer.render();
         buildingShader.stop();
 
         terrainShader.start();
@@ -99,7 +99,6 @@ public class MasterRenderer {
         terrainShader.loadViewMatrix(camera);
         terrainRenderer.render();
         terrainShader.stop();
-
 
         skyboxRenderer.render(camera);
         entities.clear();
@@ -117,10 +116,12 @@ public class MasterRenderer {
         }
     }
 
+    /**
+     * Doesn't render normals facing away from the camera
+     */
     static void enableCulling() {
-//        GL11.glEnable(GL11.GL_CULL_FACE);
-//        GL11.glCullFace(GL11.GL_BACK);
-        //TODO
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
     }
 
 
@@ -132,6 +133,7 @@ public class MasterRenderer {
     public void cleanUp() {
         shader.cleanUp();
         terrainShader.cleanUp();
+        buildingShader.cleanUp();
     }
 
     private void prepare() {

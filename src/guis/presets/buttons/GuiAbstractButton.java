@@ -11,7 +11,7 @@ import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.GuiPreset;
 import java.awt.Color;
 import java.util.List;
@@ -30,7 +30,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     private Gui tooltipGui;
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text,
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
@@ -41,7 +41,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setupComponents();
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui,
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
             GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
@@ -53,14 +53,14 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setupComponents();
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager constraintsManager) {
+    GuiAbstractButton(GuiInterface parent, Background<?> background, GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
 
         addBackgroundComponent(background);
         setupComponents();
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text,
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text,
             GuiConstraintsManager constraintsManager, int cornerRadius) {
         super(parent, constraintsManager);
 
@@ -73,7 +73,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setCornerRadius(cornerRadius);
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui,
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
             GuiConstraintsManager constraintsManager, int cornerRadius) {
         super(parent, constraintsManager);
 
@@ -88,7 +88,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         this.tooltipGui.setCornerRadius(cornerRadius);
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui, int cornerRadius) {
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui, int cornerRadius) {
         super(parent);
 
         addBackgroundComponent(background);
@@ -102,7 +102,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         this.tooltipGui.setCornerRadius(cornerRadius);
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, Text text, Text tooltipGui) {
+    GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui) {
         super(parent);
 
         addBackgroundComponent(background);
@@ -113,7 +113,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setupComponents();
     }
 
-    GuiAbstractButton(GuiInterface parent, GuiBackground<?> background, GuiConstraintsManager constraintsManager,
+    GuiAbstractButton(GuiInterface parent, Background<?> background, GuiConstraintsManager constraintsManager,
             int cornerRadius) {
         super(parent, constraintsManager);
 
@@ -149,7 +149,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setTooltipGui(text);
     }
 
-    protected abstract void addBackgroundComponent(GuiBackground<?> background);
+    protected abstract void addBackgroundComponent(Background<?> background);
 
     private void setListeners() {
         setOnPress(() -> {
@@ -237,7 +237,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
         double textHeight = TextMeshCreator.LINE_HEIGHT * text.getFontSize() * 2;
 
 
-        tooltipGui = new Gui(new GuiBackground<>(new Color(64, 64, 64, 100)));
+        tooltipGui = new Gui(new Background<>(new Color(64, 64, 64, 100)));
         GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager();
         guiConstraintsManager.setxConstraint(new RelativeConstraint(0, this));
         guiConstraintsManager.setyConstraint(new RelativeConstraint(.1f, this));

@@ -5,7 +5,7 @@ import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshCreator;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import java.util.List;
 import javax.naming.SizeLimitExceededException;
 import util.math.Vector2f;
@@ -15,13 +15,13 @@ public class GuiText extends GuiBasics {
     private Text text;
 
     public GuiText(GuiInterface gui, Text text) {
-        super(gui, new GuiBackground<>(text == null ? null : text.getAWTColor()), null, null);
+        super(gui, new Background<>(text == null ? null : text.getAWTColor()), null, null);
 
         setText(text);
     }
 
     public GuiText(GuiInterface gui, Text text, GuiConstraintsManager guiConstraintsManager) {
-        super(gui, new GuiBackground<>(text == null ? null : text.getAWTColor()), guiConstraintsManager);
+        super(gui, new Background<>(text == null ? null : text.getAWTColor()), guiConstraintsManager);
 
         setText(text);
     }

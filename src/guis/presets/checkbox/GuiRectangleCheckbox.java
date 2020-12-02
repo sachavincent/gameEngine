@@ -4,7 +4,7 @@ import guis.GuiInterface;
 import guis.basics.GuiRectangle;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import java.awt.Color;
 
 public class GuiRectangleCheckbox extends GuiAbstractCheckbox {
@@ -15,7 +15,7 @@ public class GuiRectangleCheckbox extends GuiAbstractCheckbox {
 
     @Override
     protected void addBackgroundComponent(Color background) {
-        checkboxLayout = new GuiRectangle(this, new GuiBackground<>(background), new RelativeConstraint(1, this),
+        checkboxLayout = new GuiRectangle(this, new Background<>(background), new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this), false);
     }
 

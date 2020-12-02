@@ -6,7 +6,7 @@ import guis.constraints.AspectConstraint;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.RelativeConstraint;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.transitions.Transition;
@@ -24,7 +24,7 @@ public class GuiEscapeMenu extends Gui {
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.9f)};
 
-    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(Color.WHITE);
+    private final static Background<?> DEFAULT_BACKGROUND = new Background<>(Color.WHITE);
 
     private static GuiEscapeMenu instance;
 
@@ -45,7 +45,7 @@ public class GuiEscapeMenu extends Gui {
         setConstraints(menuConstraints);
     }
 
-    private GuiEscapeMenu(GuiBackground<?> background, GuiConstraintsManager constraintsManager) {
+    private GuiEscapeMenu(Background<?> background, GuiConstraintsManager constraintsManager) {
         super(background);
 
         setConstraints(constraintsManager);
@@ -62,7 +62,7 @@ public class GuiEscapeMenu extends Gui {
 
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
             PressCallback onPress, Transition... transitions) {
         GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
                 .setDefault()
@@ -88,7 +88,7 @@ public class GuiEscapeMenu extends Gui {
         }
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
             Transition... transitions) {
         PressCallback pressCallback;
 
@@ -188,8 +188,8 @@ public class GuiEscapeMenu extends Gui {
             guiEscapeMenu = new GuiEscapeMenu();
         }
 
-        public Builder setBackground(GuiBackground<?> guiBackground) {
-            guiEscapeMenu.setBackground(guiBackground);
+        public Builder setBackground(Background<?> background) {
+            guiEscapeMenu.setBackground(background);
 
             return this;
         }
@@ -200,14 +200,14 @@ public class GuiEscapeMenu extends Gui {
             return this;
         }
 
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
                 PressCallback clickListener, Transition... transitions) {
             guiEscapeMenu.addButton(menuButton, buttonType, background, clickListener, transitions);
 
             return this;
         }
 
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, GuiBackground<?> background,
+        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
                 Transition... transitions) {
             guiEscapeMenu.addButton(menuButton, buttonType, background, transitions);
 

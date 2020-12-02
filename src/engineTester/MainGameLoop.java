@@ -1,12 +1,14 @@
 package engineTester;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
 import static renderEngine.DisplayManager.getWindow;
 
 import abstractItem.AbstractInsula;
-import abstractItem.AbstractMarket;
 import abstractItem.ItemPreviews;
 import entities.Camera;
 import entities.Entity;
@@ -18,7 +20,7 @@ import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiEscapeMenu.MenuButton;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiSelectedItem;
-import guis.presets.GuiBackground;
+import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
@@ -28,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import language.TextConverter;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
 import renderEngine.DisplayManager;
@@ -126,17 +126,17 @@ public class MainGameLoop {
 //        waters.add(water);
 
         new GuiEscapeMenu.Builder()
-                .setBackground(new GuiBackground<>(new Color(109, 109, 109, 80)))
+                .setBackground(new Background<>(new Color(109, 109, 109, 80)))
                 .addButton(MenuButton.RESUME, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+                        new Background<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+                        new Background<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+                        new Background<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.SETTINGS, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+                        new Background<>(new Color(109, 109, 109, 100)))
                 .addButton(MenuButton.QUIT, ButtonType.RECTANGLE,
-                        new GuiBackground<>(new Color(109, 109, 109, 100)))
+                        new Background<>(new Color(109, 109, 109, 100)))
 //                .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
 //                        true)
 //                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
@@ -148,7 +148,7 @@ public class MainGameLoop {
 
         new GuiItemSelection.Builder()
                 .setChildrenConstraints(new PatternConstraints(5, 3, .02f))
-                .setBackground(new GuiBackground<>(new Color(109, 109, 109, 80)))
+                .setBackground(new Background<>(new Color(109, 109, 109, 80)))
                 .addButton(GuiItemSelection.MenuButton.DIRT_ROAD, ButtonType.RECTANGLE, ItemPreviews.DIRT_ROAD)
                 .addButton(GuiItemSelection.MenuButton.INSULA, ButtonType.RECTANGLE, ItemPreviews.INSULA)
                 .addButton(GuiItemSelection.MenuButton.MARKET, ButtonType.RECTANGLE, ItemPreviews.MARKET)
@@ -159,12 +159,6 @@ public class MainGameLoop {
 
         Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
 
-        double frameCap = 1.0 / FPS;
-        double time = Timer.getTime();
-        double unprocessed = 0;
-
-        double frameTime = 0;
-
         GuiRenderer guiRenderer = GuiRenderer.getInstance();
 
         PostProcessing.init();
@@ -173,14 +167,25 @@ public class MainGameLoop {
 
         TextMaster textMaster = TextMaster.getInstance();
 
-        AbstractMarket abstractMarket = new AbstractMarket();
-        abstractMarket.place(new Vector2f(50, 50));
+//        AbstractMarket abstractMarket = new AbstractMarket();
+//        abstractMarket.place(new Vector2f(50, 50));
 
         AbstractInsula abstractInsula = new AbstractInsula();
         abstractInsula.place(new Vector2f(35, 50));
-
-        abstractMarket.place(new Vector2f(20, 20));
+//
+//        abstractMarket.place(new Vector2f(20, 20));
         abstractInsula.place(new Vector2f(15, 10));
+
+//        Random random = new Random();
+//        for (int i = 0; i < 3; i++)
+//            abstractInsula.place(new Vector2f(random.nextInt(200), random.nextInt(200)));
+
+        double frameCap = 1.0 / FPS;
+        double time = Timer.getTime();
+        double unprocessed = 0;
+        int frames = 0;
+        double frameTime = 0;
+
         while (!glfwWindowShouldClose(getWindow())) {
             boolean canRender = false;
             double time2 = Timer.getTime();
@@ -189,7 +194,7 @@ public class MainGameLoop {
             frameTime += diff;
             time = time2;
 
-            while (unprocessed >= frameCap) {
+            while (unprocessed >= frameCap && !glfwWindowShouldClose(getWindow())) {
                 unprocessed -= frameCap;
                 canRender = true;
 
@@ -199,27 +204,27 @@ public class MainGameLoop {
 
                 if (frameTime >= 1.0) {
                     frameTime = 0;
-//                    System.out.println("FPS: " + frames);
+//                    System.out.println("frames: " + frames);
+                    frames = 0;
                 }
+                glfwPollEvents();
             }
 
             if (canRender) {
-                DisplayManager.updateDisplay();
-
                 camera.move();
 
-                GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
+//                GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
+//
+//                buffers.bindReflectionFrameBuffer();
+//
+//                renderer.renderScene(entities, lights, camera, new Vector4f(0, 1, 0, -water.getHeight() + 1f));
+//
+//                buffers.bindRefractionFrameBuffer();
+//                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, water.getHeight() + 1f));
+//
+//                GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
 
-                buffers.bindReflectionFrameBuffer();
-
-                renderer.renderScene(entities, lights, camera, new Vector4f(0, 1, 0, -water.getHeight() + 1f));
-
-                buffers.bindRefractionFrameBuffer();
-                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, water.getHeight() + 1f));
-
-                GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
-
-                buffers.unbindCurrentFrameBuffer();
+//                buffers.unbindCurrentFrameBuffer();
 
                 if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
                     fbo.bindFrameBuffer();
@@ -231,7 +236,7 @@ public class MainGameLoop {
                     PostProcessing.doPostProcessing(fbo.getColourTexture());
                 } else {
                     renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
-                    waterRenderer.render(waters, camera, sun);
+//                    waterRenderer.render(waters, camera, sun);
                 }
 //                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
 //                waterRenderer.render(waters, camera, sun);
@@ -239,7 +244,9 @@ public class MainGameLoop {
                 guiRenderer.render();
 
                 textMaster.render();//TODO: Handle double rendering w/ GuiRenderer
-                System.gc();
+
+                glfwSwapBuffers(DisplayManager.getWindow());
+                frames++;
             }
         }
 
@@ -258,6 +265,8 @@ public class MainGameLoop {
 
         GL.setCapabilities(null);
         DisplayManager.closeDisplay();
+
+        glfwTerminate();
     }
 
 }
