@@ -4,7 +4,7 @@ import entities.Camera.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 import terrains.Terrain;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public class RoadGraph {
 
@@ -16,7 +16,7 @@ public class RoadGraph {
         this.routes = new TreeSet<>();
     }
 
-    public void searchForNextNode(Vector2f position, Direction[] directions, RouteRoad currentRoute) {
+    public void searchForNextNode(TerrainPosition position, Direction[] directions, RouteRoad currentRoute) {
         if (currentRoute == null) {
             RoadNode start = new RoadNode(position);
             currentRoute = new RouteRoad(start);
@@ -28,7 +28,7 @@ public class RoadGraph {
 
         Terrain terrain = Terrain.getInstance();
         for (Direction direction : directions) {
-            Vector2f nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
+            TerrainPosition nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
 //            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
             Direction[] directionsNextRoad = terrain.getConnectionsToRoadItem(nextRoadPosition, true);

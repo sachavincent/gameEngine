@@ -3,13 +3,13 @@ package items;
 import static items.ConnectableItem.Connections.NONE;
 
 import entities.Camera.Direction;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public class PlaceHolderConnectableItem extends PlaceHolderItem implements ConnectableItem {
 
     private final Connections[] individualConnections = new Connections[]{NONE, NONE, NONE, NONE};
 
-    public PlaceHolderConnectableItem(ConnectableItem parent, Vector2f relativePosToItem) {
+    public PlaceHolderConnectableItem(ConnectableItem parent, TerrainPosition relativePosToItem) {
         super(((Item) parent), relativePosToItem);
     }
 
@@ -32,13 +32,13 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
     @Override
     public boolean[] getAccessPoints() {
         boolean[] accessPoints = new boolean[4];
-        if (relativePosition.y < 0)
+        if (relativePosition.getZ() < 0)
             accessPoints[0] = true;
-        if (relativePosition.x < 0)
+        if (relativePosition.getX() < 0)
             accessPoints[1] = true;
-        if (relativePosition.y > 0)
+        if (relativePosition.getZ() > 0)
             accessPoints[2] = true;
-        if (relativePosition.x > 0)
+        if (relativePosition.getX() > 0)
             accessPoints[3] = true;
 
         return accessPoints;
@@ -63,7 +63,7 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
     }
 
     @Override
-    public Vector2f getOffset(Direction direction) {
+    public TerrainPosition getOffset(Direction direction) {
         return parent.getOffset(direction);
     }
 

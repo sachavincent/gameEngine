@@ -3,9 +3,8 @@ package abstractItem;
 import guis.presets.Background;
 import items.Item;
 import items.roads.RoadItem;
-import java.util.Map;
 import terrains.Terrain;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public abstract class AbstractRoadItem extends AbstractItem {
 
@@ -14,19 +13,17 @@ public abstract class AbstractRoadItem extends AbstractItem {
     }
 
     @Override
-    public void place(Vector2f position) {
+    public void place(TerrainPosition position) {
         if (position == null)
             return;
 
         Terrain terrain = Terrain.getInstance();
 
-        Map<Vector2f, Item> items = terrain.getItems();
-
-        if (items.get(position) != null)
+        if (terrain.isPositionOccupied(position))
             return;
 
-        RoadItem itemInstance = (RoadItem) getItemInstance();
-        boolean done = terrain.addItem(position, itemInstance.updateNeighboursAndCenter(terrain, position));
+        RoadItem itemInstance = (RoadItem) newInstance(position);
+        boolean done = terrain.addItem(position, itemInstance.updateNeighboursAndCenter(position));
         terrain.updateRoadGraph();
 
         if (done)
@@ -34,20 +31,16 @@ public abstract class AbstractRoadItem extends AbstractItem {
     }
 
     @Override
-    public void place(Vector2f[] positions) {
+    public void place(TerrainPosition[] positions) {
         if (positions == null)
             return;
 
         Terrain terrain = Terrain.getInstance();
 
-        Map<Vector2f, Item> items = terrain.getItems();
+        for (TerrainPosition position : positions) {
+            RoadItem itemInstance = (RoadItem) newInstance(position);
 
-        RoadItem itemInstance = (RoadItem) getItemInstance();
-        for (Vector2f position : positions) {
-            if (items.get(position) != null)
-                continue;
-
-            terrain.addItem(position, itemInstance.updateNeighboursAndCenter(terrain, position));
+            terrain.addItem(position, itemInstance.updateNeighboursAndCenter(position));
         }
         terrain.updateRoadGraph();
 

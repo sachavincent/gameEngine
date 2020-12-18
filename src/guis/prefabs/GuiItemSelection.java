@@ -114,8 +114,8 @@ public class GuiItemSelection extends Gui {
         if (selectedItem == null)
             select = true;
         else {
-            Item itemInstance = selectedItem.getItemInstance();
-            if (item.getItemInstance().getClass() != itemInstance.getClass())
+            Item itemInstance = selectedItem.newInstance(null);
+            if (item.newInstance(null).getClass() != itemInstance.getClass())
                 select = true;
         }
 

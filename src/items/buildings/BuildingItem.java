@@ -8,6 +8,7 @@ import items.Item;
 import items.RotatableItem;
 import items.SelectableItem;
 import java.util.Arrays;
+import terrains.TerrainPosition;
 import util.math.Maths;
 
 public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem, SelectableItem {
@@ -16,9 +17,9 @@ public abstract class BuildingItem extends Item implements RotatableItem, Connec
     private       boolean[]     accessPoints = new boolean[]{true, true, true, true};
     private final Connections[] connected    = new Connections[]{NONE, NONE, NONE, NONE};
 
-    public BuildingItem(String name, Item copy, int xNegativeOffset, int xPositiveOffset, int height,
+    public BuildingItem(TerrainPosition position, String name, Item copy, int xNegativeOffset, int xPositiveOffset, int height,
             int zNegativeOffset, int zPositiveOffset, Direction... directions) {
-        super(name, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset);
+        super(position, name, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset);
 
         if (copy != null) {
             this.texture = copy.getTexture();

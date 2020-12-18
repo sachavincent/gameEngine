@@ -20,7 +20,6 @@ import items.SelectableItem;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import models.BoundingBox;
@@ -35,6 +34,7 @@ import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import terrains.Terrain;
+import terrains.TerrainPosition;
 import util.MousePicker;
 import util.math.Maths;
 import util.math.Plane3D;
@@ -44,8 +44,8 @@ import util.math.Vector3f;
 public class MouseUtils {
 
     // Represents the position clicked before releasing M1
-    private static Vector2f startTerrainPos;
-    private static Vector2f lastTerrainPos;
+    private static TerrainPosition startTerrainPos;
+    private static TerrainPosition lastTerrainPos;
 
     public static boolean middleMouseButtonPressed;
     public static int     previousYaw;
@@ -178,12 +178,11 @@ public class MouseUtils {
                 if (point == null)
                     return;
 
-                Vector2f terrainPoint = new Vector2f(point.getX(), point.getZ());
+                Vector2f p = new Vector2f(point.getX(), point.getZ());
 
-                terrainPoint.x = (float) Math.rint(terrainPoint.x);
-                terrainPoint.y = (float) Math.rint(terrainPoint.y);
+                TerrainPosition terrainPoint = p.toGridCoordinates();
 
-                if (!terrain.getItems().containsKey(terrainPoint) ||
+                if (terrain.isPositionAvailable(terrainPoint) ||
                         terrain.getPreviewItemPositions().contains(terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         Gui.hideGui(selectedItemGui);
@@ -193,7 +192,7 @@ public class MouseUtils {
                         Gui.hideGui(selectedItemGui);
                     else {
                         if (selectedItem instanceof AbstractRoadItem && !terrainPoint.equals(lastTerrainPos)) {
-                            lastTerrainPos = new Vector2f(terrainPoint);
+                            lastTerrainPos = new TerrainPosition(terrainPoint);
                             if (startTerrainPos == null || terrainPoint.equals(startTerrainPos))
                                 terrain.addPreviewItem(terrainPoint, selectedItem);
                             else {
@@ -274,11 +273,10 @@ public class MouseUtils {
             if (terrainPoint == null)
                 return;
 
-            Vector2f currentTerrainPoint = new Vector2f(terrainPoint.getX(),
+            Vector2f currTerrainPoint = new Vector2f(terrainPoint.getX(),
                     terrainPoint.getZ());
 
-            currentTerrainPoint.x = (float) Math.rint(currentTerrainPoint.x);
-            currentTerrainPoint.y = (float) Math.rint(currentTerrainPoint.y);
+            TerrainPosition currentTerrainPoint = currTerrainPoint.toGridCoordinates();
 
             switch (action) {
                 case GLFW_PRESS:
@@ -309,12 +307,9 @@ public class MouseUtils {
             onMiddleMouseButton(action);
         } else if (button == GLFW_MOUSE_BUTTON_2) {
             if (action == GLFW_PRESS) {
-                Set<Entry<Vector2f, Item>> entrySet = terrain.getItems().entrySet().stream()
-                        .filter(entry -> entry.getValue() instanceof SelectableItem).collect(Collectors.toSet());
-                for (Entry<Vector2f, Item> entry : entrySet) {
-                    Vector2f pos = entry.getKey();
-                    Item item = entry.getValue();
-
+                Set<Item> items = terrain.getItems().stream().filter(SelectableItem.class::isInstance)
+                        .collect(Collectors.toSet());
+                for (Item item : items) {
                     BoundingBox boundingBox = item.getBoundingBox();
                     if (boundingBox == null)
                         continue;
@@ -323,11 +318,15 @@ public class MouseUtils {
                     if (boundingBoxRawModel == null)
                         continue;
 
+                    TerrainPosition position = item.getPosition();
+
                     boolean found = true;
                     for (Plane3D plane3D : boundingBox.getPlanes()) {
                         Plane3D plane = new Plane3D(plane3D);
                         plane.rotate(-item.getFacingDirection().getDegree());
-                        plane.add(new Vector3f(pos.x, 0, pos.y)); //TODO temp 0
+
+                        plane.add(new Vector3f(position.getX(), 0, position.getZ())); //TODO temp 0
+
                         found = MousePicker.getInstance().intersectionWithPlane(plane, true) != null;
 
                         if (found)

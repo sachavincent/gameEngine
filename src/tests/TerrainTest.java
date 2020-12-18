@@ -8,8 +8,6 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import abstractItem.AbstractDirtRoadItem;
 import abstractItem.AbstractInsula;
 import entities.Camera.Direction;
-import items.Item;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +22,7 @@ import pathfinding.RouteFinder.Route;
 import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
 import terrains.Terrain;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 class TerrainTest {
 
@@ -50,10 +48,10 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        abstractDirtRoadItem.place(new Vector2f(50, 50));
+        abstractDirtRoadItem.place(new TerrainPosition(50, 50));
 
 
-        Direction[] directions = terrain.getConnectionsToRoadItem(new Vector2f(50, 50), true);
+        Direction[] directions = terrain.getConnectionsToRoadItem(new TerrainPosition(50, 50), true);
 
         assertArrayEquals(new Direction[0], directions);
     }
@@ -64,7 +62,7 @@ class TerrainTest {
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
@@ -80,7 +78,7 @@ class TerrainTest {
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
 
@@ -96,7 +94,7 @@ class TerrainTest {
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
@@ -112,7 +110,7 @@ class TerrainTest {
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
@@ -130,7 +128,7 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
         abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
@@ -149,7 +147,7 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         AbstractInsula abstractInsula = new AbstractInsula();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
         abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
@@ -169,7 +167,7 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         AbstractInsula abstractInsula = new AbstractInsula();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
         abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -190,7 +188,7 @@ class TerrainTest {
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
-        Vector2f center = new Vector2f(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
         abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
         abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -213,7 +211,7 @@ class TerrainTest {
 //        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
 //        AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
 //        AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
-//        Vector2f center = new Vector2f(50, 50);
+//        TerrainPosition center = new TerrainPosition(50, 50);
 //        abstractDirtRoadItem.place(center);
 //        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 //        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -236,14 +234,14 @@ class TerrainTest {
 //        Terrain terrain = Terrain.getInstance();
 //
 //        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-//        Vector2f v0 = new Vector2f(49, 50);
-//        Vector2f v00 = new Vector2f(50, 51);
-//        Vector2f center = new Vector2f(50, 50);
-//        Vector2f v1 = new Vector2f(51, 50);
-//        Vector2f v2 = new Vector2f(52, 50);
-//        Vector2f v3 = new Vector2f(53, 50);
-//        Vector2f v4 = new Vector2f(53, 51);
-//        Vector2f v5 = new Vector2f(53, 49);
+//        TerrainPosition v0 = new TerrainPosition(49, 50);
+//        TerrainPosition v00 = new TerrainPosition(50, 51);
+//        TerrainPosition center = new TerrainPosition(50, 50);
+//        TerrainPosition v1 = new TerrainPosition(51, 50);
+//        TerrainPosition v2 = new TerrainPosition(52, 50);
+//        TerrainPosition v3 = new TerrainPosition(53, 50);
+//        TerrainPosition v4 = new TerrainPosition(53, 51);
+//        TerrainPosition v5 = new TerrainPosition(53, 49);
 //
 //        abstractDirtRoadItem.place(center);
 //        abstractDirtRoadItem.place(v0);
@@ -271,7 +269,7 @@ class TerrainTest {
 //    }
     @Test
     void testInvertRoute1() {
-        Vector2f v1 = new Vector2f(50, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
 
         RouteFinder.Route<RouteRoad> route = new Route<>();
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
@@ -288,8 +286,8 @@ class TerrainTest {
 
     @Test
     void testInvertRoute2() {
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
 
         RouteFinder.Route<RouteRoad> route = new Route<>();
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
@@ -309,10 +307,10 @@ class TerrainTest {
 
     @Test
     void testInvertRoute3() {
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
 
         RouteFinder.Route<RouteRoad> route = new Route<>();
         // Expected individual routes
@@ -338,13 +336,13 @@ class TerrainTest {
 
     @Test
     void testInvertRoute4() {
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(56, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 50);
 
         RouteFinder.Route<RouteRoad> route = new Route<>();
 
@@ -380,16 +378,16 @@ class TerrainTest {
 
     @Test
     void testInvertRoute5() {
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(56, 50);
-        Vector2f v8 = new Vector2f(57, 50);
-        Vector2f v9 = new Vector2f(58, 50);
-        Vector2f v10 = new Vector2f(59, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 50);
+        TerrainPosition v8 = new TerrainPosition(57, 50);
+        TerrainPosition v9 = new TerrainPosition(58, 50);
+        TerrainPosition v10 = new TerrainPosition(59, 50);
 
         RouteFinder.Route<RouteRoad> route = new Route<>();
 
@@ -441,17 +439,16 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
 
         // v1 -> v2 -> v3 -> v4
-        abstractDirtRoadItem.place(new Vector2f(50, 49));
-        Map<Vector2f, Item> items = terrain.getItems();
-        abstractDirtRoadItem.place(new Vector2f(50, 51));
-        abstractDirtRoadItem.place(new Vector2f(53, 49));
-        abstractDirtRoadItem.place(new Vector2f(53, 51));
+        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
+        abstractDirtRoadItem.place(new TerrainPosition(50, 51));
+        abstractDirtRoadItem.place(new TerrainPosition(53, 49));
+        abstractDirtRoadItem.place(new TerrainPosition(53, 51));
         abstractDirtRoadItem.place(v1);
         abstractDirtRoadItem.place(v2);
         abstractDirtRoadItem.place(v3);
@@ -484,18 +481,18 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
 
         // v1 -> v2 -> v3 -> v4 -> v5
-        abstractDirtRoadItem.place(new Vector2f(49, 50));
-        abstractDirtRoadItem.place(new Vector2f(50, 49));
-        abstractDirtRoadItem.place(new Vector2f(52, 49));
-        abstractDirtRoadItem.place(new Vector2f(54, 49));
-        abstractDirtRoadItem.place(new Vector2f(55, 50));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 50));
+        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
+        abstractDirtRoadItem.place(new TerrainPosition(52, 49));
+        abstractDirtRoadItem.place(new TerrainPosition(54, 49));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 50));
         abstractDirtRoadItem.place(v1);
         abstractDirtRoadItem.place(v2);
         abstractDirtRoadItem.place(v3);
@@ -533,11 +530,11 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(50, 49);
-        Vector2f v3 = new Vector2f(50, 48);
-        Vector2f v4 = new Vector2f(51, 48);
-        Vector2f v5 = new Vector2f(52, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 49);
+        TerrainPosition v3 = new TerrainPosition(50, 48);
+        TerrainPosition v4 = new TerrainPosition(51, 48);
+        TerrainPosition v5 = new TerrainPosition(52, 48);
 
         // v1 -> v2 -> v3 -> v4 -> v5
         int[] roadPositions = new int[]{
@@ -552,14 +549,14 @@ class TerrainTest {
                 55, 48,
                 55, 49,
                 52, 47,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -592,15 +589,15 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(55, 49);
-        Vector2f v8 = new Vector2f(56, 49);
-        Vector2f v9 = new Vector2f(57, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(55, 49);
+        TerrainPosition v8 = new TerrainPosition(56, 49);
+        TerrainPosition v9 = new TerrainPosition(57, 49);
 
         // v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7 -> v8 -> v9
         int[] roadPositions = new int[]{
@@ -611,18 +608,18 @@ class TerrainTest {
                 58, 49,
                 57, 50,
                 57, 48,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y,
-                (int) v9.x, (int) v9.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ(),
+                v9.getX(), v9.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -664,18 +661,18 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(50, 49);
-        Vector2f v6 = new Vector2f(50, 48);
-        Vector2f v7 = new Vector2f(51, 48);
-        Vector2f v8 = new Vector2f(52, 48);
-        Vector2f v9 = new Vector2f(53, 48);
-        Vector2f v10 = new Vector2f(53, 49);
-        Vector2f v11 = new Vector2f(54, 48);
-        Vector2f v12 = new Vector2f(55, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 49);
+        TerrainPosition v11 = new TerrainPosition(54, 48);
+        TerrainPosition v12 = new TerrainPosition(55, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -697,21 +694,21 @@ class TerrainTest {
                 54, 46,
                 55, 46,
                 55, 47,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y,
-                (int) v9.x, (int) v9.y,
-                (int) v10.x, (int) v10.y,
-                (int) v11.x, (int) v11.y,
-                (int) v12.x, (int) v12.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ(),
+                v9.getX(), v9.getZ(),
+                v10.getX(), v10.getZ(),
+                v11.getX(), v11.getZ(),
+                v12.getX(), v12.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -762,19 +759,19 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(50, 49);
-        Vector2f v6 = new Vector2f(50, 48);
-        Vector2f v7 = new Vector2f(51, 48);
-        Vector2f v8 = new Vector2f(52, 48);
-        Vector2f v9 = new Vector2f(53, 48);
-        Vector2f v10 = new Vector2f(53, 49);
-        Vector2f v11 = new Vector2f(53, 47);
-        Vector2f v12 = new Vector2f(53, 46);
-        Vector2f v13 = new Vector2f(54, 46);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 49);
+        TerrainPosition v11 = new TerrainPosition(53, 47);
+        TerrainPosition v12 = new TerrainPosition(53, 46);
+        TerrainPosition v13 = new TerrainPosition(54, 46);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -804,22 +801,22 @@ class TerrainTest {
                 55, 47,
                 55, 46,
                 54, 45,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y,
-                (int) v9.x, (int) v9.y,
-                (int) v10.x, (int) v10.y,
-                (int) v11.x, (int) v11.y,
-                (int) v12.x, (int) v12.y,
-                (int) v13.x, (int) v13.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ(),
+                v9.getX(), v9.getZ(),
+                v10.getX(), v10.getZ(),
+                v11.getX(), v11.getZ(),
+                v12.getX(), v12.getZ(),
+                v13.getX(), v13.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -871,11 +868,11 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -884,14 +881,14 @@ class TerrainTest {
                 51, 49,
                 54, 49,
                 55, 50,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -925,12 +922,12 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(53, 49);
-        Vector2f v6 = new Vector2f(53, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(53, 49);
+        TerrainPosition v6 = new TerrainPosition(53, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -951,15 +948,15 @@ class TerrainTest {
                 51, 46,
                 52, 46,
                 53, 46,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1004,11 +1001,11 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -1016,14 +1013,14 @@ class TerrainTest {
         int[] roadPositions = new int[]{
                 //    49,50,
                 //    55,50,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1055,26 +1052,26 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(53, 49);
 
         /*
         v2 -> v3 -> v4
          */
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1113,32 +1110,32 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(56, 50);
-        Vector2f v8 = new Vector2f(51, 49);
-        Vector2f v9 = new Vector2f(55, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 50);
+        TerrainPosition v8 = new TerrainPosition(51, 49);
+        TerrainPosition v9 = new TerrainPosition(55, 49);
 
         /*
         v3 -> v4 -> v5
          */
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y,
-                (int) v9.x, (int) v9.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ(),
+                v9.getX(), v9.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1169,30 +1166,30 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(50, 49);
-        Vector2f v8 = new Vector2f(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(50, 49);
+        TerrainPosition v8 = new TerrainPosition(53, 49);
 
         /*
         v2 -> v3 -> v4 -> v5 -> v6
          */
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1242,19 +1239,19 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(54, 50);
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1278,28 +1275,28 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
 
-        Vector2f v4 = new Vector2f(56, 50);
-        Vector2f v5 = new Vector2f(56, 49);
-        Vector2f v6 = new Vector2f(56, 48);
-        Vector2f v7 = new Vector2f(55, 49);
-        Vector2f v8 = new Vector2f(57, 49);
+        TerrainPosition v4 = new TerrainPosition(56, 50);
+        TerrainPosition v5 = new TerrainPosition(56, 49);
+        TerrainPosition v6 = new TerrainPosition(56, 48);
+        TerrainPosition v7 = new TerrainPosition(55, 49);
+        TerrainPosition v8 = new TerrainPosition(57, 49);
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1329,28 +1326,28 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 49);
 
-        Vector2f v5 = new Vector2f(55, 50);
-        Vector2f v6 = new Vector2f(56, 50);
-        Vector2f v7 = new Vector2f(57, 50);
-        Vector2f v8 = new Vector2f(56, 49);
+        TerrainPosition v5 = new TerrainPosition(55, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 50);
+        TerrainPosition v7 = new TerrainPosition(57, 50);
+        TerrainPosition v8 = new TerrainPosition(56, 49);
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1374,20 +1371,20 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(52, 49);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1416,20 +1413,20 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 49);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1468,24 +1465,24 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(51, 51);
-        Vector2f v6 = new Vector2f(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(51, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 49);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1515,30 +1512,30 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
 
-        Vector2f v5 = new Vector2f(51, 51);
-        Vector2f v6 = new Vector2f(52, 51);
+        TerrainPosition v5 = new TerrainPosition(51, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 51);
 
-        Vector2f v7 = new Vector2f(51, 49);
-        Vector2f v8 = new Vector2f(52, 49);
+        TerrainPosition v7 = new TerrainPosition(51, 49);
+        TerrainPosition v8 = new TerrainPosition(52, 49);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1568,22 +1565,22 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(51, 51);
-        Vector2f v5 = new Vector2f(52, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 51);
+        TerrainPosition v5 = new TerrainPosition(52, 51);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1613,20 +1610,20 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(50, 49);
-        Vector2f v4 = new Vector2f(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(50, 49);
+        TerrainPosition v4 = new TerrainPosition(51, 49);
 
 
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1656,9 +1653,9 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(52, 50);
-        Vector2f v2 = new Vector2f(53, 50);
-        Vector2f v3 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(52, 50);
+        TerrainPosition v2 = new TerrainPosition(53, 50);
+        TerrainPosition v3 = new TerrainPosition(54, 50);
 
 
         /*
@@ -1676,12 +1673,12 @@ class TerrainTest {
                 54, 48,
                 55, 48,
                 55, 49,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1712,9 +1709,9 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(52, 48);
-        Vector2f v2 = new Vector2f(53, 48);
-        Vector2f v3 = new Vector2f(54, 48);
+        TerrainPosition v1 = new TerrainPosition(52, 48);
+        TerrainPosition v2 = new TerrainPosition(53, 48);
+        TerrainPosition v3 = new TerrainPosition(54, 48);
 
 
         /*
@@ -1734,12 +1731,12 @@ class TerrainTest {
                 55, 49,
                 50, 48,
                 56, 48,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1770,11 +1767,11 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
 
 
         /*
@@ -1788,14 +1785,14 @@ class TerrainTest {
                 53, 48,
                 54, 48,
                 54, 49,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1828,16 +1825,16 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(60, 50);
-        Vector2f v7 = new Vector2f(61, 50);
-        Vector2f v8 = new Vector2f(62, 50);
-        Vector2f v9 = new Vector2f(63, 50);
-        Vector2f v10 = new Vector2f(64, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(60, 50);
+        TerrainPosition v7 = new TerrainPosition(61, 50);
+        TerrainPosition v8 = new TerrainPosition(62, 50);
+        TerrainPosition v9 = new TerrainPosition(63, 50);
+        TerrainPosition v10 = new TerrainPosition(64, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5
@@ -1849,19 +1846,19 @@ class TerrainTest {
                 52, 51,
                 62, 49,
                 62, 51,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y,
-                (int) v8.x, (int) v8.y,
-                (int) v9.x, (int) v9.y,
-                (int) v10.x, (int) v10.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ(),
+                v8.getX(), v8.getZ(),
+                v9.getX(), v9.getZ(),
+                v10.getX(), v10.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1917,13 +1914,13 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
 
-        Vector2f v4 = new Vector2f(56, 49);
-        Vector2f v5 = new Vector2f(56, 50);
-        Vector2f v6 = new Vector2f(56, 51);
+        TerrainPosition v4 = new TerrainPosition(56, 49);
+        TerrainPosition v5 = new TerrainPosition(56, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 51);
 
         /*
                                 v4
@@ -1933,15 +1930,15 @@ class TerrainTest {
                                 v6
          */
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1989,13 +1986,13 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(51, 50);
-        Vector2f v2 = new Vector2f(52, 50);
-        Vector2f v3 = new Vector2f(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 50);
 
-        Vector2f v4 = new Vector2f(56, 50);
-        Vector2f v5 = new Vector2f(57, 50);
-        Vector2f v6 = new Vector2f(58, 50);
+        TerrainPosition v4 = new TerrainPosition(56, 50);
+        TerrainPosition v5 = new TerrainPosition(57, 50);
+        TerrainPosition v6 = new TerrainPosition(58, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5 -> v6
@@ -2006,15 +2003,15 @@ class TerrainTest {
                 55, 50,
                 56, 51,
                 56, 49,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2088,13 +2085,13 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(51, 50);
-        Vector2f v2 = new Vector2f(52, 50);
-        Vector2f v3 = new Vector2f(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 50);
 
-        Vector2f v4 = new Vector2f(57, 51);
-        Vector2f v5 = new Vector2f(58, 51);
-        Vector2f v6 = new Vector2f(58, 50);
+        TerrainPosition v4 = new TerrainPosition(57, 51);
+        TerrainPosition v5 = new TerrainPosition(58, 51);
+        TerrainPosition v6 = new TerrainPosition(58, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5
@@ -2110,15 +2107,15 @@ class TerrainTest {
                 57, 52,
                 58, 49,
                 59, 50,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2167,13 +2164,13 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v7 = new Vector2f(56, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7
@@ -2182,16 +2179,16 @@ class TerrainTest {
                 52, 51,
                 53, 51,
                 54, 51,
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v7.x, (int) v7.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v7.getX(), v7.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2260,14 +2257,14 @@ class TerrainTest {
         Terrain terrain = Terrain.getInstance();
 
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(51, 50);
-        Vector2f v3 = new Vector2f(52, 50);
-        Vector2f v4 = new Vector2f(53, 50);
-        Vector2f v5 = new Vector2f(54, 50);
-        Vector2f v6 = new Vector2f(55, 50);
-        Vector2f v6b = new Vector2f(54, 51);
-        Vector2f v7 = new Vector2f(55, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 50);
+        TerrainPosition v6b = new TerrainPosition(54, 51);
+        TerrainPosition v7 = new TerrainPosition(55, 51);
 
         /*
                                     v6b -> v7
@@ -2275,17 +2272,17 @@ class TerrainTest {
             v1 -> v2 -> v3 -> v4 -> v5  -> v6
          */
         int[] roadPositions = new int[]{
-                (int) v1.x, (int) v1.y,
-                (int) v2.x, (int) v2.y,
-                (int) v3.x, (int) v3.y,
-                (int) v4.x, (int) v4.y,
-                (int) v5.x, (int) v5.y,
-                (int) v6.x, (int) v6.y,
-                (int) v6b.x, (int) v6b.y,
-                (int) v7.x, (int) v7.y
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+                v5.getX(), v5.getZ(),
+                v6.getX(), v6.getZ(),
+                v6b.getX(), v6b.getZ(),
+                v7.getX(), v7.getZ()
         };
 
-        Vector2f[] roads = Vector2f.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2372,19 +2369,19 @@ class TerrainTest {
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
-        Vector2f v1 = new Vector2f(50, 50);
-        Vector2f v2 = new Vector2f(60, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(60, 50);
 
-        Vector2f[] positions = new Vector2f[]{
-                new Vector2f(51, 50),
-                new Vector2f(52, 50),
-                new Vector2f(53, 50),
-                new Vector2f(54, 50),
-                new Vector2f(55, 50),
-                new Vector2f(56, 50),
-                new Vector2f(57, 50),
-                new Vector2f(58, 50),
-                new Vector2f(59, 50),
+        TerrainPosition[] positions = new TerrainPosition[]{
+                new TerrainPosition(51, 50),
+                new TerrainPosition(52, 50),
+                new TerrainPosition(53, 50),
+                new TerrainPosition(54, 50),
+                new TerrainPosition(55, 50),
+                new TerrainPosition(56, 50),
+                new TerrainPosition(57, 50),
+                new TerrainPosition(58, 50),
+                new TerrainPosition(59, 50),
         };
         Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
         // Expected global routes
@@ -2394,7 +2391,7 @@ class TerrainTest {
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
         NormalRoad end = new NormalRoad(v2);
         expectedRouteRoad.setEnd(end);
-        for (Vector2f pos : positions)
+        for (TerrainPosition pos : positions)
             expectedRouteRoad.addRoad(new NormalRoad(pos));
 
         expectedRouteRoad.addRoad(end);
@@ -2411,19 +2408,19 @@ class TerrainTest {
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
-        Vector2f v1 = new Vector2f(49, 50);
-        Vector2f v2 = new Vector2f(55, 60);
+        TerrainPosition v1 = new TerrainPosition(49, 50);
+        TerrainPosition v2 = new TerrainPosition(55, 60);
 
-        Vector2f[] positions = new Vector2f[]{
-                new Vector2f(51, 50),
-                new Vector2f(52, 50),
-                new Vector2f(53, 50),
-                new Vector2f(54, 50),
-                new Vector2f(55, 50),
-                new Vector2f(56, 50),
-                new Vector2f(57, 50),
-                new Vector2f(58, 50),
-                new Vector2f(59, 50),
+        TerrainPosition[] positions = new TerrainPosition[]{
+                new TerrainPosition(51, 50),
+                new TerrainPosition(52, 50),
+                new TerrainPosition(53, 50),
+                new TerrainPosition(54, 50),
+                new TerrainPosition(55, 50),
+                new TerrainPosition(56, 50),
+                new TerrainPosition(57, 50),
+                new TerrainPosition(58, 50),
+                new TerrainPosition(59, 50),
         };
         Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
         System.out.println(foundRoute);
@@ -2434,7 +2431,7 @@ class TerrainTest {
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
         NormalRoad end = new NormalRoad(v2);
         expectedRouteRoad.setEnd(end);
-        for (Vector2f pos : positions)
+        for (TerrainPosition pos : positions)
             expectedRouteRoad.addRoad(new NormalRoad(pos));
 
 

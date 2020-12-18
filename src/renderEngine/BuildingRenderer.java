@@ -28,10 +28,10 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 import shaders.BuildingShader;
 import terrains.Terrain;
+import terrains.TerrainPosition;
 import textures.ModelTexture;
 import util.math.Maths;
 import util.math.Matrix4f;
-import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class BuildingRenderer {
@@ -78,25 +78,26 @@ public class BuildingRenderer {
 
             final Terrain terrain = Terrain.getInstance();
 
-            final Map<Vector2f, BuildingItem> buildings = terrain.getBuildings();
-            buildings.forEach((p, item) -> {
-                Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
+            final List<BuildingItem> buildings = terrain.getBuildings();
+            buildings.forEach(building -> {
+                TerrainPosition p = building.getPosition();
+                Vector3f pos = new Vector3f(p.getX(), 0.05, p.getZ()); // TODO Remplacer y par height
 
 
-                TexturedModel texture = item.getTexture();
+                TexturedModel texture = building.getTexture();
                 if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(p)) {
-                    texture = item.getPreviewTexture();
+                    texture = building.getPreviewTexture();
                 }
 
-                handleTexture(entities, pos, item, texture);
+                handleTexture(entities, pos, building, texture);
                 if (displayBoundingBoxes) {
-                    texture = item.getBoundingBox();
+                    texture = building.getBoundingBox();
 
-                    handleTexture(entities, pos, item, texture);
+                    handleTexture(entities, pos, building, texture);
                 }
-                if (item.isSelected()) {
-                    texture = item.getSelectionBox();
-                    handleTexture(entities, pos, item, texture);
+                if (building.isSelected()) {
+                    texture = building.getSelectionBox();
+                    handleTexture(entities, pos, building, texture);
                 }
             });
 

@@ -2,6 +2,7 @@ package abstractItem;
 
 import items.Item;
 import items.buildings.houses.Insula;
+import terrains.TerrainPosition;
 
 public class AbstractInsula extends AbstractItem {
 
@@ -12,12 +13,8 @@ public class AbstractInsula extends AbstractItem {
     }
 
     @Override
-    public Item getItemInstance() {
-        Insula insula = new Insula();
-
-//        new ImmigrationEvent(insula, new Random().nextInt(10000));
-
-        return insula;
+    public Item newInstance(TerrainPosition terrainPosition) {
+        return new Insula(terrainPosition);
     }
 
     public static Insula getAbstractInstance() {

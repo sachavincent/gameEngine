@@ -226,8 +226,7 @@ public class OBJLoader {
     }
 
     private static RawModel handleIndicesTexturesNormalsVertex(BufferedReader reader, String nextSegment,
-            boolean instancedModel)
-            throws IOException, IllegalArgumentException {
+            boolean instancedModel) throws IOException, IllegalArgumentException {
         List<Vector3f> vertices = new ArrayList<>();
         List<Vector2f> textures = new ArrayList<>();
         List<Vector3f> normals = new ArrayList<>();

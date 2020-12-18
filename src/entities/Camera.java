@@ -1,7 +1,7 @@
 package entities;
 
+import terrains.TerrainPosition;
 import util.MousePicker;
-import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class Camera {
@@ -9,8 +9,8 @@ public class Camera {
     public final static  double MOVING_STEP = .6;
     private static final int    MAX_ZOOM    = 10;
 
-    private Vector3f position = new Vector3f(1, 20, 1);
-    private float    pitch    = 20;
+    private final Vector3f position = new Vector3f(1, 20, 1);
+    private       float    pitch    = 20;
     private int      yaw;
     private float    roll;
 
@@ -275,19 +275,19 @@ public class Camera {
             return getDirectionFromDegree(degree + 180);
         }
 
-        public static Vector2f toRelativeDistance(Direction direction) {
+        public static TerrainPosition toRelativeDistance(Direction direction) {
             switch (direction) {
                 case WEST:
-                    return new Vector2f(0, -1);
+                    return new TerrainPosition(0, -1);
                 case NORTH:
-                    return new Vector2f(1, 0);
+                    return new TerrainPosition(1, 0);
                 case EAST:
-                    return new Vector2f(0, 1);
+                    return new TerrainPosition(0, 1);
                 case SOUTH:
-                    return new Vector2f(-1, 0);
+                    return new TerrainPosition(-1, 0);
+                default:
+                    return new TerrainPosition(0,0);
             }
-
-            return null;
         }
     }
 }

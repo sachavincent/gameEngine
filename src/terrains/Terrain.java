@@ -8,7 +8,6 @@ import static entities.Camera.Direction.WEST;
 import abstractItem.AbstractItem;
 import entities.Camera.Direction;
 import items.ConnectableItem;
-import items.EmptyItem;
 import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.PlaceHolderItem;
@@ -60,9 +59,10 @@ public class Terrain {
 
     private float[][] heights;
 
-    private AbstractItem        previewedItem;
-    private Set<Vector2f>       previewItemPositions = new HashSet<>();
-    private Map<Vector2f, Item> items                = new HashMap<>();
+    private AbstractItem previewedItem;
+
+    private Set<TerrainPosition> previewItemPositions = new HashSet<>();
+    private List<Item>           items                = new ArrayList<>();
 
     private RoadGraph roadGraph;
 
@@ -88,12 +88,6 @@ public class Terrain {
         this.model = generateTerrain("black.png");
         //TODO: add items from save
         this.roadGraph = createRoadGraph();
-
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
-                items.put(new Vector2f(x, y), new EmptyItem());
-            }
-        }
     }
 
 //    public void placeItem(AbstractItem item, Vector2f position) {
@@ -114,7 +108,7 @@ public class Terrain {
         return this.redTexturePack;
     }
 
-    public Set<Vector2f> getPreviewItemPositions() {
+    public Set<TerrainPosition> getPreviewItemPositions() {
         return this.previewItemPositions;
     }
 
@@ -126,7 +120,7 @@ public class Terrain {
         this.previewedItem = previewedItem;
     }
 
-    public void addPreviewItem(Vector2f previewItemPosition, AbstractItem previewItem) {
+    public void addPreviewItem(TerrainPosition previewItemPosition, AbstractItem previewItem) {
         if (previewItem == null)
             return;
 
@@ -134,25 +128,28 @@ public class Terrain {
             setPreviewedItem(previewItem);
 
 //Check previewItem = previewedItem TODO
-        if (this.items.get(previewItemPosition) instanceof EmptyItem) { // Rien dans cet emplacement
+        if (isPositionAvailable(previewItemPosition)) { // Nothing here
 //            removeItem(this.previewItemPosition);
 //            resetPreviewItem();
 
             this.previewItemPositions.add(previewItemPosition);
 
-            addItem(previewItemPosition, previewItem.getPreviewItem());
+            Item item = previewItem.getPreviewItem();
+            item.setPosition(previewItemPosition);
+
+            addItem(previewItemPosition, item);
         }
     }
-
-    public void replacePreviewItems(List<Vector2f> positions, AbstractItem selectedItem) {
-        List<Vector2f> toBeRemoved = this.previewItemPositions.stream().filter(pos -> !positions.contains(pos))
-                .collect(Collectors.toList());
-        this.previewItemPositions.removeAll(toBeRemoved);
-        toBeRemoved.forEach(this::removeItem);
-
-        for (Vector2f position : positions)
-            addPreviewItem(position, selectedItem);
-    }
+//
+//    public void replacePreviewItems(List<Vector2f> positions, AbstractItem selectedItem) {
+//        List<Vector2f> toBeRemoved = this.previewItemPositions.stream().filter(pos -> !positions.contains(pos))
+//                .collect(Collectors.toList());
+//        this.previewItemPositions.removeAll(toBeRemoved);
+//        toBeRemoved.forEach(this::removeItem);
+//
+//        for (Vector2f position : positions)
+//            addPreviewItem(position, selectedItem);
+//    }
 
     public void resetPreviewItems(boolean safeDelete) {
         if (safeDelete)
@@ -478,10 +475,8 @@ public class Terrain {
         return model;
     }
 
-    public void removeItem(Vector2f position) {
-        if (!(items.get(position) instanceof EmptyItem)) {
-            items.replace(position, new EmptyItem());
-        }
+    public void removeItem(TerrainPosition position) {
+        items.remove(getItemAtPosition(position));
     }
 
     public int getNumberOfPeople() {
@@ -498,7 +493,7 @@ public class Terrain {
     }
 
     public int getMaxPeopleCapacity() {
-        return this.items.values().stream().filter(HouseItem.class::isInstance)
+        return this.items.stream().filter(HouseItem.class::isInstance)
                 .mapToInt(item -> ((HouseItem) item).getMaxPeopleCapacity()).sum();
     }
 
@@ -510,84 +505,68 @@ public class Terrain {
         numberOfPeople--;
     }
 
-    public void removeItems(Collection<Vector2f> positions) {
-        for (Vector2f position : positions) {
-//            if (!(items.get(position) instanceof EmptyItem)) {
-            items.replace(position, new EmptyItem());
-//            }
+    public void removeItems(Collection<TerrainPosition> positions) {
+        for (TerrainPosition position : positions) {
+            removeItem(position);
         }
     }
 
-    public boolean addItem(Vector2f position, Item item) {
+    public boolean addItem(TerrainPosition position, Item item) {
         if (item instanceof BuildingItem)
             MasterRenderer.getInstance().getBuildingRenderer().setUpdateNeeded(true);
 
-        if (items.get(position) instanceof EmptyItem)
-            return items.replace(position, item) != null;
-
-        return false;
+        return items.add(item);
     }
 
-    public boolean isPositionAvailable(Vector2f position) {
-        return items.get(position) instanceof EmptyItem;
+    public List<Item> getItems() {
+        return this.items;
     }
 
-    public Map<Vector2f, Item> getItems() {
-        return this.items.entrySet().stream().filter(entry -> !(entry.getValue() instanceof EmptyItem))
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    public List<RoadItem> getRoads() {
+        return this.items.stream().filter(RoadItem.class::isInstance).map(RoadItem.class::cast)
+                .collect(Collectors.toList());
     }
 
-    public Map<Vector2f, Item> getRoads() {
-        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    public List<BuildingItem> getBuildings() {
+        return this.items.stream().filter(BuildingItem.class::isInstance).map(BuildingItem.class::cast)
+                .collect(Collectors.toList());
     }
 
-    public Map<Vector2f, BuildingItem> getBuildings() {
-        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof BuildingItem)
-                .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), (BuildingItem) entry.getValue()))
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-    }
-
-    public Set<Vector2f> getRoadPositions() {
-        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof RoadItem)
-                .map(Entry::getKey).collect(Collectors.toSet());
-    }
-
-    public Set<Vector2f> getEmptyPositions() {
-        return this.items.entrySet().stream().filter(entry -> entry.getValue() instanceof EmptyItem)
-                .map(Entry::getKey).collect(Collectors.toSet());
+    public Set<TerrainPosition> getRoadPositions() {
+        return this.items.stream().filter(RoadItem.class::isInstance).map(Item::getPosition)
+                .collect(Collectors.toSet());
     }
 
     public Set<Item> getSelectedItems() {
-        return this.items.values().stream().filter(Item::isSelected).collect(Collectors.toSet());
+        return this.items.stream().filter(Item::isSelected).collect(Collectors.toSet());
     }
 
-    public boolean putItemIfSpace(Vector2f position, Item item) {
+    public boolean putItemIfSpace(TerrainPosition position, Item item) {
         int xNegativeOffset = item.getxNegativeOffset();
         int xPositiveOffset = item.getxPositiveOffset();
         int zNegativeOffset = item.getzNegativeOffset();
         int zPositiveOffset = item.getzPositiveOffset();
 
-        Map<Vector2f, Item> tempItems = new HashMap<>();
-        for (int x = (int) (position.x - xNegativeOffset); x <= position.x + xPositiveOffset; x++) {
-            for (int z = (int) position.y - zNegativeOffset; z <= position.y + zPositiveOffset; z++) {
-                Vector2f pos = new Vector2f(x, z);
+        Map<TerrainPosition, Item> tempItems = new HashMap<>();
+        for (int x = position.getX() - xNegativeOffset; x <= position.getX() + xPositiveOffset; x++) {
+            for (int z = position.getZ() - zNegativeOffset; z <= position.getZ() + zPositiveOffset; z++) {
+                TerrainPosition pos = new TerrainPosition(x, z);
                 if (pos.equals(position))
                     continue;
 
                 boolean addedItem = false;
 
-                Vector2f relativePosToItem = new Vector2f(position.x - x, z - position.y);
+                TerrainPosition relativePosToItem = new TerrainPosition(position.getX() - x, z - position.getZ());
                 if (item instanceof ConnectableItem) {
                     Set<Direction> directions = new HashSet<>();
-                    if (x == position.x - xNegativeOffset)
+                    if (x == position.getX() - xNegativeOffset)
                         directions.add(SOUTH);
-                    else if (x == position.x + xPositiveOffset)
+                    else if (x == position.getX() + xPositiveOffset)
                         directions.add(NORTH);
 
-                    if (z == position.y - zNegativeOffset)
+                    if (z == position.getZ() - zNegativeOffset)
                         directions.add(EAST);
-                    else if (z == position.y + zPositiveOffset)
+                    else if (z == position.getZ() + zPositiveOffset)
                         directions.add(WEST);
 
                     if (!directions.isEmpty()) {
@@ -628,37 +607,38 @@ public class Terrain {
     public void updateRequirements() {
         List<Route<RouteRoad>> paths = new ArrayList<>();
 
-        getItems().entrySet().stream().filter(entry -> entry.getValue() instanceof RequireBuilding &&
-                entry.getValue() instanceof ConnectableItem).forEach(entry -> {
-            final RequireBuilding requiringBuilding = (RequireBuilding) entry.getValue();
+        this.items.stream()
+                .filter(item -> item instanceof RequireBuilding && item instanceof ConnectableItem)
+                .forEach(item -> {
+                    final RequireBuilding requiringBuilding = (RequireBuilding) item;
 
-            Set<Route<RouteRoad>> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
+                    Set<Route<RouteRoad>> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
 
-            for (Direction direction : Direction.values()) {
-                if (((ConnectableItem) requiringBuilding).isConnected(direction)) {
-                    requiringBuilding.getRequirements().forEach((neededBuilding, maxLength) -> {
-                        Vector2f roadPos = entry.getKey().add(entry.getValue().getOffset(direction)
-                                .add(Direction.toRelativeDistance(direction)));
-                        Route<RouteRoad> route = RouteFinder.findRoute(roadPos, neededBuilding, maxLength);
-                        if (route != null && !route.isEmpty())
-                            foundRoutes.add(route);
-                    });
-                }
-            }
-            Route<RouteRoad> bestRoute = foundRoutes.stream().findFirst().orElse(new Route<>());
+                    for (Direction direction : Direction.values()) {
+                        if (((ConnectableItem) requiringBuilding).isConnected(direction)) {
+                            requiringBuilding.getRequirements().forEach((neededBuilding, maxLength) -> {
+                                TerrainPosition roadPos = item.getPosition()
+                                        .add(item.getOffset(direction).add(Direction.toRelativeDistance(direction)));
+                                Route<RouteRoad> route = RouteFinder.findRoute(roadPos, neededBuilding, maxLength);
+                                if (route != null && !route.isEmpty())
+                                    foundRoutes.add(route);
+                            });
+                        }
+                    }
+                    Route<RouteRoad> bestRoute = foundRoutes.stream().findFirst().orElse(new Route<>());
 //            System.out.println(foundRoutes);
-            if (!bestRoute.isEmpty()) { // Route found
-                paths.add(bestRoute);
-                requiringBuilding.meetRequirements();
+                    if (!bestRoute.isEmpty()) { // Route found
+                        paths.add(bestRoute);
+                        requiringBuilding.meetRequirements();
 //                foundRoutes.stream().filter(routeRoads -> routeRoads.getCost() == bestRoute.getCost()).forEach(paths::add);
-            }
-        });
+                    }
+                });
 
         setHightlightedPaths(paths);
     }
 
-    public Direction[] getConnectionsToRoadItem(Vector2f itemPosition, boolean onlyRoad) {
-        Item item = getItems().get(itemPosition);
+    public Direction[] getConnectionsToRoadItem(TerrainPosition itemPosition, boolean onlyRoad) {
+        Item item = getItemAtPosition(itemPosition);
 
         if (item == null && onlyRoad || (!(item instanceof RoadItem) && !onlyRoad))
             return new Direction[0];
@@ -666,15 +646,17 @@ public class Terrain {
         if (!(item instanceof ConnectableItem))
             return new Direction[0];
 
+        Terrain terrain = Terrain.getInstance();
+
         Set<Direction> directions = new TreeSet<>();
         ConnectableItem connectableItem = (ConnectableItem) item;
         boolean[] accessPoints = connectableItem.getAccessPoints();
 
         for (Direction direction : Direction.values()) {
             if (accessPoints[direction.ordinal()]) {
-                Vector2f connectedItemPosition = new Vector2f(itemPosition)
+                TerrainPosition connectedItemPosition = new TerrainPosition(itemPosition)
                         .add(Direction.toRelativeDistance(direction));
-                Item connectedItem = getItems().get(connectedItemPosition);
+                Item connectedItem = terrain.getItemAtPosition(connectedItemPosition);
                 if (connectedItem == null)
                     continue;
 
@@ -706,9 +688,7 @@ public class Terrain {
                 routes.forEach(routeRoad -> {
                     List<Road> roads = new ArrayList<>(routeRoad.getRoute());
                     roads.stream().map(Road::getPosition)
-                            .forEach(pos -> {
-                                positions.add(new Vector2f(pos.x - .5f, pos.y - .5f));
-                            });
+                            .forEach(pos -> positions.add(new Vector2f(pos.getX() - .5f, pos.getZ() - .5f)));
                 });
 
                 float[] positionsFloat = new float[positions.size() * 3];
@@ -747,7 +727,8 @@ public class Terrain {
         Thread t = new Thread(() -> {
             Map<RoadNode, Direction[]> nodes = new HashMap<>();
 
-            getRoads().keySet().forEach(pos -> {
+            getRoads().forEach(road -> {
+                TerrainPosition pos = road.getPosition();
 //                    Direction[] directions = getRoadDirections(pos);
                 Direction[] directions = getConnectionsToRoadItem(pos, true);
                 if (directions.length >= 3)
@@ -770,7 +751,7 @@ public class Terrain {
         return roadGraph;
     }
 
-    public Road getRoad(Vector2f roadPosition) {
+    public Road getRoad(TerrainPosition roadPosition) {
         Direction[] roadDirections = getConnectionsToRoadItem(roadPosition, true);
 
         if (roadDirections.length == 0)
@@ -783,12 +764,7 @@ public class Terrain {
      * Method created for testing purposes
      */
     public void resetItems() {
-        items = new HashMap<>();
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
-                items.put(new Vector2f(x, y), new EmptyItem());
-            }
-        }
+        items = new ArrayList<>();
     }
 
     public void placePreviewItems() {
@@ -796,8 +772,21 @@ public class Terrain {
             return;
 
         removeItems(this.previewItemPositions);
-        Vector2f[] pos = this.previewItemPositions.toArray(new Vector2f[0]);
+        TerrainPosition[] pos = this.previewItemPositions.toArray(new TerrainPosition[0]);
 
         this.previewedItem.place(pos);
+    }
+
+
+    public boolean isPositionAvailable(TerrainPosition position) {
+        return this.items.stream().noneMatch(item -> item.getPosition().equals(position));
+    }
+
+    public boolean isPositionOccupied(TerrainPosition position) {
+        return this.items.stream().anyMatch(item -> item.getPosition().equals(position));
+    }
+
+    public Item getItemAtPosition(TerrainPosition position) {
+        return this.items.stream().filter(item -> item.getPosition().equals(position)).findFirst().orElse(null);
     }
 }

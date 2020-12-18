@@ -37,9 +37,9 @@ import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import shaders.WaterShader;
+import terrains.TerrainPosition;
 import textures.FontTexture;
 import util.Timer;
-import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import water.WaterFrameBuffers;
@@ -171,10 +171,10 @@ public class MainGameLoop {
 //        abstractMarket.place(new Vector2f(50, 50));
 
         AbstractInsula abstractInsula = new AbstractInsula();
-        abstractInsula.place(new Vector2f(35, 50));
+        abstractInsula.place(new TerrainPosition(35, 50));
 //
 //        abstractMarket.place(new Vector2f(20, 20));
-        abstractInsula.place(new Vector2f(15, 10));
+        abstractInsula.place(new TerrainPosition(15, 10));
 
 //        Random random = new Random();
 //        for (int i = 0; i < 3; i++)

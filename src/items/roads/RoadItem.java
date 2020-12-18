@@ -6,13 +6,12 @@ import entities.Camera.Direction;
 import items.ConnectableItem;
 import items.Item;
 import items.PlaceHolderConnectableItem;
-import java.util.Map;
 import models.RawModel;
 import models.TexturedModel;
 import renderEngine.OBJLoader;
 import terrains.Terrain;
+import terrains.TerrainPosition;
 import textures.ModelTexture;
-import util.math.Vector2f;
 
 public abstract class RoadItem extends Item implements ConnectableItem {
 
@@ -20,8 +19,8 @@ public abstract class RoadItem extends Item implements ConnectableItem {
 
     private final static RawModel roadModel = OBJLoader.loadObjModel("road");
 
-    public RoadItem(String name) {
-        super(name, 0, 0, 0, 0, 0);
+    public RoadItem(TerrainPosition position, String name) {
+        super(position, name, 0, 0, 0, 0, 0);
 
         String textureName = name.replace(" ", "_").toLowerCase();
         this.texture = new TexturedModel(roadModel, new ModelTexture(textureName + ".png", true));
@@ -30,18 +29,18 @@ public abstract class RoadItem extends Item implements ConnectableItem {
         setScale(.5f);
     }
 
-    public Item updateNeighboursAndCenter(Terrain terrain, Vector2f center) {
-        Map<Vector2f, Item> items = terrain.getItems();
+    public Item updateNeighboursAndCenter(TerrainPosition center) {
+        Terrain terrain = Terrain.getInstance();
 
-        Vector2f northPosition = center.add(Direction.toRelativeDistance(Direction.NORTH));
-        Vector2f eastPosition = center.add(Direction.toRelativeDistance(Direction.EAST));
-        Vector2f southPosition = center.add(Direction.toRelativeDistance(Direction.SOUTH));
-        Vector2f westPosition = center.add(Direction.toRelativeDistance(Direction.WEST));
+        TerrainPosition northPosition = center.add(Direction.toRelativeDistance(Direction.NORTH));
+        TerrainPosition eastPosition = center.add(Direction.toRelativeDistance(Direction.EAST));
+        TerrainPosition southPosition = center.add(Direction.toRelativeDistance(Direction.SOUTH));
+        TerrainPosition westPosition = center.add(Direction.toRelativeDistance(Direction.WEST));
 
-        Item southItem = items.getOrDefault(southPosition, null);
-        Item northItem = items.getOrDefault(northPosition, null);
-        Item westItem = items.getOrDefault(westPosition, null);
-        Item eastItem = items.getOrDefault(eastPosition, null);
+        Item southItem = terrain.getItemAtPosition(southPosition);
+        Item northItem = terrain.getItemAtPosition(northPosition);
+        Item westItem = terrain.getItemAtPosition(westPosition);
+        Item eastItem = terrain.getItemAtPosition(eastPosition);
 
         if (southItem instanceof ConnectableItem) {
             if (southItem instanceof PlaceHolderConnectableItem) {

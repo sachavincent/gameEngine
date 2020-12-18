@@ -15,6 +15,7 @@ import java.util.Map;
 import people.Person;
 import people.SocialClass;
 import terrains.Terrain;
+import terrains.TerrainPosition;
 
 public class HouseItem extends BuildingItem implements RequireBuilding {
 
@@ -24,10 +25,10 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
 
     private boolean meetRequirements;
 
-    public HouseItem(String name, Item copy, int maxPeopleCapacity, int xNegativeOffset, int xPositiveOffset,
+    public HouseItem(TerrainPosition terrainPosition, String name, Item copy, int maxPeopleCapacity, int xNegativeOffset, int xPositiveOffset,
             int height, int zNegativeOffset, int zPositiveOffset, EnumSet<SocialClass> socialClasses,
             Direction... directions) {
-        super(name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset, directions);
+        super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset, directions);
 
         this.maxPeopleCapacity = maxPeopleCapacity;
         this.classes = new EnumMap<>(SocialClass.class);

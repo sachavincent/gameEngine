@@ -3,7 +3,6 @@ package pathfinding;
 import com.sun.istack.internal.NotNull;
 import entities.Camera.Direction;
 import items.ConnectableItem;
-import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.buildings.BuildingItem;
 import items.roads.RoadItem;
@@ -12,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import terrains.Terrain;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public class RouteFinder {
 
@@ -104,7 +103,7 @@ public class RouteFinder {
     }
 
     public static @NotNull
-    Route<RouteRoad> findRoute(Vector2f from, BuildingItem toItem, int maxRouteLength) {
+    Route<RouteRoad> findRoute(TerrainPosition from, BuildingItem toItem, int maxRouteLength) {
         if (toItem == null || from == null || maxRouteLength < 0)
             return new Route<>();
 
@@ -114,30 +113,29 @@ public class RouteFinder {
         Set<Route<RouteRoad>> foundRoutes = new TreeSet<>(
                 Comparator.comparingInt(o -> o.stream().mapToInt(RouteRoad::getgScore).sum()));
 
-        Set<Vector2f> foundRoads = new HashSet<>();
-        terrain.getItems().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof RoadItem))
-                .filter(entry -> entry.getValue() instanceof ConnectableItem &&
-                        entry.getValue().getName().equals(toItem.getName()))
-                .filter(entry -> ((ConnectableItem) entry.getValue()).isConnected())
-                .forEach(entry -> {
-                    Vector2f pos = entry.getKey();
-                    Item item = entry.getValue();
+        Set<TerrainPosition> foundRoads = new HashSet<>();
+        terrain.getItems()
+                .stream()
+                .filter(item -> !(item instanceof RoadItem))
+                .filter(item -> item instanceof ConnectableItem && item.getName().equals(toItem.getName()))
+                .filter(item -> ((ConnectableItem) item).isConnected())
+                .forEach(item -> {
+                    TerrainPosition pos = item.getPosition();
 
                     ConnectableItem connectableItem = (ConnectableItem) item;
                     for (Direction direction : Direction.values()) {
                         if (connectableItem.isConnected(direction)) {
-                            Vector2f offset;
+                            TerrainPosition offset;
                             if (item instanceof PlaceHolderConnectableItem) {
                                 PlaceHolderConnectableItem placeHolder = (PlaceHolderConnectableItem) item;
-                                pos = Vector2f.sub(pos, placeHolder.getRelativePosition(), null);
+                                pos = pos.sub(placeHolder.getRelativePosition());
                                 // Pos = parent coordinates
                                 offset = placeHolder.getOffset(direction);
                             } else
                                 offset = item.getOffset(direction);
 
                             // pos = parent of building position
-                            Vector2f to = pos.add(offset).add(Direction.toRelativeDistance(direction));
+                            TerrainPosition to = pos.add(offset).add(Direction.toRelativeDistance(direction));
 
                             if (foundRoads.contains(to))
                                 return;
@@ -156,7 +154,7 @@ public class RouteFinder {
     }
 
     public @NotNull
-    Route<RouteRoad> findRoute(Vector2f from, Vector2f to, int maxRouteLength) {
+    Route<RouteRoad> findRoute(TerrainPosition from, TerrainPosition to, int maxRouteLength) {
         if (maxRouteLength <= 0)
             maxRouteLength = Integer.MAX_VALUE;
 
@@ -480,7 +478,7 @@ public class RouteFinder {
                     roads.add(start);
 
                     Direction dir = directions[finalI];
-                    Vector2f nextPos = start.getPosition().add(Direction.toRelativeDistance(dir));
+                    TerrainPosition nextPos = start.getPosition().add(Direction.toRelativeDistance(dir));
                     Direction[] nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
                     int nbDirections = nextDirs.length;
 
@@ -528,11 +526,11 @@ public class RouteFinder {
         return this.route;
     }
 
-    private int manhattanDistance(Vector2f startPos, Vector2f endPos) {
+    private int manhattanDistance(TerrainPosition startPos, TerrainPosition endPos) {
         if (startPos == null || endPos == null)
             return Integer.MAX_VALUE;
 
-        return Math.abs((int) endPos.x - (int) startPos.x) + Math.abs((int) endPos.y - (int) startPos.y);
+        return Math.abs(endPos.getX() - startPos.getX()) + Math.abs(endPos.getZ() - startPos.getZ());
     }
 
     /**
@@ -564,7 +562,7 @@ public class RouteFinder {
                     roads.add(road);
 
                     Direction dir = directions[finalI];
-                    Vector2f nextPos = road.getPosition().add(Direction.toRelativeDistance(dir));
+                    TerrainPosition nextPos = road.getPosition().add(Direction.toRelativeDistance(dir));
                     Direction[] nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
                     int nbDirections = nextDirs.length;
 
@@ -619,7 +617,7 @@ public class RouteFinder {
     }
 
     public @NotNull
-    Route<RouteRoad> findUnobstructedRouteV1(final Vector2f startPos, final Vector2f endPos) {
+    Route<RouteRoad> findUnobstructedRouteV1(final TerrainPosition startPos, final TerrainPosition endPos) {
 //        int manhattanDistance = manhattanDistance(startPos, endPos);
 //        final int MAX = 15 + manhattanDistance;
 //
@@ -640,27 +638,29 @@ public class RouteFinder {
         if (startPos == null || endPos == null || startPos.equals(endPos))
             return routeRoads;
 
-        Map<Vector2f, Item> items = Terrain.getInstance().getItems();
-        Set<Vector2f> previewItemPositions = Terrain.getInstance().getPreviewItemPositions();
-        if ((items.containsKey(startPos) && !previewItemPositions.contains(startPos)) ||
-                (items.containsKey(endPos) && !previewItemPositions.contains(endPos)))
+        Terrain terrain = Terrain.getInstance();
+
+        Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
+
+        if ((terrain.isPositionOccupied(startPos) && !previewItemPositions.contains(startPos)) ||
+                (terrain.isPositionOccupied(endPos) && !previewItemPositions.contains(endPos)))
             return routeRoads;
 
         Road start = new NormalRoad(startPos);
         RouteRoad routeRoad = new RouteRoad(start);
-        Vector2f currPos = new Vector2f(startPos);
-        while (currPos.x != endPos.x) {
-            if (currPos.x < endPos.x) {
-                currPos = currPos.add(new Vector2f(1, 0));
+        TerrainPosition currPos = new TerrainPosition(startPos);
+        while (currPos.getX() != endPos.getX()) {
+            if (currPos.getX() < endPos.getX()) {
+                currPos = currPos.add(new TerrainPosition(1, 0));
             } else
-                currPos = currPos.add(new Vector2f(-1, 0));
+                currPos = currPos.add(new TerrainPosition(-1, 0));
 
-            if (items.containsKey(currPos) && !previewItemPositions.contains(currPos))
+            if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Route<>();
             routeRoad.addRoad(new NormalRoad(currPos));
         }
 
-        if (currPos.x != startPos.x) { // x changed
+        if (currPos.getX() != startPos.getX()) { // x changed
             NormalRoad crossing = new NormalRoad(currPos);
             routeRoad.setEnd(crossing);
             routeRoads.add(routeRoad);
@@ -671,13 +671,13 @@ public class RouteFinder {
             routeRoad = new RouteRoad(crossing);
         }
 
-        while (currPos.y != endPos.y) {
-            if (currPos.y < endPos.y) {
-                currPos = currPos.add(new Vector2f(0, 1));
+        while (currPos.getZ() != endPos.getZ()) {
+            if (currPos.getZ() < endPos.getZ()) {
+                currPos = currPos.add(new TerrainPosition(0, 1));
             } else
-                currPos = currPos.add(new Vector2f(0, -1));
+                currPos = currPos.add(new TerrainPosition(0, -1));
 
-            if (items.containsKey(currPos) && !previewItemPositions.contains(currPos))
+            if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Route<>();
 
             routeRoad.addRoad(new NormalRoad(currPos));
@@ -691,34 +691,35 @@ public class RouteFinder {
     }
 
     public @NotNull
-    Route<RouteRoad> findUnobstructedRouteV2(final Vector2f startPos, final Vector2f endPos) {
+    Route<RouteRoad> findUnobstructedRouteV2(final TerrainPosition startPos, final TerrainPosition endPos) {
         Route<RouteRoad> routeRoads = new Route<>();
         if (startPos == null || endPos == null || startPos.equals(endPos))
             return routeRoads;
 
-        Map<Vector2f, Item> items = Terrain.getInstance().getItems();
-        Set<Vector2f> previewItemPositions = Terrain.getInstance().getPreviewItemPositions();
-        if ((items.containsKey(startPos) && !previewItemPositions.contains(startPos)) ||
-                (items.containsKey(endPos) && !previewItemPositions.contains(endPos)))
+        Terrain terrain = Terrain.getInstance();
+
+        Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
+        if ((terrain.isPositionOccupied(startPos) && !previewItemPositions.contains(startPos)) ||
+                (terrain.isPositionOccupied(endPos) && !previewItemPositions.contains(endPos)))
             return routeRoads;
 
         Road start = new NormalRoad(startPos);
         RouteRoad routeRoad = new RouteRoad(start);
-        Vector2f currPos = new Vector2f(startPos);
+        TerrainPosition currPos = new TerrainPosition(startPos);
 
-        while (currPos.y != endPos.y) {
-            if (currPos.y < endPos.y) {
-                currPos = currPos.add(new Vector2f(0, 1));
+        while (currPos.getZ() != endPos.getZ()) {
+            if (currPos.getZ() < endPos.getZ()) {
+                currPos = currPos.add(new TerrainPosition(0, 1));
             } else
-                currPos = currPos.add(new Vector2f(0, -1));
+                currPos = currPos.add(new TerrainPosition(0, -1));
 
-            if (items.containsKey(currPos) && !previewItemPositions.contains(currPos))
+            if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Route<>();
 
             routeRoad.addRoad(new NormalRoad(currPos));
         }
 
-        if (currPos.y != startPos.y) { // y changed
+        if (currPos.getZ() != startPos.getZ()) { // y changed
             NormalRoad crossing = new NormalRoad(currPos);
             routeRoad.setEnd(crossing);
             routeRoads.add(routeRoad);
@@ -729,13 +730,13 @@ public class RouteFinder {
             routeRoad = new RouteRoad(crossing);
         }
 
-        while (currPos.x != endPos.x) {
-            if (currPos.x < endPos.x) {
-                currPos = currPos.add(new Vector2f(1, 0));
+        while (currPos.getX() != endPos.getX()) {
+            if (currPos.getX() < endPos.getX()) {
+                currPos = currPos.add(new TerrainPosition(1, 0));
             } else
-                currPos = currPos.add(new Vector2f(-1, 0));
+                currPos = currPos.add(new TerrainPosition(-1, 0));
 
-            if (items.containsKey(currPos) && !previewItemPositions.contains(currPos))
+            if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Route<>();
 
             routeRoad.addRoad(new NormalRoad(currPos));
@@ -750,15 +751,15 @@ public class RouteFinder {
 
     @Deprecated
     private @NotNull
-    Route<RouteRoad> findUnobstructedRoute(final Vector2f startPos, final Vector2f endPos,
-            Route<RouteRoad> currentRoute, Map<Vector2f, Integer> positionValues, final Vector2f finalStartPos,
+    Route<RouteRoad> findUnobstructedRoute(final TerrainPosition startPos, final TerrainPosition endPos,
+            Route<RouteRoad> currentRoute, Map<TerrainPosition, Integer> positionValues, final TerrainPosition finalStartPos,
             final int MAX) {
         Terrain terrain = Terrain.getInstance();
 
         if (!startPos.equals(endPos)) {
-            Map<Vector2f, Integer> nextPositions = new TreeMap<>(Comparator.comparing(positionValues::get));
+            Map<TerrainPosition, Integer> nextPositions = new TreeMap<>(Comparator.comparing(positionValues::get));
             for (Direction direction : Direction.values()) {
-                Vector2f nextPos = startPos.add(Direction.toRelativeDistance(direction));
+                TerrainPosition nextPos = startPos.add(Direction.toRelativeDistance(direction));
                 if (positionValues.containsKey(nextPos)) {
                     // No road on this position
                     nextPositions.put(nextPos, positionValues.get(nextPos));
@@ -770,8 +771,8 @@ public class RouteFinder {
             if (nextPositions.isEmpty())
                 return new Route<>();
 
-            for (Entry<Vector2f, Integer> entry : nextPositions.entrySet()) {
-                Vector2f nextPos = entry.getKey();
+            for (Entry<TerrainPosition, Integer> entry : nextPositions.entrySet()) {
+                TerrainPosition nextPos = entry.getKey();
 
                 if (nextPos == null || entry.getValue() == MAX) // End, too far from endPos
                     return new Route<>();
@@ -831,8 +832,8 @@ public class RouteFinder {
                 if (allRoads.get(i).getClass() != allRoadsRoute.get(i).getClass())
                     return false;
 
-            List<Vector2f> collect = allRoads.stream().map(Road::getPosition).collect(Collectors.toList());
-            List<Vector2f> collect1 = allRoadsRoute.stream().map(Road::getPosition).collect(Collectors.toList());
+            List<TerrainPosition> collect = allRoads.stream().map(Road::getPosition).collect(Collectors.toList());
+            List<TerrainPosition> collect1 = allRoadsRoute.stream().map(Road::getPosition).collect(Collectors.toList());
 
             return collect.equals(collect1);
         }

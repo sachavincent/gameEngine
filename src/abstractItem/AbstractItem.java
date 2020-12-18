@@ -3,7 +3,7 @@ package abstractItem;
 import guis.presets.Background;
 import items.Item;
 import terrains.Terrain;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public abstract class AbstractItem {
 
@@ -15,13 +15,13 @@ public abstract class AbstractItem {
         this.item = item;
     }
 
-    public void place(Vector2f position) {
+    public void place(TerrainPosition position) {
         if (position == null)
             return;
 
         Terrain terrain = Terrain.getInstance();
 
-        boolean done = terrain.putItemIfSpace(position, getItemInstance());
+        boolean done = terrain.putItemIfSpace(position, newInstance(position));
 
         if (done)
             terrain.updateRequirements();
@@ -29,7 +29,7 @@ public abstract class AbstractItem {
             System.err.println("Not enough space for " + toString());
     }
 
-    public void place(Vector2f[] positions) {
+    public void place(TerrainPosition[] positions) {
 //        if (positions == null)
 //            return;
 //
@@ -39,8 +39,8 @@ public abstract class AbstractItem {
             return;
 
         Terrain terrain = Terrain.getInstance();
-        for (Vector2f position : positions)
-            terrain.putItemIfSpace(position, getItemInstance());
+        for (TerrainPosition position : positions)
+            terrain.putItemIfSpace(position, newInstance(position));
 
         terrain.updateRequirements();
     }
@@ -49,7 +49,7 @@ public abstract class AbstractItem {
         return this.item;
     }
 
-    public abstract Item getItemInstance();
+    public abstract Item newInstance(TerrainPosition position);
 
     public Background<?> getBackground() {
         return this.modelTexture;

@@ -4,7 +4,7 @@ import entities.Camera.Direction;
 import java.util.Objects;
 import models.BoundingBox;
 import models.TexturedModel;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public abstract class Item {
 
@@ -27,8 +27,12 @@ public abstract class Item {
 
     protected boolean selected;
 
-    public Item(String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
+    private TerrainPosition terrainPosition;
+
+    public Item(TerrainPosition terrainPosition, String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
             int zPositiveOffset) {
+        this.terrainPosition = terrainPosition;
+
         this.xNegativeOffset = xNegativeOffset;
         this.xPositiveOffset = xPositiveOffset;
 
@@ -42,7 +46,8 @@ public abstract class Item {
         this.name = name;
     }
 
-    public Item(Item parent) {
+    public Item(Item parent, TerrainPosition position) {
+        this.terrainPosition = parent.terrainPosition.add(position);
         this.name = parent.getName();
         this.id = parent.getId();
     }
@@ -66,7 +71,6 @@ public abstract class Item {
     public void unselect() {
         this.selected = false;
     }
-
 
     public String getName() {
         return this.name;
@@ -136,20 +140,20 @@ public abstract class Item {
         return this.zPositiveOffset;
     }
 
-    public Vector2f getOffset(Direction direction) {
-        Vector2f res = new Vector2f(0, 0);
+    public TerrainPosition getOffset(Direction direction) {
+        TerrainPosition res = new TerrainPosition(0, 0);
         switch (direction) {
             case NORTH:
-                res.x = this.xPositiveOffset;
+                res.setX(this.xPositiveOffset);
                 break;
             case SOUTH:
-                res.x = -this.xNegativeOffset;
+                res.setX(-this.xNegativeOffset);
                 break;
             case WEST:
-                res.y = -this.zNegativeOffset;
+                res.setZ(-this.zNegativeOffset);
                 break;
             case EAST:
-                res.y = this.zPositiveOffset;
+                res.setZ(this.zPositiveOffset);
                 break;
         }
         return res;
@@ -157,6 +161,14 @@ public abstract class Item {
 
     public int getHeight() {
         return this.height;
+    }
+
+    public TerrainPosition getPosition() {
+        return this.terrainPosition;
+    }
+
+    public void setPosition(TerrainPosition terrainPosition) {
+        this.terrainPosition = terrainPosition;
     }
 
     @Override

@@ -1,14 +1,14 @@
 package items;
 
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public class PlaceHolderItem extends Item {
 
-    protected Item     parent;
-    protected Vector2f relativePosition;
+    protected Item            parent;
+    protected TerrainPosition relativePosition;
 
-    public PlaceHolderItem(Item parent, Vector2f relativePosToItem) {
-        super(parent);
+    public PlaceHolderItem(Item parent, TerrainPosition relativePosToItem) {
+        super(parent, relativePosToItem);
 
         this.parent = parent;
         this.relativePosition = relativePosToItem;
@@ -18,7 +18,7 @@ public class PlaceHolderItem extends Item {
         return this.parent;
     }
 
-    public Vector2f getRelativePosition() {
+    public TerrainPosition getRelativePosition() {
         return this.relativePosition;
     }
 

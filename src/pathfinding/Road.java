@@ -1,15 +1,15 @@
 package pathfinding;
 
 import java.util.Objects;
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public abstract class Road {
 
-    protected Vector2f position;
+    protected TerrainPosition position;
     protected int      score;
     protected int      hScore;
 
-    public Road(Vector2f position, int score) {
+    public Road(TerrainPosition position, int score) {
         this.position = position;
         this.score = score;
     }
@@ -22,7 +22,7 @@ public abstract class Road {
         this.hScore = hScore;
     }
 
-    public Vector2f getPosition() {
+    public TerrainPosition getPosition() {
         return this.position;
     }
 

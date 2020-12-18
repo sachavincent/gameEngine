@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL45;
 import shaders.StaticShader;
 import terrains.Terrain;
+import terrains.TerrainPosition;
 import textures.ModelTexture;
 import util.math.Maths;
 import util.math.Matrix4f;
@@ -44,13 +45,13 @@ public class EntityRenderer {
 
     public void render(Map<TexturedModel, List<Entity>> entities) {
         final Terrain terrain = Terrain.getInstance();
-        terrain.getItems().forEach((p, item) -> {
+        terrain.getItems().forEach(item -> {
             if (!(item instanceof BuildingItem)) {
-
-                Vector3f pos = new Vector3f(p.x, 0.05, p.y); // TODO Remplacer y par height
+                TerrainPosition position = item.getPosition();
+                Vector3f pos = new Vector3f(position.getX(), 0.05, position.getZ()); // TODO Remplacer y par height
 
                 TexturedModel texture = item.getTexture();
-                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(p)) {
+                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(position)) {
                     texture = item.getPreviewTexture();
                 }
 

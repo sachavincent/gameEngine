@@ -1,12 +1,12 @@
 package pathfinding;
 
-import util.math.Vector2f;
+import terrains.TerrainPosition;
 
 public class NormalRoad extends Road {
 
     public static final int SCORE = 1;
 
-    public NormalRoad(Vector2f position) {
+    public NormalRoad(TerrainPosition position) {
         super(position, SCORE);
     }
 
