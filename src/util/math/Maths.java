@@ -9,6 +9,14 @@ public class Maths {
         return Math.min(max, Math.min(max, value));
     }
 
+    /**
+     * https://stackoverflow.com/questions/5294955/how-to-scale-down-a-range-of-numbers-with-a-known-min-and-max-value
+     */
+    public static double scale(final double valueIn, final double baseMin, final double baseMax, final double limitMin,
+            final double limitMax) {
+        return ((limitMax - limitMin) * (valueIn - baseMin) / (baseMax - baseMin)) + limitMin;
+    }
+
     public static float barryCentric(Vector3f p1, Vector3f p2, Vector3f p3, Vector2f pos) {
         float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
         float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
@@ -120,6 +128,7 @@ public class Maths {
 
         return resArray;
     }
+
     public static float fma(float a, float b, float c) {
         return a * b + c;
     }

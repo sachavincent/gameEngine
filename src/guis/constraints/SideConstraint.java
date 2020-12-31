@@ -21,11 +21,19 @@ public class SideConstraint extends GuiConstraints {
         return this.side;
     }
 
-    public enum Side {
-        RIGHT,
-        LEFT,
-        BOTTOM,
-        TOP
+    public SideConstraint setDistanceFromSide(float distance) {
+        assert distance >= 0;
+
+        this.constraint = distance;
+
+        return this;
     }
 
+    public SideConstraint setDistanceFromSide(double distance) {
+        assert distance >= 0;
+
+        this.constraint = (float) distance;
+
+        return this;
+    }
 }

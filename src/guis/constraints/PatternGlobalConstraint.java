@@ -1,26 +1,27 @@
 package guis.constraints;
 
-import guis.GuiComponent;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
-public class PatternConstraints extends GuiGlobalConstraints {
+public class PatternGlobalConstraint extends GuiGlobalConstraints {
 
-    public PatternConstraints(int horizontal, int vertical, float distance) {
+    public PatternGlobalConstraint(int horizontal, int vertical, float distance) {
         super(ConstraintsType.POSITION, Constraints.PATTERN, horizontal, vertical, distance);
+
+        assert horizontal > 0;
+        assert vertical > 0;
+        assert distance >= 0;
     }
 
     @Override
-    public GuiConstraintsManager addElement(GuiComponent guiComponent) {
-        if (guiComponent == null)
-            return null;
-
+    protected GuiConstraintsManager addElement() {
         Object[] arguments = getArguments();
         int maxHorizontalElements = (int) arguments[0];
         int maxVerticalElements = (int) arguments[1];
 
         if (nbElements >= maxHorizontalElements * maxVerticalElements)
-            return null;
+            throw new IllegalArgumentException(
+                    "Full space: " + " nbElements = " + nbElements + " >= " + (maxHorizontalElements * maxVerticalElements));
 
         float distance = (float) arguments[2];
 

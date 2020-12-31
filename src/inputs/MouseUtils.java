@@ -73,8 +73,8 @@ public class MouseUtils {
         cursorPos.x /= DisplayManager.WIDTH;
         cursorPos.x *= 2;
         cursorPos.x -= 1;
-
         cursorPos.x = Maths.clamp(cursorPos.x, -1, 1);
+
         cursorPos.y /= DisplayManager.HEIGHT;
         cursorPos.y *= -2;
         cursorPos.y += 1;
@@ -153,8 +153,11 @@ public class MouseUtils {
                 Camera.getInstance().moveFurther();
         });
 
+        final List<GuiComponent> enteredGuiComponents = new ArrayList<>();
+
         callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> {
             final List<Gui> guis = new ArrayList<>(GuiRenderer.getInstance().getGuis());
+
             boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
@@ -239,28 +242,33 @@ public class MouseUtils {
                         }
                     }
                 }
-            } else {
+            }
 //                Gui.hideGui(GuiSelectedItem.getSelectedItemGui());
 
-                guis.forEach(gui -> {
-                    gui.getComponents().keySet().stream()
-                            .filter(gui::areTransitionsOfComponentDone)
-                            .forEach(GuiComponent::onLeave);
-                });
+            new ArrayList<>(enteredGuiComponents).stream()
+                    .filter(guiComponent -> !MouseUtils.isCursorInGuiComponent(guiComponent))
+                    .forEach(guiComponent -> {
+                        guiComponent.onLeave();
+                        enteredGuiComponents.remove(guiComponent);
+                    });
 
-                guis.stream()
-                        .filter(Gui::isDisplayed)
-                        .filter(MouseUtils::isCursorInGui)
-                        .forEach(gui -> {
-                            gui.getComponents().keySet().stream()
-                                    .filter(MouseUtils::isCursorInGuiComponent)
-                                    .filter(gui::areTransitionsOfComponentDone)
-                                    .forEach(guiComponent -> {
+            guis.stream()
+                    .filter(Gui::isDisplayed)
+                    .filter(MouseUtils::isCursorInGui)
+                    .forEach(gui -> {
+                        gui.getComponents().keySet().stream()
+                                .filter(GuiComponent::isDisplayed)
+                                .filter(MouseUtils::isCursorInGuiComponent)
+                                .filter(gui::areTransitionsOfComponentDone)
+                                .forEach(guiComponent -> {
+                                    if (enteredGuiComponents.contains(guiComponent))
                                         guiComponent.onHover();
+                                    else {
                                         guiComponent.onEnter();
-                                    });
-                        });
-            }
+                                        enteredGuiComponents.add(guiComponent);
+                                    }
+                                });
+                    });
         });
     }
 

@@ -1,5 +1,8 @@
 package guis;
 
+import guis.constraints.GuiGlobalConstraints;
+import guis.transitions.Transition;
+
 public interface GuiInterface {
 
     float getX();
@@ -44,7 +47,21 @@ public interface GuiInterface {
 
     void setDisplayed(boolean displayed);
 
+    void addComponent(GuiComponent guiComponent, Transition... transitions);
+
+    void addComponentToParent(GuiComponent guiComponent, Transition... transitions);
+
+    void removeComponent(GuiComponent guiComponent);
+
     boolean isDisplayed();
 
     void updateTexturePosition();
+
+    void setChildrenConstraints(GuiGlobalConstraints guiConstraints);
+
+    GuiTexture getDebugOutline();
+
+    default boolean update() {
+        return true;
+    }
 }

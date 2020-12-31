@@ -47,13 +47,15 @@ public class GuiRectangleButton extends GuiAbstractButton {
 
     @Override
     protected void addBackgroundComponent(Background<?> background) {
-        buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
-
-        filterLayout = new GuiRectangle(this, new Background<>(Color.WHITE), new RelativeConstraint(1, this),
+        this.buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1, this),
                 new RelativeConstraint(1, this));
     }
 
+    @Override
+    protected void setFilter() {
+        this.filterLayout = new GuiRectangle(this, new Background<>(Color.WHITE), new RelativeConstraint(1, this),
+                new RelativeConstraint(1, this));
+    }
 
     @Override
     public void setBorder(Color color) {

@@ -7,14 +7,7 @@ import abstractItem.AbstractMarket;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
-import guis.GuiComponent;
-import guis.constraints.CenterConstraint;
-import guis.constraints.GuiConstraints;
-import guis.constraints.GuiConstraintsManager;
-import guis.constraints.GuiGlobalConstraints;
-import guis.constraints.RelativeConstraint;
-import guis.constraints.SideConstraint;
-import guis.constraints.SideConstraint.Side;
+import guis.constraints.*;
 import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
@@ -27,7 +20,6 @@ import items.roads.DirtRoadItem;
 import java.awt.Color;
 import java.io.File;
 import java.util.EnumSet;
-import renderEngine.GuiRenderer;
 import textures.FontTexture;
 
 public class GuiItemSelection extends Gui {
@@ -46,8 +38,6 @@ public class GuiItemSelection extends Gui {
     private static GuiItemSelection instance;
 
     private final EnumSet<MenuButton> buttons = EnumSet.noneOf(MenuButton.class);
-
-    private GuiGlobalConstraints childrenConstraints;
 
     private GuiItemSelection() {
         super(DEFAULT_BACKGROUND);
@@ -138,8 +128,11 @@ public class GuiItemSelection extends Gui {
 
         button = createButton(buttonType, background, null,
                 new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
+
         if (button != null) {
             buttons.add(menuButton);
+
+            button.enableFilter();
 
             button.setDisplayed(false);
             button.setOnPress(onPress);
@@ -161,25 +154,6 @@ public class GuiItemSelection extends Gui {
 
     }
 
-    @Override
-    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
-        if (guiComponent == null)
-            return;
-
-        if (childrenConstraints != null) {
-            GuiConstraintsManager constraints = childrenConstraints.addElement(guiComponent);
-            if (constraints == null)
-                throw new IllegalArgumentException("Too many components in the gui!");
-
-            guiComponent.setConstraints(constraints);
-        }
-
-        super.addComponent(guiComponent, transitions);
-    }
-
-    public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
-        this.childrenConstraints = guiConstraints;
-    }
 
     public static GuiItemSelection getItemSelectionGui() {
         return instance;
@@ -256,8 +230,6 @@ public class GuiItemSelection extends Gui {
         }
 
         public Builder setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
-            guiConstraints.setParent(guiItemSelection);
-
             guiItemSelection.setChildrenConstraints(guiConstraints);
 
             return this;
@@ -265,9 +237,8 @@ public class GuiItemSelection extends Gui {
 
         public GuiItemSelection create() {
             instance = guiItemSelection;
-            GuiRenderer.getInstance().addGui(instance);
-            instance.getTooltipGuis().forEach(gui -> GuiRenderer.getInstance().addGui(gui));
 
+            Gui.hideGui(instance);
             return instance;
         }
     }

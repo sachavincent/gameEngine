@@ -48,24 +48,18 @@ public abstract class GuiAbstractSlider extends GuiPreset {
      * @param color - the color of the left part of the base
      */
     public void setColorOfLeftBase(Color color) {
-        removeBasic(sliderBaseLeftSide);
 
-        sliderBaseLeftSide = new GuiRectangle(this, new Background<>(color), new RelativeConstraint(value, this),
+        this.sliderBaseLeftSide = new GuiRectangle(this, new Background<>(color), new RelativeConstraint(value, this),
                 new RelativeConstraint(.32f, this));
-
-        addBasic(sliderBaseLeftSide);
-
-        removeBasic(sliderCursor);
-        addBasic(sliderCursor);
     }
 
 
     private void addBase(Color unmovableColor) {
-        sliderBaseLeftSide = new GuiRectangle(this, new Background<>(unmovableColor),
+        this.sliderBaseLeftSide = new GuiRectangle(this, new Background<>(unmovableColor),
                 new RelativeConstraint(0, this),
                 new RelativeConstraint(.32f, this));
 
-        sliderBaseRightSide = new GuiRectangle(this, new Background<>(unmovableColor),
+        this.sliderBaseRightSide = new GuiRectangle(this, new Background<>(unmovableColor),
                 new RelativeConstraint(1f, this),
                 new RelativeConstraint(.32f, this));
 
@@ -77,10 +71,6 @@ public abstract class GuiAbstractSlider extends GuiPreset {
         sliderCursor.setX(sliderBaseRightSide.getX() - sliderBaseRightSide.getWidth());
 
         setListeners();
-
-        addBasic(sliderBaseRightSide);
-        addBasic(sliderBaseLeftSide);
-        addBasic(sliderCursor);
     }
 
 

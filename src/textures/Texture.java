@@ -30,7 +30,7 @@ public abstract class Texture {
         else if (background.getBackground() instanceof Integer)
             instantiateWithInteger((Integer) background.getBackground());
         else
-            throw new IllegalArgumentException("Type invalide: " + background);
+            throw new IllegalArgumentException("Invalid type: " + background);
 
     }
 

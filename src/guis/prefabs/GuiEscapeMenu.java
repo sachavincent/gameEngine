@@ -17,7 +17,6 @@ import java.util.EnumSet;
 import java.util.List;
 import language.Words;
 import renderEngine.DisplayManager;
-import renderEngine.GuiRenderer;
 
 public class GuiEscapeMenu extends Gui {
 
@@ -77,13 +76,13 @@ public class GuiEscapeMenu extends Gui {
 
         constraints.setyConstraint(new RelativeConstraint(y));
 
-        System.out.println("y: " + y);
         button = createButton(buttonType, background,
                 new Text(menuButton.getString(), .7f, DEFAULT_FONT, new Color(72, 72, 72)), null, constraints);
         if (button != null) {
+            button.enableFilter();
+
             button.setDisplayed(false);
             button.setOnPress(onPress);
-
             setComponentTransitions(button, transitions);
         }
     }
@@ -234,8 +233,9 @@ public class GuiEscapeMenu extends Gui {
 
         public GuiEscapeMenu create() {
             instance = guiEscapeMenu;
-            GuiRenderer.getInstance().addGui(instance);
+//            GuiRenderer.getInstance().addGui(instance);
 
+            Gui.hideGui(instance);
             return instance;
         }
     }

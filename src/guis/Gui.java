@@ -1,26 +1,29 @@
 package guis;
 
 import fontMeshCreator.FontType;
+import fontMeshCreator.Line;
 import fontMeshCreator.Text;
-import guis.basics.GuiBasics;
+import guis.basics.GuiText;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.GuiGlobalConstraints;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.SideConstraint;
 import guis.exceptions.IllegalGuiConstraintException;
 import guis.presets.Background;
-import guis.presets.GuiPreset;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiCircularButton;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import guis.transitions.Transition.Trigger;
+import inputs.callbacks.UpdateCallback;
 import java.awt.Color;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import renderEngine.DisplayManager;
+import renderEngine.GuiRenderer;
 import textures.FontTexture;
 import util.Timer;
 import util.math.Vector2f;
@@ -29,12 +32,13 @@ public class Gui implements GuiInterface {
 
     public final static float CORNER_RADIUS = 8f;
 
-    protected final static FontType DEFAULT_FONT = new FontType(
+    public final static FontType DEFAULT_FONT = new FontType(
             new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
 
     private final Map<GuiComponent, Set<Transition>> components;
 
     private GuiTexture background;
+    private GuiTexture debugOutline;
 
     private Set<Transition> transitions;
 
@@ -50,11 +54,19 @@ public class Gui implements GuiInterface {
 
     private boolean focused, displayed;
 
+    private UpdateCallback updateCallback;
+
+    private GuiGlobalConstraints childrenConstraints;
+
     public Gui(Background<?> background) {
         setBackground(background);
 
+        this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
+
         this.components = new LinkedHashMap<>();
         this.transitions = new HashSet<>();
+
+        GuiRenderer.getInstance().addGui(this);
     }
 
     public void setBackground(Background<?> background) {
@@ -100,7 +112,7 @@ public class Gui implements GuiInterface {
         updateTexturePosition();
     }
 
-    protected void handleYConstraint(GuiConstraints yConstraint) {
+    public void handleYConstraint(GuiConstraints yConstraint) {
         float constraint;
         if (yConstraint == null)
             return;
@@ -153,7 +165,7 @@ public class Gui implements GuiInterface {
         setFinalY(this.y);
     }
 
-    protected void handleXConstraint(GuiConstraints xConstraint) {
+    public void handleXConstraint(GuiConstraints xConstraint) {
         float constraint;
         if (xConstraint == null)
             return;
@@ -265,6 +277,11 @@ public class Gui implements GuiInterface {
         this.background.getScale().y = this.height;
         this.background.getPosition().x = this.x;
         this.background.getPosition().y = this.y;
+
+        this.debugOutline.getScale().x = this.width;
+        this.debugOutline.getScale().y = this.height;
+        this.debugOutline.getPosition().x = this.x;
+        this.debugOutline.getPosition().y = this.y;
     }
 
 
@@ -278,11 +295,7 @@ public class Gui implements GuiInterface {
                 '}';
     }
 
-
     protected void show() {
-        if (isDisplayed())
-            return;
-
         if (getShowTransitions().isEmpty())
             setDisplayed(true);
         else
@@ -313,9 +326,6 @@ public class Gui implements GuiInterface {
 
 
     protected void hide() {
-        if (!isDisplayed())
-            return;
-
 //        System.out.println("hiding");
 
         if (getHideTransitions().isEmpty())
@@ -352,8 +362,42 @@ public class Gui implements GuiInterface {
                     .allMatch(Transition::isDone);
     }
 
+    public GuiText setupText(Text text) {
+        if (text == null)
+            return null;
+
+        List<Line> lines = text.getFont().getLoader().getLines(text);
+
+        Line line = lines.get(0);
+
+        if (line == null) {
+            try {
+                throw new IllegalArgumentException("Invalid text.");
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+
+                return null;
+            }
+        }
+
+        text.setLineMaxSize(getWidth());
+        text.setCentered(true);
+        text.setPosition(new Vector2f(getX() - getWidth() + line.getLineLength(), -getY() - text.getTextHeight() / 2));
+        GuiText guiText = new GuiText(this, text);
+        guiText.setDisplayed(false);
+
+        return guiText;
+    }
+
     public boolean areTransitionsOfComponentDone(GuiComponent guiComponent) {
-        if (!this.components.containsKey(guiComponent) && guiComponent instanceof GuiBasics)
+//        if (!this.components.containsKey(guiComponent) && guiComponent instanceof GuiBasics &&
+//                guiComponent.getParent() instanceof GuiComponent)
+//            guiComponent = (GuiComponent) guiComponent.getParent();
+
+//        if (!this.components.containsKey(guiComponent))
+//            return false;
+
+        while (guiComponent.getParent() instanceof GuiComponent)
             guiComponent = (GuiComponent) guiComponent.getParent();
 
         if (!this.components.containsKey(guiComponent))
@@ -362,19 +406,29 @@ public class Gui implements GuiInterface {
         if (this.components.get(guiComponent).isEmpty())
             return true;
 
+
         return this.components.get(guiComponent).stream().allMatch(Transition::isDone);
     }
 
-    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
+    @Override
+    public void addComponentToParent(GuiComponent guiComponent, Transition... transitions) {
         if (guiComponent == null)
             return;
 
         this.components.remove(guiComponent);
 
+        if (childrenConstraints != null && this.equals(childrenConstraints.getParent())) {
+            childrenConstraints.addComponent(guiComponent);
+        }
+
         if (transitions.length == 0)
             this.components.put(guiComponent, new HashSet<>());
         else
             this.components.put(guiComponent, new HashSet<>(Arrays.asList(transitions)));
+    }
+
+    public void addComponent(GuiComponent guiComponent, Transition... transitions) {
+        addComponentToParent(guiComponent);
     }
 
     public void removeComponent(GuiComponent guiComponent) {
@@ -425,6 +479,25 @@ public class Gui implements GuiInterface {
                 ));
 
         updateTexturePosition();
+    }
+
+    @Override
+    public GuiTexture getDebugOutline() {
+        return this.debugOutline;
+    }
+
+    public void setOnUpdate(UpdateCallback updateCallback) {
+        this.updateCallback = updateCallback;
+    }
+
+    @Override
+    public boolean update() {
+        if (this.updateCallback == null)
+            return false;
+
+        this.updateCallback.onUpdate();
+
+        return true;
     }
 
     public void setAlpha(float alpha) {
@@ -529,16 +602,7 @@ public class Gui implements GuiInterface {
     }
 
     public List<GuiComponent> getAllComponents() {
-        final List<GuiComponent> guiComponents = new ArrayList<>();
-        getComponents().keySet().forEach(guiComponent -> {
-            if (guiComponent instanceof GuiPreset) {
-                guiComponents.addAll(((GuiPreset) guiComponent).getBasics());
-            }
-
-            guiComponents.add(guiComponent);
-        });
-
-        return guiComponents;
+        return new ArrayList<>(getComponents().keySet());
     }
 
     @Override
@@ -678,6 +742,10 @@ public class Gui implements GuiInterface {
     }
 
 
+    public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
+        this.childrenConstraints = guiConstraints;
+    }
+
     public static void toggleGui(Gui gui) {
         if (gui == null)
             return;
@@ -736,13 +804,18 @@ public class Gui implements GuiInterface {
 
     protected GuiAbstractButton createButton(ButtonType buttonType, Background<?> background, Text text,
             Text tooltipText, GuiConstraintsManager constraints) {
+        return createButton(buttonType, background, text, tooltipText, constraints, this);
+    }
+
+    protected GuiAbstractButton createButton(ButtonType buttonType, Background<?> background, Text text,
+            Text tooltipText, GuiConstraintsManager constraints, GuiInterface parent) {
         switch (buttonType) {
             case CIRCULAR:
-                return new GuiCircularButton(this, background, text, tooltipText,
+                return new GuiCircularButton(parent, background, text, tooltipText,
                         constraints); //TODO: Handle fontSize automatically (text length with button width)
             // TODO: Add color parameter
             case RECTANGLE:
-                return new GuiRectangleButton(this, background, text, tooltipText, constraints);
+                return new GuiRectangleButton(parent, background, text, tooltipText, constraints);
         }
         return null;
     }

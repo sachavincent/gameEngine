@@ -71,7 +71,7 @@ public class DisplayManager {
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                screens.get(1), 0);
+                0, 0);
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                0, 0);
         if (window == 0)

@@ -16,10 +16,10 @@ public class ImmigrationEvent extends Event {
         if (((HouseItem) (this.item)).addPerson(new Farmer())) {
             System.out.println("Immigration de " + this.item.getId() + ", nbPersonnes : " +
                     ((HouseItem) this.item).getNumberOfPeople());
-            if (GuiHouseDetails.getHouseDetailsGui() != null &&
-                    GuiHouseDetails.getHouseDetailsGui().getHouseItem() != null &&
-                    GuiHouseDetails.getHouseDetailsGui().getHouseItem().equals(this.item))
-                GuiHouseDetails.getHouseDetailsGui().update();
+            if (GuiHouseDetails.getInstance() != null &&
+                    GuiHouseDetails.getInstance().getHouseItem() != null &&
+                    GuiHouseDetails.getInstance().getHouseItem().equals(this.item))
+                GuiHouseDetails.getInstance().update();
         }
 
 

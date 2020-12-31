@@ -7,12 +7,11 @@ import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
-import renderEngine.DisplayManager;
 
 public abstract class GuiShape extends GuiBasics {
 
     private boolean filled;
-    private double  outlineWidth = DisplayManager.MIN_LINE_WIDTH;
+    private double  outlineWidth = 0;
 
     public GuiShape(GuiInterface parent, Background<?> background, GuiConstraints width, GuiConstraints height,
             boolean filled) {

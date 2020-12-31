@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import people.Farmer;
 import people.Person;
 import people.SocialClass;
 import terrains.Terrain;
@@ -25,10 +26,12 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
 
     private boolean meetRequirements;
 
-    public HouseItem(TerrainPosition terrainPosition, String name, Item copy, int maxPeopleCapacity, int xNegativeOffset, int xPositiveOffset,
+    public HouseItem(TerrainPosition terrainPosition, String name, Item copy, int maxPeopleCapacity,
+            int xNegativeOffset, int xPositiveOffset,
             int height, int zNegativeOffset, int zPositiveOffset, EnumSet<SocialClass> socialClasses,
             Direction... directions) {
-        super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset, directions);
+        super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset,
+                directions);
 
         this.maxPeopleCapacity = maxPeopleCapacity;
         this.classes = new EnumMap<>(SocialClass.class);
@@ -95,16 +98,18 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
     public void select() {
         super.select();
 
-        new GuiHouseDetails.Builder(this).create();
-        Gui.showGui(GuiHouseDetails.getHouseDetailsGui());
+        addPerson(new Farmer()); //todo temp
+        GuiHouseDetails houseDetailsGui = GuiHouseDetails.getInstance();
+        houseDetailsGui.setHouseItem(this);
+        houseDetailsGui.setDisplayed(true);
     }
 
     @Override
     public void unselect() {
         super.unselect();
 
-        Gui.hideGui(GuiHouseDetails.getHouseDetailsGui());
-        GuiHouseDetails.getHouseDetailsGui().removeHouseItem();
+        Gui.hideGui(GuiHouseDetails.getInstance());
+        GuiHouseDetails.getInstance().removeHouseItem();
     }
 
     @Override

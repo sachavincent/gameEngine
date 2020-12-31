@@ -15,9 +15,10 @@ import entities.Entity;
 import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
-import guis.constraints.PatternConstraints;
+import guis.constraints.PatternGlobalConstraint;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiEscapeMenu.MenuButton;
+import guis.prefabs.GuiHouseDetails;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiSelectedItem;
 import guis.presets.Background;
@@ -146,8 +147,9 @@ public class MainGameLoop {
 //                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
                 .create();
 
+        GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         new GuiItemSelection.Builder()
-                .setChildrenConstraints(new PatternConstraints(5, 3, .02f))
+                .setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f))
                 .setBackground(new Background<>(new Color(109, 109, 109, 80)))
                 .addButton(GuiItemSelection.MenuButton.DIRT_ROAD, ButtonType.RECTANGLE, ItemPreviews.DIRT_ROAD)
                 .addButton(GuiItemSelection.MenuButton.INSULA, ButtonType.RECTANGLE, ItemPreviews.INSULA)
@@ -207,10 +209,12 @@ public class MainGameLoop {
 //                    System.out.println("frames: " + frames);
                     frames = 0;
                 }
-                glfwPollEvents();
+//                glfwPollEvents();
             }
 
             if (canRender) {
+                glfwPollEvents();
+//                glfwWaitEventsTimeout(0.007);
                 camera.move();
 
 //                GL11.glEnable(GL30.GL_CLIP_DISTANCE0);

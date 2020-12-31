@@ -24,8 +24,6 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
 
     private void setupComponents() {
         setListeners();
-
-        addBasic(this.checkboxLayout);
     }
 
     public void setCheckmark(GuiBasics checkmark) {
@@ -34,8 +32,6 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
             throw new IllegalArgumentException("Checkmark out of checkbox bounds.");
 
         this.checkmark = checkmark;
-
-        addBasic(this.checkmark);
     }
 
     private void setListeners() {

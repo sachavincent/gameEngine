@@ -85,6 +85,7 @@ public class GuiConstraintsManager {
         RELATIVE,
         SIDE,
         PATTERN,
+        RATIOED_PATTERN,
         PIXEL,
         STICKY
     }
@@ -130,7 +131,6 @@ public class GuiConstraintsManager {
         public Builder setyConstraint(GuiConstraints yConstraint) {
             guiConstraintsManager.setyConstraint(yConstraint);
 
-            System.out.println("yC: " + yConstraint.constraint);
             return this;
         }
 

@@ -9,7 +9,6 @@ import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
 import renderEngine.DisplayManager;
-import renderEngine.GuiRenderer;
 import util.math.Vector2f;
 
 public class GuiSelectedItem extends Gui {
@@ -33,6 +32,7 @@ public class GuiSelectedItem extends Gui {
                 .create();
 
         setConstraints(menuConstraints);
+
     }
 
     public void setSelectedItem(AbstractItem abstractItem) {
@@ -87,8 +87,9 @@ public class GuiSelectedItem extends Gui {
 
         public GuiSelectedItem create() {
             instance = guiSelectedItem;
-            GuiRenderer.getInstance().addGui(instance);
+//            GuiRenderer.getInstance().addGui(instance);
 
+            Gui.hideGui(instance);
             return instance;
         }
     }

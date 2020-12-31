@@ -121,6 +121,9 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
             return dest;
         }
     }
+    public static float cross_product(Vector2f v1, Vector2f v2) {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
 
     public Vector store(FloatBuffer buf) {
         buf.put(this.x);

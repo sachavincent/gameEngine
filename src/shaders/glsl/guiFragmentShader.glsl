@@ -59,6 +59,8 @@ void main(void) {
     if (isDonut) {
         vec2 pos = vec2(textureCoords.x * 2.0 - 1.0, -(textureCoords.y * 2.0 - 1.0));
         if (sqrt(distanceSquared(center, pos)) < (innerCircleRadius / outerCircleRadius)) { // Don't render inner ring colors
+
+            out_Color = vec4(0, 0, 0, 0);
             return;
         }
 
@@ -69,6 +71,7 @@ void main(void) {
             out_Color = vec4(donutColors[0], 1);
             return;
         }
+
         for (int i = 0; i < nbLines - 1; i++) {
             vec2 normalizedLine1 = normalize(donutLines[i]);
             vec2 normalizedLine2 = normalize(donutLines[i + 1]);
@@ -77,10 +80,10 @@ void main(void) {
             float crossAngle2 = cross_product(normalizedVector, normalizedLine2);
             float crossAreaAngle = cross_product(normalizedLine1, normalizedLine2);
 
-            float angle1 = atan(abs(crossAngle1), dot(normalizedLine1, normalizedVector));
-            float angle2 = atan(abs(crossAngle2), dot(normalizedVector, normalizedLine2));
+            double angle1 = atan(abs(crossAngle1), dot(normalizedLine1, normalizedVector));
+            double angle2 = atan(abs(crossAngle2), dot(normalizedVector, normalizedLine2));
 
-            float areaAngle = atan(abs(crossAreaAngle), dot(normalizedLine1, normalizedLine2));
+            double areaAngle = atan(abs(crossAreaAngle), dot(normalizedLine1, normalizedLine2));
             if (crossAngle1 > 0) {
                 angle1 = 2 * PI - angle1;
             }
@@ -99,8 +102,9 @@ void main(void) {
                 return;
             }
 
-            //            out_Color = vec4(1, 0, 1, 1);
         }
+
+        out_Color = vec4(1, 0, 1, 1);
         return;
     }
     // Si color = (-1,-1,-1) -> texture sinon couleur

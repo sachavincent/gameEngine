@@ -4,22 +4,15 @@ import java.awt.Color;
 
 public class Background<E> {
 
-    public final static Background<?> NO_BACKGROUND    = new Background<>(new Color(0, 0, 0, 255));
+    public final static Background<?> NO_BACKGROUND    = new Background<>(new Color(0, 0, 0, 0));
     public final static Background<?> WHITE_BACKGROUND = new Background<>(Color.WHITE);
     public final static Background<?> BLACK_BACKGROUND = new Background<>(Color.BLACK);
+    public static final Background<?> RED_BACKGROUND   = new Background<>(Color.RED);
 
     private final E background;
 
-    public Background(String texture) {
-        background = (E) texture;
-    }
-
-    public Background(Integer texture) {
-        background = (E) texture;
-    }
-
-    public Background(Color color) {
-        background = (E) color;
+    public Background(E texture) {
+        background = texture;
     }
 
     public E getBackground() {

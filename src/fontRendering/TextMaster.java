@@ -3,17 +3,17 @@ package fontRendering;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshData;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import renderEngine.Loader;
 
 public class TextMaster {
 
-    private       Map<FontType, List<Text>> texts    = new HashMap<>();
-    private final FontRenderer              renderer = new FontRenderer();
+    private       Map<FontType, Set<Text>> texts    = new HashMap<>();
+    private final FontRenderer             renderer = new FontRenderer();
 
     private static TextMaster instance;
 
@@ -26,10 +26,10 @@ public class TextMaster {
 
     public void render() {
         // reload texts if changed
-        Map<FontType, List<Text>> newTexts = new HashMap<>();
+        Map<FontType, Set<Text>> newTexts = new HashMap<>();
         texts.forEach((key, value) -> {
-            List<Text> toKeep = value.stream().filter(text -> !text.isStringChanged()).collect(Collectors.toList());
-            List<Text> toChange = value.stream().filter(Text::isStringChanged).collect(Collectors.toList());
+            Set<Text> toKeep = value.stream().filter(text -> !text.isStringChanged()).collect(Collectors.toSet());
+            Set<Text> toChange = value.stream().filter(Text::isStringChanged).collect(Collectors.toSet());
             if (!toChange.isEmpty()) {
                 toChange.forEach(this::loadText);
                 toKeep.addAll(toChange);
@@ -48,16 +48,17 @@ public class TextMaster {
         if (text == null)
             throw new IllegalArgumentException("Invalid text.");
 
+        FontType font = text.getFont();
         if (text.isStringChanged()) {
-            System.out.println("string changed:" + text.getTextString());
             text.setStringChanged(false);
+
+            TextMeshData data = font.loadText(text);
+            final int vao = Loader.getInstance().loadToVAO(data.getVertexPositions(), data.getTextureCoords());
+            final int vertexCount = data.getVertexCount();
+            text.setMeshInfo(vao, vertexCount);
         }
 
-        FontType font = text.getFont();
-        TextMeshData data = font.loadText(text);
-        final int vao = Loader.getInstance().loadToVAO(data.getVertexPositions(), data.getTextureCoords());
-        text.setMeshInfo(vao, data.getVertexCount());
-        List<Text> textBatch = texts.computeIfAbsent(font, k -> new ArrayList<>());
+        Set<Text> textBatch = texts.computeIfAbsent(font, k -> new HashSet<>());
         textBatch.add(text);
     }
 
@@ -65,7 +66,7 @@ public class TextMaster {
         if (text == null)
             return;
 
-        List<Text> textBatch = texts.get(text.getFont());
+        Set<Text> textBatch = texts.get(text.getFont());
         if (textBatch == null)
             return;
 

@@ -2,7 +2,6 @@ package guis.basics;
 
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
-import fontMeshCreator.TextMeshCreator;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
@@ -13,6 +12,8 @@ import util.math.Vector2f;
 public class GuiText extends GuiBasics {
 
     private Text text;
+
+    private Line line;
 
     public GuiText(GuiInterface gui, Text text) {
         super(gui, new Background<>(text == null ? null : text.getAWTColor()), null, null);
@@ -44,11 +45,13 @@ public class GuiText extends GuiBasics {
                 throw new SizeLimitExceededException("Content must fit in one line: " + text.getTextString());
             } catch (SizeLimitExceededException e) {
                 e.printStackTrace();
+                text.setTextString("");
+                this.text = text;
                 return;
             }
         }
 
-        Line line = lines.get(0);
+        line = lines.get(0);
 
         if (line == null) {
             try {
@@ -60,7 +63,7 @@ public class GuiText extends GuiBasics {
             }
         }
 
-        double textHeight = TextMeshCreator.LINE_HEIGHT * text.getFontSize() * 2;
+        double textHeight = text.getTextHeight();
 
         if (textHeight > getHeight() * 2) {
             try {
@@ -71,10 +74,33 @@ public class GuiText extends GuiBasics {
                 return;
             }
         }
-
-        text.setPosition(new Vector2f(getX() - line.getLineLength(), -getY() - textHeight / 2));
-
         this.text = text;
+
+        update();
+    }
+
+    @Override
+    public void setX(float x) {
+        super.setX(x);
+
+        update();
+    }
+
+    @Override
+    public void setY(float y) {
+        super.setY(y);
+
+        update();
+    }
+
+    @Override
+    public boolean update() {
+        if (this.text == null || this.line == null)
+            return true;
+
+        this.text.setPosition(new Vector2f(getX() - line.getLineLength(), -getY() - text.getTextHeight() / 2));
+
+        return true;
     }
 
     @Override

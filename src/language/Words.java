@@ -15,4 +15,5 @@ public abstract class Words {
     public final static String CATEGORY_SOCIAL = "Social";
     public final static String CATEGORY_FOOD   = "Food";
     public final static String CATEGORY_DRINKS = "Drinks";
+    public static final String AVAILABLE_SPACE = "Available";
 }

@@ -2,6 +2,7 @@ package fontMeshCreator;
 
 import fontRendering.TextMaster;
 import java.awt.Color;
+import java.util.Objects;
 import language.LanguageAssets;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -55,18 +56,20 @@ public class Text {
         this.position = position;
         this.lineMaxSize = maxLineLength;
         this.centerText = centered;
+        this.stringChanged = false;
 
-        TextMaster.getInstance().loadText(this);
+//        TextMaster.getInstance().loadText(this);
     }
 
     public Text(String text, float fontSize, FontType font, Color color) {
         this.textString = LanguageAssets.getInstance().getWord(text);
         this.fontSize = fontSize;
         this.font = font;
+        this.stringChanged = false;
 
         setColor(color);
 
-        TextMaster.getInstance().loadText(this);
+//        TextMaster.getInstance().loadText(this);
     }
 
     /**
@@ -189,6 +192,8 @@ public class Text {
      */
     public void setPosition(Vector2f position) {
         this.position = new Vector2f((position.x / 2 + 0.5), (position.y / 2 + 0.5));
+
+        setStringChanged(true);
     }
 
     /**
@@ -246,5 +251,24 @@ public class Text {
 
     public void setStringChanged(boolean stringChanged) {
         this.stringChanged = stringChanged;
+    }
+
+    public double getTextHeight() {
+        return TextMeshCreator.LINE_HEIGHT * fontSize * 2;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Text text = (Text) o;
+        return textMeshVao == text.textMeshVao;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(textMeshVao);
     }
 }

@@ -9,19 +9,14 @@ import guis.Gui;
 import guis.GuiComponent;
 import guis.GuiInterface;
 import guis.GuiTexture;
-import guis.basics.GuiBasics;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.presets.Background;
-import guis.presets.GuiPreset;
 import guis.presets.graphs.GuiDonutGraph;
-import guis.transitions.Transition;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
@@ -47,6 +42,7 @@ public class GuiRenderer {
     private final GuiShader shader;
 
     private final List<Gui> guis;
+    private       boolean   displayDebugOutlines;
 
     public static GuiRenderer getInstance() {
         return instance == null ? (instance = new GuiRenderer()) : instance;
@@ -83,61 +79,44 @@ public class GuiRenderer {
 //        GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
         GL11.glDisable(GL42.GL_MULTISAMPLE);
 
+
+        TextMaster.getInstance().removeText();
         guis.stream()
-//                .filter(gui -> gui.isDisplayed() ||
-//                        gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()) ||
-//                        gui.getComponentsHideTransitions().values().stream().anyMatch(
-//                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone())))
+                .filter(gui -> gui.isDisplayed()/* ||
+                        gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()) ||
+                        gui.getComponentsHideTransitions().values().stream().anyMatch(
+                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone()))*/)
                 .forEach(gui -> {
-                    if (gui.isDisplayed() ||
-                            gui.getHideTransitions().stream()
-                                    .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
-                        renderQuad(gui, true, gui.getCornerRadius());
+                    renderQuad(gui, true, gui.getCornerRadius());
 
                     gui.getComponents().keySet()
-                            .stream().filter(guiComponent -> guiComponent.isDisplayed() ||
+                            .stream().filter(guiComponent -> guiComponent.isDisplayed() /*||
                             gui.getComponentsHideTransitions().get(guiComponent).stream()
-                                    .anyMatch(transition -> !transition.isDone() && transition.isStarted()))
+                                    .anyMatch(transition -> !transition.isDone() && transition.isStarted())*/)
                             .forEach(guiComponent -> {
-                                if (guiComponent instanceof GuiPreset) {
-                                    if (guiComponent instanceof GuiDonutGraph) {
-                                        drawDonut((GuiDonutGraph<?>) guiComponent);
-                                    } else {
-                                        try {
-                                            ((GuiPreset) guiComponent).getBasics().stream().filter(Objects::nonNull)
-                                                    .forEach(guiBasics -> {
-                                                        try {
-                                                            handleBasicsRendering(guiBasics);
-                                                        } catch (ConcurrentModificationException ignored) {
-                                                        }
-                                                    });
-                                        } catch (ConcurrentModificationException ignored) {
-                                        }
-                                    }
-                                } else
+                                if (guiComponent instanceof GuiDonutGraph) {
+                                    drawDonut((GuiDonutGraph<?>) guiComponent);
+                                } else {
                                     handleBasicsRendering(guiComponent);
-                            });
-                    gui.animate();
-                });
-
-        guis.stream()
-                .filter(gui -> !gui.isDisplayed() && gui.getHideTransitions().stream().allMatch(Transition::isDone))
-                .forEach(gui -> {
-                    gui.getComponents().keySet()
-                            .stream().filter(guiComponent -> !guiComponent.isDisplayed())
-                            .forEach(guiComponent -> {
-                                if (guiComponent instanceof GuiText) {
-                                    GuiText guiText = (GuiText) guiComponent;
-
-                                    TextMaster.getInstance().removeText(guiText.getText());
-                                } else if (guiComponent instanceof GuiPreset) {
-                                    List<GuiBasics> guiBasics = ((GuiPreset) guiComponent).getBasics();
-                                    guiBasics.stream().filter(GuiText.class::isInstance)
-                                            .map(guiText -> ((GuiText) guiText).getText())
-                                            .forEach(text -> TextMaster.getInstance().removeText(text));
                                 }
                             });
+                    gui.animate();
+                    if (this.displayDebugOutlines)
+                        renderOutlineForDebug(gui);
                 });
+
+//        guis.stream()
+//                .filter(gui -> !gui.isDisplayed() && gui.getHideTransitions().stream().allMatch(Transition::isDone))
+//                .forEach(gui -> {
+//                    gui.getComponents().keySet()
+//                            .stream().filter(guiComponent -> !guiComponent.isDisplayed())
+//                            .forEach(guiComponent -> {
+//                                if (guiComponent instanceof GuiText) {
+//                                    GuiText guiText = (GuiText) guiComponent;
+//                                    guiText.getText().remove();
+//                                }
+//                            });
+//                });
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
@@ -154,7 +133,6 @@ public class GuiRenderer {
     }
 
     private void handleBasicsRendering(GuiComponent guiComponent) {
-        TextMaster textMaster = TextMaster.getInstance();
         if (guiComponent instanceof GuiEllipse) {
             GuiEllipse guiEllipse = (GuiEllipse) guiComponent;
             this.quad = guiEllipse.isFilled() ? drawFilledCircle() : drawUnfilledCircle();
@@ -164,12 +142,16 @@ public class GuiRenderer {
             GuiShape guiShape = (GuiShape) guiComponent;
             renderQuad(guiShape, guiShape.isFilled(), guiComponent.getCornerRadius());
         } else if (guiComponent instanceof GuiText) {
+            TextMaster textMaster = TextMaster.getInstance();
             GuiText guiText = (GuiText) guiComponent;
 
-            textMaster.removeText(guiText.getText());
             textMaster.loadText(guiText.getText());
-        } else
-            renderQuad(guiComponent, true, guiComponent.getCornerRadius());
+        } else {
+//            System.out.println(guiComponent);
+//            renderQuad(guiComponent, true, guiComponent.getCornerRadius());
+        }
+        if (this.displayDebugOutlines)
+            renderOutlineForDebug(guiComponent);
     }
 
     private void renderCircle(GuiShape guiShape, boolean filled) {
@@ -183,6 +165,23 @@ public class GuiRenderer {
 
             GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, quad.getVertexCount());
         }
+    }
+
+    private void renderOutlineForDebug(GuiInterface guiInterface) {
+        GL30.glBindVertexArray(defaultUnfilledQuad.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+
+        glDisable(GL_BLEND);
+
+        GL33.glLineWidth(3);
+
+        renderTexture(guiInterface.getDebugOutline(), 0);
+
+        GL33.glDrawArrays(GL_LINE_LOOP, 0, defaultUnfilledQuad.getVertexCount());
+
+        GL33.glLineWidth(2);
+
+        glEnable(GL_BLEND);
     }
 
     private void renderUnfilledShape(GuiShape guiShape, int renderingMode, float cornerRadius) {
@@ -318,5 +317,9 @@ public class GuiRenderer {
 
     public void cleanUp() {
         shader.cleanUp();
+    }
+
+    public void switchDisplayDebugOutlines() {
+        this.displayDebugOutlines = !this.displayDebugOutlines;
     }
 }

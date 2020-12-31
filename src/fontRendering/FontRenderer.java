@@ -1,9 +1,9 @@
 package fontRendering;
 
-import java.util.List;
-import java.util.Map;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
+import java.util.Map;
+import java.util.Set;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -18,7 +18,7 @@ public class FontRenderer {
         shader = new FontShader();
     }
 
-    public void render(Map<FontType, List<Text>> texts) {
+    public void render(Map<FontType, Set<Text>> texts) {
         prepare();
         for (FontType font : texts.keySet()) {
             GL13.glActiveTexture(GL13.GL_TEXTURE0);

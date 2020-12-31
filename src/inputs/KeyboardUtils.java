@@ -56,6 +56,9 @@ public class KeyboardUtils {
                     case GLFW_KEY_M:
                         Gui.toggleGui(GuiItemSelection.getItemSelectionGui());
                         break;
+                    case GLFW_KEY_SEMICOLON:
+                        GuiRenderer.getInstance().switchDisplayDebugOutlines();
+                        break;
                 }
             } else if (action == GLFW_RELEASE) {
                 switch (key) {

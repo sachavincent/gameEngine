@@ -8,36 +8,38 @@ public class StickyConstraint extends GuiConstraints {
 
     private final GuiInterface relativeTo;
 
-    public StickyConstraint(StickySide side, GuiInterface relativeTo) {
+    private final Side side;
+
+    private final static float DISTANCE_FROM_SIDE = 0.01f;
+
+    public StickyConstraint(Side side, GuiInterface relativeTo) {
         super(ConstraintsType.POSITION, Constraints.STICKY);
 
-        if (relativeTo == null)
-            throw new NullPointerException("Null relative interface");
-
         this.relativeTo = relativeTo;
-        this.constraint = side.getNum();
+        this.side = side;
+        this.constraint = DISTANCE_FROM_SIDE;
+    }
+
+    public StickyConstraint(Side side) {
+        this(side, null);
+    }
+
+    public Side getSide() {
+        return this.side;
     }
 
     public GuiInterface getRelativeTo() {
         return this.relativeTo;
     }
 
-    public enum StickySide {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT;
+    public StickyConstraint setDistanceFromSide(float distance) {
+        this.constraint = distance;
 
-        float getNum() {
-            return ordinal();
-        }
+        return this;
+    }
+    public StickyConstraint setDistanceFromSide(double distance) {
+        this.constraint = (float) distance;
 
-        public StickySide getSideFromNum(int num) {
-            for (StickySide side : StickySide.values())
-                if (side.ordinal() == num)
-                    return side;
-
-            return null;
-        }
+        return this;
     }
 }
