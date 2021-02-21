@@ -1,10 +1,7 @@
 package guis.presets.checkbox;
 
 import guis.GuiInterface;
-import guis.basics.GuiEllipse;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RelativeConstraint;
-import guis.presets.Background;
 import java.awt.Color;
 
 public class GuiCircularCheckbox extends GuiAbstractCheckbox {
@@ -13,21 +10,21 @@ public class GuiCircularCheckbox extends GuiAbstractCheckbox {
         super(parent, colorBackground, constraintsManager);
     }
 
-    @Override
-    protected void addBackgroundComponent(Color background) {
-        checkboxLayout = new GuiEllipse(this, new Background<>(background), new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this), false);
-    }
+//    @Override
+//    protected void addBackgroundComponent(Color background) {
+//        checkboxLayout = new GuiEllipse(this, new Background<>(background), new RelativeConstraint(1, this),
+//                new RelativeConstraint(1, this), false);
+//    }
 
-    public void setOutlineWidth(double width) {
-        ((GuiEllipse) this.checkboxLayout).setOutlineWidth(width);
-    }
+//    public void setOutlineWidth(double width) {
+//        ((GuiEllipse) this.checkboxLayout).setOutlineWidth(width);
+//    }
 
     @Override
     public String toString() {
         return "GuiCircularCheckbox{" +
-                "checkboxLayout=" + checkboxLayout +
+//                "checkboxLayout=" + checkboxLayout +
                 ", checkmark=" + checkmark +
-                "} " + super.toString();
+                "} ";
     }
 }

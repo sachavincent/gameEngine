@@ -10,7 +10,7 @@ public abstract class Item {
 
     private static long max_id = 1;
 
-    protected final long   id;
+    protected final long id;
 
     protected String name;
 
@@ -19,7 +19,7 @@ public abstract class Item {
     protected TexturedModel texture;
     protected TexturedModel previewTexture;
 
-    protected BoundingBox boundingBox;
+    protected BoundingBox   boundingBox;
     protected TexturedModel selectionBox;
 
     protected Direction facingDirection = Direction.NORTH;
@@ -29,8 +29,8 @@ public abstract class Item {
 
     private TerrainPosition terrainPosition;
 
-    public Item(TerrainPosition terrainPosition, String name, int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset,
-            int zPositiveOffset) {
+    public Item(TerrainPosition terrainPosition, String name, int xNegativeOffset, int xPositiveOffset, int height,
+            int zNegativeOffset, int zPositiveOffset) {
         this.terrainPosition = terrainPosition;
 
         this.xNegativeOffset = xNegativeOffset;

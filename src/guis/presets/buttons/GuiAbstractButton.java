@@ -11,6 +11,10 @@ import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.presets.Background;
 import guis.presets.GuiPreset;
+import inputs.callbacks.EnterCallback;
+import inputs.callbacks.LeaveCallback;
+import inputs.callbacks.PressCallback;
+import inputs.callbacks.ReleaseCallback;
 import java.awt.Color;
 
 public abstract class GuiAbstractButton extends GuiPreset {
@@ -19,18 +23,22 @@ public abstract class GuiAbstractButton extends GuiPreset {
     private final static float BUTTON_SHRINK_RATIO = 0.05f;
 
     GuiBasics filterLayout;
-    GuiBasics buttonLayout;
+    //    GuiBasics buttonLayout;
     GuiBasics borderLayout;
 
     private GuiText text;
 
     private Gui tooltipGui;
 
+    private boolean toggleType = false;
+
+    private ButtonGroup buttonGroup;
+
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
 
@@ -39,9 +47,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
             GuiConstraintsManager constraintsManager) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
         setTooltipGui(tooltipGui);
@@ -50,17 +58,17 @@ public abstract class GuiAbstractButton extends GuiPreset {
     }
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, GuiConstraintsManager constraintsManager) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
         setupComponents();
     }
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text,
             GuiConstraintsManager constraintsManager, int cornerRadius) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
 
@@ -71,9 +79,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
             GuiConstraintsManager constraintsManager, int cornerRadius) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
         setTooltipGui(tooltipGui);
@@ -85,9 +93,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
     }
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui, int cornerRadius) {
-        super(parent);
+        super(parent, background);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
         setTooltipGui(tooltipGui);
@@ -95,13 +103,14 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setupComponents();
 
         setCornerRadius(cornerRadius);
+
         this.tooltipGui.setCornerRadius(cornerRadius);
     }
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui) {
-        super(parent);
+        super(parent, background);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
 
         setupText(text);
         setTooltipGui(tooltipGui);
@@ -111,9 +120,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     GuiAbstractButton(GuiInterface parent, Background<?> background, GuiConstraintsManager constraintsManager,
             int cornerRadius) {
-        super(parent, constraintsManager);
+        super(parent, background, constraintsManager);
 
-        addBackgroundComponent(background);
+//        addBackgroundComponent(background);
         setupComponents();
 
         setCornerRadius(cornerRadius);
@@ -121,6 +130,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     private void setupComponents() {
         setListeners();
+
+        this.buttonGroup = new ButtonGroup(1);
+        this.buttonGroup.addButton(this);
 
         setDisplayedComponents(false);
     }
@@ -130,7 +142,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
             this.filterLayout.setDisplayed(displayed);
         if (this.borderLayout != null)
             this.borderLayout.setDisplayed(displayed);
-        this.buttonLayout.setDisplayed(displayed);
+//        if (this.buttonLayout != null)
+//            this.buttonLayout.setDisplayed(displayed);
         if (this.text != null)
             this.text.setDisplayed(displayed);
         if (this.tooltipGui != null)
@@ -144,74 +157,121 @@ public abstract class GuiAbstractButton extends GuiPreset {
         this.text = new GuiText(this, text);
     }
 
-    protected abstract void addBackgroundComponent(Background<?> background);
+//    protected abstract void addBackgroundComponent(Background<?> background);
 
-    private void setListeners() {
-        setOnPress(() -> {
-            setClicked(true);
+    @Override
+    public void setOnPress(PressCallback onPressCallback) {
+        PressCallback basicPressCallback = () -> {
+            if (!toggleType || !isClicked())
+                setClicked(true);
+            else if (toggleType && isClicked() && buttonGroup.getMaxButtons() == 1)
+                setClicked(false);
             //  System.out.println("Press");
 
             updateTexturesOnClick();
-        });
+            onPressCallback.onPress();
+        };
 
-        setOnRelease(() -> {
-            setClicked(false);
-            //System.out.println("Release");
+        super.setOnPress(basicPressCallback);
+    }
+
+    @Override
+    public void setOnRelease(ReleaseCallback onReleaseCallback) {
+        ReleaseCallback basicReleaseCallback = () -> {
+            if (!toggleType)
+                setClicked(false);
+            //  System.out.println("Press");
 
             updateTexturesOnClick();
-        });
+            onReleaseCallback.onRelease();
+        };
 
-        setOnHover(() -> {
-//            System.out.println("Hover");
-        });
+        super.setOnRelease(basicReleaseCallback);
+    }
 
-        setOnLeave(() -> {
+    @Override
+    public void setOnLeave(LeaveCallback onLeaveCallback) {
+        LeaveCallback basicLeaveCallback = () -> {
             //System.out.println("Leave");
-            if (this.filterLayout != null) {
-                filterLayout.getTexture().setAlpha(0f);
-
-                filterLayout.updateTexturePosition();
+            if (!isClicked() || !toggleType) {
+                setFilterTransparency(0);
+                if (tooltipGui != null) {
+                    Gui.hideGui(tooltipGui);
+                }
             }
-            if (tooltipGui != null) {
-                Gui.hideGui(tooltipGui);
-            }
-        });
+            onLeaveCallback.onLeave();
+        };
 
-        setOnEnter(() -> {
+        super.setOnLeave(basicLeaveCallback);
+    }
+
+    public void setFilterTransparency(float alpha) {
+        if (this.filterLayout == null)
+            return;
+
+        this.filterLayout.getTexture().setAlpha(alpha);
+        this.filterLayout.updateTexturePosition();
+    }
+
+    @Override
+    public void setOnEnter(EnterCallback onEnterCallback) {
+        EnterCallback basicEnterCallback = () -> {
             //  System.out.println("Enter");
-            if (this.filterLayout != null) {
-                filterLayout.getTexture().setAlpha(1f);
+            if (!isClicked() || !toggleType) {
+                setFilterTransparency(1);
 
-                filterLayout.updateTexturePosition();
+                if (tooltipGui != null) {
+                    Gui.showGui(tooltipGui);
+                }
             }
-            if (tooltipGui != null) {
-                Gui.showGui(tooltipGui);
-            }
+            onEnterCallback.onEnter();
+        };
+
+        super.setOnEnter(basicEnterCallback);
+    }
+
+    @Override
+    public void setClicked(boolean clicked) {
+        if (clicked)
+            this.buttonGroup.setButtonClicked(ID);
+        else
+            this.clicked = false;
+    }
+
+    private void setListeners() {
+        setOnEnter(() -> {
+        });
+        setOnLeave(() -> {
+        });
+        setOnRelease(() -> {
+        });
+        setOnPress(() -> {
         });
     }
 
     private void updateTexturesOnClick() {
         super.updateTexturePosition();
 
-        if (this.isClicked()) {
-            float scale = 1 - BUTTON_SHRINK_RATIO;
-            this.buttonLayout.scale(scale);
-            if (this.filterLayout != null)
-                this.filterLayout.scale(scale);
+        if (!toggleType) {
+            if (this.isClicked()) {
+                float scale = 1 - BUTTON_SHRINK_RATIO;
+//            this.buttonLayout.scale(scale);
+                if (this.filterLayout != null)
+                    this.filterLayout.scale(scale);
 
-            if (this.borderLayout != null)
-                this.borderLayout.scale(scale);
-        } else {
-            this.buttonLayout.resetScale();
+                if (this.borderLayout != null)
+                    this.borderLayout.scale(scale);
+            } else {
+//            this.buttonLayout.resetScale();
 
-            if (this.filterLayout != null)
-                this.filterLayout.resetScale();
+                if (this.filterLayout != null)
+                    this.filterLayout.resetScale();
 
-            if (this.borderLayout != null)
-                this.borderLayout.resetScale();
+                if (this.borderLayout != null)
+                    this.borderLayout.resetScale();
+            }
         }
-
-        this.buttonLayout.updateTexturePosition();
+//        this.buttonLayout.updateTexturePosition();
 
         if (this.filterLayout != null)
             this.filterLayout.updateTexturePosition();
@@ -257,7 +317,11 @@ public abstract class GuiAbstractButton extends GuiPreset {
         setFilter();
 
         this.filterLayout.getTexture().setFinalAlpha(FILTER_TRANSPARENCY); // Filter on hover
-        this.filterLayout.getTexture().setAlpha(0f); // Invisible by default
+        setFilterTransparency(0f);
+    }
+
+    public GuiBasics getFilter() {
+        return this.filterLayout;
     }
 
     protected abstract void setFilter();
@@ -267,6 +331,19 @@ public abstract class GuiAbstractButton extends GuiPreset {
             throw new IllegalArgumentException("Border missing");
 
         this.borderLayout = guiShape;
+    }
+
+    public void setToggleType(boolean toggleType) {
+        this.toggleType = toggleType;
+    }
+
+    public boolean isToggleType() {
+        return this.toggleType;
+    }
+
+    public void setButtonGroup(ButtonGroup buttonGroup) {
+        this.buttonGroup = buttonGroup;
+        this.buttonGroup.addButton(this);
     }
 
     public enum ButtonType {

@@ -28,12 +28,4 @@ public class SideConstraint extends GuiConstraints {
 
         return this;
     }
-
-    public SideConstraint setDistanceFromSide(double distance) {
-        assert distance >= 0;
-
-        this.constraint = (float) distance;
-
-        return this;
-    }
 }

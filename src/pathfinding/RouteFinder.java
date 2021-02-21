@@ -15,7 +15,8 @@ import terrains.TerrainPosition;
 
 public class RouteFinder {
 
-    private final RoadGraph roadGraph;
+    private final static Terrain   terrain = Terrain.getInstance();
+    private final        RoadGraph roadGraph;
 
     private RoadNode startNode;
     private RoadNode endNode;
@@ -27,11 +28,13 @@ public class RouteFinder {
 
     private boolean ambigueousStart, ambigueousEnd;
 
-    private Route<RouteRoad> route = new Route<>();
+    private Route route = new Route();
 
     public RouteFinder(RoadGraph roadGraph) {
         this.roadGraph = roadGraph;
     }
+
+    public boolean done;
 
     /**
      * true if fromStart is not empty
@@ -103,14 +106,20 @@ public class RouteFinder {
     }
 
     public static @NotNull
-    Route<RouteRoad> findRoute(TerrainPosition from, BuildingItem toItem, int maxRouteLength) {
-        if (toItem == null || from == null || maxRouteLength < 0)
-            return new Route<>();
+    Route findAnyRoute(TerrainPosition from, TerrainPosition to) {
+        //TODO
+        return null;
+    }
 
-        Terrain terrain = Terrain.getInstance();
+    public static @NotNull
+    Route findBestRoute(TerrainPosition from, BuildingItem toItem, int maxRouteLength) {
+        if (toItem == null || from == null || maxRouteLength < 0)
+            return new Route();
+
+
         final RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
 
-        Set<Route<RouteRoad>> foundRoutes = new TreeSet<>(
+        Set<Route> foundRoutes = new TreeSet<>(
                 Comparator.comparingInt(o -> o.stream().mapToInt(RouteRoad::getgScore).sum()));
 
         Set<TerrainPosition> foundRoads = new HashSet<>();
@@ -141,7 +150,7 @@ public class RouteFinder {
                                 return;
 
                             foundRoads.add(to);
-                            Route<RouteRoad> route = routeFinder.findRoute(from, to, maxRouteLength);
+                            Route route = routeFinder.findBestRoute(from, to, maxRouteLength);
                             if (route != null && !route.isEmpty())
                                 foundRoutes.add(route);
 
@@ -150,13 +159,14 @@ public class RouteFinder {
                     }
                 });
 
-        return foundRoutes.stream().findFirst().orElse(new Route<>());
+        return foundRoutes.stream().findFirst().orElse(new Route());
     }
 
     public @NotNull
-    Route<RouteRoad> findRoute(TerrainPosition from, TerrainPosition to, int maxRouteLength) {
+    Route findBestRoute(TerrainPosition from, TerrainPosition to, int maxRouteLength) {
         if (maxRouteLength <= 0)
             maxRouteLength = Integer.MAX_VALUE;
+
 
         // Makes sure everything is default
         assert this.route.isEmpty();
@@ -167,11 +177,19 @@ public class RouteFinder {
         assert this.fromStart[0] == null && this.fromStart[1] == null;
         assert this.fromEnd[0] == null && this.fromEnd[1] == null;
 
-        Road start = Terrain.getInstance().getRoad(from);
-        Road end = Terrain.getInstance().getRoad(to);
+        Road start = terrain.getRoad(from);
+        Road end = terrain.getRoad(to);
+
+        if (from.equals(to)) {
+            Route route = new Route();
+            RouteRoad routeRoad = new RouteRoad(start, end);
+
+            route.add(routeRoad);
+            return route;
+        }
 
         if (start == null || end == null) // One of the coordinates given != road
-            return new Route<>();
+            return new Route();
 
         boolean commonRoute = false;
 
@@ -193,7 +211,7 @@ public class RouteFinder {
             RouteRoad routeRoadFromStart1 = fromStart[0];
             RouteRoad routeRoadFromStart2 = fromStart[1];
 
-            Route<RouteRoad> routeFromStartNode1, routeFromStartNode2;
+            Route routeFromStartNode1, routeFromStartNode2;
 
             int cost1 = 0;
             int cost2 = 0;
@@ -201,8 +219,8 @@ public class RouteFinder {
                 cost1 = routeRoadFromStart1.getgScore();
                 cost2 = routeRoadFromStart2.getgScore();
 
-                routeFromStartNode1 = new Route<>();
-                routeFromStartNode2 = new Route<>();
+                routeFromStartNode1 = new Route();
+                routeFromStartNode2 = new Route();
                 routeFromStartNode1 = routeFromStartNode1.addAtStart(routeRoadFromStart1);
                 routeFromStartNode2 = routeFromStartNode2.addAtStart(routeRoadFromStart2);
             } else {
@@ -215,11 +233,11 @@ public class RouteFinder {
                 assert newMaxLength2 >= 0;
 
                 routeFromStartNode1 = routeFinder
-                        .findRoute(routeRoadFromStart1.getEnd().getPosition(), to, newMaxLength1);
+                        .findBestRoute(routeRoadFromStart1.getEnd().getPosition(), to, newMaxLength1);
                 routeFinder.reset();
 
                 routeFromStartNode2 = routeFinder
-                        .findRoute(routeRoadFromStart2.getEnd().getPosition(), to, newMaxLength2);
+                        .findBestRoute(routeRoadFromStart2.getEnd().getPosition(), to, newMaxLength2);
 
                 // - for each cause of the node in the middle counted twice
                 List<Road> allRoads1 = routeFromStartNode1.getAllRoads();
@@ -239,23 +257,23 @@ public class RouteFinder {
                 }
 
                 if (allRoads1.isEmpty() && allRoads2.isEmpty())
-                    return new Route<>();
+                    return new Route();
 
                 if (allRoads1.isEmpty()) {
                     if (cost2 <= maxRouteLength)
                         return routeFromStartNode2;
-                    return new Route<>();
+                    return new Route();
                 }
 
                 if (allRoads2.isEmpty()) {
                     if (cost1 <= maxRouteLength)
                         return routeFromStartNode1;
-                    return new Route<>();
+                    return new Route();
                 }
             }
 
             if (cost1 > maxRouteLength && cost2 > maxRouteLength)
-                return new Route<>(); // empty route
+                return new Route(); // empty route
             if (cost1 > maxRouteLength)
                 return routeFromStartNode2;
             if (cost2 > maxRouteLength)
@@ -270,13 +288,13 @@ public class RouteFinder {
 
             int cost1 = 0;
             int cost2 = 0;
-            Route<RouteRoad> routeFromEndNode1, routeFromEndNode2;
+            Route routeFromEndNode1, routeFromEndNode2;
             if (routeRoadFromEnd1.getEnd().equals(start) && routeRoadFromEnd2.getEnd().equals(start)) {
                 cost1 = routeRoadFromEnd1.getgScore();
                 cost2 = routeRoadFromEnd2.getgScore();
 
-                routeFromEndNode1 = new Route<>();
-                routeFromEndNode2 = new Route<>();
+                routeFromEndNode1 = new Route();
+                routeFromEndNode2 = new Route();
                 routeFromEndNode1.add(routeRoadFromEnd1.invertRoute());
                 routeFromEndNode2.add(routeRoadFromEnd2.invertRoute());
             } else {
@@ -289,11 +307,11 @@ public class RouteFinder {
                 assert newMaxLength2 >= 0;
 
                 routeFromEndNode1 = routeFinder
-                        .findRoute(from, routeRoadFromEnd1.getEnd().getPosition(), newMaxLength1);
+                        .findBestRoute(from, routeRoadFromEnd1.getEnd().getPosition(), newMaxLength1);
                 routeFinder.reset();
 
                 routeFromEndNode2 = routeFinder
-                        .findRoute(from, routeRoadFromEnd2.getEnd().getPosition(), newMaxLength2);
+                        .findBestRoute(from, routeRoadFromEnd2.getEnd().getPosition(), newMaxLength2);
 
                 // - for each cause of the node in the middle counted twice
                 List<Road> allRoads1 = routeFromEndNode1.getAllRoads();
@@ -313,23 +331,23 @@ public class RouteFinder {
                 }
 
                 if (allRoads1.isEmpty() && allRoads2.isEmpty())
-                    return new Route<>();
+                    return new Route();
 
                 if (allRoads1.isEmpty()) {
                     if (cost2 <= maxRouteLength)
                         return routeFromEndNode2;
-                    return new Route<>();
+                    return new Route();
                 }
 
                 if (allRoads2.isEmpty()) {
                     if (cost1 <= maxRouteLength)
                         return routeFromEndNode1;
-                    return new Route<>();
+                    return new Route();
                 }
             }
 
             if (cost1 > maxRouteLength && cost2 > maxRouteLength)
-                return new Route<>(); // empty route
+                return new Route(); // empty route
             if (cost1 > maxRouteLength)
                 return routeFromEndNode2;
             if (cost2 > maxRouteLength)
@@ -425,7 +443,7 @@ public class RouteFinder {
             });
             RouteRoad cheapestRoute = cheapestRoutes.stream().findFirst().orElse(null);
             if (cheapestRoute == null)
-                return new Route<>();
+                return new Route();
 
             Set<SortedSet<RouteRoad>> removedRoutes = listPossibleRoutes.stream().filter(routeRoads -> {
                 RouteRoad routeRoad = routeRoads.stream().findFirst().orElse(null);
@@ -454,12 +472,11 @@ public class RouteFinder {
             }
             listPossibleRoutes.clear();
         }
-        return new Route<>();
+        return new Route();
     }
 
     private RouteRoad findRouteWithoutNodes(NormalRoad start, NormalRoad end) {
-        final Terrain terrain = Terrain.getInstance();
-        Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(start.getPosition(), false);
+        final Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(start.getPosition(), false);
         final Direction[] directions = terrain.getConnectionsToRoadItem(start.getPosition(), true);
 
         final int nbDir = directions.length;
@@ -522,7 +539,7 @@ public class RouteFinder {
         return null;
     }
 
-    public Route<RouteRoad> getRoute() {
+    public Route getRoute() {
         return this.route;
     }
 
@@ -541,7 +558,6 @@ public class RouteFinder {
      */
     public @NotNull
     RouteRoad[] getClosestNodes(NormalRoad road) {
-        final Terrain terrain = Terrain.getInstance();
         //Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(road.getPosition(), false); WHY?
         final Direction[] directions = terrain.getConnectionsToRoadItem(road.getPosition(), true);
 
@@ -611,17 +627,17 @@ public class RouteFinder {
         this.ambigueousStart = false;
         this.fromStart = new RouteRoad[2];
         this.fromEnd = new RouteRoad[2];
-        this.route = new Route<>();
+        this.route = new Route();
         this.endNode = null;
         this.startNode = null;
     }
 
     public @NotNull
-    Route<RouteRoad> findUnobstructedRouteV1(final TerrainPosition startPos, final TerrainPosition endPos) {
+    Route findUnobstructedRouteV1(final TerrainPosition startPos, final TerrainPosition endPos) {
 //        int manhattanDistance = manhattanDistance(startPos, endPos);
 //        final int MAX = 15 + manhattanDistance;
 //
-//        Terrain terrain = Terrain.getInstance();
+//         
 //        Set<Vector2f> emptyPositions = terrain.getEmptyPositions();
 //        Map<Vector2f, Integer> positionValues = new HashMap<>();
 //        positionValues.put(startPos, manhattanDistance);
@@ -634,11 +650,10 @@ public class RouteFinder {
 //        }
 //
 //        return findUnobstructedRoute(startPos, endPos, null, positionValues, startPos, MAX);
-        Route<RouteRoad> routeRoads = new Route<>();
+        Route routeRoads = new Route();
         if (startPos == null || endPos == null || startPos.equals(endPos))
             return routeRoads;
 
-        Terrain terrain = Terrain.getInstance();
 
         Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
 
@@ -656,7 +671,7 @@ public class RouteFinder {
                 currPos = currPos.add(new TerrainPosition(-1, 0));
 
             if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
-                return new Route<>();
+                return new Route();
             routeRoad.addRoad(new NormalRoad(currPos));
         }
 
@@ -678,12 +693,13 @@ public class RouteFinder {
                 currPos = currPos.add(new TerrainPosition(0, -1));
 
             if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
-                return new Route<>();
+                return new Route();
 
             routeRoad.addRoad(new NormalRoad(currPos));
         }
 
         assert currPos.equals(endPos);
+
         routeRoad.setEnd(new NormalRoad(endPos));
         routeRoads.add(routeRoad);
 
@@ -691,12 +707,11 @@ public class RouteFinder {
     }
 
     public @NotNull
-    Route<RouteRoad> findUnobstructedRouteV2(final TerrainPosition startPos, final TerrainPosition endPos) {
-        Route<RouteRoad> routeRoads = new Route<>();
+    Route findUnobstructedRouteV2(final TerrainPosition startPos, final TerrainPosition endPos) {
+        Route routeRoads = new Route();
         if (startPos == null || endPos == null || startPos.equals(endPos))
             return routeRoads;
 
-        Terrain terrain = Terrain.getInstance();
 
         Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
         if ((terrain.isPositionOccupied(startPos) && !previewItemPositions.contains(startPos)) ||
@@ -714,7 +729,7 @@ public class RouteFinder {
                 currPos = currPos.add(new TerrainPosition(0, -1));
 
             if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
-                return new Route<>();
+                return new Route();
 
             routeRoad.addRoad(new NormalRoad(currPos));
         }
@@ -737,7 +752,7 @@ public class RouteFinder {
                 currPos = currPos.add(new TerrainPosition(-1, 0));
 
             if (terrain.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
-                return new Route<>();
+                return new Route();
 
             routeRoad.addRoad(new NormalRoad(currPos));
         }
@@ -751,10 +766,9 @@ public class RouteFinder {
 
     @Deprecated
     private @NotNull
-    Route<RouteRoad> findUnobstructedRoute(final TerrainPosition startPos, final TerrainPosition endPos,
-            Route<RouteRoad> currentRoute, Map<TerrainPosition, Integer> positionValues, final TerrainPosition finalStartPos,
-            final int MAX) {
-        Terrain terrain = Terrain.getInstance();
+    Route findUnobstructedRoute(final TerrainPosition startPos, final TerrainPosition endPos, Route currentRoute,
+            Map<TerrainPosition, Integer> positionValues, final TerrainPosition finalStartPos, final int MAX) {
+
 
         if (!startPos.equals(endPos)) {
             Map<TerrainPosition, Integer> nextPositions = new TreeMap<>(Comparator.comparing(positionValues::get));
@@ -769,16 +783,16 @@ public class RouteFinder {
             // Sorted by closest to the end
 
             if (nextPositions.isEmpty())
-                return new Route<>();
+                return new Route();
 
             for (Entry<TerrainPosition, Integer> entry : nextPositions.entrySet()) {
                 TerrainPosition nextPos = entry.getKey();
 
                 if (nextPos == null || entry.getValue() == MAX) // End, too far from endPos
-                    return new Route<>();
+                    return new Route();
                 else {
                     if (currentRoute == null)
-                        currentRoute = new Route<>();
+                        currentRoute = new Route();
                     Road road = terrain.getRoad(startPos);
                     positionValues.remove(startPos);
                     RouteRoad routeRoad = new RouteRoad(road == null ? new NormalRoad(startPos) : road);
@@ -798,10 +812,10 @@ public class RouteFinder {
             }
         }
 
-        return new Route<>();
+        return new Route();
     }
 
-    public static class Route<R> extends LinkedHashSet<RouteRoad> implements Comparable<R> {
+    public static class Route extends LinkedHashSet<RouteRoad> implements Comparable<Route> {
 
         public Route() {
         }
@@ -817,11 +831,11 @@ public class RouteFinder {
             return super.add(routeRoad);
         }
 
-        public boolean compareCost(Route<R> route) {
+        public boolean compareCost(Route route) {
             return route.getCost() == getCost();
         }
 
-        public boolean compareRoutes(Route<R> route) {
+        public boolean compareRoutes(Route route) {
             List<Road> allRoads = getAllRoads();
             List<Road> allRoadsRoute = route.getAllRoads();
 
@@ -850,23 +864,23 @@ public class RouteFinder {
             return roads;
         }
 
-        public Route<R> addAtStart(RouteRoad route) {
+        public Route addAtStart(RouteRoad route) {
             List<RouteRoad> tmp = new ArrayList<>(this);
             Collections.reverse(tmp);
             tmp.add(route);
             Collections.reverse(tmp);
 
-            return new Route<>(new LinkedHashSet<>(tmp));
+            return new Route(new LinkedHashSet<>(tmp));
         }
 
-        public Route<R> invertRoute() {
+        public Route invertRoute() {
             List<RouteRoad> tmp = new ArrayList<>();
             for (RouteRoad routeRoad : this) {
                 tmp.add(routeRoad.invertRoute());
             }
             Collections.reverse(tmp);
 
-            return new Route<>(new LinkedHashSet<>(tmp));
+            return new Route(new LinkedHashSet<>(tmp));
         }
 
         public Road getStart() {
@@ -878,8 +892,8 @@ public class RouteFinder {
         }
 
         @Override
-        public int compareTo(Object o) {
-            return Integer.compare(getCost(), ((Route<?>) o).getCost());
+        public int compareTo(Route o) {
+            return Integer.compare(getCost(), o.getCost());
         }
     }
 }

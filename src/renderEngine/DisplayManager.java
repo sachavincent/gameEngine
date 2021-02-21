@@ -71,11 +71,12 @@ public class DisplayManager {
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
         window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
-                0, 0);
+                screens.get(1), 0);
 //        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
 //                0, 0);
         if (window == 0)
             throw new RuntimeException("Failed to create window");
+
 //        glfwMaximizeWindow(window);
         glfwGetWindowSize(window, w, h);
         WIDTH = w.get(0);
@@ -85,8 +86,8 @@ public class DisplayManager {
         h.clear();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(0);
-//        glfwSwapInterval(1);
+//        glfwSwapInterval(0);
+        glfwSwapInterval(1);
         GL.createCapabilities();
         GL11.glEnable(GL13.GL_MULTISAMPLE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);

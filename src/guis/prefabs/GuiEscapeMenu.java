@@ -233,7 +233,7 @@ public class GuiEscapeMenu extends Gui {
 
         public GuiEscapeMenu create() {
             instance = guiEscapeMenu;
-//            GuiRenderer.getInstance().addGui(instance);
+//             GuiRenderer.addGui(instance);
 
             Gui.hideGui(instance);
             return instance;

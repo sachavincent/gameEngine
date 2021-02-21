@@ -1,5 +1,7 @@
 package guis;
 
+import static renderEngine.GuiRenderer.unfilledQuad;
+
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiGlobalConstraints;
@@ -21,6 +23,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import models.RawModel;
 import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
@@ -41,10 +46,11 @@ public abstract class GuiComponent implements GuiInterface {
 
     private final GuiInterface parent;
 
-    private List<GuiTexture> textures = new ArrayList<>();
-    private int              textureIndex;
+    private final List<GuiTexture> textures = new ArrayList<>();
 
-    private GuiTexture debugOutline;
+    private int textureIndex;
+
+    private final GuiTexture debugOutline;
 
     private ReleaseCallback onReleaseCallback;
     private EnterCallback   onEnterCallback;
@@ -55,10 +61,10 @@ public abstract class GuiComponent implements GuiInterface {
 
     private boolean displayed;
 
-    private boolean               clicked;
+    public  boolean               clicked;
     private GuiConstraintsManager constraints;
 
-    private float cornerRadius = Gui.CORNER_RADIUS;
+    protected float cornerRadius = Gui.CORNER_RADIUS;
 
     protected GuiGlobalConstraints childrenConstraints;
 
@@ -86,7 +92,7 @@ public abstract class GuiComponent implements GuiInterface {
     public GuiComponent(GuiInterface parent, Background<?> texture) {
         this(parent);
 
-        textures.add(new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height)));
+        this.textures.add(new GuiTexture(texture, new Vector2f(x, y), new Vector2f(width, height)));
     }
 
     public float getCornerRadius() {
@@ -107,6 +113,15 @@ public abstract class GuiComponent implements GuiInterface {
 
     public void removeComponent(GuiComponent guiComponent) {
         this.parent.removeComponent(guiComponent);
+    }
+
+    public void clearComponents() {
+        Set<GuiComponent> collect = getParentGui(this).getComponents().keySet().stream()
+                .filter(component -> component.getParent().equals(this))
+                .collect(Collectors.toSet());
+
+        collect.forEach(GuiComponent::clearComponents);
+        collect.forEach(guiComponent -> getParentGui(this).removeComponent(guiComponent));
     }
 
     @Override
@@ -388,7 +403,7 @@ public abstract class GuiComponent implements GuiInterface {
         if (onReleaseCallback == null)
             return;
 
-        clicked = false;
+//        clicked = false;
 
         onReleaseCallback.onRelease();
     }
@@ -400,7 +415,7 @@ public abstract class GuiComponent implements GuiInterface {
         if (onPressCallback == null)
             return;
 
-        clicked = false;
+//        clicked = false;
 
         onPressCallback.onPress();
     }
@@ -410,7 +425,6 @@ public abstract class GuiComponent implements GuiInterface {
             return;
 
         onEnterCallback.onEnter();
-
     }
 
 
@@ -419,7 +433,6 @@ public abstract class GuiComponent implements GuiInterface {
             return;
 
         onLeaveCallback.onLeave();
-
     }
 
 
@@ -536,7 +549,7 @@ public abstract class GuiComponent implements GuiInterface {
         if (this.textures.size() > textureIndex)
             return this.textures.get(textureIndex);
 
-        return null;
+        return new GuiTexture(Background.BLACK_BACKGROUND, this);
     }
 
     public void scale(float scale) {
@@ -713,5 +726,11 @@ public abstract class GuiComponent implements GuiInterface {
     @Override
     public int hashCode() {
         return Objects.hash(ID);
+    }
+
+    public abstract void render();
+
+    public RawModel getTemplate() {
+        return unfilledQuad;
     }
 }

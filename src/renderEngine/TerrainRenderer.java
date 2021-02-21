@@ -48,7 +48,7 @@ public class TerrainRenderer {
 
         shader.loadUniformColor(true);
         prepareColorlessTerrain();
-//        loadModelMatrix();
+        loadModelMatrix();
         terrain.setY(terrain.getY() + 0.01f);
         GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         unbindTexturedModel();

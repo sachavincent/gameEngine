@@ -54,7 +54,18 @@ public class RouteRoad implements Comparable<RouteRoad> {
         if (compare != 0)
             return compare;
 
-        return start.getPosition().compareTo(other.getStart().getPosition());
+        compare = start.getPosition().compareTo(other.getStart().getPosition());
+        if (compare != 0)
+            return compare;
+
+        compare = Integer.compare(route.size(), other.route.size());
+        if (compare != 0)
+            return compare;
+
+        if (route.equals(other.route))
+            return 0;
+
+        return Integer.compare(route.hashCode(), other.route.hashCode());
     }
 
 

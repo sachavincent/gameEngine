@@ -31,7 +31,6 @@ public class RoadGraph {
             TerrainPosition nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
 //            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
-            Direction[] directionsNextRoad = terrain.getConnectionsToRoadItem(nextRoadPosition, true);
             Direction[] directionsNextRoadOnlyRoads = terrain.getConnectionsToRoadItem(nextRoadPosition, true);
 
             Direction oppositeDirection = direction.getOppositeDirection();
@@ -43,7 +42,7 @@ public class RoadGraph {
             if (directionsNextRoadOnlyRoads.length == 1) // Dead end
                 continue;
 
-            if (directionsNextRoad.length > 2) {
+            if (directionsNextRoadOnlyRoads.length > 2) {
                 // Node found (directionsNextRoad.length > 3 && directionsNextRoad.length <= 4)
                 RoadNode newNode = new RoadNode(nextRoadPosition);
                 RouteRoad newRoute = new RouteRoad(currentRoute);
@@ -53,8 +52,18 @@ public class RoadGraph {
                 routes.add(newRoute);
                 routes.add(newRoute.invertRoute());
 
-                directionsNextRoad = directionsNextRoadOnlyRoads;
-                List<Direction> directionList = new ArrayList<>(Arrays.asList(directionsNextRoad));
+                Set<RouteRoad> routesToDelete = new HashSet<>();
+                routes.stream().filter(route ->
+                        (route.getEnd().equals(newRoute.getEnd()) && !newRoute.getStart().equals(route.getStart()) &&
+                                route.getRoute().contains(newRoute.getStart())) ||
+                                (route.getEnd().equals(newRoute.getStart()) &&
+                                        !newRoute.getEnd().equals(route.getStart()) &&
+                                        route.getRoute().contains(newRoute.getEnd())))
+                        .forEach(routesToDelete::add);
+
+                routes.removeAll(routesToDelete);
+
+                List<Direction> directionList = new ArrayList<>(Arrays.asList(directionsNextRoadOnlyRoads));
                 directionList.remove(oppositeDirection);
                 if (!nodes.contains(new RoadNode(nextRoadPosition)))
                     searchForNextNode(nextRoadPosition, directionList.toArray(new Direction[0]), null);
@@ -63,7 +72,7 @@ public class RoadGraph {
 
             // 2 sides connected
             Direction nextDir = null;
-            for (Direction nextDirection : directionsNextRoad)
+            for (Direction nextDirection : directionsNextRoadOnlyRoads)
                 if (!oppositeDirection.equals(nextDirection))
                     nextDir = nextDirection;
 
@@ -91,6 +100,37 @@ public class RoadGraph {
     public Set<RouteRoad> getRoutes(RoadNode node) {
         return routes.stream().filter(routeRoad -> routeRoad.getStart().getPosition().equals(node.getPosition()))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Add road to position dynamically
+     */
+    public void addRoad(TerrainPosition position) {
+        Direction[] connectionsToRoadItem = Terrain.getInstance().getConnectionsToRoadItem(position, true);
+        if (connectionsToRoadItem.length >= 3) { // New road is a node
+            searchForNextNode(position, connectionsToRoadItem, null);
+        } else {
+            for (Direction direction : connectionsToRoadItem) {
+                TerrainPosition newPos = position.add(Direction.toRelativeDistance(direction));
+                Direction[] directions = Terrain.getInstance().getConnectionsToRoadItem(newPos, true);
+                if (directions.length == 3) { // New node created by this road
+                    searchForNextNode(newPos, directions, null);
+                }
+
+                if (directions.length > 2 && connectionsToRoadItem.length > 1) { // See Test 19 to see why!
+                    RouteRoad route = new RouteRoad(new RoadNode(newPos));
+                    route.addRoad(new NormalRoad(position));
+
+                    Direction[] newDirections = new Direction[connectionsToRoadItem.length - 1];
+                    int i = 0;
+                    for (Direction dir : connectionsToRoadItem) {
+                        if (dir != direction)
+                            newDirections[i++] = dir;
+                    }
+                    searchForNextNode(position, newDirections, route);
+                }
+            }
+        }
     }
 
     @Override

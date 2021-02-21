@@ -11,20 +11,18 @@ import models.TexturedModel;
 import renderEngine.OBJLoader;
 import terrains.Terrain;
 import terrains.TerrainPosition;
-import textures.ModelTexture;
 
 public abstract class RoadItem extends Item implements ConnectableItem {
 
     private final Connections[] connected = new Connections[]{NONE, NONE, NONE, NONE};
 
-    private final static RawModel roadModel = OBJLoader.loadObjModel("road");
+    protected final static RawModel roadModel = OBJLoader.loadObjModel("road");
 
-    public RoadItem(TerrainPosition position, String name) {
+    public RoadItem(TerrainPosition position, String name, TexturedModel texture, TexturedModel previewTexture) {
         super(position, name, 0, 0, 0, 0, 0);
 
-        String textureName = name.replace(" ", "_").toLowerCase();
-        this.texture = new TexturedModel(roadModel, new ModelTexture(textureName + ".png", true));
-        this.previewTexture = new TexturedModel(roadModel, new ModelTexture(textureName + ".png", true));
+        this.texture = texture;
+        this.previewTexture = previewTexture;
 
         setScale(.5f);
     }

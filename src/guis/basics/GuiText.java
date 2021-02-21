@@ -2,6 +2,7 @@ package guis.basics;
 
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
+import fontRendering.TextMaster;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
@@ -31,13 +32,12 @@ public class GuiText extends GuiBasics {
         return this.text;
     }
 
-    private void setText(Text text) {
+    public void setText(Text text) {
         if (text == null)
             return;
 
         text.setLineMaxSize(getWidth());
         text.setCentered(false);
-
         List<Line> lines = text.getFont().getLoader().getLines(text);
 
         if (lines.size() > 1) {
@@ -45,6 +45,7 @@ public class GuiText extends GuiBasics {
                 throw new SizeLimitExceededException("Content must fit in one line: " + text.getTextString());
             } catch (SizeLimitExceededException e) {
                 e.printStackTrace();
+
                 text.setTextString("");
                 this.text = text;
                 return;
@@ -74,6 +75,7 @@ public class GuiText extends GuiBasics {
                 return;
             }
         }
+
         this.text = text;
 
         update();
@@ -93,10 +95,14 @@ public class GuiText extends GuiBasics {
         update();
     }
 
+    public Line getLine() {
+        return this.line;
+    }
+
     @Override
     public boolean update() {
         if (this.text == null || this.line == null)
-            return true;
+            return false;
 
         this.text.setPosition(new Vector2f(getX() - line.getLineLength(), -getY() - text.getTextHeight() / 2));
 
@@ -108,5 +114,13 @@ public class GuiText extends GuiBasics {
         return "GuiText{" +
                 "text=" + text +
                 ", " + super.toString() + "}";
+    }
+
+    @Override
+    public void render() {
+        if (this.text == null)
+            return;
+
+        TextMaster.getInstance().loadText(getText());
     }
 }

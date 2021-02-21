@@ -3,18 +3,16 @@ package items.buildings.houses;
 import abstractItem.AbstractMarket;
 import entities.Camera.Direction;
 import guis.Gui;
-import guis.prefabs.GuiHouseDetails;
+import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.Item;
 import items.buildings.BuildingItem;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import people.Farmer;
 import people.Person;
 import people.SocialClass;
+import resources.ResourceManager.Resource;
 import terrains.Terrain;
 import terrains.TerrainPosition;
 
@@ -27,9 +25,8 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
     private boolean meetRequirements;
 
     public HouseItem(TerrainPosition terrainPosition, String name, Item copy, int maxPeopleCapacity,
-            int xNegativeOffset, int xPositiveOffset,
-            int height, int zNegativeOffset, int zPositiveOffset, EnumSet<SocialClass> socialClasses,
-            Direction... directions) {
+            int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset, int zPositiveOffset,
+            EnumSet<SocialClass> socialClasses, Direction... directions) {
         super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset,
                 directions);
 
@@ -39,6 +36,20 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
         for (SocialClass socialClass : socialClasses) {
             classes.put(socialClass, new ArrayList<>());
         }
+    }
+
+    public Map<Resource, Integer> getResourcesNeeded() {
+        List<Person> peopleList = classes.values().stream().flatMap(List::stream).collect(Collectors.toList());
+        List<EnumMap<Resource, Integer>> allResources = peopleList.stream().map(Person::getResourcesNeeded)
+                .collect(Collectors.toList());
+
+        Set<Entry<Resource, Integer>> entries = allResources.stream()
+                .flatMap(map -> map.entrySet().stream()).collect(Collectors.toSet());
+
+        EnumMap<Resource, Integer> enumMap = new EnumMap<>(Resource.class);
+        entries.forEach(entry -> enumMap.put(entry.getKey(), entry.getValue()));
+
+        return enumMap;
     }
 
     public EnumMap<SocialClass, List<Person>> getClasses() {

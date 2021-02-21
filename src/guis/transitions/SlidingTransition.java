@@ -8,7 +8,7 @@ public class SlidingTransition extends Transition {
 
     private final static float DISTANCE = 0.25f;
 
-    private SlidingDirection direction;
+    private final SlidingDirection direction;
 
     public SlidingTransition(SlidingTransition transition) {
         super(transition.getTrigger(), transition.getDelay(), transition.getLength());
@@ -144,6 +144,6 @@ public class SlidingTransition extends Transition {
     public String toString() {
         return "SlidingTransition{" +
                 "direction=" + direction +
-                "} " + super.toString();
+                "} ";
     }
 }

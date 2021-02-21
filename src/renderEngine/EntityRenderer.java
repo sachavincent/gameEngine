@@ -51,10 +51,6 @@ public class EntityRenderer {
                 Vector3f pos = new Vector3f(position.getX(), 0.05, position.getZ()); // TODO Remplacer y par height
 
                 TexturedModel texture = item.getTexture();
-                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(position)) {
-                    texture = item.getPreviewTexture();
-                }
-
                 handleTexture(entities, pos, item, texture);
                 if (displayBoundingBoxes) {
                     texture = item.getBoundingBox();
@@ -68,6 +64,14 @@ public class EntityRenderer {
             }
         });
 
+        if (terrain.getPreviewedItem() != null) {
+            Item previewItme = terrain.getPreviewedItem().getPreviewItem();
+            terrain.getPreviewItemPositions().forEach(position -> {
+                TexturedModel previewTexture = previewItme.getPreviewTexture();
+                Vector3f pos = new Vector3f(position.getX(), 0.05, position.getZ()); // TODO Remplacer y par height
+                handleTexture(entities, pos, previewItme, previewTexture);
+            });
+        }
 //        Vector3f pos = terrain.getPreviewItemPosition();
 //        if (pos != null) { // Preview
 //            Item previewItem = terrain.getPreviewItem();

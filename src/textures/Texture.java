@@ -23,15 +23,30 @@ public abstract class Texture {
     private Vector3f color;
 
     public Texture(Background<?> background) {
-        if (background.getBackground() instanceof Color)
-            instantiateWithColor((Color) background.getBackground());
-        else if (background.getBackground() instanceof String)
-            instantiateWithFile((String) background.getBackground());
-        else if (background.getBackground() instanceof Integer)
-            instantiateWithInteger((Integer) background.getBackground());
+        Object back = background.getBackground();
+        if (back instanceof Color)
+            instantiateWithColor((Color) back);
+        else if (back instanceof String) {
+            String backString = ((String) back);
+            if (backString.startsWith("#"))
+                instantiateWithHexColor(backString);
+            else
+                instantiateWithFile(backString);
+        } else if (back instanceof Integer)
+            instantiateWithInteger((Integer) back);
         else
             throw new IllegalArgumentException("Invalid type: " + background);
 
+    }
+
+    private void instantiateWithHexColor(String hexColor) {
+        this.width = 8;
+        this.height = 8;
+
+        this.color = new Vector3f(
+                Integer.valueOf(hexColor.substring(1, 3), 16) / 255f,
+                Integer.valueOf(hexColor.substring(3, 5), 16) / 255f,
+                Integer.valueOf(hexColor.substring(5, 7), 16) / 255f);
     }
 
     private void instantiateWithColor(Color color) {

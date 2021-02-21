@@ -1,5 +1,7 @@
 package guis;
 
+import static renderEngine.GuiRenderer.filledQuad;
+
 import fontMeshCreator.FontType;
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
@@ -22,6 +24,9 @@ import java.awt.Color;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import textures.FontTexture;
@@ -37,8 +42,8 @@ public class Gui implements GuiInterface {
 
     private final Map<GuiComponent, Set<Transition>> components;
 
-    private GuiTexture background;
-    private GuiTexture debugOutline;
+    private       GuiTexture background;
+    private final GuiTexture debugOutline;
 
     private Set<Transition> transitions;
 
@@ -66,12 +71,11 @@ public class Gui implements GuiInterface {
         this.components = new LinkedHashMap<>();
         this.transitions = new HashSet<>();
 
-        GuiRenderer.getInstance().addGui(this);
+        GuiRenderer.addGui(this);
     }
 
     public void setBackground(Background<?> background) {
-        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width,
-                height));
+        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width, height));
     }
 
     public Gui(int r, int g, int b) {
@@ -417,7 +421,7 @@ public class Gui implements GuiInterface {
 
         this.components.remove(guiComponent);
 
-        if (childrenConstraints != null && this.equals(childrenConstraints.getParent())) {
+        if (childrenConstraints != null && guiComponent.getParent().equals(childrenConstraints.getParent())) {
             childrenConstraints.addComponent(guiComponent);
         }
 
@@ -743,6 +747,8 @@ public class Gui implements GuiInterface {
 
 
     public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
+        guiConstraints.setParent(this);
+
         this.childrenConstraints = guiConstraints;
     }
 
@@ -818,5 +824,14 @@ public class Gui implements GuiInterface {
                 return new GuiRectangleButton(parent, background, text, tooltipText, constraints);
         }
         return null;
+    }
+
+    public void render() {
+        GL30.glBindVertexArray(filledQuad.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+
+        GuiRenderer.loadTexture(getTexture(), cornerRadius);
+
+        GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, filledQuad.getVertexCount());
     }
 }

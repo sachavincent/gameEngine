@@ -6,8 +6,8 @@ import terrains.TerrainPosition;
 public abstract class Road {
 
     protected TerrainPosition position;
-    protected int      score;
-    protected int      hScore;
+    protected int             score;
+    protected int             hScore;
 
     public Road(TerrainPosition position, int score) {
         this.position = position;
@@ -30,22 +30,19 @@ public abstract class Road {
         return this.score;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+//        if (o == null || getClass() != o.getClass())
+//            return false;
         Road road = (Road) o;
-        return score == road.score &&
-                hScore == road.hScore &&
-                Objects.equals(position, road.position);
+        return Objects.equals(position, road.position);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(position, score);
+        return Objects.hash(position);
     }
 
     @Override

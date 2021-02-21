@@ -22,7 +22,7 @@ public class KeyboardUtils {
     public static void setupListeners() {
         long window = DisplayManager.getWindow();
 
-        final List<Gui> guisClone = new ArrayList<>(GuiRenderer.getInstance().getGuis());
+        final List<Gui> guisClone = new ArrayList<>(GuiRenderer.getGuis());
 
         callback = glfwSetKeyCallback(window, (w, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS) {
@@ -57,7 +57,7 @@ public class KeyboardUtils {
                         Gui.toggleGui(GuiItemSelection.getItemSelectionGui());
                         break;
                     case GLFW_KEY_SEMICOLON:
-                        GuiRenderer.getInstance().switchDisplayDebugOutlines();
+                        GuiRenderer.switchDisplayDebugOutlines();
                         break;
                 }
             } else if (action == GLFW_RELEASE) {

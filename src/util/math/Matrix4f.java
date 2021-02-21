@@ -33,13 +33,17 @@ public class Matrix4f extends Matrix implements Serializable {
 
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        buf.append(this.m00).append(' ').append(this.m10).append(' ').append(this.m20).append(' ').append(this.m30)
+        buf.append(String.format("%.5f", this.m00)).append(' ').append(String.format("%.5f", this.m20)).append(' ')
+                .append(String.format("%.5f", this.m20)).append(' ').append(String.format("%.5f", this.m30))
                 .append('\n');
-        buf.append(this.m01).append(' ').append(this.m11).append(' ').append(this.m21).append(' ').append(this.m31)
+        buf.append(String.format("%.5f", this.m01)).append(' ').append(String.format("%.5f", this.m11)).append(' ')
+                .append(String.format("%.5f", this.m21)).append(' ').append(String.format("%.5f", this.m31))
                 .append('\n');
-        buf.append(this.m02).append(' ').append(this.m12).append(' ').append(this.m22).append(' ').append(this.m32)
+        buf.append(String.format("%.5f", this.m02)).append(' ').append(String.format("%.5f", this.m12)).append(' ')
+                .append(String.format("%.5f", this.m22)).append(' ').append(String.format("%.5f", this.m32))
                 .append('\n');
-        buf.append(this.m03).append(' ').append(this.m13).append(' ').append(this.m23).append(' ').append(this.m33)
+        buf.append(String.format("%.5f", this.m03)).append(' ').append(String.format("%.5f", this.m13)).append(' ')
+                .append(String.format("%.5f", this.m23)).append(' ').append(String.format("%.5f",this.m33))
                 .append('\n');
         return buf.toString();
     }
@@ -281,6 +285,7 @@ public class Matrix4f extends Matrix implements Serializable {
         dest.m33 = left.m33 - right.m33;
         return dest;
     }
+
     public Matrix4f mulAffine(Matrix4f right, Matrix4f dest) {
         float m00 = this.m00, m01 = this.m01, m02 = this.m02;
         float m10 = this.m10, m11 = this.m11, m12 = this.m12;
@@ -307,6 +312,7 @@ public class Matrix4f extends Matrix implements Serializable {
                 ._m32(Maths.fma(m02, rm30, Maths.fma(m12, rm31, Maths.fma(m22, rm32, m32))))
                 ._m33(m33);
     }
+
     public static Matrix4f mul(Matrix4f left, Matrix4f right, Matrix4f dest) {
         if (dest == null) {
             dest = new Matrix4f();
@@ -680,165 +686,165 @@ public class Matrix4f extends Matrix implements Serializable {
                 ._m32(tz)
                 ._m33(1.0f);
     }
+
     /**
      * Set the value of the matrix element at column 0 and row 0 without updating the properties of the matrix.
      *
-     * @param m00
-     *          the new value
+     * @param m00 the new value
      * @return this
      */
     Matrix4f _m00(float m00) {
         this.m00 = m00;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 0 and row 1 without updating the properties of the matrix.
      *
-     * @param m01
-     *          the new value
+     * @param m01 the new value
      * @return this
      */
     Matrix4f _m01(float m01) {
         this.m01 = m01;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 0 and row 2 without updating the properties of the matrix.
      *
-     * @param m02
-     *          the new value
+     * @param m02 the new value
      * @return this
      */
     Matrix4f _m02(float m02) {
         this.m02 = m02;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 0 and row 3 without updating the properties of the matrix.
      *
-     * @param m03
-     *          the new value
+     * @param m03 the new value
      * @return this
      */
     Matrix4f _m03(float m03) {
         this.m03 = m03;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 1 and row 0 without updating the properties of the matrix.
      *
-     * @param m10
-     *          the new value
+     * @param m10 the new value
      * @return this
      */
     Matrix4f _m10(float m10) {
         this.m10 = m10;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 1 and row 1 without updating the properties of the matrix.
      *
-     * @param m11
-     *          the new value
+     * @param m11 the new value
      * @return this
      */
     Matrix4f _m11(float m11) {
         this.m11 = m11;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 1 and row 2 without updating the properties of the matrix.
      *
-     * @param m12
-     *          the new value
+     * @param m12 the new value
      * @return this
      */
     Matrix4f _m12(float m12) {
         this.m12 = m12;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 1 and row 3 without updating the properties of the matrix.
      *
-     * @param m13
-     *          the new value
+     * @param m13 the new value
      * @return this
      */
     Matrix4f _m13(float m13) {
         this.m13 = m13;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 2 and row 0 without updating the properties of the matrix.
      *
-     * @param m20
-     *          the new value
+     * @param m20 the new value
      * @return this
      */
     Matrix4f _m20(float m20) {
         this.m20 = m20;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 2 and row 1 without updating the properties of the matrix.
      *
-     * @param m21
-     *          the new value
+     * @param m21 the new value
      * @return this
      */
     Matrix4f _m21(float m21) {
         this.m21 = m21;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 2 and row 2 without updating the properties of the matrix.
      *
-     * @param m22
-     *          the new value
+     * @param m22 the new value
      * @return this
      */
     Matrix4f _m22(float m22) {
         this.m22 = m22;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 2 and row 3 without updating the properties of the matrix.
      *
-     * @param m23
-     *          the new value
+     * @param m23 the new value
      * @return this
      */
     Matrix4f _m23(float m23) {
         this.m23 = m23;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 3 and row 0 without updating the properties of the matrix.
      *
-     * @param m30
-     *          the new value
+     * @param m30 the new value
      * @return this
      */
     Matrix4f _m30(float m30) {
         this.m30 = m30;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 3 and row 1 without updating the properties of the matrix.
      *
-     * @param m31
-     *          the new value
+     * @param m31 the new value
      * @return this
      */
     Matrix4f _m31(float m31) {
         this.m31 = m31;
         return this;
     }
+
     /**
      * Set the value of the matrix element at column 3 and row 2 without updating the properties of the matrix.
      *
-     * @param m32
-     *          the new value
+     * @param m32 the new value
      * @return this
      */
     Matrix4f _m32(float m32) {
@@ -849,8 +855,7 @@ public class Matrix4f extends Matrix implements Serializable {
     /**
      * Set the value of the matrix element at column 3 and row 3 without updating the properties of the matrix.
      *
-     * @param m33
-     *          the new value
+     * @param m33 the new value
      * @return this
      */
     Matrix4f _m33(float m33) {

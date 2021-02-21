@@ -21,10 +21,10 @@ public class GuiShader extends ShaderProgram {
     private int location_color;
 
     // donut chart stuff
-    private int   location_isDonut;
+    private int   location_type;
     private int   location_innerCircleRadius;
     private int   location_outerCircleRadius;
-    private int   location_center;
+    private int   location_percentage;
     private int   location_nbLines;
     private int[] location_donutLines;
     private int[] location_donutColors;
@@ -41,10 +41,10 @@ public class GuiShader extends ShaderProgram {
         location_radius = super.getUniformLocation("radius");
         location_alpha = super.getUniformLocation("alpha");
         location_color = super.getUniformLocation("color");
-        location_isDonut = super.getUniformLocation("isDonut");
+        location_type = super.getUniformLocation("type");
         location_innerCircleRadius = super.getUniformLocation("innerCircleRadius");
         location_outerCircleRadius = super.getUniformLocation("outerCircleRadius");
-        location_center = super.getUniformLocation("center");
+        location_percentage = super.getUniformLocation("percentage");
         location_nbLines = super.getUniformLocation("nbLines");
 
         location_donutLines = new int[100];
@@ -85,8 +85,8 @@ public class GuiShader extends ShaderProgram {
         super.loadVector(location_color, color == null ? new Vector3f(-1, -1, -1) : color);
     }
 
-    public void loadIsDonut(boolean isDonut) {
-        super.loadBoolean(location_isDonut, isDonut);
+    public void loadType(int type) {
+        super.loadInt(location_type, type);
     }
 
     public void loadInnerCircleRadius(float radius) {
@@ -97,8 +97,8 @@ public class GuiShader extends ShaderProgram {
         super.loadFloat(location_outerCircleRadius, radius);
     }
 
-    public void loadCenter(Vector2f center) {
-        super.load2DVector(location_center, center);
+    public void loadPercentage(float percentage) {
+        super.loadFloat(location_percentage, percentage);
     }
 
     public void loadDonutLines(List<Vector2f> points) {

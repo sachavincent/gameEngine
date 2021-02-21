@@ -18,7 +18,7 @@ import fontRendering.TextMaster;
 import guis.constraints.PatternGlobalConstraint;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiEscapeMenu.MenuButton;
-import guis.prefabs.GuiHouseDetails;
+import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiSelectedItem;
 import guis.presets.Background;
@@ -95,7 +95,6 @@ public class MainGameLoop {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
-
         TextConverter.loadDefaultLanguage();
 //        TextConverter.loadLanguage(Language.FRENCH);
 
@@ -149,8 +148,8 @@ public class MainGameLoop {
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         new GuiItemSelection.Builder()
-                .setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f))
                 .setBackground(new Background<>(new Color(109, 109, 109, 80)))
+                .setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f))
                 .addButton(GuiItemSelection.MenuButton.DIRT_ROAD, ButtonType.RECTANGLE, ItemPreviews.DIRT_ROAD)
                 .addButton(GuiItemSelection.MenuButton.INSULA, ButtonType.RECTANGLE, ItemPreviews.INSULA)
                 .addButton(GuiItemSelection.MenuButton.MARKET, ButtonType.RECTANGLE, ItemPreviews.MARKET)
@@ -160,8 +159,6 @@ public class MainGameLoop {
         KeyboardUtils.setupListeners();
 
         Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
-
-        GuiRenderer guiRenderer = GuiRenderer.getInstance();
 
         PostProcessing.init();
 
@@ -207,6 +204,7 @@ public class MainGameLoop {
                 if (frameTime >= 1.0) {
                     frameTime = 0;
 //                    System.out.println("frames: " + frames);
+//                    GuiHouseDetails.getInstance().setCurrentCategoryPercentage(new Random().nextInt(100));
                     frames = 0;
                 }
 //                glfwPollEvents();
@@ -245,7 +243,7 @@ public class MainGameLoop {
 //                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
 //                waterRenderer.render(waters, camera, sun);
 
-                guiRenderer.render();
+                GuiRenderer.render();
 
                 textMaster.render();//TODO: Handle double rendering w/ GuiRenderer
 
@@ -259,7 +257,7 @@ public class MainGameLoop {
         buffers.cleanUp();
         waterShader.cleanUp();
         renderer.cleanUp();
-        guiRenderer.cleanUp();
+        GuiRenderer.cleanUp();
         loader.cleanUp();
         textMaster.cleanUp();
 

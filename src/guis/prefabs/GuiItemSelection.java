@@ -124,9 +124,7 @@ public class GuiItemSelection extends Gui {
 //                .setyConstraint(new RelativeConstraint(1, this))
 //                .create();
 
-        GuiAbstractButton button;
-
-        button = createButton(buttonType, background, null,
+        GuiAbstractButton button = createButton(buttonType, background, null,
                 new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
 
         if (button != null) {

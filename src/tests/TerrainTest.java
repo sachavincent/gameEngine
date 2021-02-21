@@ -12,8 +12,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import pathfinding.NormalRoad;
 import pathfinding.RoadGraph;
 import pathfinding.RoadNode;
@@ -21,10 +19,16 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
+import services.PathfindingService;
+import services.ServiceManager;
 import terrains.Terrain;
 import terrains.TerrainPosition;
 
 class TerrainTest {
+
+    private final Terrain terrain = Terrain.getInstance();
+
+    private static ServiceManager<PathfindingService> serviceManager;
 
     @BeforeAll
     public static void init() {
@@ -32,21 +36,19 @@ class TerrainTest {
         DisplayManager.createDisplay();
         glfwSwapInterval(1);
         GL.createCapabilities();
-        GL11.glEnable(GL13.GL_MULTISAMPLE);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
+
+        serviceManager = new ServiceManager<>();
     }
 
     @BeforeEach
     public void resetTerrainItems() {
         Terrain.getInstance().resetItems();
         Terrain.getInstance().updateRequirements();
-        Terrain.getInstance().updateRoadGraph();
+        Terrain.getInstance().resetRoadGraph();
     }
 
     @Test
     void testGetRoadConnectionsToRoadItem() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         abstractDirtRoadItem.place(new TerrainPosition(50, 50));
 
@@ -58,8 +60,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem2() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
@@ -74,8 +74,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem3() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
@@ -90,8 +88,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem4() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
@@ -106,8 +102,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem5() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
@@ -123,8 +117,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem6() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
@@ -141,8 +133,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem7() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
@@ -161,8 +151,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem8() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
@@ -181,8 +169,6 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem9() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
@@ -204,7 +190,7 @@ class TerrainTest {
     //
 //    @Test
 //    void testGetRoadGraph() {
-//        Terrain terrain = Terrain.getInstance();
+//         
 //
 //        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
 //        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
@@ -231,7 +217,7 @@ class TerrainTest {
 //
 //    @Test
 //    void testGetRoadGraph2() {
-//        Terrain terrain = Terrain.getInstance();
+//         
 //
 //        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
 //        TerrainPosition v0 = new TerrainPosition(49, 50);
@@ -271,13 +257,13 @@ class TerrainTest {
     void testInvertRoute1() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
 
-        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteFinder.Route route = new Route();
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
         route.add(routeRoad);
 
-        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+        RouteFinder.Route foundRoute = route.invertRoute();
 
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         expectedRoute.add(routeRoad);
 
         assertTrue(foundRoute.compareRoutes(expectedRoute));
@@ -289,14 +275,14 @@ class TerrainTest {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
 
-        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteFinder.Route route = new Route();
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
         routeRoad.setEnd(new RoadNode(v2));
         route.add(routeRoad);
 
-        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+        RouteFinder.Route foundRoute = route.invertRoute();
 
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
         expectedRouteRoad.setEnd(new RoadNode(v1));
         expectedRoute.add(expectedRouteRoad);
@@ -312,7 +298,7 @@ class TerrainTest {
         TerrainPosition v3 = new TerrainPosition(52, 50);
         TerrainPosition v4 = new TerrainPosition(53, 50);
 
-        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteFinder.Route route = new Route();
         // Expected individual routes
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
         routeRoad.setEnd(new RoadNode(v4));
@@ -320,9 +306,9 @@ class TerrainTest {
         routeRoad.addRoad(new NormalRoad(v3));
         route.add(routeRoad);
 
-        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+        RouteFinder.Route foundRoute = route.invertRoute();
 
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
         expectedRouteRoad.setEnd(new RoadNode(v1));
@@ -344,7 +330,7 @@ class TerrainTest {
         TerrainPosition v6 = new TerrainPosition(55, 50);
         TerrainPosition v7 = new TerrainPosition(56, 50);
 
-        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteFinder.Route route = new Route();
 
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
         routeRoad.setEnd(new RoadNode(v4));
@@ -357,9 +343,9 @@ class TerrainTest {
         route.add(routeRoad);
         route.add(routeRoad2);
 
-        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+        RouteFinder.Route foundRoute = route.invertRoute();
 
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
         expectedRouteRoad.setEnd(new RoadNode(v1));
@@ -389,7 +375,7 @@ class TerrainTest {
         TerrainPosition v9 = new TerrainPosition(58, 50);
         TerrainPosition v10 = new TerrainPosition(59, 50);
 
-        RouteFinder.Route<RouteRoad> route = new Route<>();
+        RouteFinder.Route route = new Route();
 
         RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
         routeRoad.setEnd(new RoadNode(v4));
@@ -407,9 +393,9 @@ class TerrainTest {
         route.add(routeRoad2);
         route.add(routeRoad3);
 
-        RouteFinder.Route<RouteRoad> foundRoute = route.invertRoute();
+        RouteFinder.Route foundRoute = route.invertRoute();
 
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
         expectedRouteRoad.setEnd(new RoadNode(v1));
@@ -436,8 +422,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding1() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -457,11 +441,10 @@ class TerrainTest {
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
-        // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v4, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
 
         // Expected global route
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
         expectedRouteRoad.setEnd(new RoadNode(v4));
@@ -478,8 +461,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding2() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -503,10 +484,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
 
         // Expected global route
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
         expectedRouteRoad.setEnd(new RoadNode(v3));
@@ -527,8 +508,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding3() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
@@ -556,7 +535,7 @@ class TerrainTest {
                 v5.getX(), v5.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -565,10 +544,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
 
         // Expected global route
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
         expectedRouteRoad.setEnd(new RoadNode(v5));
@@ -586,8 +565,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding4() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -619,7 +596,7 @@ class TerrainTest {
                 v9.getX(), v9.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -628,10 +605,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v9, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v9, 0);
 
         // Expected global route
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
         expectedRouteRoad.setEnd(new RoadNode(v4));
@@ -658,8 +635,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding5() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -708,18 +683,18 @@ class TerrainTest {
                 v12.getX(), v12.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v12, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v12, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
@@ -756,8 +731,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding6() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -816,18 +789,18 @@ class TerrainTest {
                 v13.getX(), v13.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v13, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v13, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
@@ -865,8 +838,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding7() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -888,17 +859,17 @@ class TerrainTest {
                 v5.getX(), v5.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -919,8 +890,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding8() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -956,7 +925,7 @@ class TerrainTest {
                 v6.getX(), v6.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -964,13 +933,13 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v6, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v6, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v1, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v1, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -983,10 +952,8 @@ class TerrainTest {
         expectedRoute.add(expectedRouteRoad);
         expectedRoute.add(expectedRouteRoad2);
 
-        Route<RouteRoad> expectedRoute2 = expectedRoute.invertRoute();
+        Route expectedRoute2 = expectedRoute.invertRoute();
 
-        System.out.println(expectedRoute);
-        System.out.println(foundRoute);
         assertTrue(foundRoute.compareRoutes(expectedRoute));
         assertTrue(foundRoute.compareCost(expectedRoute));
         assertTrue(foundRoute2.compareRoutes(expectedRoute2));
@@ -998,8 +965,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding9() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1020,17 +985,17 @@ class TerrainTest {
                 v5.getX(), v5.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -1049,8 +1014,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding10() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1071,21 +1034,15 @@ class TerrainTest {
                 v6.getX(), v6.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
-        // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v4, 0);
-        routeFinder.reset();
-
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2;
+        Route expectedRoute1 = new Route();
+        Route expectedRoute2;
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
@@ -1095,11 +1052,17 @@ class TerrainTest {
 
         expectedRoute2 = expectedRoute1.invertRoute();
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        serviceManager.addService(new PathfindingService(roadGraph, v2, v4, 0, (result) -> {
+            assertTrue(result.compareRoutes(expectedRoute1));
+            assertTrue(result.compareCost(expectedRoute1));
+        }));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        serviceManager.addService(new PathfindingService(roadGraph, v4, v2, 0, (result) -> {
+            assertTrue(result.compareRoutes(expectedRoute2));
+            assertTrue(result.compareCost(expectedRoute2));
+        }));
+
+        serviceManager.executeAll();
     }
 
     /**
@@ -1107,8 +1070,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding11() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1135,17 +1096,17 @@ class TerrainTest {
                 v9.getX(), v9.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v3, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v3, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v3));
@@ -1163,8 +1124,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding12() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1189,21 +1148,21 @@ class TerrainTest {
                 v8.getX(), v8.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v6, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v2, v6, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v2, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v2));
@@ -1236,8 +1195,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding13() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1251,17 +1208,17 @@ class TerrainTest {
                 v4.getX(), v4.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v4, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         assertTrue(foundRoute.compareRoutes(expectedRoute));
         assertTrue(foundRoute.compareCost(expectedRoute));
@@ -1272,8 +1229,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding14() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1296,20 +1251,20 @@ class TerrainTest {
                 v8.getX(), v8.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v5, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v5, v1, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v5, v1, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         assertTrue(foundRoute1.compareRoutes(expectedRoute));
         assertTrue(foundRoute1.compareCost(expectedRoute));
@@ -1323,8 +1278,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding15() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1347,17 +1300,17 @@ class TerrainTest {
                 v8.getX(), v8.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v6, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v6, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         assertTrue(foundRoute.compareRoutes(expectedRoute));
         assertTrue(foundRoute.compareCost(expectedRoute));
@@ -1368,8 +1321,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding16() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1384,17 +1335,17 @@ class TerrainTest {
                 v4.getX(), v4.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
@@ -1410,8 +1361,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding17() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1426,7 +1375,7 @@ class TerrainTest {
                 v4.getX(), v4.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1434,14 +1383,14 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v2, v3, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v2, v3, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v3, v2, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v3, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2;
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2;
 
         // Expected individual routes
         RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v2));
@@ -1462,8 +1411,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding18() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1482,7 +1429,7 @@ class TerrainTest {
                 v6.getX(), v6.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1490,10 +1437,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
@@ -1509,8 +1456,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding19() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1535,7 +1480,7 @@ class TerrainTest {
                 v8.getX(), v8.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1543,10 +1488,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
@@ -1562,8 +1507,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding20() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1580,7 +1523,7 @@ class TerrainTest {
                 v5.getX(), v5.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1588,10 +1531,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v2, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
@@ -1607,8 +1550,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding21() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1623,7 +1564,7 @@ class TerrainTest {
                 v4.getX(), v4.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1631,10 +1572,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -1650,8 +1591,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding22() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(52, 50);
         TerrainPosition v2 = new TerrainPosition(53, 50);
@@ -1678,7 +1617,7 @@ class TerrainTest {
                 v3.getX(), v3.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1686,10 +1625,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -1706,8 +1645,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding23() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(52, 48);
         TerrainPosition v2 = new TerrainPosition(53, 48);
@@ -1736,7 +1673,7 @@ class TerrainTest {
                 v3.getX(), v3.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1744,10 +1681,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -1764,8 +1701,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding24() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1792,7 +1727,7 @@ class TerrainTest {
                 v5.getX(), v5.getZ(),
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1800,10 +1735,10 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
         RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
@@ -1822,8 +1757,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding25() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1858,7 +1791,7 @@ class TerrainTest {
                 v10.getX(), v10.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1866,14 +1799,14 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v5, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v5, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v6, v10, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v10, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
 
@@ -1911,8 +1844,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding26() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -1938,7 +1869,7 @@ class TerrainTest {
                 v6.getX(), v6.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -1946,14 +1877,14 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v6, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v4, v6, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
 
@@ -1983,8 +1914,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding27() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
@@ -2011,7 +1940,7 @@ class TerrainTest {
                 v6.getX(), v6.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2019,22 +1948,22 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v3, v1, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v3, v1, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute3 = routeFinder.findRoute(v4, v6, 0);
+        RouteFinder.Route foundRoute3 = routeFinder.findBestRoute(v4, v6, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute4 = routeFinder.findRoute(v6, v4, 0);
+        RouteFinder.Route foundRoute4 = routeFinder.findBestRoute(v6, v4, 0);
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute3 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute4 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
+        RouteFinder.Route expectedRoute3 = new Route();
+        RouteFinder.Route expectedRoute4 = new Route();
 
         // Expected individual routes
 
@@ -2082,8 +2011,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding28() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
@@ -2115,7 +2042,7 @@ class TerrainTest {
                 v6.getX(), v6.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2123,15 +2050,15 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v3, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v4, v6, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v4, v6, 0);
 
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
 
@@ -2161,8 +2088,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding29() {
-        Terrain terrain = Terrain.getInstance();
-
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -2188,7 +2113,7 @@ class TerrainTest {
                 v7.getX(), v7.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2196,15 +2121,15 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v7, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v7, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v7, v1, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v7, v1, 0);
 
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2 = new Route<>();
+        RouteFinder.Route expectedRoute1 = new Route();
+        RouteFinder.Route expectedRoute2 = new Route();
 
         // Expected individual routes
 
@@ -2250,12 +2175,10 @@ class TerrainTest {
     }
 
     /**
-     * 30. Road 2 Road (choice found in practice)
+     * 29b. Road 2 Road (choice found in practice)
      */
     @Test
-    void testPathfinding30() {
-        Terrain terrain = Terrain.getInstance();
-
+    void testPathfinding29b() {
         AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
@@ -2282,7 +2205,7 @@ class TerrainTest {
                 v7.getX(), v7.getZ()
         };
 
-        TerrainPosition[] roads = TerrainPosition.toVectorArray(roadPositions);
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
         abstractDirtRoadItem.place(roads);
 
@@ -2290,17 +2213,17 @@ class TerrainTest {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route<RouteRoad> foundRoute1 = routeFinder.findRoute(v1, v7, 0);
+        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v7, 0);
         routeFinder.reset();
 
-        RouteFinder.Route<RouteRoad> foundRoute2 = routeFinder.findRoute(v7, v1, 0);
+        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v7, v1, 0);
 
 
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute1v1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2v1 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute1v2 = new Route<>();
-        RouteFinder.Route<RouteRoad> expectedRoute2v2 = new Route<>();
+        RouteFinder.Route expectedRoute1v1 = new Route();
+        RouteFinder.Route expectedRoute2v1 = new Route();
+        RouteFinder.Route expectedRoute1v2 = new Route();
+        RouteFinder.Route expectedRoute2v2 = new Route();
 
         // Expected individual routes
 
@@ -2361,11 +2284,90 @@ class TerrainTest {
         assertTrue(foundRoute2.compareCost(expectedRoute1v2) || foundRoute2.compareCost(expectedRoute2v2));
     }
 
+    /**
+     * 30. Road 2 Road (=)
+     */
+    @Test
+    void testPathfinding30() {
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v3 = new TerrainPosition(51, 51);
+
+        int[] roadPositions = new int[]{
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+        };
+
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v2, 0);
+
+        // Expected global routes
+        RouteFinder.Route expectedRoute = new Route();
+
+        // Expected individual routes
+        NormalRoad start_and_end = new NormalRoad(v2);
+        RouteRoad expectedRouteRoad1 = new RouteRoad(start_and_end, start_and_end);
+        expectedRouteRoad1.addRoad(start_and_end);
+
+        expectedRoute.add(expectedRouteRoad1);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    /**
+     * 31. Node 2 Node (=)
+     */
+    @Test
+    void testPathfinding31() {
+        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 49);
+        TerrainPosition v3 = new TerrainPosition(51, 49);
+        TerrainPosition v4 = new TerrainPosition(50, 48);
+
+        int[] roadPositions = new int[]{
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                v3.getX(), v3.getZ(),
+                v4.getX(), v4.getZ(),
+        };
+
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+
+        abstractDirtRoadItem.place(roads);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+        RouteFinder routeFinder = new RouteFinder(roadGraph);
+
+        // Found route
+        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v2, 0);
+
+        // Expected global routes
+        RouteFinder.Route expectedRoute = new Route();
+
+        // Expected individual routes
+        RoadNode start_and_end = new RoadNode(v2);
+        RouteRoad expectedRouteRoad1 = new RouteRoad(start_and_end, start_and_end);
+        expectedRouteRoad1.addRoad(start_and_end);
+
+        expectedRoute.add(expectedRouteRoad1);
+
+        assertTrue(foundRoute.compareRoutes(expectedRoute));
+        assertTrue(foundRoute.compareCost(expectedRoute));
+    }
 
     @Test
     void testUnobstrusiveRoute1() {
-        Terrain terrain = Terrain.getInstance();
-
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
@@ -2383,14 +2385,14 @@ class TerrainTest {
                 new TerrainPosition(58, 50),
                 new TerrainPosition(59, 50),
         };
-        Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
+        Route foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
         NormalRoad end = new NormalRoad(v2);
-        expectedRouteRoad.setEnd(end);
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1), end);
+
         for (TerrainPosition pos : positions)
             expectedRouteRoad.addRoad(new NormalRoad(pos));
 
@@ -2403,40 +2405,52 @@ class TerrainTest {
 
     @Test
     void testUnobstrusiveRoute2() {
-        Terrain terrain = Terrain.getInstance();
-
         RoadGraph roadGraph = terrain.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
-        TerrainPosition v1 = new TerrainPosition(49, 50);
-        TerrainPosition v2 = new TerrainPosition(55, 60);
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(55, 50);
+        TerrainPosition v3 = new TerrainPosition(55, 60);
 
         TerrainPosition[] positions = new TerrainPosition[]{
                 new TerrainPosition(51, 50),
                 new TerrainPosition(52, 50),
                 new TerrainPosition(53, 50),
-                new TerrainPosition(54, 50),
-                new TerrainPosition(55, 50),
-                new TerrainPosition(56, 50),
-                new TerrainPosition(57, 50),
-                new TerrainPosition(58, 50),
-                new TerrainPosition(59, 50),
+                new TerrainPosition(54, 50)
         };
-        Route<RouteRoad> foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
-        System.out.println(foundRoute);
+        TerrainPosition[] positions2 = new TerrainPosition[]{
+                new TerrainPosition(55, 51),
+                new TerrainPosition(55, 52),
+                new TerrainPosition(55, 53),
+                new TerrainPosition(55, 54),
+                new TerrainPosition(55, 55),
+                new TerrainPosition(55, 56),
+                new TerrainPosition(55, 57),
+                new TerrainPosition(55, 58),
+                new TerrainPosition(55, 59)
+        };
+
+        Route foundRoute = routeFinder.findUnobstructedRouteV1(v1, v3);
+
         // Expected global routes
-        RouteFinder.Route<RouteRoad> expectedRoute = new Route<>();
+        RouteFinder.Route expectedRoute = new Route();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        NormalRoad end = new NormalRoad(v2);
-        expectedRouteRoad.setEnd(end);
+        NormalRoad middle = new NormalRoad(v2);
+        NormalRoad end = new NormalRoad(v3);
+        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1), middle);
+        RouteRoad expectedRouteRoad2 = new RouteRoad(middle, end);
+
         for (TerrainPosition pos : positions)
             expectedRouteRoad.addRoad(new NormalRoad(pos));
+        expectedRouteRoad.addRoad(middle);
 
+        for (TerrainPosition pos : positions2)
+            expectedRouteRoad2.addRoad(new NormalRoad(pos));
+        expectedRouteRoad2.addRoad(end);
 
-        expectedRouteRoad.addRoad(end);
         expectedRoute.add(expectedRouteRoad);
+        expectedRoute.add(expectedRouteRoad2);
 
         assertTrue(foundRoute.compareRoutes(expectedRoute));
         assertTrue(foundRoute.compareCost(expectedRoute));

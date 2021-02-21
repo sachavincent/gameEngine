@@ -42,6 +42,6 @@ public class Market extends BuildingItem {
                 ", facingDirection=" + facingDirection +
                 ", scale=" + scale +
                 ", selected=" + selected +
-                "} " + super.toString();
+                "} ";
     }
 }

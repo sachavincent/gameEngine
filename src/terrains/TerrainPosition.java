@@ -46,7 +46,7 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         return new TerrainPosition(this.x - terrainPosition.x, this.z - terrainPosition.z);
     }
 
-    public static TerrainPosition[] toVectorArray(int[] roadPositions) {
+    public static TerrainPosition[] toPositionArray(int[] roadPositions) {
         if (roadPositions.length % 2 != 0)
             return null;
 
@@ -80,5 +80,10 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
             return i;
 
         return Integer.compare(z, o.z);
+    }
+
+    @Override
+    public String toString() {
+        return "TerrainPosition{" + "x=" + x + ", z=" + z + '}';
     }
 }

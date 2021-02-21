@@ -82,6 +82,6 @@ public abstract class GuiBasics extends GuiComponent {
     public String toString() {
         return "baseWidth=" + baseWidth +
                 ", baseHeight=" + baseHeight +
-                ", " + super.toString();
+                ", ";
     }
 }

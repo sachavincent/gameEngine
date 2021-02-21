@@ -4,6 +4,7 @@ import static guis.Gui.DEFAULT_FONT;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan2;
+import static renderEngine.GuiRenderer.DONUT;
 import static util.math.Vector2f.cross_product;
 import static util.math.Vector2f.dot;
 
@@ -26,7 +27,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import renderEngine.DisplayManager;
+import renderEngine.GuiRenderer;
 import util.math.Maths;
 import util.math.Vector2f;
 
@@ -34,19 +38,21 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
 
     private final Set<Sector<ValueType>> sectors;
 
-    private List<Vector2f> renderPoints;
+    private final List<Vector2f> renderPoints;
 
     private GuiEllipse outerCircle;
     private GuiEllipse innerCircle;
 
     // Hovering stuff
-    private Gui       hoverSectorGui;
-    private Sector<?> lastHoveredSector;
-    private GuiText   currentGuiHoverText;
+    private final Gui       hoverSectorGui;
+    private       Sector<?> lastHoveredSector;
+    private       GuiText   currentGuiHoverText;
 
     public GuiDonutGraph(GuiInterface parent,
             GuiConstraintsManager constraintsManager) {
         super(parent, constraintsManager);
+
+        this.type = DONUT;
 
         this.sectors = new LinkedHashSet<>();
         this.renderPoints = new LinkedList<>();
@@ -192,8 +198,8 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
     }
 
     public Sector<?> getSectorAtMouseCoordinates() {
-        System.out.println("Cursor at : " + MouseUtils.getCursorPos());
-        System.out.println("Donut at : " + this.getX() + ", " + this.getY());
+//        System.out.println("Cursor at : " + MouseUtils.getCursorPos());
+//        System.out.println("Donut at : " + this.getX() + ", " + this.getY());
 
         Vector2f normalizedVector = MouseUtils.getCursorPos();
         Vector2f.sub(normalizedVector, new Vector2f(getX(), getY()), normalizedVector);
@@ -321,6 +327,14 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
                 "outerCircle=" + outerCircle +
                 ", innerCircle=" + innerCircle +
                 ", sectors=" + sectors +
-                "} " + super.toString();
+                "} ";
+    }
+
+    @Override
+    public void render() {
+        GL30.glBindVertexArray(GuiRenderer.unfilledCircle.getVaoID());
+        GL20.glEnableVertexAttribArray(0);
+
+        GuiRenderer.renderDonutGraph(this);
     }
 }

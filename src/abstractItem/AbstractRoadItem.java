@@ -24,7 +24,7 @@ public abstract class AbstractRoadItem extends AbstractItem {
 
         RoadItem itemInstance = (RoadItem) newInstance(position);
         boolean done = terrain.addItem(position, itemInstance.updateNeighboursAndCenter(position));
-        terrain.updateRoadGraph();
+        terrain.getRoadGraph().addRoad(position);
 
         if (done)
             terrain.updateRequirements();
@@ -32,17 +32,16 @@ public abstract class AbstractRoadItem extends AbstractItem {
 
     @Override
     public void place(TerrainPosition[] positions) {
-        if (positions == null)
+        if (positions == null || positions.length == 0)
             return;
 
         Terrain terrain = Terrain.getInstance();
 
         for (TerrainPosition position : positions) {
             RoadItem itemInstance = (RoadItem) newInstance(position);
-
-            terrain.addItem(position, itemInstance.updateNeighboursAndCenter(position));
+            terrain.addItem(position, itemInstance);
+            terrain.getRoadGraph().addRoad(position);
         }
-        terrain.updateRoadGraph();
 
         terrain.updateRequirements();
     }

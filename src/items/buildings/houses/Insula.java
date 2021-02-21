@@ -45,6 +45,6 @@ public class Insula extends HouseItem {
                 ", direction=" + facingDirection +
                 ", scale=" + scale +
                 ", selected=" + selected +
-                "} " + super.toString();
+                "} ";
     }
 }

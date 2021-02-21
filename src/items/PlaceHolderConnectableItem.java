@@ -72,6 +72,6 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
         return "PlaceHolderConnectableItem{" +
                 "parent=" + parent +
                 ", relativePosition=" + relativePosition +
-                "} " + super.toString();
+                "} ";
     }
 }

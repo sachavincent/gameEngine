@@ -15,7 +15,7 @@ void main(void) {
     out_Colour.r *= 255;
     out_Colour.g *= 255;
     out_Colour.b *= 255;
-    out_Colour.rgba = toGray(out_Colour);
+    out_Colour = toGray(out_Colour);
 }
 
 /**

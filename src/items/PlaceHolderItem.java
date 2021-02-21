@@ -27,6 +27,6 @@ public class PlaceHolderItem extends Item {
         return "PlaceHolderItem{" +
                 "item=" + parent +
                 ", relativePosition=" + relativePosition +
-                "} " + super.toString();
+                "} ";
     }
 }

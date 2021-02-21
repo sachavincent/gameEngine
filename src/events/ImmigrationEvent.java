@@ -1,6 +1,6 @@
 package events;
 
-import guis.prefabs.GuiHouseDetails;
+import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.Item;
 import items.buildings.houses.HouseItem;
 import people.Farmer;

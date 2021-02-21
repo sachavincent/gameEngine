@@ -87,7 +87,7 @@ public class GuiSelectedItem extends Gui {
 
         public GuiSelectedItem create() {
             instance = guiSelectedItem;
-//            GuiRenderer.getInstance().addGui(instance);
+//             GuiRenderer.addGui(instance);
 
             Gui.hideGui(instance);
             return instance;
