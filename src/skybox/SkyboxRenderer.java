@@ -1,14 +1,13 @@
 package skybox;
 
-import entities.Camera;
 import models.RawModel;
-import renderEngine.Loader;
-import shaders.SkyboxShader;
-import util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import renderEngine.Loader;
+import shaders.SkyboxShader;
+import util.math.Matrix4f;
 
 public class SkyboxRenderer {
 
@@ -58,11 +57,11 @@ public class SkyboxRenderer {
             SIZE, -SIZE, SIZE
     };
 
-    private static String[] TEXTURE_FILES = {"right", "left", "top", "bottom", "back", "front"};
+    private static final String[] TEXTURE_FILES = {"right", "left", "top", "bottom", "back", "front"};
 
-    private RawModel     cube;
-    private int          texture;
-    private SkyboxShader shader;
+    private final RawModel cube;
+    private final int      texture;
+    private final SkyboxShader shader;
 
     public SkyboxRenderer(Loader loader, Matrix4f projectionMatrix) {
         cube = loader.loadToVAO(VERTICES, 3);
@@ -74,9 +73,9 @@ public class SkyboxRenderer {
         shader.stop();
     }
 
-    public void render(Camera camera) {
+    public void render() {
         shader.start();
-        shader.loadViewMatrix(camera);
+        shader.loadViewMatrix();
 
         GL30.glBindVertexArray(cube.getVaoID());
         GL20.glEnableVertexAttribArray(0);

@@ -1,6 +1,7 @@
 package renderEngine;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
@@ -25,7 +26,7 @@ import util.Timer;
 
 public class DisplayManager {
 
-    public static int WIDTH = 2560, HEIGHT = 1440, FPS = 1440;
+    public static int WIDTH = 2560, HEIGHT = 1440, FPS = 60000;
 
     public static  float   MIN_LINE_WIDTH;
     public static  float   MAX_LINE_WIDTH;
@@ -51,7 +52,8 @@ public class DisplayManager {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
         glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+//        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);//=less fps
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
         //glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
 
@@ -86,8 +88,8 @@ public class DisplayManager {
         h.clear();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwMakeContextCurrent(window);
-//        glfwSwapInterval(0);
-        glfwSwapInterval(1);
+        glfwSwapInterval(0); //Vsync off
+//        glfwSwapInterval(1); // Vsync on
         GL.createCapabilities();
         GL11.glEnable(GL13.GL_MULTISAMPLE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -183,5 +185,29 @@ public class DisplayManager {
             callback.free();
         if (callback2 != null)
             callback2.free();
+    }
+
+    public static void createDisplayForTests() {
+        screens = new ArrayList<>();
+
+        callback = glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err));
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+        glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+
+        glfwWindowHint(GLFW_SAMPLES, 8);
+
+        getScreens();
+//        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests",
+//                fullscreen ? glfwGetPrimaryMonitor() : 0, 0);
+        window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tests", 0, 0);
+        glfwMakeContextCurrent(window);
+        glfwSwapInterval(0); //Vsync off
+        GL.createCapabilities();
     }
 }

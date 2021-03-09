@@ -32,7 +32,7 @@ public class MousePicker {
     private MousePicker() {
         this.camera = Camera.getInstance();
         this.projectionMatrix = MasterRenderer.getInstance().getProjectionMatrix();
-        this.viewMatrix = Maths.createViewMatrix(camera);
+        this.viewMatrix = Maths.createViewMatrix();
         this.terrain = Terrain.getInstance();
     }
 
@@ -44,12 +44,16 @@ public class MousePicker {
         return currentTerrainPoint;
     }
 
+    public boolean isPointOnTerrain() {
+        return currentTerrainPoint != null;
+    }
+
     public Vector3f getCurrentRay() {
         return currentRay;
     }
 
     public Vector3f update() {
-        viewMatrix = Maths.createViewMatrix(camera);
+        viewMatrix = Maths.createViewMatrix();
 
         currentRay = calculateMouseRay();
         currentRay = (Vector3f) currentRay.normalise();

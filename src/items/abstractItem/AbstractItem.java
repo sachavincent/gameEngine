@@ -1,4 +1,4 @@
-package abstractItem;
+package items.abstractItem;
 
 import guis.presets.Background;
 import items.Item;
@@ -8,25 +8,29 @@ import terrains.TerrainPosition;
 public abstract class AbstractItem {
 
     private final Background<?> modelTexture;
-    private final Item          item;
+    protected final Item          item;
 
-    public AbstractItem(Background<?> modelTexture, Item item) {
+    protected AbstractItem(Background<?> modelTexture, Item item) {
         this.modelTexture = modelTexture;
         this.item = item;
     }
 
-    public void place(TerrainPosition position) {
+    public Item place(TerrainPosition position) {
         if (position == null)
-            return;
+            return null;
 
         Terrain terrain = Terrain.getInstance();
 
-        boolean done = terrain.putItemIfSpace(position, newInstance(position));
+        Item item = terrain.putItemIfSpace(this, position);
 
-        if (done)
+        if (item != null)
             terrain.updateRequirements();
         else
             System.err.println("Not enough space for " + toString());
+
+        System.out.println("placed " + this.item.getName() + " at " + position);
+
+        return item;
     }
 
     public void place(TerrainPosition[] positions) {
@@ -40,7 +44,7 @@ public abstract class AbstractItem {
 
         Terrain terrain = Terrain.getInstance();
         for (TerrainPosition position : positions)
-            terrain.putItemIfSpace(position, newInstance(position));
+            terrain.putItemIfSpace(this, position);
 
         terrain.updateRequirements();
     }

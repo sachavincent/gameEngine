@@ -1,6 +1,5 @@
 package util.math;
 
-import com.sun.istack.internal.NotNull;
 import java.util.Objects;
 
 public class Plane3D {
@@ -10,8 +9,8 @@ public class Plane3D {
     private Vector3f pointC;
     private Vector3f pointD;
 
-    public Plane3D(@NotNull Vector3f pointA, @NotNull Vector3f pointB, @NotNull Vector3f pointC,
-            @NotNull Vector3f pointD) {
+    public Plane3D( Vector3f pointA,  Vector3f pointB,  Vector3f pointC,
+             Vector3f pointD) {
         this.pointA = pointA;
         this.pointB = pointB;
         this.pointC = pointC;

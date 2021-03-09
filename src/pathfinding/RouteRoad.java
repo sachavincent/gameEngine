@@ -99,7 +99,7 @@ public class RouteRoad implements Comparable<RouteRoad> {
         if (o == null || getClass() != o.getClass())
             return false;
         RouteRoad routeRoad = (RouteRoad) o;
-        return Objects.equals(route, routeRoad.route) &&
+        return Objects.equals(new ArrayList<>(route), new ArrayList<>(routeRoad.route)) &&
                 Objects.equals(start, routeRoad.start) &&
                 Objects.equals(end, routeRoad.end);
     }
@@ -112,12 +112,12 @@ public class RouteRoad implements Comparable<RouteRoad> {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        route.forEach(road -> stringBuilder.append("\t\t\t").append(road).append("\n"));
+        route.forEach(road -> stringBuilder.append("\t\t\t\t").append(road).append("\n"));
         return "RouteRoad{" +
                 "start=" + start +
                 ", end=" + end +
                 ", gScore=" + getgScore() +
-                "\n\t\t, roads=" + stringBuilder.toString() +
+                "\n\t\t, roads=\n" + stringBuilder.toString() +
                 '}';
     }
 

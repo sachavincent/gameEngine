@@ -8,7 +8,6 @@ import static renderEngine.GuiRenderer.DONUT;
 import static util.math.Vector2f.cross_product;
 import static util.math.Vector2f.dot;
 
-import com.sun.istack.internal.NotNull;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.GuiInterface;
@@ -114,12 +113,12 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         return this.outerCircle;
     }
 
-    public void setInnerCircle(@NotNull GuiEllipse innerCircle) {
+    public void setInnerCircle( GuiEllipse innerCircle) {
         this.innerCircle = innerCircle;
         this.innerCircle.setOutlineWidth(1);
     }
 
-    public void setOuterCircle(@NotNull GuiEllipse outerCircle) {
+    public void setOuterCircle( GuiEllipse outerCircle) {
         this.outerCircle = outerCircle;
         this.outerCircle.setOutlineWidth(1);
     }

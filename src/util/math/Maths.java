@@ -2,6 +2,7 @@ package util.math;
 
 import entities.Camera;
 import java.text.DecimalFormat;
+import terrains.TerrainPosition;
 
 public class Maths {
 
@@ -52,10 +53,11 @@ public class Maths {
         return matrix;
     }
 
-    public static Matrix4f createViewMatrix(Camera camera) {
+    public static Matrix4f createViewMatrix() {
         Matrix4f matrix = new Matrix4f();
         matrix.setIdentity();
 
+        Camera camera = Camera.getInstance();
         Matrix4f.rotate((float) Math.toRadians(camera.getPitch()), new Vector3f(1, 0, 0), matrix, matrix);
         Matrix4f.rotate((float) Math.toRadians(camera.getYaw()), new Vector3f(0, 1, 0), matrix, matrix);
         Matrix4f.rotate((float) Math.toRadians(camera.getRoll()), new Vector3f(0, 0, 1), matrix, matrix);
@@ -129,11 +131,26 @@ public class Maths {
         return resArray;
     }
 
+    public static int manhattanDistance(TerrainPosition startPos, TerrainPosition endPos) {
+        if (startPos == null || endPos == null)
+            return Integer.MAX_VALUE;
+
+        return Math.abs(endPos.getX() - startPos.getX()) + Math.abs(endPos.getZ() - startPos.getZ());
+    }
+
     public static float fma(float a, float b, float c) {
         return a * b + c;
     }
 
     public static double fma(double a, double b, double c) {
         return a * b + c;
+    }
+
+    public static float invsqrt(float r) {
+        return 1.0f / (float) Math.sqrt(r);
+    }
+
+    public static double invsqrt(double r) {
+        return 1.0 / Math.sqrt(r);
     }
 }

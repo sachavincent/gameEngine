@@ -1,13 +1,12 @@
 package items;
 
-import items.buildings.houses.Insula;
+import items.abstractItem.AbstractInsula;
+import items.abstractItem.AbstractMarket;
 import renderEngine.OBJLoader;
 
 public class Items {
 
-    public static final Item INSULA = OBJLoader.loadObjForItem(new Insula(), true);
+    public static final Item INSULA = OBJLoader.loadObjForItem(AbstractInsula.getInstance().getPreviewItem(), true);
 
-    public static final Item MARKET = OBJLoader.loadObjForItem(new Insula(), false);
-
-    public static final Item EMPTY = new EmptyItem(true);
+    public static final Item MARKET = OBJLoader.loadObjForItem(AbstractMarket.getInstance().getPreviewItem(), true);
 }

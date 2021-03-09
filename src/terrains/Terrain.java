@@ -5,15 +5,15 @@ import static entities.Camera.Direction.NORTH;
 import static entities.Camera.Direction.SOUTH;
 import static entities.Camera.Direction.WEST;
 
-import abstractItem.AbstractItem;
 import entities.Camera.Direction;
 import items.ConnectableItem;
+import items.ConnectableItem.Connections;
 import items.Item;
 import items.PlaceHolderConnectableItem;
 import items.PlaceHolderItem;
+import items.abstractItem.AbstractItem;
 import items.buildings.BuildingItem;
 import items.buildings.houses.HouseItem;
-import items.buildings.houses.RequireBuilding;
 import items.roads.RoadItem;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,11 +27,12 @@ import pathfinding.NormalRoad;
 import pathfinding.Road;
 import pathfinding.RoadGraph;
 import pathfinding.RoadNode;
-import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import people.SocialClass;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
+import services.BuildingRequirementsService;
+import services.ServiceManager;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
 import util.math.Maths;
@@ -67,7 +68,10 @@ public class Terrain {
 
     private int numberOfPeople;
 
-    public static Terrain instance;
+    public static Terrain                                     instance;
+    private       boolean                                     needUpdatePaths;
+    private       List<Route>                                 paths;
+    private final ServiceManager<BuildingRequirementsService> serviceManager;
 
     public static Terrain getInstance() {
         return instance == null ? (instance = new Terrain()) : instance;
@@ -87,6 +91,7 @@ public class Terrain {
         this.model = generateTerrain("black.png");
         //TODO: add items from save
         this.roadGraph = createRoadGraph();
+        this.serviceManager = new ServiceManager<>();
     }
 
 //    public void placeItem(AbstractItem item, Vector2f position) {
@@ -108,7 +113,7 @@ public class Terrain {
     }
 
     public Set<TerrainPosition> getPreviewItemPositions() {
-        return this.previewItemPositions;
+        return Collections.unmodifiableSet(this.previewItemPositions);
     }
 
     public AbstractItem getPreviewedItem() {
@@ -123,27 +128,24 @@ public class Terrain {
      * Add preview item to the terrain
      *
      * @param previewItemPosition position must be available
-     * @param previewItem item to be added to the terrain
      */
-    public void addPreviewItem(TerrainPosition previewItemPosition, AbstractItem previewItem) {
-        if (previewItem == null)
+    public void addPreviewItem(TerrainPosition previewItemPosition) {
+        if (this.previewedItem == null || previewItemPosition == null)
             return;
-
-        if (this.previewedItem == null)
-            setPreviewedItem(previewItem);
 
         //Check previewItem = previewedItem TODO
 
         this.previewItemPositions.add(previewItemPosition);
 
-        Item item = previewItem.getPreviewItem();
-        if (item instanceof BuildingItem)
-            MasterRenderer.getInstance().getBuildingRenderer().setUpdateNeeded(true);
+//        Item item = this.previewedItem.getPreviewItem();
+//        if (item instanceof BuildingItem) //TODO Useless ?!
+        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
     }
 
     public void resetPreviewItems() {
         this.previewItemPositions = new HashSet<>();
-        this.previewedItem = null;
+
+        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
     }
 
     public RawModel getModelGrid() {
@@ -498,9 +500,8 @@ public class Terrain {
         }
     }
 
-    public boolean addItem(TerrainPosition position, Item item) {
-        if (item instanceof BuildingItem)
-            MasterRenderer.getInstance().getBuildingRenderer().setUpdateNeeded(true);
+    public boolean addItem(Item item) {
+        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
 
         return items.add(item);
     }
@@ -528,100 +529,129 @@ public class Terrain {
         return this.items.stream().filter(Item::isSelected).collect(Collectors.toSet());
     }
 
-    public boolean putItemIfSpace(TerrainPosition position, Item item) {
+    public List<RoadItem> getRoadsConnectedToItem(BuildingItem buildingItem) {
+        List<RoadItem> roads = new ArrayList<>();
+        TerrainPosition fromPosition = buildingItem.getPosition();
+        for (int i = 0; i < 4; i++) {
+            Connections connection = buildingItem.getConnected()[i];
+            if (connection == Connections.ROAD) {
+                Direction direction = Direction.values()[i];
+
+                TerrainPosition roadPosition = fromPosition
+                        .add(Direction.toRelativeDistance(direction, buildingItem.getOffsets()[i] + 1));
+                int offset = buildingItem.getOffsets()[(i + 1) % 4];
+                Direction newDirection = Direction.values()[(i + 1) % 4];
+                roadPosition = roadPosition.add(Direction.toRelativeDistance(newDirection, offset));
+                for (int j = 0; j <= offset + buildingItem.getOffsets()[(i + 3) % 4]; j++) {
+                    TerrainPosition distance = roadPosition
+                            .add(Direction.toRelativeDistance(newDirection.getOppositeDirection(), j));
+                    Item itemAtPosition = getItemAtPosition(distance);
+                    if (itemAtPosition instanceof RoadItem)
+                        roads.add((RoadItem) itemAtPosition);
+                }
+            }
+        }
+        return roads;
+    }
+
+    public Item putItemIfSpace(AbstractItem abstractItem, TerrainPosition position) {
+        Item item = abstractItem.newInstance(position);
+
         int xNegativeOffset = item.getxNegativeOffset();
         int xPositiveOffset = item.getxPositiveOffset();
         int zNegativeOffset = item.getzNegativeOffset();
         int zPositiveOffset = item.getzPositiveOffset();
 
-        Map<TerrainPosition, Item> tempItems = new HashMap<>();
-        for (int x = position.getX() - xNegativeOffset; x <= position.getX() + xPositiveOffset; x++) {
-            for (int z = position.getZ() - zNegativeOffset; z <= position.getZ() + zPositiveOffset; z++) {
-                TerrainPosition pos = new TerrainPosition(x, z);
-                if (pos.equals(position))
-                    continue;
+        List<Item> tempItems = new ArrayList<>();
+        if (item instanceof ConnectableItem) {
+            ConnectableItem connectableItem = (ConnectableItem) item;
+            boolean[] accessPoints = connectableItem.getAccessPoints();
 
-                boolean addedItem = false;
+            for (int x = position.getX() - xNegativeOffset; x <= position.getX() + xPositiveOffset; x++) {
+                for (int z = position.getZ() - zNegativeOffset; z <= position.getZ() + zPositiveOffset; z++) {
+                    TerrainPosition pos = new TerrainPosition(x, z);
+                    if (isPositionOccupied(pos))
+                        return null;
 
-                TerrainPosition relativePosToItem = new TerrainPosition(position.getX() - x, z - position.getZ());
-                if (item instanceof ConnectableItem) {
-                    Set<Direction> directions = new HashSet<>();
+                    if (pos.equals(position))
+                        continue;
+
+                    TerrainPosition relativePosToItem = new TerrainPosition(x - position.getX(), z - position.getZ());
+
+                    Set<Direction> connectableDirections = new HashSet<>();
                     if (x == position.getX() - xNegativeOffset)
-                        directions.add(SOUTH);
+                        connectableDirections.add(SOUTH);
                     else if (x == position.getX() + xPositiveOffset)
-                        directions.add(NORTH);
+                        connectableDirections.add(NORTH);
 
                     if (z == position.getZ() - zNegativeOffset)
-                        directions.add(EAST);
+                        connectableDirections.add(WEST);
                     else if (z == position.getZ() + zPositiveOffset)
-                        directions.add(WEST);
+                        connectableDirections.add(EAST);
 
-                    if (!directions.isEmpty()) {
-                        PlaceHolderConnectableItem placeHolderConnectableItem = new PlaceHolderConnectableItem(
-                                (ConnectableItem) item, relativePosToItem);
-//                        directions.forEach(direction -> {
-//                            if (((ConnectableItem) item).isConnected(direction))
-//                                placeHolderConnectableItem
-//                                        .connect(direction.getOppositeDirection(),
-//                                                Connections.ROAD);//TODO ROAD ET BUILDING? Normalement pas
-//                        });
-                        if (isPositionAvailable(pos)) {
-                            tempItems.put(pos, placeHolderConnectableItem);
-                            addedItem = true;
-                        }
+                    PlaceHolderItem placeHolderItem;
+                    if (connectableDirections.stream().map(Direction::ordinal).anyMatch(
+                            index -> accessPoints[index])) { // pos is on a border and on a connectable side
+                        placeHolderItem = new PlaceHolderConnectableItem(connectableItem, relativePosToItem);
+                        connectableDirections.forEach(direction -> {
+                            TerrainPosition newPos = pos.add(Direction.toRelativeDistance(direction));
+                            Item itemAtPosition = getItemAtPosition(newPos);
+                            if (itemAtPosition instanceof RoadItem) {
+                                ((PlaceHolderConnectableItem) placeHolderItem).connect(direction, Connections.ROAD);
+                                //TODO ROAD ET BUILDING? Normalement pas
+                            }
+                        });
+                    } else { // Inside the perimeter or not on connectable side => not connectable
+                        placeHolderItem = new PlaceHolderItem(item, relativePosToItem);
                     }
-                }
-                if (!addedItem) { // Inside the perimeter, not connectable
-                    PlaceHolderItem placeHolderItem = new PlaceHolderItem(item, relativePosToItem);
-                    if (isPositionAvailable(pos))
-                        tempItems.put(pos, placeHolderItem);
-                    else
-                        return false;
+                    tempItems.add(placeHolderItem);
                 }
             }
         }
 
-
-        tempItems.put(position, item);
+        tempItems.add(item);
 
         tempItems.forEach(this::addItem);
 
-        return true;
+        return item;
     }
 
     // Check everything for requirements
-    // TODO: Optimize (no need to check everything?)
+    // TODO: Optimize
     public void updateRequirements() {
-        List<Route> paths = new ArrayList<>();
+        BuildingRequirementsService service = new BuildingRequirementsService(true, r -> {
+            this.paths = r;
+            needUpdatePaths = true;
+        });
 
-        this.items.stream()
-                .filter(item -> item instanceof RequireBuilding && item instanceof ConnectableItem)
-                .forEach(item -> {
-                    final RequireBuilding requiringBuilding = (RequireBuilding) item;
-
-                    Set<Route> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
-
-                    for (Direction direction : Direction.values()) {
-                        if (((ConnectableItem) requiringBuilding).isConnected(direction)) {
-                            requiringBuilding.getRequirements().forEach((neededBuilding, maxLength) -> {
-                                TerrainPosition roadPos = item.getPosition()
-                                        .add(item.getOffset(direction).add(Direction.toRelativeDistance(direction)));
-                                Route route = RouteFinder.findBestRoute(roadPos, neededBuilding, maxLength);
-                                if (route != null && !route.isEmpty())
-                                    foundRoutes.add(route);
-                            });
-                        }
-                    }
-                    Route bestRoute = foundRoutes.stream().findFirst().orElse(new Route());
-//            System.out.println(foundRoutes);
-                    if (!bestRoute.isEmpty()) { // Route found
-                        paths.add(bestRoute);
-                        requiringBuilding.meetRequirements();
-//                foundRoutes.stream().filter(routeRoads -> routeRoads.getCost() == bestRoute.getCost()).forEach(paths::add);
-                    }
-                });
-
-        setHightlightedPaths(paths);
+        this.serviceManager.addService(service);
+        this.serviceManager.execute();
+//        List<Route> paths = new ArrayList<>();
+//        getBuildings().stream()
+//                .filter(RequireBuilding.class::isInstance)
+//                .filter(buildingItem -> !((RequireBuilding) buildingItem).doesMeetAllRequirements())
+//                .forEach(item -> {
+//                    final RequireBuilding requiringBuilding = (RequireBuilding) item;
+//
+//                    Set<Route> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
+//
+//                    if (((ConnectableItem) requiringBuilding).isConnected()) {
+//                        requiringBuilding.getRequirements().forEach((neededBuilding, maxLength) -> {
+//                            Route route = RouteFinder.findRoute(item, neededBuilding, maxLength);
+//                            if (!route.isEmpty()) {
+//                                foundRoutes.add(route);
+//
+//                                requiringBuilding.meetRequirement(neededBuilding, route);
+//                            }
+//                        });
+//                    }
+////                    System.out.println(bestRoute);
+//                    if (!foundRoutes.isEmpty()) { // Route found
+//                        paths.addAll(foundRoutes);
+//                    }
+//                });
+//
+//        setHightlightedPaths(paths);
     }
 
     public Direction[] getConnectionsToRoadItem(TerrainPosition itemPosition, boolean onlyRoad) {
@@ -670,8 +700,23 @@ public class Terrain {
                 Set<Vector2f> positions = new LinkedHashSet<>();
                 routes.forEach(routeRoad -> {
                     List<Road> roads = new ArrayList<>(routeRoad.getRoute());
-                    roads.stream().map(Road::getPosition)
-                            .forEach(pos -> positions.add(new Vector2f(pos.getX() - .5f, pos.getZ() - .5f)));
+
+                    if (roads.size() == 1) {
+                        TerrainPosition position = roads.get(0).getPosition();
+
+                        RoadItem item = (RoadItem) getItemAtPosition(position);
+
+                        for (Direction dir : Direction.values()) {
+                            if (item.isConnected(dir)) {
+                                TerrainPosition pos = position.add(Direction.toRelativeDistance(dir));
+                                positions.add(new Vector2f(pos.getX() - .5f, pos.getZ() - .5f));
+                                if (positions.size() == 2) // if too many connections then visuals fuck up
+                                    break;
+                            }
+                        }
+                    } else
+                        roads.stream().map(Road::getPosition)
+                                .forEach(pos -> positions.add(new Vector2f(pos.getX() - .5f, pos.getZ() - .5f)));
                 });
 
                 float[] positionsFloat = new float[positions.size() * 3];
@@ -735,8 +780,8 @@ public class Terrain {
     public Road getRoad(TerrainPosition roadPosition) {
         Direction[] roadDirections = getConnectionsToRoadItem(roadPosition, true);
 
-        if (roadDirections.length == 0)
-            return null;
+//        if (roadDirections.length == 0)
+//            return null;
 
         return roadDirections.length > 2 ? new RoadNode(roadPosition) : new NormalRoad(roadPosition);
     }
@@ -752,9 +797,22 @@ public class Terrain {
         if (this.previewedItem == null)
             return;
 
-        this.previewedItem.place(this.previewItemPositions.toArray(new TerrainPosition[0]));
+        TerrainPosition[] positions = this.previewItemPositions.toArray(new TerrainPosition[0]);
+        if (positions.length == 1)
+            this.previewedItem.place(positions[0]);
+        else
+            this.previewedItem.place(positions);
+
+
+        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
     }
 
+    public boolean canItemBePlaced(AbstractItem abstractItem, TerrainPosition terrainPosition) {
+        List<TerrainPosition> relativePositions = Arrays.asList(abstractItem.getPreviewItem().getOffsetPositions());
+        List<TerrainPosition> positions = relativePositions.stream().map(p -> p.add(terrainPosition))
+                .collect(Collectors.toList());
+        return this.items.stream().allMatch(item -> !positions.contains(item.getPosition()));
+    }
 
     public boolean isPositionAvailable(TerrainPosition position) {
         return this.items.stream().noneMatch(item -> item.getPosition().equals(position));
@@ -766,5 +824,18 @@ public class Terrain {
 
     public Item getItemAtPosition(TerrainPosition position) {
         return this.items.stream().filter(item -> item.getPosition().equals(position)).findFirst().orElse(null);
+    }
+
+    public Set<Item> getItemsOfType(AbstractItem abstractItem) {
+        return this.items.stream().filter(item -> item.getClass() == abstractItem.getPreviewItem().getClass())
+                .collect(Collectors.toSet());
+    }
+
+    public void updateHighlightedPaths() {
+        if (needUpdatePaths) {
+            setHightlightedPaths(paths);
+
+            needUpdatePaths = false;
+        }
     }
 }

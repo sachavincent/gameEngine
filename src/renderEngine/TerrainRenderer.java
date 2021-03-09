@@ -18,13 +18,11 @@ public class TerrainRenderer {
 
     private final TerrainShader shader;
 
-    private final Terrain terrain;
+    private final Terrain terrain = Terrain.getInstance();
 
     private List<RawModel> paths = new ArrayList<>();
 
     public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
-        terrain = Terrain.getInstance();
-
         this.shader = shader;
         shader.start();
 
@@ -46,13 +44,13 @@ public class TerrainRenderer {
         GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         unbindTexturedModel();
 
-        shader.loadUniformColor(true);
-        prepareColorlessTerrain();
-        loadModelMatrix();
-        terrain.setY(terrain.getY() + 0.01f);
-        GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-        unbindTexturedModel();
-        terrain.setY(terrain.getY() - 0.01f);
+//        shader.loadUniformColor(true);
+//        prepareColorlessTerrain();
+//        loadModelMatrix();
+//        terrain.setY(terrain.getY() + 0.01f);
+//        GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+//        unbindTexturedModel();
+//        terrain.setY(terrain.getY() - 0.01f);
 
         GL11.glLineWidth(5);
         shader.loadUniformColor(true);

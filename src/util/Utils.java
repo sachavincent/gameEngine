@@ -6,13 +6,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
 public class Utils {
 
     public static void main(String[] args) {
-        cleanOBJFile("insula.obj");
+        cleanOBJFile("market.obj");
     }
 
     public static void cleanOBJFile(String fileName) {
@@ -36,7 +37,7 @@ public class Utils {
             while ((line = bufferedReader.readLine()) != null) {
                 if (!firstLine) {
                     if (!line.startsWith("#")) {
-                        System.out.println("File '" + fileName + "' already cleaned!");
+                        System.err.println("File '" + fileName + "' already cleaned!");
 
                         return;
                     }
@@ -144,5 +145,9 @@ public class Utils {
         DEFAULT,
         SELECTION_BOX,
         BOUNDING_BOX
+    }
+
+    public static <T> boolean listContentEquals(Collection<T> list1, Collection<T> list2) {
+        return list1.size() == list2.size() && list1.containsAll(list2) && list2.containsAll(list1);
     }
 }

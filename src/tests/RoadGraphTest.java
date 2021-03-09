@@ -2,17 +2,18 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
-import abstractItem.AbstractDirtRoadItem;
+import items.abstractItem.AbstractDirtRoadItem;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.lwjgl.opengl.GL;
 import pathfinding.NormalRoad;
 import pathfinding.RoadGraph;
 import pathfinding.RoadNode;
@@ -28,9 +29,7 @@ public class RoadGraphTest {
     @BeforeAll
     public static void init() {
         glfwInit();
-        DisplayManager.createDisplay();
-        glfwSwapInterval(1);
-        GL.createCapabilities();
+        DisplayManager.createDisplayForTests();
     }
 
     @BeforeEach
@@ -42,7 +41,7 @@ public class RoadGraphTest {
 
     @Test
     void testRoadGraph1() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -88,7 +87,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph2() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -144,7 +143,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph3() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(50, 48);
@@ -212,7 +211,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph4() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -294,7 +293,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph5() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -413,7 +412,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph6() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -558,7 +557,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph7() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -613,7 +612,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph8() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -698,7 +697,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph9() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -739,7 +738,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph10() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -783,7 +782,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph11() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -844,7 +843,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph12() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -892,7 +891,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph13() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -926,7 +925,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph14() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -972,7 +971,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph15() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1020,7 +1019,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph16() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1055,7 +1054,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph17() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1093,7 +1092,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph18() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1143,7 +1142,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph19() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1215,7 +1214,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph20() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1255,7 +1254,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph21() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(50, 49);
@@ -1290,7 +1289,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph22() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(52, 50);
         TerrainPosition v2 = new TerrainPosition(53, 50);
         TerrainPosition v3 = new TerrainPosition(54, 50);
@@ -1358,7 +1357,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph23() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(52, 48);
         TerrainPosition v2 = new TerrainPosition(53, 48);
         TerrainPosition v3 = new TerrainPosition(54, 48);
@@ -1444,7 +1443,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph24() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1491,7 +1490,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph25() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1551,7 +1550,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph26() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1597,7 +1596,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph27() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -1649,7 +1648,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph28() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -1724,7 +1723,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1811,7 +1810,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29b() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1860,7 +1859,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph30() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(51, 51);
@@ -1892,7 +1891,7 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph31() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(51, 49);
@@ -1918,6 +1917,64 @@ public class RoadGraphTest {
         Set<RouteRoad> expectedRoutes = new TreeSet<>();
 
         expectedNodes.add(new RoadNode(v2));
+
+        assertEquals(expectedNodes, nodes);
+        assertEquals(expectedRoutes, routes);
+    }
+
+    /**
+     * 32. Found in practice
+     */
+    @Test
+    void testRoadGraph32() {
+        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+        TerrainPosition[] positions = new TerrainPosition[15];
+        TerrainPosition[] positions2 = new TerrainPosition[14];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+        for (int i = 50; i < 64; i++)
+            positions2[i - 50] = new TerrainPosition(i, 70);
+
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
+        abstractDirtRoadItem.place(new TerrainPosition(62, 71));
+
+        List<TerrainPosition> pos2 = Arrays.asList(positions2);
+        Collections.reverse(pos2);
+        positions2 = pos2.toArray(new TerrainPosition[0]);
+        abstractDirtRoadItem.place(positions2);
+
+        RoadGraph roadGraph = terrain.getRoadGraph();
+
+        Set<RoadNode> nodes = roadGraph.getNodes();
+        Set<RouteRoad> routes = roadGraph.getRoutes();
+
+        Set<RoadNode> expectedNodes = new HashSet<>();
+        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+
+        RoadNode node1 = new RoadNode(new TerrainPosition(50, 63));
+        RoadNode node2 = new RoadNode(new TerrainPosition(62, 70));
+        RoadNode node3 = new RoadNode(new TerrainPosition(50, 55));
+        expectedNodes.add(node1);
+        expectedNodes.add(node2);
+        expectedNodes.add(node3);
+
+        RouteRoad routeRoad1 = new RouteRoad(node3, node1);
+        Arrays.stream(positions, 0, 8).forEach(p -> routeRoad1.addRoad(new NormalRoad(p)));
+        routeRoad1.addRoad(node1);
+        expectedRoutes.add(routeRoad1);
+        expectedRoutes.add(routeRoad1.invertRoute());
+
+        RouteRoad routeRoad2 = new RouteRoad(node2, node1);
+        Arrays.stream(positions2, 1, 14).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        List<TerrainPosition> pos = Arrays.asList(positions);
+        Collections.reverse(pos);
+        Arrays.stream(positions, 0, 6).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        routeRoad2.addRoad(node1);
+        expectedRoutes.add(routeRoad2);
+        expectedRoutes.add(routeRoad2.invertRoute());
 
         assertEquals(expectedNodes, nodes);
         assertEquals(expectedRoutes, routes);

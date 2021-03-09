@@ -1,9 +1,5 @@
 package guis.prefabs;
 
-import abstractItem.AbstractDirtRoadItem;
-import abstractItem.AbstractInsula;
-import abstractItem.AbstractItem;
-import abstractItem.AbstractMarket;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
@@ -12,8 +8,13 @@ import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.transitions.Transition;
+import inputs.MouseUtils;
 import inputs.callbacks.PressCallback;
 import items.Item;
+import items.abstractItem.AbstractDirtRoadItem;
+import items.abstractItem.AbstractInsula;
+import items.abstractItem.AbstractItem;
+import items.abstractItem.AbstractMarket;
 import items.buildings.Market;
 import items.buildings.houses.Insula;
 import items.roads.DirtRoadItem;
@@ -62,14 +63,16 @@ public class GuiItemSelection extends Gui {
             Transition... transitions) {
         PressCallback pressCallback;
 
-        final AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        final AbstractInsula abstractInsula = new AbstractInsula();
-        final AbstractMarket abstractMarket = new AbstractMarket();
+        final AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+        final AbstractInsula abstractInsula = AbstractInsula.getInstance();
+        final AbstractMarket abstractMarket = AbstractMarket.getInstance();
+
         switch (menuButton) {
             case DIRT_ROAD:
                 pressCallback = () -> {
                     System.out.println("DirtRoad selected");
 
+                    MouseUtils.setRoadState();
                     selectOrUnselect(abstractDirtRoadItem);
                 };
                 break;
@@ -77,6 +80,7 @@ public class GuiItemSelection extends Gui {
                 pressCallback = () -> {
                     System.out.println("Insula selected");
 
+                    MouseUtils.setBuildingState();
                     selectOrUnselect(abstractInsula);
                 };
                 break;
@@ -84,6 +88,7 @@ public class GuiItemSelection extends Gui {
                 pressCallback = () -> {
                     System.out.println("Market selected");
 
+                    MouseUtils.setBuildingState();
                     selectOrUnselect(abstractMarket);
                 };
                 break;
@@ -109,10 +114,14 @@ public class GuiItemSelection extends Gui {
                 select = true;
         }
 
-        if (select)
+        if (select) {
+            selectedItemGui.updatePosition();
             selectedItemGui.setSelectedItem(item);
-        else
+        } else {
             selectedItemGui.removeSelectedItem();
+
+            MouseUtils.setDefaultState();
+        }
     }
 
     public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,

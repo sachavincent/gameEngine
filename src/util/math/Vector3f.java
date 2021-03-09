@@ -129,6 +129,14 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         return this;
     }
 
+    public Vector3f sub(Vector3f vec) {
+        this.x -= vec.x;
+        this.y -= vec.y;
+        this.z -= vec.z;
+
+        return this;
+    }
+
     public Vector store(FloatBuffer buf) {
         buf.put(this.x);
         buf.put(this.y);
@@ -137,15 +145,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder(64);
-        sb.append("Vector3f[");
-        sb.append(this.x);
-        sb.append(", ");
-        sb.append(this.y);
-        sb.append(", ");
-        sb.append(this.z);
-        sb.append(']');
-        return sb.toString();
+        return "Vector3f[" + this.x + ", " + this.y + ", " + this.z + ']';
     }
 
     public final float getX() {

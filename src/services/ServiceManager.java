@@ -5,19 +5,36 @@ import java.util.Queue;
 
 public class ServiceManager<S extends Service<?>> {
 
-    protected S currentService;
+    protected volatile S currentService;
 
     protected Queue<S> serviceQueue = new LinkedList<>();
 
+    private Thread thread;
+
     public void executeAll() {
-        while (!serviceQueue.isEmpty())
-            execute();
+        thread = new Thread(() -> {
+            while (!serviceQueue.isEmpty())
+                exec();
+        });
+
+        thread.start();
     }
 
     public void execute() {
+        thread = new Thread(this::exec);
+        thread.start();
+    }
+
+    private synchronized void exec() {
+        if (currentService != null && currentService.isSingleton() && currentService.isRunning()) {
+            currentService.setRunning(false);
+            currentService = null;
+        }
+
         S service = serviceQueue.poll();
         if (currentService != null)
             while (currentService.isRunning()) {
+                System.out.println("ru");
             }
         currentService = service;
         if (service != null) {

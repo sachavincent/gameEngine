@@ -20,7 +20,7 @@ void main(void) {
     blurValues[5] = 0.109317;
 
     for (int i = 0; i < 5; i++)
-     out_colour += texture(originalTexture, blurTextureCoords[i]) * blurValues[i];
+        out_colour += texture(originalTexture, blurTextureCoords[i]) * blurValues[i];
 
     out_colour += texture(originalTexture, blurTextureCoords[5]) * blurValues[5];
 

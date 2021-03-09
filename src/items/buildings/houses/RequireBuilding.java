@@ -1,13 +1,18 @@
 package items.buildings.houses;
 
-import items.buildings.BuildingItem;
+import items.abstractItem.AbstractItem;
 import java.util.Map;
+import pathfinding.RouteFinder.Route;
 
 public interface RequireBuilding {
 
-    Map<BuildingItem, Integer> getRequirements();
+    Map<AbstractItem, Integer> getRequirements();
 
-    void meetRequirements();
+    void meetRequirement(AbstractItem abstractItem, Route routeToItem);
 
-    boolean doesMeetRequirements();
+    boolean doesMeetRequirement(AbstractItem abstractItem);
+
+    Route getRouteToItem(AbstractItem abstractItem);
+
+    boolean doesMeetAllRequirements();
 }

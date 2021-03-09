@@ -1,17 +1,25 @@
 package tests;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 
-import abstractItem.AbstractDirtRoadItem;
-import abstractItem.AbstractInsula;
 import entities.Camera.Direction;
+import items.abstractItem.AbstractDirtRoadItem;
+import items.abstractItem.AbstractInsula;
+import items.abstractItem.AbstractMarket;
+import items.buildings.Market;
+import items.buildings.houses.Insula;
+import items.roads.RoadItem;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.lwjgl.opengl.GL;
 import pathfinding.NormalRoad;
 import pathfinding.RoadGraph;
 import pathfinding.RoadNode;
@@ -19,25 +27,22 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
-import services.PathfindingService;
-import services.ServiceManager;
 import terrains.Terrain;
 import terrains.TerrainPosition;
+import util.Utils;
 
 class TerrainTest {
 
     private final Terrain terrain = Terrain.getInstance();
 
-    private static ServiceManager<PathfindingService> serviceManager;
+    private static AbstractDirtRoadItem abstractDirtRoadItem;
 
     @BeforeAll
     public static void init() {
         glfwInit();
-        DisplayManager.createDisplay();
-        glfwSwapInterval(1);
-        GL.createCapabilities();
+        DisplayManager.createDisplayForTests();
 
-        serviceManager = new ServiceManager<>();
+        abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
     }
 
     @BeforeEach
@@ -49,9 +54,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         abstractDirtRoadItem.place(new TerrainPosition(50, 50));
-
 
         Direction[] directions = terrain.getConnectionsToRoadItem(new TerrainPosition(50, 50), true);
 
@@ -60,11 +63,9 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem2() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -74,11 +75,9 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem3() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -88,11 +87,9 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem4() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -102,11 +99,9 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem5() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -117,13 +112,10 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem6() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -133,14 +125,11 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem7() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
-        AbstractInsula abstractInsula = new AbstractInsula();
+        AbstractInsula abstractInsula = AbstractInsula.getInstance();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
         abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
@@ -151,14 +140,11 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem8() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
-        AbstractInsula abstractInsula = new AbstractInsula();
+        AbstractInsula abstractInsula = AbstractInsula.getInstance();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
         abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
@@ -169,17 +155,12 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadItem9() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
-        AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
         TerrainPosition center = new TerrainPosition(50, 50);
         abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
-        abstractDirtRoadItem4.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem5.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
 
         Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
@@ -190,19 +171,19 @@ class TerrainTest {
     //
 //    @Test
 //    void testGetRoadGraph() {
-//         
 //
-//        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
-//        AbstractDirtRoadItem abstractDirtRoadItem2 = new AbstractDirtRoadItem();
-//        AbstractDirtRoadItem abstractDirtRoadItem3 = new AbstractDirtRoadItem();
-//        AbstractDirtRoadItem abstractDirtRoadItem4 = new AbstractDirtRoadItem();
-//        AbstractDirtRoadItem abstractDirtRoadItem5 = new AbstractDirtRoadItem();
+//
+//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//        AbstractDirtRoadItem  abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//
+//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
 //        TerrainPosition center = new TerrainPosition(50, 50);
 //        abstractDirtRoadItem.place(center);
-//        abstractDirtRoadItem2.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-//        abstractDirtRoadItem3.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
-//        abstractDirtRoadItem4.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-//        abstractDirtRoadItem5.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+//         abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 //
 //        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
 //
@@ -217,9 +198,9 @@ class TerrainTest {
 //
 //    @Test
 //    void testGetRoadGraph2() {
-//         
 //
-//        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+//
+//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
 //        TerrainPosition v0 = new TerrainPosition(49, 50);
 //        TerrainPosition v00 = new TerrainPosition(50, 51);
 //        TerrainPosition center = new TerrainPosition(50, 50);
@@ -422,7 +403,7 @@ class TerrainTest {
      */
     @Test
     void testPathfinding1() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
+        abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -461,7 +442,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding2() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -508,7 +488,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding3() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(50, 48);
@@ -565,7 +544,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding4() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -635,7 +613,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding5() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -731,7 +708,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding6() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -838,7 +814,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding7() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -890,7 +865,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding8() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -965,7 +939,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding9() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1014,7 +987,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding10() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1038,8 +1010,7 @@ class TerrainTest {
 
         abstractDirtRoadItem.place(roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
-
+        RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
         // Expected global routes
         Route expectedRoute1 = new Route();
         Route expectedRoute2;
@@ -1052,17 +1023,15 @@ class TerrainTest {
 
         expectedRoute2 = expectedRoute1.invertRoute();
 
-        serviceManager.addService(new PathfindingService(roadGraph, v2, v4, 0, (result) -> {
-            assertTrue(result.compareRoutes(expectedRoute1));
-            assertTrue(result.compareCost(expectedRoute1));
-        }));
+        Route actualRoute1 = routeFinder.findBestRoute(v2, v4, 0);
+        assertTrue(actualRoute1.compareRoutes(expectedRoute1));
+        assertTrue(actualRoute1.compareCost(expectedRoute1));
 
-        serviceManager.addService(new PathfindingService(roadGraph, v4, v2, 0, (result) -> {
-            assertTrue(result.compareRoutes(expectedRoute2));
-            assertTrue(result.compareCost(expectedRoute2));
-        }));
+        routeFinder.reset();
 
-        serviceManager.executeAll();
+        Route actualRoute2 = routeFinder.findBestRoute(v4, v2, 0);
+        assertTrue(actualRoute2.compareRoutes(expectedRoute2));
+        assertTrue(actualRoute2.compareCost(expectedRoute2));
     }
 
     /**
@@ -1070,7 +1039,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding11() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1124,7 +1092,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding12() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1195,7 +1162,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding13() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1229,7 +1195,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding14() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1278,7 +1243,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding15() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1321,7 +1285,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding16() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1361,7 +1324,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding17() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1411,7 +1373,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding18() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1456,7 +1417,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding19() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1507,7 +1467,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding20() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1550,7 +1509,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding21() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(50, 49);
@@ -1591,7 +1549,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding22() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(52, 50);
         TerrainPosition v2 = new TerrainPosition(53, 50);
         TerrainPosition v3 = new TerrainPosition(54, 50);
@@ -1645,7 +1602,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding23() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(52, 48);
         TerrainPosition v2 = new TerrainPosition(53, 48);
         TerrainPosition v3 = new TerrainPosition(54, 48);
@@ -1701,7 +1657,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding24() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1757,7 +1712,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding25() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1844,7 +1798,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding26() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1914,7 +1867,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding27() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -2011,7 +1963,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding28() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -2088,7 +2039,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding29() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -2179,7 +2129,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding29b() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -2289,7 +2238,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding30() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(51, 51);
@@ -2329,7 +2277,6 @@ class TerrainTest {
      */
     @Test
     void testPathfinding31() {
-        AbstractDirtRoadItem abstractDirtRoadItem = new AbstractDirtRoadItem();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(51, 49);
@@ -2454,5 +2401,472 @@ class TerrainTest {
 
         assertTrue(foundRoute.compareRoutes(expectedRoute));
         assertTrue(foundRoute.compareCost(expectedRoute));
+    }
+
+    @Test
+    void testRoadsConnectedToItem() {
+        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 60);
+
+        AbstractInsula abstractInsula = AbstractInsula.getInstance();
+        abstractInsula.place(v1);
+
+        AbstractMarket abstractMarket = AbstractMarket.getInstance();
+        Market market = (Market) abstractMarket.place(v2);
+
+
+        TerrainPosition[] positions = new TerrainPosition[]{
+                new TerrainPosition(50, 53),
+                new TerrainPosition(50, 54),
+                new TerrainPosition(45, 55),
+                new TerrainPosition(55, 55),
+                new TerrainPosition(45, 65),
+                new TerrainPosition(55, 65),
+        };
+        abstractDirtRoadItem.place(positions);
+
+        TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
+        for (int i = 0; i < connectedRoads.length / 4; i++) {
+            connectedRoads[i * 4] = new TerrainPosition(i + 46, 55);
+            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 46, 65);
+            connectedRoads[i * 4 + 2] = new TerrainPosition(45, i + 56);
+            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 56);
+        }
+
+        List<RoadItem> expectedRoads = new ArrayList<>();
+
+        for (TerrainPosition roadPos : connectedRoads) {
+            abstractDirtRoadItem.place(roadPos);
+            expectedRoads.add((RoadItem) terrain.getItemAtPosition(roadPos));
+
+            assertTrue(Utils.listContentEquals(terrain.getRoadsConnectedToItem(market), expectedRoads));
+        }
+    }
+
+    @Test
+    void testRoadsConnectedToItem2() {
+        List<RoadItem> expectedRoads = new ArrayList<>();
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
+
+        abstractDirtRoadItem.place(new TerrainPosition[]{
+                new TerrainPosition(31, 48),
+                new TerrainPosition(32, 47),
+                new TerrainPosition(32, 53),
+                new TerrainPosition(32, 54),
+                new TerrainPosition(32, 55),
+                new TerrainPosition(32, 56),
+                new TerrainPosition(34, 54),
+                new TerrainPosition(34, 55),
+                new TerrainPosition(34, 56),
+        });
+
+        TerrainPosition[] connectedRoads = new TerrainPosition[]{
+                new TerrainPosition(33, 47),
+                new TerrainPosition(32, 48),
+                new TerrainPosition(32, 49),
+                new TerrainPosition(32, 50),
+                new TerrainPosition(32, 51),
+                new TerrainPosition(32, 52),
+                new TerrainPosition(34, 53),
+        };
+
+        for (TerrainPosition roadPos : connectedRoads) {
+            abstractDirtRoadItem.place(roadPos);
+            expectedRoads.add((RoadItem) terrain.getItemAtPosition(roadPos));
+
+            assertTrue(Utils.listContentEquals(terrain.getRoadsConnectedToItem(insula), expectedRoads));
+        }
+    }
+
+    @Test
+    void testPathfindingMarketToInsula1() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+
+        TerrainPosition[] positions = new TerrainPosition[23];
+        for (int i = 53; i < 76; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        abstractDirtRoadItem.place(positions);
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+                new NormalRoad(positions[positions.length - 1]));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula2() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+
+        TerrainPosition[] positions = new TerrainPosition[29];
+        for (int i = 53; i < 75; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        positions[22] = new TerrainPosition(51, 74);
+        positions[23] = new TerrainPosition(52, 74);
+        positions[24] = new TerrainPosition(53, 74);
+        positions[25] = new TerrainPosition(54, 74);
+        positions[26] = new TerrainPosition(55, 74);
+        positions[27] = new TerrainPosition(55, 75);
+        positions[28] = new TerrainPosition(55, 76);
+
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(55, 77));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 78));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 79));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 80));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 81));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 82));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 83));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 84));
+        abstractDirtRoadItem.place(new TerrainPosition(55, 85));
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+                new NormalRoad(positions[positions.length - 1]));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula3() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+
+        TerrainPosition[] positions = new TerrainPosition[22];
+        for (int i = 53; i < 75; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        abstractDirtRoadItem.place(positions);
+        TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
+        for (int i = 0; i < connectedRoads.length / 4; i++) {
+            connectedRoads[i * 4] = new TerrainPosition(i + 46, 75);
+            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 46, 85);
+            connectedRoads[i * 4 + 2] = new TerrainPosition(45, i + 76);
+            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 76);
+        }
+        abstractDirtRoadItem.place(connectedRoads);
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]), new NormalRoad(new TerrainPosition(50, 75)));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula4() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(36, 61));
+
+        TerrainPosition[] positions = new TerrainPosition[]{
+                new TerrainPosition(33, 47),
+                new TerrainPosition(31, 48),
+                new TerrainPosition(32, 47),
+                new TerrainPosition(32, 48),
+                new TerrainPosition(32, 49),
+                new TerrainPosition(32, 50),
+                new TerrainPosition(32, 51),
+                new TerrainPosition(32, 52),
+                new TerrainPosition(32, 53),
+                new TerrainPosition(32, 54),
+                new TerrainPosition(32, 55),
+                new TerrainPosition(32, 56),
+                new TerrainPosition(34, 53),
+                new TerrainPosition(34, 54),
+                new TerrainPosition(34, 55),
+                new TerrainPosition(34, 56),
+                new TerrainPosition(35, 53),
+                new TerrainPosition(36, 53),
+                new TerrainPosition(37, 53),
+                new TerrainPosition(33, 54),
+                new TerrainPosition(33, 55),
+                new TerrainPosition(33, 53),
+                new TerrainPosition(33, 56),
+        };
+
+        abstractDirtRoadItem.place(positions);
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(new TerrainPosition(33, 53)),
+                new RoadNode(new TerrainPosition(33, 54)));
+        routeRoad.addRoad(new RoadNode(new TerrainPosition(33, 54)));
+
+        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(new TerrainPosition(33, 54)),
+                new RoadNode(new TerrainPosition(33, 55)));
+        routeRoad2.addRoad(new RoadNode(new TerrainPosition(33, 55)));
+
+        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(new TerrainPosition(33, 55)),
+                new RoadNode(new TerrainPosition(33, 56)));
+        routeRoad3.addRoad(new RoadNode(new TerrainPosition(33, 56)));
+
+        expectedRoute.add(routeRoad);
+        expectedRoute.add(routeRoad2);
+        expectedRoute.add(routeRoad3);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula5() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(36, 61));
+
+        TerrainPosition[] positions = new TerrainPosition[]{
+                new TerrainPosition(33, 47),
+                new TerrainPosition(31, 48),
+                new TerrainPosition(32, 47),
+                new TerrainPosition(32, 48),
+                new TerrainPosition(32, 49),
+                new TerrainPosition(32, 50),
+                new TerrainPosition(32, 51),
+                new TerrainPosition(32, 52),
+                new TerrainPosition(32, 53),
+                new TerrainPosition(32, 54),
+                new TerrainPosition(32, 55),
+                new TerrainPosition(32, 56),
+                new TerrainPosition(34, 53),
+                new TerrainPosition(34, 54),
+                new TerrainPosition(34, 55),
+                new TerrainPosition(34, 56),
+                new TerrainPosition(35, 53),
+                new TerrainPosition(36, 53),
+                new TerrainPosition(37, 53),
+                new TerrainPosition(33, 54),
+                new TerrainPosition(33, 55),
+                new TerrainPosition(33, 53),
+                new TerrainPosition(33, 56),
+        };
+
+        abstractDirtRoadItem.place(positions);
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new RoadNode(new TerrainPosition(33, 53)),
+                new RoadNode(new TerrainPosition(33, 54)));
+        routeRoad.addRoad(new RoadNode(new TerrainPosition(33, 54)));
+
+        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(new TerrainPosition(33, 54)),
+                new RoadNode(new TerrainPosition(33, 55)));
+        routeRoad2.addRoad(new RoadNode(new TerrainPosition(33, 55)));
+
+        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(new TerrainPosition(33, 55)),
+                new RoadNode(new TerrainPosition(33, 56)));
+        routeRoad3.addRoad(new RoadNode(new TerrainPosition(33, 56)));
+
+        expectedRoute.add(routeRoad);
+        expectedRoute.add(routeRoad2);
+        expectedRoute.add(routeRoad3);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula6() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+
+        TerrainPosition[] positions = new TerrainPosition[23];
+        for (int i = 53; i < 76; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        abstractDirtRoadItem.place(positions);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+                new NormalRoad(positions[positions.length - 1]));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula7() {
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[23];
+        for (int i = 53; i < 76; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        abstractDirtRoadItem.place(positions);
+
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+                new NormalRoad(positions[positions.length - 1]));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad);
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula8() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+
+        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad.invertRoute());
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula9() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
+        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Route expectedRoute = new Route();
+
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+
+        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad.invertRoute());
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula10() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
+        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 65));
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Route expectedRoute = new Route();
+
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+
+        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad.invertRoute());
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula11() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(53, 60));
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Route expectedRoute = new Route();
+
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
+        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+
+        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
+        expectedRoute.add(routeRoad.invertRoute());
+        assertEquals(expectedRoute, bestRoute);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula12() {
+        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        TerrainPosition[] positions2 = new TerrainPosition[14];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+        for (int i = 50; i < 64; i++)
+            positions2[i - 50] = new TerrainPosition(i, 70);
+
+        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(62, 74));
+        abstractDirtRoadItem.place(positions);
+        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
+        abstractDirtRoadItem.place(new TerrainPosition(62, 71));
+
+        List<TerrainPosition> pos2 = Arrays.asList(positions2);
+        Collections.reverse(pos2);
+        positions2 = pos2.toArray(new TerrainPosition[0]);
+        abstractDirtRoadItem.place(positions2);
+
+        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+
+        Route expectedRoute = new Route();
+
+        RoadNode node1 = new RoadNode(new TerrainPosition(50, 63));
+        RoadNode node2 = new RoadNode(new TerrainPosition(62, 70));
+        RoadNode node3 = new RoadNode(new TerrainPosition(50, 55));
+
+        RouteRoad routeRoad1 = new RouteRoad(new NormalRoad(new TerrainPosition(62, 71)), node2);
+        routeRoad1.addRoad(node2);
+        expectedRoute.add(routeRoad1);
+
+        RouteRoad routeRoad2 = new RouteRoad(node2, node1);
+        Arrays.stream(positions2, 1, 14).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        List<TerrainPosition> pos = Arrays.asList(positions);
+        Collections.reverse(pos);
+        IntStream.range(0, 6).mapToObj(pos::get).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        routeRoad2.addRoad(node1);
+        expectedRoute.add(routeRoad2);
+
+        RouteRoad routeRoad3 = new RouteRoad(node3, node1);
+        Collections.reverse(pos);
+        IntStream.range(0, 8).mapToObj(pos::get).forEach(p -> routeRoad3.addRoad(new NormalRoad(p)));
+        routeRoad3.addRoad(node1);
+        expectedRoute.add(routeRoad3.invertRoute());
+        assertEquals(expectedRoute, bestRoute);
     }
 }

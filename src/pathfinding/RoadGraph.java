@@ -110,6 +110,24 @@ public class RoadGraph {
         if (connectionsToRoadItem.length >= 3) { // New road is a node
             searchForNextNode(position, connectionsToRoadItem, null);
         } else {
+            NormalRoad road = new NormalRoad(position);
+            RouteRoad[] closestNodes = RouteFinder.getClosestNodes(road);
+            if (closestNodes[0] != null && closestNodes[1] != null && connectionsToRoadItem.length == 2) {
+                RouteRoad routeRoad1 = closestNodes[0].invertRoute();
+                RouteRoad routeRoad2 = closestNodes[1];
+                if (!routeRoad1.getStart().equals(routeRoad2.getEnd())) {
+                    RouteRoad routeRoad = new RouteRoad(routeRoad1.getStart(), routeRoad2.getEnd());
+                    routeRoad1.getRoute().forEach(routeRoad::addRoad);
+                    routeRoad.addRoad(road);
+                    routeRoad2.getRoute().forEach(routeRoad::addRoad);
+
+                    nodes.add((RoadNode) routeRoad1.getStart());
+                    nodes.add((RoadNode) routeRoad2.getEnd());
+
+                    routes.add(routeRoad);
+                    routes.add(routeRoad.invertRoute());
+                }
+            } /*else {*/
             for (Direction direction : connectionsToRoadItem) {
                 TerrainPosition newPos = position.add(Direction.toRelativeDistance(direction));
                 Direction[] directions = Terrain.getInstance().getConnectionsToRoadItem(newPos, true);
@@ -130,6 +148,7 @@ public class RoadGraph {
                     searchForNextNode(position, newDirections, route);
                 }
             }
+//            }
         }
     }
 

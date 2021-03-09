@@ -1,6 +1,5 @@
 package people;
 
-import com.sun.xml.internal.ws.util.StringUtils;
 import items.Item;
 import java.awt.Color;
 import java.util.Locale;
@@ -29,7 +28,8 @@ public enum SocialClass {
     }
 
     public String getName() {
-        return StringUtils.capitalize(name().toLowerCase(Locale.ROOT));
+        String name = name();
+        return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
     }
 
 }

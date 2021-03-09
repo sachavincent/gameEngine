@@ -2,11 +2,15 @@ package services;
 
 public abstract class Service<ResultType> extends Thread {
 
-    private OnServiceDone<ResultType> onServiceDone;
+    private volatile OnServiceDone<ResultType> onServiceDone;
 
-    protected boolean running = false;
+    protected volatile boolean running;
+    private volatile   boolean singleton;
 
-    public Service(OnServiceDone<ResultType> onServiceDone) {
+    public Service(boolean singleton, OnServiceDone<ResultType> onServiceDone) {
+        this.singleton = singleton;
+        this.running = false;
+
         setOnServiceDone(onServiceDone);
     }
 
@@ -21,12 +25,24 @@ public abstract class Service<ResultType> extends Thread {
 
     protected abstract ResultType execute();
 
-    public void setOnServiceDone(OnServiceDone<ResultType> onServiceDone) {
+    public synchronized void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public synchronized void setOnServiceDone(OnServiceDone<ResultType> onServiceDone) {
         this.onServiceDone = onServiceDone;
     }
 
-    public boolean isRunning() {
+    public synchronized boolean isRunning() {
         return this.running;
+    }
+
+    public synchronized void setSingleton(boolean singleton) {
+        this.singleton = singleton;
+    }
+
+    public synchronized boolean isSingleton() {
+        return this.singleton;
     }
 }
 

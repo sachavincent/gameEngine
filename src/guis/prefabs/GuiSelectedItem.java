@@ -1,14 +1,15 @@
 package guis.prefabs;
 
-import abstractItem.AbstractItem;
 import guis.Gui;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.presets.Background;
 import inputs.MouseUtils;
+import items.abstractItem.AbstractItem;
 import java.awt.Color;
 import renderEngine.DisplayManager;
+import terrains.Terrain;
 import util.math.Vector2f;
 
 public class GuiSelectedItem extends Gui {
@@ -39,6 +40,8 @@ public class GuiSelectedItem extends Gui {
         currentSelectedItem = abstractItem;
         setBackground(currentSelectedItem.getBackground());
 
+        Terrain.getInstance().setPreviewedItem(abstractItem);
+
         if (!isDisplayed())
             showGui(this);
     }
@@ -48,6 +51,7 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void removeSelectedItem() {
+        Terrain.getInstance().setPreviewedItem(null);
         currentSelectedItem = null;
         setBackground(DEFAULT_BACKGROUND);
 
@@ -63,7 +67,6 @@ public class GuiSelectedItem extends Gui {
         handleXConstraint(new PixelConstraint((int) (cursorPos.x * DisplayManager.WIDTH) - 70));
         handleYConstraint(new PixelConstraint((int) (cursorPos.y * DisplayManager.HEIGHT) - 70));
     }
-
 
     public static class Builder {
 

@@ -1,8 +1,7 @@
 package shaders;
 
-import java.util.List;
-import entities.Camera;
 import entities.Light;
+import java.util.List;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -112,8 +111,8 @@ public class StaticShader extends ShaderProgram {
         }
     }
 
-    public void loadViewMatrix(Camera camera) {
-        Matrix4f matrix = Maths.createViewMatrix(camera);
+    public void loadViewMatrix() {
+        Matrix4f matrix =  Maths.createViewMatrix();
         super.loadMatrix(location_viewMatrix, matrix);
     }
 }

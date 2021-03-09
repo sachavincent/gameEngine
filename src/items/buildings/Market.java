@@ -16,13 +16,11 @@ public class Market extends BuildingItem {
 
     public Market(TerrainPosition terrainPosition) {
         super(terrainPosition, NAME, Items.MARKET, X_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, HEIGHT, Z_NEGATIVE_OFFSET,
-                Z_POSITIVE_OFFSET, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
+                Z_POSITIVE_OFFSET, Direction.any());
     }
 
     public Market() {
-        super(new TerrainPosition(0, 0), NAME, Items.MARKET, X_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, HEIGHT,
-                Z_NEGATIVE_OFFSET,
-                Z_POSITIVE_OFFSET, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
+        this(new TerrainPosition(0, 0));
     }
 
     @Override
@@ -30,11 +28,11 @@ public class Market extends BuildingItem {
         return "Market{" +
                 "name='" + NAME + '\'' +
                 ", id=" + id +
-                ", xNegativeOffset=" + xNegativeOffset +
-                ", xPositiveOffset=" + xPositiveOffset +
+                ", xNegativeOffset=" + getxNegativeOffset() +
+                ", xPositiveOffset=" + getxPositiveOffset() +
                 ", height=" + height +
-                ", zNegativeOffset=" + zNegativeOffset +
-                ", zPositiveOffset=" + zPositiveOffset +
+                ", zNegativeOffset=" + getzNegativeOffset() +
+                ", zPositiveOffset=" + getzPositiveOffset() +
                 ", texture=" + texture +
                 ", previewTexture=" + previewTexture +
                 ", boundingBox=" + boundingBox +

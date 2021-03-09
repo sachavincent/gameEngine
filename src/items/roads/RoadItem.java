@@ -16,7 +16,7 @@ public abstract class RoadItem extends Item implements ConnectableItem {
 
     private final Connections[] connected = new Connections[]{NONE, NONE, NONE, NONE};
 
-    protected final static RawModel roadModel = OBJLoader.loadObjModel("road");
+    protected final static RawModel ROAD_MODEL = OBJLoader.loadRoadModel();
 
     public RoadItem(TerrainPosition position, String name, TexturedModel texture, TexturedModel previewTexture) {
         super(position, name, 0, 0, 0, 0, 0);

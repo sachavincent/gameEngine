@@ -19,7 +19,7 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
             ((ConnectableItem) parent).connect(direction, connections);
             individualConnections[direction.ordinal()] = connections;
         } else
-            System.err.println("Error");
+            System.err.println("Error with connectable access point");
     }
 
     @Override
@@ -34,11 +34,11 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
         boolean[] accessPoints = new boolean[4];
         if (relativePosition.getZ() < 0)
             accessPoints[0] = true;
-        if (relativePosition.getX() < 0)
+        if (relativePosition.getX() > 0)
             accessPoints[1] = true;
         if (relativePosition.getZ() > 0)
             accessPoints[2] = true;
-        if (relativePosition.getX() > 0)
+        if (relativePosition.getX() < 0)
             accessPoints[3] = true;
 
         return accessPoints;

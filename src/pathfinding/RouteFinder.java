@@ -1,11 +1,11 @@
 package pathfinding;
 
-import com.sun.istack.internal.NotNull;
+import static util.math.Maths.manhattanDistance;
+
 import entities.Camera.Direction;
-import items.ConnectableItem;
-import items.PlaceHolderConnectableItem;
+import items.Item;
+import items.abstractItem.AbstractItem;
 import items.buildings.BuildingItem;
-import items.roads.RoadItem;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
@@ -20,6 +20,8 @@ public class RouteFinder {
 
     private RoadNode startNode;
     private RoadNode endNode;
+
+    private Road startRoad;
 
     // Optional if extremities != start or end
     // Represent the routes from the normalRoad start to the closest 2 nodes
@@ -51,6 +53,8 @@ public class RouteFinder {
     }
 
     private void findAndSetStartNode(Road startRoad) {
+        this.startRoad = startRoad;
+
         if (startRoad instanceof RoadNode) {// RoadNode
             this.startNode = (RoadNode) startRoad;
         } else { // Not a RoadNode
@@ -65,11 +69,11 @@ public class RouteFinder {
         }
     }
 
-    private void findAndSetEndNode(Road endNode) {
-        if (endNode instanceof RoadNode) // RoadNode
-            this.endNode = (RoadNode) endNode;
+    private void findAndSetEndNode(Road endRoad) {
+        if (endRoad instanceof RoadNode) // RoadNode
+            this.endNode = (RoadNode) endRoad;
         else { // Not a RoadNode
-            this.fromEnd = getClosestNodes((NormalRoad) endNode);
+            this.fromEnd = getClosestNodes((NormalRoad) endRoad);
             if (this.fromEnd[0] != null) {
                 if (this.fromEnd[1] == null) {
                     this.endNode = (RoadNode) this.fromEnd[0].getEnd();
@@ -78,15 +82,12 @@ public class RouteFinder {
             }
         }
 
-        if (this.endNode == null)
-            return;
-
         this.roadGraph.getRoutes().forEach(routeRoad -> {
             Road roadStart = routeRoad.getStart();
             Road roadEnd = routeRoad.getStart();
 
-            int hScoreStart = manhattanDistance(roadStart.position, endNode.position);
-            int hScoreEnd = manhattanDistance(roadEnd.position, endNode.position);
+            int hScoreStart = manhattanDistance(roadStart.position, endRoad.position);
+            int hScoreEnd = manhattanDistance(roadEnd.position, endRoad.position);
             this.roadGraph.getNodes().forEach(roadNode -> {
                 if (roadNode.getPosition().equals(roadStart.getPosition()))
                     roadNode.sethScore(hScoreStart);
@@ -95,75 +96,105 @@ public class RouteFinder {
             roadEnd.sethScore(hScoreEnd);
 
             routeRoad.getRoute().stream().filter(Objects::nonNull)
-                    .forEach(road -> road.sethScore(manhattanDistance(road.position, endNode.position)));
+                    .forEach(road -> road.sethScore(manhattanDistance(road.position, endRoad.position)));
         });
 
-        if (this.startNode != null)
-            this.startNode.sethScore(manhattanDistance(this.startNode.position, endNode.position));
+        this.startRoad.sethScore(manhattanDistance(this.startRoad.position, endRoad.position));
 
-        if (this.endNode != null)
-            this.endNode.sethScore(manhattanDistance(this.endNode.position, endNode.position)); // = 0 ?
+        if (this.startNode != null) {
+            this.startNode.sethScore(manhattanDistance(this.startNode.position, endRoad.position));
+            int dirs = terrain.getConnectionsToRoadItem(this.startRoad.position, true).length;
+            if (dirs > 1 && this.startNode.gethScore() > this.startRoad.gethScore()) {
+                this.startNode = null;
+                this.fromStart = new RouteRoad[2];
+                this.route.clear();
+            }
+        } else if (this.ambigueousStart) {
+            if (this.fromStart[0].getEnd().equals(endRoad)) {
+                this.fromStart[1] = null;
+                this.ambigueousStart = false;
+            } else if (this.fromStart[1].getEnd().equals(endRoad)) {
+                this.fromStart[0] = this.fromStart[1];
+                this.fromStart[1] = null;
+                this.ambigueousStart = false;
+            }
+        }
+
+        if (this.endNode != null) {
+            this.endNode.sethScore(manhattanDistance(this.endNode.position, endRoad.position));
+            if (this.endNode.gethScore() > this.startRoad.gethScore()) {
+                this.endNode = null;
+                this.fromEnd = new RouteRoad[2];
+            }
+        }
     }
 
-    public static @NotNull
-    Route findAnyRoute(TerrainPosition from, TerrainPosition to) {
-        //TODO
-        return null;
+    public static Route findAnyRoute(BuildingItem fromItem, BuildingItem toItem) {
+        List<TerrainPosition> fromRoads = terrain.getRoadsConnectedToItem(fromItem)
+                .stream().map(Item::getPosition).collect(Collectors.toList());
+        List<TerrainPosition> toRoads = terrain.getRoadsConnectedToItem(toItem)
+                .stream().map(Item::getPosition).collect(Collectors.toList());
+
+        RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
+        Route route = new Route();
+
+        for (TerrainPosition fromRoad : fromRoads) {
+            for (TerrainPosition toRoad : toRoads) {
+                route = routeFinder.findBestRoute(fromRoad, toRoad, 0);
+                if (!route.isEmpty())
+                    return route;
+
+                routeFinder.reset();
+            }
+        }
+
+        return route;
     }
 
-    public static @NotNull
-    Route findBestRoute(TerrainPosition from, BuildingItem toItem, int maxRouteLength) {
-        if (toItem == null || from == null || maxRouteLength < 0)
+    public static Route findRoute(BuildingItem fromItem, AbstractItem abstractItem, int maxRouteLength) {
+        Set<Item> possibleItems = new TreeSet<>((o1, o2) -> manhattanDistance(o1.getPosition(), o2.getPosition()));
+        possibleItems.addAll(terrain.getItemsOfType(abstractItem));
+
+        for (Item possibleItem : possibleItems) {
+            Route bestRoute = findBestRoute(fromItem, (BuildingItem) possibleItem, maxRouteLength);
+            if (!bestRoute.isEmpty())
+                return bestRoute;
+        }
+
+        return new Route();
+    }
+
+    public static Route findBestRoute(BuildingItem fromItem, BuildingItem toItem, int maxRouteLength) {
+        if (maxRouteLength <= 0)
+            maxRouteLength = Integer.MAX_VALUE;
+
+        if (toItem == null || fromItem == null)
             return new Route();
-
 
         final RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
 
         Set<Route> foundRoutes = new TreeSet<>(
                 Comparator.comparingInt(o -> o.stream().mapToInt(RouteRoad::getgScore).sum()));
 
-        Set<TerrainPosition> foundRoads = new HashSet<>();
-        terrain.getItems()
-                .stream()
-                .filter(item -> !(item instanceof RoadItem))
-                .filter(item -> item instanceof ConnectableItem && item.getName().equals(toItem.getName()))
-                .filter(item -> ((ConnectableItem) item).isConnected())
-                .forEach(item -> {
-                    TerrainPosition pos = item.getPosition();
+        List<TerrainPosition> fromRoads = terrain.getRoadsConnectedToItem(fromItem)
+                .stream().map(Item::getPosition).collect(Collectors.toList());
+        List<TerrainPosition> toRoads = terrain.getRoadsConnectedToItem(toItem)
+                .stream().map(Item::getPosition).collect(Collectors.toList());
 
-                    ConnectableItem connectableItem = (ConnectableItem) item;
-                    for (Direction direction : Direction.values()) {
-                        if (connectableItem.isConnected(direction)) {
-                            TerrainPosition offset;
-                            if (item instanceof PlaceHolderConnectableItem) {
-                                PlaceHolderConnectableItem placeHolder = (PlaceHolderConnectableItem) item;
-                                pos = pos.sub(placeHolder.getRelativePosition());
-                                // Pos = parent coordinates
-                                offset = placeHolder.getOffset(direction);
-                            } else
-                                offset = item.getOffset(direction);
+        for (TerrainPosition fromRoad : fromRoads) {
+            for (TerrainPosition toRoad : toRoads) {
+                Route route = routeFinder.findBestRoute(fromRoad, toRoad, maxRouteLength);
+                if (!route.isEmpty())
+                    foundRoutes.add(route);
 
-                            // pos = parent of building position
-                            TerrainPosition to = pos.add(offset).add(Direction.toRelativeDistance(direction));
-
-                            if (foundRoads.contains(to))
-                                return;
-
-                            foundRoads.add(to);
-                            Route route = routeFinder.findBestRoute(from, to, maxRouteLength);
-                            if (route != null && !route.isEmpty())
-                                foundRoutes.add(route);
-
-                            routeFinder.reset();
-                        }
-                    }
-                });
+                routeFinder.reset();
+            }
+        }
 
         return foundRoutes.stream().findFirst().orElse(new Route());
     }
 
-    public @NotNull
-    Route findBestRoute(TerrainPosition from, TerrainPosition to, int maxRouteLength) {
+    public Route findBestRoute(TerrainPosition from, TerrainPosition to, int maxRouteLength) {
         if (maxRouteLength <= 0)
             maxRouteLength = Integer.MAX_VALUE;
 
@@ -383,10 +414,10 @@ public class RouteFinder {
 
             RouteRoad[] closestNodes = getClosestNodes(normalRoad);
             if (closestNodes[0] == null && closestNodes[1] == null)
-                return route; // Empty route
-            if (closestNodes[0] == null)
+                return new Route(); // Empty route
+            if (closestNodes[0] == null || (closestNodes[1] != null && closestNodes[1].getEnd().equals(end)))
                 route.add(closestNodes[1]);
-            else if (closestNodes[1] == null)
+            else if (closestNodes[1] == null || (closestNodes[0] != null && closestNodes[0].getEnd().equals(end)))
                 route.add(closestNodes[0]);
             else
                 route.add(closestNodes[0].getgScore() < closestNodes[1].getgScore() ?
@@ -394,7 +425,9 @@ public class RouteFinder {
 
             if (maxRouteLength < route.getCost())
                 route.clear();
-
+//
+//            if (fromEnd[0] != null)
+//                route.add(fromEnd[0].invertRoute());
             return route;
         }
 
@@ -476,78 +509,71 @@ public class RouteFinder {
     }
 
     private RouteRoad findRouteWithoutNodes(NormalRoad start, NormalRoad end) {
-        final Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(start.getPosition(), false);
+        final Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(start.getPosition(), true);
         final Direction[] directions = terrain.getConnectionsToRoadItem(start.getPosition(), true);
 
         final int nbDir = directions.length;
         if (nbDir == 0 || connectionsToRoadItem.length == 0 || connectionsToRoadItem.length > 2 || nbDir > 2)
             return null;
 
-        final CountDownLatch latch = new CountDownLatch(nbDir);
-        final Runnable[] runnables = new Runnable[nbDir];
+//        final CountDownLatch latch = new CountDownLatch(nbDir);
+//        final Runnable[] runnables = new Runnable[nbDir];
         final RouteRoad[] possibleRoutes = new RouteRoad[nbDir];
 
-        try {
-            for (int i = 0; i < nbDir; i++) {
-                int finalI = i;
-                runnables[i] = () -> {
-                    Set<Road> roads = new LinkedHashSet<>();
-                    roads.add(start);
+//        try {
+        for (int i = 0; i < nbDir; i++) {
+            int finalI = i;
+//                runnables[i] = () -> {
+            Set<Road> roads = new LinkedHashSet<>();
+            roads.add(start);
 
-                    Direction dir = directions[finalI];
-                    TerrainPosition nextPos = start.getPosition().add(Direction.toRelativeDistance(dir));
-                    Direction[] nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
-                    int nbDirections = nextDirs.length;
+            Direction dir = directions[finalI];
+            TerrainPosition nextPos = start.getPosition().add(Direction.toRelativeDistance(dir));
+            Direction[] nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
+            int nbDirections = nextDirs.length;
 
-                    while (!nextPos.equals(end.getPosition()) && nbDirections > 1) {
-                        roads.add(new NormalRoad(nextPos));
+            while (!nextPos.equals(end.getPosition()) && nbDirections > 1) {
+                roads.add(new NormalRoad(nextPos));
 
-                        for (Direction direction : nextDirs)
-                            if (!direction.equals(dir.getOppositeDirection())) {
-                                dir = direction;
-                                break;
-                            }
-
-                        nextPos = nextPos.add(Direction.toRelativeDistance(dir));
-                        nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
-                        nbDirections = nextDirs.length;
+                for (Direction direction : nextDirs)
+                    if (!direction.equals(dir.getOppositeDirection())) {
+                        dir = direction;
+                        break;
                     }
-                    if (nextPos.equals(end.getPosition())) {
-                        possibleRoutes[finalI] = new RouteRoad(start, end, roads); // Node found, route added
-                    }
-                    latch.countDown();
-                };
-                runnables[i].run();
+
+                nextPos = nextPos.add(Direction.toRelativeDistance(dir));
+                nextDirs = terrain.getConnectionsToRoadItem(nextPos, true);
+                nbDirections = nextDirs.length;
             }
-            latch.await();
-
-            if (possibleRoutes[0] == null)
-                return null;
-
-            if (nbDir == 1)
-                return possibleRoutes[0];
-
-            if (possibleRoutes[1] == null)
-                return possibleRoutes[0];
-
-            return (possibleRoutes[0].getgScore() + possibleRoutes[0].getEnd().gethScore()) <
-                    (possibleRoutes[1].getgScore() + possibleRoutes[1].getEnd().gethScore()) ? possibleRoutes[0]
-                    : possibleRoutes[1];
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if (nextPos.equals(end.getPosition())) {
+                possibleRoutes[finalI] = new RouteRoad(start, end, roads); // Node found, route added
+            }
+//                    latch.countDown();
+//                };
+//                runnables[i].run();
         }
-        return null;
+//            latch.await();
+
+        if (possibleRoutes[0] == null)
+            return null;
+
+        if (nbDir == 1)
+            return possibleRoutes[0];
+
+        if (possibleRoutes[1] == null)
+            return possibleRoutes[0];
+
+        return (possibleRoutes[0].getgScore() + possibleRoutes[0].getEnd().gethScore()) <
+                (possibleRoutes[1].getgScore() + possibleRoutes[1].getEnd().gethScore()) ? possibleRoutes[0]
+                : possibleRoutes[1];
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
     }
 
     public Route getRoute() {
         return this.route;
-    }
-
-    private int manhattanDistance(TerrainPosition startPos, TerrainPosition endPos) {
-        if (startPos == null || endPos == null)
-            return Integer.MAX_VALUE;
-
-        return Math.abs(endPos.getX() - startPos.getX()) + Math.abs(endPos.getZ() - startPos.getZ());
     }
 
     /**
@@ -556,8 +582,7 @@ public class RouteFinder {
      * @param road the road
      * @return the nodes (can be 0 to 2)
      */
-    public @NotNull
-    RouteRoad[] getClosestNodes(NormalRoad road) {
+    public static RouteRoad[] getClosestNodes(NormalRoad road) {
         //Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(road.getPosition(), false); WHY?
         final Direction[] directions = terrain.getConnectionsToRoadItem(road.getPosition(), true);
 
@@ -607,6 +632,11 @@ public class RouteFinder {
             }
             latch.await();
 
+
+            if (possibleRoutes[0] == null && possibleRoutes[1] != null) {
+                possibleRoutes[0] = possibleRoutes[1];
+                possibleRoutes[1] = null;
+            }
 //            if (nbDir == 1)
 //                return possibleRoutes[0];
 //
@@ -632,8 +662,7 @@ public class RouteFinder {
         this.startNode = null;
     }
 
-    public @NotNull
-    Route findUnobstructedRouteV1(final TerrainPosition startPos, final TerrainPosition endPos) {
+    public Route findUnobstructedRouteV1(final TerrainPosition startPos, final TerrainPosition endPos) {
 //        int manhattanDistance = manhattanDistance(startPos, endPos);
 //        final int MAX = 15 + manhattanDistance;
 //
@@ -706,8 +735,7 @@ public class RouteFinder {
         return routeRoads;
     }
 
-    public @NotNull
-    Route findUnobstructedRouteV2(final TerrainPosition startPos, final TerrainPosition endPos) {
+    public Route findUnobstructedRouteV2(final TerrainPosition startPos, final TerrainPosition endPos) {
         Route routeRoads = new Route();
         if (startPos == null || endPos == null || startPos.equals(endPos))
             return routeRoads;
@@ -765,9 +793,9 @@ public class RouteFinder {
     }
 
     @Deprecated
-    private @NotNull
-    Route findUnobstructedRoute(final TerrainPosition startPos, final TerrainPosition endPos, Route currentRoute,
-            Map<TerrainPosition, Integer> positionValues, final TerrainPosition finalStartPos, final int MAX) {
+    private Route findUnobstructedRoute(final TerrainPosition startPos, final TerrainPosition endPos,
+            Route currentRoute, Map<TerrainPosition, Integer> positionValues, final TerrainPosition finalStartPos,
+            final int MAX) {
 
 
         if (!startPos.equals(endPos)) {
@@ -826,8 +854,12 @@ public class RouteFinder {
 
         @Override
         public boolean add(RouteRoad routeRoad) {
+            if (routeRoad == null)
+                return false;
+
             if (routeRoad.getEnd() != null)
                 routeRoad.getRoute().add(routeRoad.getEnd());
+
             return super.add(routeRoad);
         }
 

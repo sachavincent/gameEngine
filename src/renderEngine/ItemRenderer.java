@@ -12,13 +12,15 @@ import static org.lwjgl.opengl.GL31C.glDrawElementsInstanced;
 
 import entities.Entity;
 import items.Item;
-import items.buildings.BuildingItem;
+import items.PlaceHolderItem;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import models.InstancedRawModel;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
@@ -26,7 +28,7 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
-import shaders.BuildingShader;
+import shaders.ItemShader;
 import terrains.Terrain;
 import terrains.TerrainPosition;
 import textures.ModelTexture;
@@ -34,20 +36,18 @@ import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 
-public class BuildingRenderer {
+public class ItemRenderer {
 
-    private final BuildingShader shader;
+    private final ItemShader shader;
 
     private boolean displayBoundingBoxes;
 
     private boolean updateNeeded;
 
-    private Map<TexturedModel, List<Entity>> entities = new HashMap<>();
+    private final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
 
-    private final static int MATRIX_SIZE_FLOATS = 4 * 4;
-
-    // TODO: 5000 = max instances
-    private static FloatBuffer floatBuffer = MemoryUtil.memAllocFloat(5000 * MATRIX_SIZE_FLOATS);
+    // TODO: 10000 = max instances
+    private static FloatBuffer floatBuffer = MemoryUtil.memAllocFloat(10000 * 16);
 
     public boolean areBoundingBoxesDisplayed() {
         return this.displayBoundingBoxes;
@@ -58,7 +58,7 @@ public class BuildingRenderer {
         this.updateNeeded = true;
     }
 
-    public BuildingRenderer(BuildingShader shader, Matrix4f projectionMatrix) {
+    public ItemRenderer(ItemShader shader, Matrix4f projectionMatrix) {
         this.shader = shader;
 
         this.shader.start();
@@ -67,70 +67,75 @@ public class BuildingRenderer {
     }
 
     public void render() {
+        final Terrain terrain = Terrain.getInstance();
         if (updateNeeded) {
-            entities = new HashMap<>();
+            entities.clear();
 
-//            RawModel ra = OBJLoader.loadObjModel("cube");
-//            TexturedModel model = new TexturedModel(ra);
-//            List<Entity> list = new ArrayList<>();
-//            list.add(new Entity(model, new Vector3f(50, 0, 10), 0, 0, 0, 1));
-//            entities.put(model, list);
-
-            final Terrain terrain = Terrain.getInstance();
-
-            final List<BuildingItem> buildings = terrain.getBuildings();
-            buildings.forEach(building -> {
-                TerrainPosition p = building.getPosition();
+            List<Item> items = terrain.getItems().stream()
+                    .filter(item -> !(item instanceof PlaceHolderItem))
+                    .filter(Item::isInsideFrustum).collect(Collectors.toList());
+            items.forEach(item -> {
+                TerrainPosition p = item.getPosition();
                 Vector3f pos = new Vector3f(p.getX(), 0.05, p.getZ()); // TODO Remplacer y par height
 
 
-                TexturedModel texture = building.getTexture();
-                if (terrain.getPreviewItemPositions() != null && terrain.getPreviewItemPositions().contains(p)) {
-                    texture = building.getPreviewTexture();
-                }
+                TexturedModel texture = item.getTexture();
+//                if (terrain.getPreviewedItem() != null && terrain.getPreviewItemPositions().contains(p)) {
+//                    texture = item.getPreviewTexture();
+//                }
 
-                handleTexture(entities, pos, building, texture);
+                handleTexture(entities, pos, item, texture);
                 if (displayBoundingBoxes) {
-                    texture = building.getBoundingBox();
+                    texture = item.getBoundingBox();
 
-                    handleTexture(entities, pos, building, texture);
+                    handleTexture(entities, pos, item, texture);
                 }
-                if (building.isSelected()) {
-                    texture = building.getSelectionBox();
-                    handleTexture(entities, pos, building, texture);
+                if (item.isSelected()) {
+                    texture = item.getSelectionBox();
+                    handleTexture(entities, pos, item, texture);
                 }
             });
 
-//        Vector3f pos = terrain.getPreviewItemPosition();
-//        if (pos != null) { // Preview
-//            Item previewItem = terrain.getPreviewItem();
-//            handleTexture(entities, pos, previewItem, previewItem.getPreviewTexture());
-//        }
 
+            if (terrain.getPreviewedItem() != null) {
+                Item previewItem = terrain.getPreviewedItem().getPreviewItem();
+                Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
+                previewItemPositions.forEach(position -> {
+                    TexturedModel previewTexture = previewItem.getPreviewTexture();
+                    Vector3f pos = new Vector3f(position.getX(), 0.05, position.getZ()); // TODO Remplacer y par height
+                    handleTexture(entities, pos, previewItem, previewTexture);
+                });
+            }
             updateNeeded = false;
         }
-        entities.entrySet().stream().filter(entry -> entry.getKey() != null).forEach(entry -> {
-            floatBuffer.clear();
+
+        for (Entry<TexturedModel, List<Entity>> entry : entities.entrySet()) {
+            if (entry == null || entry.getKey() == null)
+                continue;
 
             TexturedModel texturedModel = entry.getKey();
 
             final RawModel rawModel = texturedModel.getRawModel();
-            if (rawModel instanceof InstancedRawModel) {
-                prepareTexturedModel(texturedModel, true);
+            if (rawModel.isInstanced()) {
                 int i = 0;
+                prepareTexturedModel(texturedModel, true);
                 for (Entity entity : entry.getValue()) {
                     Matrix4f transformationMatrix = Maths.createTransformationMatrix(entity.getPosition(),
                             entity.getRotX(), entity.getRotY(), entity.getRotZ(), entity.getScale());
-
-                    floatBuffer = transformationMatrix
-                            .store(i++ * MATRIX_SIZE_FLOATS, floatBuffer);
+                    try {
+                        floatBuffer = transformationMatrix.store(i++ * 16, floatBuffer);
+                    } catch (IndexOutOfBoundsException e) {
+                        e.printStackTrace();
+                    }
                 }
 
-                glBindBuffer(GL_ARRAY_BUFFER, ((InstancedRawModel) rawModel).getVboID());
+                glBindBuffer(GL_ARRAY_BUFFER, rawModel.getVboID());
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
                 glDrawElementsInstanced(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0,
                         entry.getValue().size());
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+                floatBuffer.clear();
             } else {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(entity -> {
@@ -139,7 +144,7 @@ public class BuildingRenderer {
                 });
             }
             unbindTexturedModel();
-        });
+        }
     }
 
     private void handleTexture(Map<TexturedModel, List<Entity>> entities, Vector3f pos, Item item,

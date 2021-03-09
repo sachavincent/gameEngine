@@ -12,9 +12,9 @@ public class PathfindingService extends Service<Route> {
     private final RoadGraph       roadGraph;
     private final int             maxLength;
 
-    public PathfindingService(RoadGraph roadGraph, TerrainPosition from, TerrainPosition end, int maxLength,
+    public PathfindingService(boolean singleton, RoadGraph roadGraph, TerrainPosition from, TerrainPosition end, int maxLength,
             OnServiceDone<Route> onServiceDone) {
-        super(onServiceDone);
+        super(singleton, onServiceDone);
 
         this.from = from;
         this.end = end;
@@ -23,7 +23,7 @@ public class PathfindingService extends Service<Route> {
     }
 
     @Override
-    protected Route execute() {
+    protected synchronized Route execute() {
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         return routeFinder.findBestRoute(from, end, maxLength);

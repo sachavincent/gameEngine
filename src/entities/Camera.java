@@ -1,18 +1,19 @@
 package entities;
 
+import renderEngine.FrustumCullingFilter;
 import terrains.TerrainPosition;
 import util.MousePicker;
 import util.math.Vector3f;
 
 public class Camera {
 
-    public final static  double MOVING_STEP = .6;
+    public final static  double MOVING_STEP = .3;
     private static final int    MAX_ZOOM    = 10;
 
     private final Vector3f position = new Vector3f(1, 20, 1);
     private       float    pitch    = 20;
-    private int      yaw;
-    private float    roll;
+    private       int      yaw;
+    private       float    roll;
 
     private Direction direction;
 
@@ -72,6 +73,7 @@ public class Camera {
         this.position.z += movingFactor.z;
         if (!movingFactor.equals(new Vector3f(0, 0, 0))) {
             focusPoint = MousePicker.getInstance().getCurrentTerrainPoint();
+            FrustumCullingFilter.updateFrustum();
         }
 
         float horizontalDistance = calculateHorizontalDistance();
@@ -271,6 +273,10 @@ public class Camera {
 //                    .findFirst().orElse(null);
         }
 
+        public static Direction[] any() {
+            return Direction.values();
+        }
+
         public Direction getOppositeDirection() {
             return getDirectionFromDegree(degree + 180);
         }
@@ -286,7 +292,22 @@ public class Camera {
                 case SOUTH:
                     return new TerrainPosition(-1, 0);
                 default:
-                    return new TerrainPosition(0,0);
+                    return new TerrainPosition(0, 0);
+            }
+        }
+
+        public static TerrainPosition toRelativeDistance(Direction direction, int multiple) {
+            switch (direction) {
+                case WEST:
+                    return new TerrainPosition(0, -multiple);
+                case NORTH:
+                    return new TerrainPosition(multiple, 0);
+                case EAST:
+                    return new TerrainPosition(0, multiple);
+                case SOUTH:
+                    return new TerrainPosition(-multiple, 0);
+                default:
+                    return new TerrainPosition(0, 0);
             }
         }
     }

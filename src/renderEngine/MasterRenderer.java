@@ -1,15 +1,9 @@
 package renderEngine;
 
-import entities.Camera;
-import entities.Entity;
 import entities.Light;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
-import shaders.BuildingShader;
+import shaders.ItemShader;
 import shaders.StaticShader;
 import shaders.TerrainShader;
 import skybox.SkyboxRenderer;
@@ -28,16 +22,16 @@ public class MasterRenderer {
 
     private Matrix4f projectionMatrix;
 
-    private final StaticShader   shader         = new StaticShader();
-    private final BuildingShader buildingShader = new BuildingShader();
-    private final TerrainShader  terrainShader  = new TerrainShader();
+    private final StaticShader  shader        = new StaticShader();
+    private final ItemShader    itemShader    = new ItemShader();
+    private final TerrainShader terrainShader = new TerrainShader();
 
-    private final EntityRenderer   entityRenderer;
-    private final BuildingRenderer buildingRenderer;
-    private final SkyboxRenderer   skyboxRenderer;
-    private final TerrainRenderer  terrainRenderer;
+    private final EntityRenderer  entityRenderer;
+    private final ItemRenderer    itemRenderer;
+    private final SkyboxRenderer  skyboxRenderer;
+    private final TerrainRenderer terrainRenderer;
 
-    private final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
+//    private final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
 
     private static MasterRenderer instance;
 
@@ -49,8 +43,8 @@ public class MasterRenderer {
         return this.entityRenderer;
     }
 
-    public BuildingRenderer getBuildingRenderer() {
-        return this.buildingRenderer;
+    public ItemRenderer getItemRenderer() {
+        return this.itemRenderer;
     }
 
     public static MasterRenderer getInstance() {
@@ -62,59 +56,58 @@ public class MasterRenderer {
 
         createProjectionMatrix();
         entityRenderer = new EntityRenderer(shader, projectionMatrix);
-        buildingRenderer = new BuildingRenderer(buildingShader, projectionMatrix);
+        itemRenderer = new ItemRenderer(itemShader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
         skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
     }
 
-    public void renderScene(List<Entity> entities, List<Light> lights,
-            Camera camera, Vector4f clipPlane) {
-        entities.forEach(this::processEntity);
+    public void renderScene(List<Light> lights, Vector4f clipPlane) {
+//        entities.forEach(this::processEntity);
 
-        render(lights, camera, clipPlane);
+        render(lights, clipPlane);
     }
 
-    public void render(List<Light> lights, Camera camera, Vector4f clipPlane) {
+    public void render(List<Light> lights, Vector4f clipPlane) {
         prepare();
         shader.start();
         shader.loadClipPlane(clipPlane);
         shader.loadSkyColor(RED, GREEN, BLUE);
         shader.loadLights(lights);
-        shader.loadViewMatrix(camera);
-        entityRenderer.render(entities);
+        shader.loadViewMatrix();
+//        entityRenderer.render(entities);
         shader.stop();
 
-        buildingShader.start();
-        buildingShader.loadClipPlane(clipPlane);
-        buildingShader.loadSkyColor(RED, GREEN, BLUE);
-        buildingShader.loadLights(lights);
-        buildingShader.loadViewMatrix(camera);
-        buildingRenderer.render();
-        buildingShader.stop();
+        itemShader.start();
+        itemShader.loadClipPlane(clipPlane);
+        itemShader.loadSkyColor(RED, GREEN, BLUE);
+        itemShader.loadLights(lights);
+        itemShader.loadViewMatrix();
+        itemRenderer.render();
+        itemShader.stop();
 
         terrainShader.start();
         terrainShader.loadClipPlane(clipPlane);
         terrainShader.loadSkyColor(RED, GREEN, BLUE);
         terrainShader.loadLights(lights);
-        terrainShader.loadViewMatrix(camera);
+        terrainShader.loadViewMatrix();
         terrainRenderer.render();
         terrainShader.stop();
 
-        skyboxRenderer.render(camera);
-        entities.clear();
+        skyboxRenderer.render();
+//        entities.clear();
     }
 
-    private void processEntity(Entity entity) {
-        TexturedModel entityModel = entity.getModel();
-        List<Entity> batch = entities.get(entityModel);
-        if (batch != null)
-            batch.add(entity);
-        else {
-            List<Entity> newBatch = new ArrayList<>();
-            newBatch.add(entity);
-            entities.put(entityModel, newBatch);
-        }
-    }
+//    private void processEntity(Entity entity) {
+//        TexturedModel entityModel = entity.getModel();
+//        List<Entity> batch = entities.get(entityModel);
+//        if (batch != null)
+//            batch.add(entity);
+//        else {
+//            List<Entity> newBatch = new ArrayList<>();
+//            newBatch.add(entity);
+//            entities.put(entityModel, newBatch);
+//        }
+//    }
 
     /**
      * Doesn't render normals facing away from the camera
@@ -133,7 +126,7 @@ public class MasterRenderer {
     public void cleanUp() {
         shader.cleanUp();
         terrainShader.cleanUp();
-        buildingShader.cleanUp();
+        itemShader.cleanUp();
     }
 
     private void prepare() {

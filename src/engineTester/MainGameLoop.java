@@ -8,10 +8,7 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.FPS;
 import static renderEngine.DisplayManager.getWindow;
 
-import abstractItem.AbstractInsula;
-import abstractItem.ItemPreviews;
 import entities.Camera;
-import entities.Entity;
 import entities.Light;
 import fontMeshCreator.FontType;
 import fontRendering.TextMaster;
@@ -25,19 +22,27 @@ import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
+import items.abstractItem.AbstractDirtRoadItem;
+import items.abstractItem.AbstractInsula;
+import items.abstractItem.AbstractMarket;
+import items.abstractItem.ItemPreviews;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import language.TextConverter;
 import org.lwjgl.opengl.GL;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
 import renderEngine.DisplayManager;
+import renderEngine.FrustumCullingFilter;
 import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import shaders.WaterShader;
+import terrains.Terrain;
 import terrains.TerrainPosition;
 import textures.FontTexture;
 import util.Timer;
@@ -95,6 +100,11 @@ public class MainGameLoop {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
+
+        AbstractInsula.getInstance();
+        AbstractMarket.getInstance();
+
+
         TextConverter.loadDefaultLanguage();
 //        TextConverter.loadLanguage(Language.FRENCH);
 
@@ -109,9 +119,6 @@ public class MainGameLoop {
 
         Light sun = new Light(new Vector3f(75, 200, 75), new Vector3f(1.3f, 1.3f, 1.3f));
         lights.add(sun);
-
-
-        List<Entity> entities = new ArrayList<>();
 
         MasterRenderer renderer = MasterRenderer.getInstance();
 
@@ -166,18 +173,28 @@ public class MainGameLoop {
 
         TextMaster textMaster = TextMaster.getInstance();
 
-//        AbstractMarket abstractMarket = new AbstractMarket();
-//        abstractMarket.place(new Vector2f(50, 50));
+        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
 
-        AbstractInsula abstractInsula = new AbstractInsula();
-        abstractInsula.place(new TerrainPosition(35, 50));
-//
-//        abstractMarket.place(new Vector2f(20, 20));
-        abstractInsula.place(new TerrainPosition(15, 10));
+        TerrainPosition[] positions = new TerrainPosition[15];
+        TerrainPosition[] positions2 = new TerrainPosition[14];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+        for (int i = 50; i < 64; i++)
+            positions2[i - 50] = new TerrainPosition(i, 70);
 
-//        Random random = new Random();
-//        for (int i = 0; i < 3; i++)
-//            abstractInsula.place(new Vector2f(random.nextInt(200), random.nextInt(200)));
+        AbstractInsula.getInstance().place(new TerrainPosition(62,74));
+        AbstractDirtRoadItem.getInstance().place(positions);
+        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 55));
+        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(49, 55));
+        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 63));
+        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(62, 71));
+
+        List<TerrainPosition> pos = Arrays.asList(positions2);
+        Collections.reverse(pos);
+        positions2 = pos.toArray(new TerrainPosition[0]);
+        AbstractDirtRoadItem.getInstance().place(positions2);
+
+        FrustumCullingFilter.updateFrustum();
 
         double frameCap = 1.0 / FPS;
         double time = Timer.getTime();
@@ -228,21 +245,22 @@ public class MainGameLoop {
 
 //                buffers.unbindCurrentFrameBuffer();
 
-                if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
-                    fbo.bindFrameBuffer();
+//                if (GuiEscapeMenu.getEscapeMenu().isDisplayed()) {
+//                    fbo.bindFrameBuffer();
 
-                    renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
-                    waterRenderer.render(waters, camera, sun);
-                    fbo.unbindFrameBuffer();
-
-                    PostProcessing.doPostProcessing(fbo.getColourTexture());
-                } else {
-                    renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
+                renderer.renderScene(lights, new Vector4f(0, -1, 0, 1000000));
 //                    waterRenderer.render(waters, camera, sun);
-                }
+//                    fbo.unbindFrameBuffer();
+
+//                    PostProcessing.doPostProcessing(fbo.getColourTexture());
+//                } else {
+//                    renderer.renderScene(lights, camera, new Vector4f(0, -1, 0, 1000000));
+//                    waterRenderer.render(waters, camera, sun);
+//                }
 //                renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, 1000000));
 //                waterRenderer.render(waters, camera, sun);
 
+                Terrain.getInstance().updateHighlightedPaths();
                 GuiRenderer.render();
 
                 textMaster.render();//TODO: Handle double rendering w/ GuiRenderer

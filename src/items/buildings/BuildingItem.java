@@ -56,6 +56,10 @@ public abstract class BuildingItem extends Item implements RotatableItem, Connec
         return this.connected[direction.ordinal()] != NONE;
     }
 
+    public Connections[] getConnected() {
+        return this.connected;
+    }
+
     @Override
     public boolean isConnected() {
         for (Direction direction : Direction.values()) {

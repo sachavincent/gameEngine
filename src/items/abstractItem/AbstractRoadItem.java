@@ -1,4 +1,4 @@
-package abstractItem;
+package items.abstractItem;
 
 import guis.presets.Background;
 import items.Item;
@@ -13,21 +13,27 @@ public abstract class AbstractRoadItem extends AbstractItem {
     }
 
     @Override
-    public void place(TerrainPosition position) {
+    public Item place(TerrainPosition position) {
         if (position == null)
-            return;
+            return null;
 
         Terrain terrain = Terrain.getInstance();
 
-        if (terrain.isPositionOccupied(position))
-            return;
+        if (terrain.isPositionOccupied(position)) {
+            System.err.println("Position " + position + " occupied!");
+            return null;
+        }
 
         RoadItem itemInstance = (RoadItem) newInstance(position);
-        boolean done = terrain.addItem(position, itemInstance.updateNeighboursAndCenter(position));
+        boolean done = terrain.addItem(itemInstance.updateNeighboursAndCenter(position));
         terrain.getRoadGraph().addRoad(position);
 
         if (done)
             terrain.updateRequirements();
+
+        System.out.println("placed " + this.item.getName() + " at " + position);
+
+        return itemInstance;
     }
 
     @Override
@@ -38,8 +44,15 @@ public abstract class AbstractRoadItem extends AbstractItem {
         Terrain terrain = Terrain.getInstance();
 
         for (TerrainPosition position : positions) {
+            if (terrain.isPositionOccupied(position)) {
+                System.err.println("Position " + position + " occupied!");
+                return;
+            }
+        }
+
+        for (TerrainPosition position : positions) {
             RoadItem itemInstance = (RoadItem) newInstance(position);
-            terrain.addItem(position, itemInstance);
+            terrain.addItem(itemInstance.updateNeighboursAndCenter(position));
             terrain.getRoadGraph().addRoad(position);
         }
 

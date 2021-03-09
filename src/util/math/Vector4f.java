@@ -121,7 +121,7 @@ public class Vector4f extends Vector implements Serializable, ReadableVector4f, 
             dls = 1.0F;
         }
 
-        return (float) Math.acos((double) dls);
+        return (float) Math.acos(dls);
     }
 
     public Vector load(FloatBuffer buf) {
@@ -195,5 +195,13 @@ public class Vector4f extends Vector implements Serializable, ReadableVector4f, 
             Vector4f other = (Vector4f) obj;
             return this.x == other.x && this.y == other.y && this.z == other.z && this.w == other.w;
         }
+    }
+
+    public void normalize3() {
+        float invLength = Maths.invsqrt(Math.fma(x, x, Math.fma(y, y, z * z)));
+        this.x = x * invLength;
+        this.y = y * invLength;
+        this.z = z * invLength;
+        this.w = w * invLength;
     }
 }

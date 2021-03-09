@@ -1,6 +1,5 @@
 package shaders;
 
-import entities.Camera;
 import entities.Light;
 import java.util.List;
 import util.math.Maths;
@@ -9,12 +8,12 @@ import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 
-public class BuildingShader extends ShaderProgram {
+public class ItemShader extends ShaderProgram {
 
     private static final int MAX_LIGHTS = 10;
 
-    private static final String VERTEX_FILE   = "buildingVertexShader.glsl";
-    private static final String FRAGMENT_FILE = "buildingFragmentShader.glsl";
+    private static final String VERTEX_FILE   = "itemVertexShader.glsl";
+    private static final String FRAGMENT_FILE = "itemFragmentShader.glsl";
 
     private int   location_transformationMatrix;
     private int   location_projectionMatrix;
@@ -32,7 +31,7 @@ public class BuildingShader extends ShaderProgram {
     private int   location_directionalColor;
     private int   location_isInstanced;
 
-    public BuildingShader() {
+    public ItemShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
     }
 
@@ -125,8 +124,8 @@ public class BuildingShader extends ShaderProgram {
         }
     }
 
-    public void loadViewMatrix(Camera camera) {
-        Matrix4f matrix = Maths.createViewMatrix(camera);
+    public void loadViewMatrix() {
+        Matrix4f matrix = Maths.createViewMatrix();
         super.loadMatrix(location_viewMatrix, matrix);
     }
 }

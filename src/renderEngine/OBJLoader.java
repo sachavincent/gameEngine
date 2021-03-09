@@ -2,7 +2,6 @@ package renderEngine;
 
 import items.Item;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import models.BoundingBox;
-import models.InstancedRawModel;
 import models.RawModel;
 import models.TexturedModel;
 import textures.ModelTexture;
@@ -24,7 +22,7 @@ public class OBJLoader {
     public static RawModel loadObjModel(String fileName) {
         FileReader fr;
         try {
-            fr = new FileReader(new File("res/" + fileName + ".obj"));
+            fr = new FileReader("res/" + fileName + ".obj");
         } catch (FileNotFoundException e) {
             System.err.println("Couldn't load obj file!");
             e.printStackTrace();
@@ -53,47 +51,22 @@ public class OBJLoader {
 
         return rawModel;
     }
-//
-//    public static RawModel[] loadRoadModel(String fileName) {
-//        FileReader fr;
-//        try {
-//            fr = new FileReader(new File("res/roads/" + fileName + ".obj"));
-//        } catch (FileNotFoundException e) {
-//            System.err.println("Couldn't load obj file!");
-//            e.printStackTrace();
-//
-//            return null;
-//        }
-//
-//        RawModel[] rawModels = new RawModel[4];
-//        BufferedReader reader = new BufferedReader(fr);
-//
-//        try {
-//            rawModels[0] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED EAST");
-//            rawModels[1] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED WEST");
-//            rawModels[2] = handleIndicesTexturesNormalsVertex(reader, "CONNECTED");
-//            rawModels[3] = handleIndicesTexturesNormalsVertex(reader, null);
-//        } catch (IOException e) {
-//            System.err.println("Oops");
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                reader.close();
-//                fr.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//
-//        return rawModels;
-//    }
+
+    public static RawModel loadRoadModel() {
+        float[] vertices = new float[]{-1, 0, 1, 1, 0, 1, -1, 0, -1, 1, 0, -1};
+        float[] textureCoords = new float[]{0, 0, 1, 0, 0, 1, 1, 1};
+        float[] normals = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
+        int[] indices = new int[]{1, 2, 0, 1, 3, 2};
+        Vector3f min = new Vector3f(-1, 0, -1);
+        Vector3f max = new Vector3f(1, 0, 1);
+
+        return Loader.getInstance().loadInstancesToVAO(vertices, textureCoords, normals, indices, min, max);
+    }
 
     public static Item loadObjForItem(Item item, boolean doesUseDirectionalColor) {
         FileReader fr;
         try {
-//            fr = new FileReader(new File("res/cube.obj"));
-            fr = new FileReader(new File("res/" + item.getName().toLowerCase() + ".obj"));
+            fr = new FileReader("res/" + item.getName().toLowerCase() + ".obj");
         } catch (FileNotFoundException e) {
             System.err.println("Couldn't load obj file!");
             e.printStackTrace();
@@ -107,8 +80,7 @@ public class OBJLoader {
         List<Vector3f> vertices = new ArrayList<>();
 
         try {
-            InstancedRawModel rawModel = (InstancedRawModel) handleIndicesTexturesNormalsVertex(reader, "BoundingBox",
-                    true);
+            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);
 
             item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", false)));
 //            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));

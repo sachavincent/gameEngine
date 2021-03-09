@@ -43,7 +43,7 @@ public class Matrix4f extends Matrix implements Serializable {
                 .append(String.format("%.5f", this.m22)).append(' ').append(String.format("%.5f", this.m32))
                 .append('\n');
         buf.append(String.format("%.5f", this.m03)).append(' ').append(String.format("%.5f", this.m13)).append(' ')
-                .append(String.format("%.5f", this.m23)).append(' ').append(String.format("%.5f",this.m33))
+                .append(String.format("%.5f", this.m23)).append(' ').append(String.format("%.5f", this.m33))
                 .append('\n');
         return buf.toString();
     }
@@ -185,7 +185,7 @@ public class Matrix4f extends Matrix implements Serializable {
     }
 
 
-    public FloatBuffer store(int index, FloatBuffer buf) {
+    public FloatBuffer store(int index, FloatBuffer buf) throws IndexOutOfBoundsException {
         buf.put(index, this.m00);
         buf.put(index + 1, this.m01);
         buf.put(index + 2, this.m02);
@@ -861,5 +861,38 @@ public class Matrix4f extends Matrix implements Serializable {
     Matrix4f _m33(float m33) {
         this.m33 = m33;
         return this;
+    }
+
+    public Vector4f frustumPlane(int plane) {
+        Vector4f dest = new Vector4f();
+        switch (plane) {
+            case 0: // PLANE_NX
+                dest.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30);
+                dest.normalize3();
+                break;
+            case 1: // PLANE_PX
+                dest.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30);
+                dest.normalize3();
+                break;
+            case 2: // PLANE_NY
+                dest.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31);
+                dest.normalize3();
+                break;
+            case 3: // PLANE_PY
+                dest.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31);
+                dest.normalize3();
+                break;
+            case 4: // PLANE_NZ
+                dest.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32);
+                dest.normalize3();
+                break;
+            case 5: // PLANE_PZ
+                dest.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32);
+                dest.normalize3();
+                break;
+            default:
+                throw new IllegalArgumentException("dest");
+        }
+        return dest;
     }
 }

@@ -1,14 +1,15 @@
 package items.buildings.houses;
 
-import abstractItem.AbstractMarket;
 import entities.Camera.Direction;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.Item;
+import items.abstractItem.AbstractItem;
 import items.buildings.BuildingItem;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import pathfinding.RouteFinder.Route;
 import people.Farmer;
 import people.Person;
 import people.SocialClass;
@@ -16,25 +17,24 @@ import resources.ResourceManager.Resource;
 import terrains.Terrain;
 import terrains.TerrainPosition;
 
-public class HouseItem extends BuildingItem implements RequireBuilding {
+public abstract class HouseItem extends BuildingItem implements RequireBuilding {
 
-    private final int maxPeopleCapacity;
-
+    private final int                                maxPeopleCapacity;
     private final EnumMap<SocialClass, List<Person>> classes;
 
-    private boolean meetRequirements;
+    protected Map<AbstractItem, Route> requirements = new HashMap<>();
 
     public HouseItem(TerrainPosition terrainPosition, String name, Item copy, int maxPeopleCapacity,
             int xNegativeOffset, int xPositiveOffset, int height, int zNegativeOffset, int zPositiveOffset,
-            EnumSet<SocialClass> socialClasses, Direction... directions) {
-        super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset,
-                directions);
+            EnumSet<SocialClass> socialClasses,             Direction... directions) {
+        super(terrainPosition, name, copy, xNegativeOffset, xPositiveOffset,
+                height, zNegativeOffset, zPositiveOffset, directions);
 
         this.maxPeopleCapacity = maxPeopleCapacity;
         this.classes = new EnumMap<>(SocialClass.class);
 
         for (SocialClass socialClass : socialClasses) {
-            classes.put(socialClass, new ArrayList<>());
+            this.classes.put(socialClass, new ArrayList<>());
         }
     }
 
@@ -83,28 +83,6 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
         Terrain.getInstance().removePerson();
     }
 
-    /**
-     * Requirements of the Item
-     * For each item, the max length (road) at which the requirement needs to be found
-     * This integer defines the search radius.
-     * 0 = infinite range
-     *
-     * @return the requirements
-     */
-    @Override
-    public Map<BuildingItem, Integer> getRequirements() {
-        Map<BuildingItem, Integer> requirements = new HashMap<>();
-
-        requirements.put(AbstractMarket.getAbstractInstance(), 0);
-
-        return requirements;
-    }
-
-    @Override
-    public void meetRequirements() {
-        this.meetRequirements = true;
-    }
-
     @Override
     public void select() {
         super.select();
@@ -123,8 +101,15 @@ public class HouseItem extends BuildingItem implements RequireBuilding {
         GuiHouseDetails.getInstance().removeHouseItem();
     }
 
+
     @Override
-    public boolean doesMeetRequirements() {
-        return this.meetRequirements;
+    public boolean doesMeetRequirement(AbstractItem abstractItem) {
+        return this.requirements.containsKey(abstractItem);
     }
+
+    @Override
+    public Route getRouteToItem(AbstractItem abstractItem) {
+        return this.requirements.get(abstractItem);
+    }
+
 }

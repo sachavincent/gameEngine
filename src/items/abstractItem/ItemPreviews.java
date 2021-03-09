@@ -1,4 +1,4 @@
-package abstractItem;
+package items.abstractItem;
 
 import guis.presets.Background;
 

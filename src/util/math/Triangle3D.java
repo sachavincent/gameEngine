@@ -1,6 +1,5 @@
 package util.math;
 
-import com.sun.istack.internal.NotNull;
 import java.util.Objects;
 
 public class Triangle3D {
@@ -9,7 +8,7 @@ public class Triangle3D {
     private final Vector3f pointB;
     private final Vector3f pointC;
 
-    public Triangle3D(@NotNull Vector3f pointA, @NotNull Vector3f pointB, @NotNull Vector3f pointC) {
+    public Triangle3D(Vector3f pointA, Vector3f pointB, Vector3f pointC) {
         this.pointA = pointA;
         this.pointB = pointB;
         this.pointC = pointC;

@@ -2,8 +2,11 @@ package items;
 
 import entities.Camera.Direction;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import models.BoundingBox;
 import models.TexturedModel;
+import renderEngine.FrustumCullingFilter;
 import terrains.TerrainPosition;
 
 public abstract class Item {
@@ -14,7 +17,10 @@ public abstract class Item {
 
     protected String name;
 
-    protected int xNegativeOffset, xPositiveOffset, height, zNegativeOffset, zPositiveOffset;
+    protected int height;
+
+    // WEST NORTH EAST SOUTH
+    protected int[] offsets = new int[4];
 
     protected TexturedModel texture;
     protected TexturedModel previewTexture;
@@ -27,19 +33,18 @@ public abstract class Item {
 
     protected boolean selected;
 
-    private TerrainPosition terrainPosition;
+    protected TerrainPosition terrainPosition;
 
     public Item(TerrainPosition terrainPosition, String name, int xNegativeOffset, int xPositiveOffset, int height,
             int zNegativeOffset, int zPositiveOffset) {
         this.terrainPosition = terrainPosition;
 
-        this.xNegativeOffset = xNegativeOffset;
-        this.xPositiveOffset = xPositiveOffset;
+        offsets[0] = zPositiveOffset;
+        offsets[1] = xPositiveOffset;
+        offsets[2] = zNegativeOffset;
+        offsets[3] = xNegativeOffset;
 
         this.height = height;
-
-        this.zNegativeOffset = zNegativeOffset;
-        this.zPositiveOffset = zPositiveOffset;
 
         this.id = max_id++;
 
@@ -125,38 +130,57 @@ public abstract class Item {
     }
 
     public int getxNegativeOffset() {
-        return this.xNegativeOffset;
+        return this.offsets[3];
     }
 
     public int getxPositiveOffset() {
-        return this.xPositiveOffset;
+        return this.offsets[1];
     }
 
     public int getzNegativeOffset() {
-        return this.zNegativeOffset;
+        return this.offsets[2];
     }
 
     public int getzPositiveOffset() {
-        return this.zPositiveOffset;
+        return this.offsets[0];
+    }
+
+    public TerrainPosition[] getOffsetPositions() {
+        int size = (getxNegativeOffset() + getzPositiveOffset() + 1)
+                * (getxNegativeOffset() + getxPositiveOffset() + 1);
+        TerrainPosition[] positions = new TerrainPosition[size];
+
+        AtomicInteger i = new AtomicInteger();
+        IntStream.range(-getxNegativeOffset(), getxPositiveOffset() + 1).forEach(x -> {
+            IntStream.range(-getzNegativeOffset(), getzPositiveOffset() + 1).forEach(z -> {
+                positions[i.getAndIncrement()] = new TerrainPosition(x, z);
+            });
+        });
+
+        return positions;
     }
 
     public TerrainPosition getOffset(Direction direction) {
         TerrainPosition res = new TerrainPosition(0, 0);
         switch (direction) {
             case NORTH:
-                res.setX(this.xPositiveOffset);
+                res.setX(this.getxPositiveOffset());
                 break;
             case SOUTH:
-                res.setX(-this.xNegativeOffset);
+                res.setX(-this.getxNegativeOffset());
                 break;
             case WEST:
-                res.setZ(-this.zNegativeOffset);
+                res.setZ(-this.getzNegativeOffset());
                 break;
             case EAST:
-                res.setZ(this.zPositiveOffset);
+                res.setZ(this.getzPositiveOffset());
                 break;
         }
         return res;
+    }
+
+    public int[] getOffsets() {
+        return this.offsets;
     }
 
     public int getHeight() {
@@ -184,5 +208,17 @@ public abstract class Item {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "id=" + id +
+                ", terrainPosition=" + terrainPosition +
+                '}';
+    }
+
+    public boolean isInsideFrustum() {
+        return FrustumCullingFilter.insideFrustum(this);
     }
 }

@@ -1,6 +1,5 @@
 package shaders;
 
-import entities.Camera;
 import entities.Light;
 import java.util.List;
 import util.math.Maths;
@@ -114,8 +113,8 @@ public class TerrainShader extends ShaderProgram {
         }
     }
 
-    public void loadViewMatrix(Camera camera) {
-        Matrix4f viewMatrix = Maths.createViewMatrix(camera);
+    public void loadViewMatrix() {
+        Matrix4f viewMatrix =  Maths.createViewMatrix();
         super.loadMatrix(location_viewMatrix, viewMatrix);
     }
 

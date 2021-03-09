@@ -1,6 +1,5 @@
 package shaders;
 
-import entities.Camera;
 import util.math.Maths;
 import util.math.Matrix4f;
 
@@ -20,8 +19,8 @@ public class SkyboxShader extends ShaderProgram {
         super.loadMatrix(location_projectionMatrix, matrix);
     }
 
-    public void loadViewMatrix(Camera camera) {
-        Matrix4f matrix = Maths.createViewMatrix(camera);
+    public void loadViewMatrix() {
+        Matrix4f matrix =  Maths.createViewMatrix();
         matrix.m30 = 0;
         matrix.m31 = 0;
         matrix.m32 = 0;
