@@ -10,29 +10,23 @@ import java.awt.Color;
 
 public class GuiRectangleButton extends GuiAbstractButton {
 
-    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipText,
-            GuiConstraintsManager constraintsManager) {
-        super(parent, background, text, tooltipText, constraintsManager);
-    }
-
     public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text,
             GuiConstraintsManager constraintsManager) {
         super(parent, background, text, constraintsManager);
     }
 
+    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
+            GuiConstraintsManager constraintsManager) {
+        super(parent, background, text, tooltipGui, constraintsManager);
+    }
+
     public GuiRectangleButton(GuiInterface parent, Background<?> background,
             GuiConstraintsManager constraintsManager) {
-        this(parent, background, null, constraintsManager);
+        super(parent, background, constraintsManager);
     }
 
-    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipText,
-            GuiConstraintsManager constraintsManager, int cornerRadius) {
-        super(parent, background, text, tooltipText, constraintsManager, cornerRadius);
-    }
-
-    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipText,
-            int cornerRadius) {
-        super(parent, background, text, tooltipText, cornerRadius);
+    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text) {
+        super(parent, background, text);
     }
 
     public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text,
@@ -40,15 +34,30 @@ public class GuiRectangleButton extends GuiAbstractButton {
         super(parent, background, text, constraintsManager, cornerRadius);
     }
 
-    public GuiRectangleButton(GuiInterface parent, Background<?> background,
+    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
             GuiConstraintsManager constraintsManager, int cornerRadius) {
-        this(parent, background, null, constraintsManager, cornerRadius);
+        super(parent, background, text, tooltipGui, constraintsManager, cornerRadius);
     }
 
-//    @Override
-//    protected void addBackgroundComponent(Background<?> background) {
-//        this.buttonLayout = new GuiRectangle(this, background, new RelativeConstraint(1), new RelativeConstraint(1));
-//    }
+    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui,
+            int cornerRadius) {
+        super(parent, background, text, tooltipGui, cornerRadius);
+    }
+
+    public GuiRectangleButton(GuiInterface parent, Background<?> background, Text text, Text tooltipGui) {
+        super(parent, background, text, tooltipGui);
+    }
+
+    public GuiRectangleButton(GuiInterface parent, Background<?> background,
+            GuiConstraintsManager constraintsManager, int cornerRadius) {
+        super(parent, background, constraintsManager, cornerRadius);
+    }
+
+
+    @Override
+    protected void setButtonShape(Background<?> background) {
+        this.buttonShape = new GuiRectangle(this, background, new RelativeConstraint(1), new RelativeConstraint(1));
+    }
 
     @Override
     protected void setFilter() {
@@ -62,6 +71,7 @@ public class GuiRectangleButton extends GuiAbstractButton {
                 new GuiRectangle(this, new Background<>(color), new RelativeConstraint(1), new RelativeConstraint(1),
                         false));
     }
+
 
     @Override
     public String toString() {

@@ -1,6 +1,6 @@
 package fontMeshCreator;
 
-import fontRendering.TextMaster;
+import renderEngine.fontRendering.TextMaster;
 import java.awt.Color;
 import java.util.Objects;
 import language.LanguageAssets;

@@ -119,12 +119,12 @@ public class Maths {
         return closestDistanceRec1 < closestDistanceRec2;
     }
 
-    public static boolean[] shiftArray(boolean[] array) {
+    public static <T> T[] shiftArray(T[] array) {
         if (array.length == 0)
             return array;
 
-        boolean lastValue = array[array.length - 1];
-        boolean[] resArray = new boolean[array.length];
+        T lastValue = array[array.length - 1];
+        T[] resArray = array.clone();
         System.arraycopy(array, 0, resArray, 1, array.length - 1);
         resArray[0] = lastValue;
 

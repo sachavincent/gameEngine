@@ -9,37 +9,17 @@ public interface GuiInterface {
 
     float getY();
 
-    float getStartX();
-
-    float getStartY();
-
-    float getFinalWidth();
-
-    float getFinalHeight();
-
-    float getFinalX();
-
-    float getFinalY();
-
     float getWidth();
 
     float getHeight();
-
-    void setStartX(float startX);
 
     void setX(float x);
 
     void setY(float y);
 
-    void setStartY(float startY);
+    void setWidth(float width);
 
-    void setFinalX(float finalX);
-
-    void setFinalY(float finalY);
-
-    void setFinalWidth(float finalWidth);
-
-    void setFinalHeight(float finalHeight);
+    void setHeight(float height);
 
     void setAlpha(float alpha);
 
@@ -64,4 +44,5 @@ public interface GuiInterface {
     default boolean update() {
         return true;
     }
+
 }

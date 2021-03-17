@@ -11,18 +11,18 @@ class MathsTest {
 
     @org.junit.jupiter.api.Test
     void testEmptyArray() {
-        boolean[] test = new boolean[0];
+        Boolean[] test = new Boolean[0];
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
     }
 
     @org.junit.jupiter.api.Test
     void testArrayLength1() {
-        boolean[] test = new boolean[]{true};
+        Boolean[] test = new Boolean[]{true};
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -30,9 +30,9 @@ class MathsTest {
 
     @org.junit.jupiter.api.Test
     void testArrayLength2() {
-        boolean[] test = new boolean[]{true, true};
+        Boolean[] test = new Boolean[]{true, true};
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -41,9 +41,9 @@ class MathsTest {
 
     @org.junit.jupiter.api.Test
     void testArrayLength2_2() {
-        boolean[] test = new boolean[]{false, true};
+        Boolean[] test = new Boolean[]{false, true};
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -52,9 +52,9 @@ class MathsTest {
 
     @org.junit.jupiter.api.Test
     void testArrayLength2_3() {
-        boolean[] test = new boolean[]{true, false};
+        Boolean[] test = new Boolean[]{true, false};
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
         assertFalse(testEnd[0]);
@@ -63,12 +63,12 @@ class MathsTest {
 
     @org.junit.jupiter.api.Test
     void testArrayLength3() {
-        boolean[] test = new boolean[]{true, true, false};
+        Boolean[] test = new Boolean[]{true, true, false};
 
-        boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArray(test);
 
         assertEquals(testEnd.length, test.length);
-        assertArrayEquals(testEnd, new boolean[]{false, true, true});
+        assertArrayEquals(testEnd, new Boolean[]{false, true, true});
     }
 
 }

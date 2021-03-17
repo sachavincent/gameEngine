@@ -31,7 +31,7 @@ public class CategoriesTab extends GuiRectangle {
 
     public CategoriesTab(GuiHouseDetails gui) {
         super(gui, DEFAULT_BACKGROUND, CONSTRAINTS);
-        setChildrenConstraints(new RatioedPatternGlobalConstraint(1, 3, 0, -1f, 33.33f, -1f, 33.33f, -1f, 33.33f));
+        setChildrenConstraints(new RatioedPatternGlobalConstraint(1, 3, 0, 0, -1f, 33.33f, -1f, 33.33f, -1f, 33.33f));
 
         addFoodButton();
         addDrinksButton();

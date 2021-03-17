@@ -1,5 +1,6 @@
 package items.buildings.houses;
 
+import engineTester.Game;
 import entities.Camera.Direction;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
@@ -14,7 +15,6 @@ import people.Farmer;
 import people.Person;
 import people.SocialClass;
 import resources.ResourceManager.Resource;
-import terrains.Terrain;
 import terrains.TerrainPosition;
 
 public abstract class HouseItem extends BuildingItem implements RequireBuilding {
@@ -70,7 +70,7 @@ public abstract class HouseItem extends BuildingItem implements RequireBuilding 
 
         this.classes.get(person.getSocialClass()).add(person);
 
-        return Terrain.getInstance().addPerson();
+        return Game.getInstance().addPerson();
     }
 
 
@@ -80,7 +80,7 @@ public abstract class HouseItem extends BuildingItem implements RequireBuilding 
 
         this.classes.get(person.getSocialClass()).remove(person);
 
-        Terrain.getInstance().removePerson();
+        Game.getInstance().removePerson();
     }
 
     @Override

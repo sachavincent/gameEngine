@@ -5,12 +5,26 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class PatternGlobalConstraint extends GuiGlobalConstraints {
 
+    private final GuiConstraintsManager guiConstraintsManager;
+    private final float                 itemWidth;
+    private final float                 itemHeight;
+
     public PatternGlobalConstraint(int horizontal, int vertical, float distance) {
-        super(ConstraintsType.POSITION, Constraints.PATTERN, horizontal, vertical, distance);
+        this(horizontal, vertical, distance, distance);
+    }
+
+    public PatternGlobalConstraint(int horizontal, int vertical, float distanceX, float distanceY) {
+        super(ConstraintsType.POSITION, Constraints.PATTERN, horizontal, vertical, distanceX, distanceY);
 
         assert horizontal > 0;
         assert vertical > 0;
-        assert distance >= 0;
+        assert distanceX >= 0;
+        assert distanceY >= 0;
+
+        this.guiConstraintsManager = new GuiConstraintsManager();
+
+        this.itemWidth = (1 - distanceX * (horizontal + 1)) / horizontal;
+        this.itemHeight = (1 - distanceY * (vertical + 1)) / vertical;
     }
 
     @Override
@@ -19,28 +33,34 @@ public class PatternGlobalConstraint extends GuiGlobalConstraints {
         int maxHorizontalElements = (int) arguments[0];
         int maxVerticalElements = (int) arguments[1];
 
-        if (nbElements >= maxHorizontalElements * maxVerticalElements)
+        if (this.nbElements >= maxHorizontalElements * maxVerticalElements)
             throw new IllegalArgumentException(
-                    "Full space: " + " nbElements = " + nbElements + " >= " + (maxHorizontalElements * maxVerticalElements));
+                    "Full space: " + " nbElements = " + this.nbElements + " >= " +
+                            (maxHorizontalElements * maxVerticalElements));
 
-        float distance = (float) arguments[2];
+        float distanceX = (float) arguments[2];
+        float distanceY = arguments.length > 3 ? (float) arguments[3] : distanceX;
 
-        GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager();
+        this.guiConstraintsManager.setWidthConstraint(new RelativeConstraint(this.itemWidth, this.parent));
+        this.guiConstraintsManager.setHeightConstraint(new RelativeConstraint(this.itemHeight, this.parent));
 
-        float itemWidth = (1 - distance * (maxHorizontalElements + 1)) / maxHorizontalElements;
-        float itemHeight = (1 - distance * (maxVerticalElements + 1)) / maxVerticalElements;
-        guiConstraintsManager.setWidthConstraint(new RelativeConstraint(itemWidth, parent));
-        guiConstraintsManager.setHeightConstraint(new RelativeConstraint(itemHeight, parent));
+        int row = this.nbElements / maxHorizontalElements;
+        int nbElementsOnRow = this.nbElements % maxHorizontalElements;
+        float x = -1 + distanceX * 2 * (nbElementsOnRow + 1) +
+                this.itemWidth * maxHorizontalElements / 2 * nbElementsOnRow;
 
-        int row = nbElements / maxHorizontalElements;
-        int nbElementsOnRow = nbElements % maxHorizontalElements;
-        float x = -1 + distance * 2 * (nbElementsOnRow + 1) + itemWidth * 2.5f * nbElementsOnRow;
-        float y = -1 + (distance * 2 * (row + 1) + itemHeight * 3 * row);
-        guiConstraintsManager.setxConstraint(new RelativeConstraint(x, parent));
-        guiConstraintsManager.setyConstraint(new RelativeConstraint(y, parent));
+        float y;
+        if (maxVerticalElements > 1)
+            y = -1 + (distanceY * (row + 1) +
+                    this.itemHeight * maxVerticalElements * 2 / (maxVerticalElements - 1) * row);
+        else
+            y = this.parent.getY();
 
-        nbElements++;
+        this.guiConstraintsManager.setxConstraint(new RelativeConstraint(x, this.parent));
+        this.guiConstraintsManager.setyConstraint(new RelativeConstraint(y, this.parent));
 
-        return guiConstraintsManager;
+        this.nbElements++;
+
+        return this.guiConstraintsManager;
     }
 }

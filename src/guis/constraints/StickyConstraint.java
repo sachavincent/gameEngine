@@ -6,18 +6,24 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class StickyConstraint extends GuiConstraints {
 
-    private final GuiInterface relativeTo;
-
     private final Side side;
 
     private final static float DISTANCE_FROM_SIDE = 0.01f;
 
     public StickyConstraint(Side side, GuiInterface relativeTo) {
+        this(side, relativeTo, DISTANCE_FROM_SIDE);
+    }
+
+    public StickyConstraint(Side side, GuiInterface relativeTo, float distance) {
         super(ConstraintsType.POSITION, Constraints.STICKY);
 
         this.relativeTo = relativeTo;
         this.side = side;
-        this.constraint = DISTANCE_FROM_SIDE;
+        this.constraint = distance;
+    }
+
+    public StickyConstraint(Side side, float distance) {
+        this(side, null, distance);
     }
 
     public StickyConstraint(Side side) {
@@ -28,15 +34,12 @@ public class StickyConstraint extends GuiConstraints {
         return this.side;
     }
 
-    public GuiInterface getRelativeTo() {
-        return this.relativeTo;
-    }
-
     public StickyConstraint setDistanceFromSide(float distance) {
         this.constraint = distance;
 
         return this;
     }
+
     public StickyConstraint setDistanceFromSide(double distance) {
         this.constraint = (float) distance;
 

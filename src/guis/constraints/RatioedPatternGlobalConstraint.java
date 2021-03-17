@@ -8,21 +8,23 @@ import renderEngine.DisplayManager;
 
 public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
 
-    private double xPercentageTaken;
-    private double yPercentageTaken;
+    private float xPercentageTaken;
+    private float yPercentageTaken;
 
     /**
      * @param percentages x and y list
      * if any < 0 then Aspect ratio constraint used
      */
-    public RatioedPatternGlobalConstraint(int horizontal, int vertical, float distance, Float... percentages) {
+    public RatioedPatternGlobalConstraint(int horizontal, int vertical, float distanceX, float distanceY,
+            Number... percentages) {
         super(ConstraintsType.POSITION, Constraints.RATIOED_PATTERN,
-                Stream.concat(Arrays.stream(new Object[]{horizontal, vertical, distance}),
+                Stream.concat(Arrays.stream(new Object[]{horizontal, vertical, distanceX, distanceY}),
                         Arrays.stream(percentages)).toArray());
 
         assert horizontal > 0;
         assert vertical > 0;
-        assert distance >= 0;
+        assert distanceX >= 0;
+        assert distanceY >= 0;
         assert percentages.length % 2 == 0;
         assert percentages.length / (horizontal * vertical) == 2;
     }
@@ -38,18 +40,18 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
                     "Full space: " + " nbElements = " + nbElements + " >= " +
                             (maxHorizontalElements * maxVerticalElements));
 
-        float distance = (float) arguments[2];
+        float distanceX = (float) arguments[2];
+        float distanceY = (float) arguments[3];
 
-        System.out.println("Distance: " + distance);
         GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager();
 
 //        float itemWidth = (1 - distance * (maxHorizontalElements + 1)) / maxHorizontalElements;
 //        float itemHeight = (1 - distance * (maxVerticalElements + 1)) / maxVerticalElements;
-        float xPercentage = (float) arguments[nbElements * 2 + 3] / 100;
-        float yPercentage = (float) arguments[nbElements * 2 + 4] / 100;
+        float xPercentage = (float) arguments[nbElements * 2 + 4] / 100;
+        float yPercentage = (float) arguments[nbElements * 2 + 5] / 100;
 
-        float itemSizeHeight = getItemSize(maxVerticalElements, distance, yPercentage < 0 ? 1 : yPercentage);
-        float itemSizeWidth = getItemSize(maxHorizontalElements, distance, xPercentage < 0 ? 1 : xPercentage);
+        float itemSizeWidth = getItemSize(maxHorizontalElements, distanceX, xPercentage < 0 ? 1 : xPercentage);
+        float itemSizeHeight = getItemSize(maxVerticalElements, distanceY, yPercentage < 0 ? 1 : yPercentage);
 
         float lostWidth = 0;
         float lostHeight = 0;
@@ -84,9 +86,6 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
             itemHeight = itemSizeHeight;
         }
 
-        System.out.println("width : " + itemWidth);
-        System.out.println("height : " + itemHeight);
-
         guiConstraintsManager.setWidthConstraint(new RelativeConstraint(itemWidth));
         guiConstraintsManager.setHeightConstraint(new RelativeConstraint(itemHeight));
 
@@ -96,14 +95,47 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
             yPercentageTaken += yPercentage;
         }
 
-        float distanceFromSideX = Math.max(0, distance + lostWidth / 2);
-        float distanceFromSideY = Math.max(0, distance + lostHeight / 2);
+        float distanceFromSideX = Math.max(0, distanceX + lostWidth / 2);
+        float distanceFromSideY = Math.max(0, distanceY + lostHeight / 2);
+        if (distanceFromSideY == 0 && itemHeight < 1 && maxVerticalElements == 1)
+            distanceFromSideY = (1 - itemHeight) / 2;
+        if (distanceFromSideX == 0 && itemWidth < 1 && maxHorizontalElements == 1)
+            distanceFromSideX = (1 - itemWidth) / 2;
+
+//        float distanceFromSideX = Math.max(0, distance + lostHeight * DisplayManager.WIDTH / DisplayManager.HEIGHT / 2);
+//        float distanceFromSideY = Math.max(0, distance + lostWidth * DisplayManager.HEIGHT / DisplayManager.WIDTH / 2);
 
         if (xPercentageTaken == 0) {
+            float percentage = xPercentage;
+            int i = 1;
+            while (percentage < 1) {
+                int index = (nbElements + i) * 2 + 4;
+                if (arguments.length <= index)
+                    break;
+                float p = (float) arguments[index] / 100;
+                percentage += p;
+                i++;
+            }
+            if (percentage < 1) {
+                distanceFromSideX = (1 - percentage) / 2;
+            }
             guiConstraintsManager.setxConstraint(new SideConstraint(Side.LEFT).setDistanceFromSide(distanceFromSideX));
         }
 
         if (yPercentageTaken == 0) {
+            float percentage = yPercentage;
+            int i = 1;
+            while (percentage < 1) {
+                int index = (nbElements + i) * 2 + 5;
+                if (arguments.length <= index)
+                    break;
+                float p = (float) arguments[index] / 100;
+                percentage += p;
+                i++;
+            }
+            if (percentage < 1) {
+                distanceFromSideY = (1 - percentage) / 2;
+            }
             guiConstraintsManager.setyConstraint(new SideConstraint(Side.TOP).setDistanceFromSide(distanceFromSideY));
         }
 
@@ -125,12 +157,10 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
 
         assert xPercentageTaken >= 0 && xPercentageTaken <= 1;
 
-        if (xPercentageTaken == 1) {
+        if (xPercentageTaken == 1 || nbElements % maxHorizontalElements == 0) {
             xPercentageTaken = 0;
             yPercentageTaken += yPercentage;
         }
-
-        System.out.println(yPercentageTaken);
         assert yPercentageTaken >= 0 && yPercentageTaken <= 1;
 
         return guiConstraintsManager;

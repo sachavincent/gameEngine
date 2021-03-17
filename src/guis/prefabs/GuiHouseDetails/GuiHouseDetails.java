@@ -92,12 +92,12 @@ public class GuiHouseDetails extends Gui {
                 .create();
 
 
-        overallView = new GuiRectangle(this, Background.NO_BACKGROUND, upperRectangleConstraints);
+        this.overallView = new GuiRectangle(this, Background.NO_BACKGROUND, upperRectangleConstraints);
 
-        peopleTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
+        this.peopleTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
                 rightRectangleConstraints);
 
-        moneyTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
+        this.moneyTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
                 rightRectangleConstraints);
 
         addPeopleButton();
@@ -108,14 +108,14 @@ public class GuiHouseDetails extends Gui {
 
         this.categoryView = new CategoryView(this);
 
-        outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
+        this.outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
                 new RelativeConstraint(1), new RelativeConstraint(1), false);
-        outlineRectangle.setOutlineWidth(.5);
+        this.outlineRectangle.setOutlineWidth(.5);
 
-        upperWidthConstraint = upperRectangleConstraints.getWidthConstraint();
-        outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
-                upperWidthConstraint, new RelativeConstraint(1), false);
-        outlineRectangle2.setOutlineWidth(.5);
+        this.upperWidthConstraint = upperRectangleConstraints.getWidthConstraint();
+        this.outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
+                this.upperWidthConstraint, new RelativeConstraint(1), false);
+        this.outlineRectangle2.setOutlineWidth(.5);
 
         addDistributionGraph();
 
@@ -152,36 +152,37 @@ public class GuiHouseDetails extends Gui {
     public boolean update() {
         super.update();
 
-        assert houseItem != null;
+        assert this.houseItem != null;
 
-        Text text = peopleButton.getText().getText();
-        text.setTextString(houseItem.getNumberOfPeople() + " / " + houseItem.getMaxPeopleCapacity());
-        peopleButton.getText().setText(text);
+        Text text = this.peopleButton.getText().getText();
+        text.setTextString(this.houseItem.getNumberOfPeople() + " / " + this.houseItem.getMaxPeopleCapacity());
+        this.peopleButton.getText().setText(text);
 
-        peopleDistributionGraph.reset();
+        this.peopleDistributionGraph.reset();
 
-        houseItem.getClasses().forEach((socialClass, people) -> {
+        this.houseItem.getClasses().forEach((socialClass, people) -> {
             int size = people.size();
             if (size > 0)
-                peopleDistributionGraph.addSector(new Sector<>(size, socialClass.getColor(), socialClass.getName()));
+                this.peopleDistributionGraph
+                        .addSector(new Sector<>(size, socialClass.getColor(), socialClass.getName()));
         });
 
-        if (houseItem.getNumberOfPeople() < houseItem.getMaxPeopleCapacity()) {
-            peopleDistributionGraph.addSector(
-                    new Sector<>(houseItem.getMaxPeopleCapacity() - houseItem.getNumberOfPeople(),
+        if (this.houseItem.getNumberOfPeople() < this.houseItem.getMaxPeopleCapacity()) {
+            this.peopleDistributionGraph.addSector(
+                    new Sector<>(this.houseItem.getMaxPeopleCapacity() - this.houseItem.getNumberOfPeople(),
                             Color.LIGHT_GRAY, Words.AVAILABLE_SPACE));
         }
 
         // Reset borders
-        removeComponent(outlineRectangle);
-        removeComponent(outlineRectangle2);
-        outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
+        removeComponent(this.outlineRectangle);
+        removeComponent(this.outlineRectangle2);
+        this.outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
                 new RelativeConstraint(1, this), new RelativeConstraint(1, this), false);
-        outlineRectangle.setOutlineWidth(.5);
+        this.outlineRectangle.setOutlineWidth(.5);
 
-        outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
+        this.outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
                 upperWidthConstraint, new RelativeConstraint(1, this), false);
-        outlineRectangle2.setOutlineWidth(.5);
+        this.outlineRectangle2.setOutlineWidth(.5);
 
         return true;
     }
@@ -190,9 +191,12 @@ public class GuiHouseDetails extends Gui {
      * Called when category selected
      */
     private void setCategorySelected(ResourceType resourceType) {
+        if (this.houseItem == null)
+            return;
+
         this.resourceType = resourceType;
 
-        Map<Resource, Integer> resourcesNeeded = houseItem.getResourcesNeeded();
+        Map<Resource, Integer> resourcesNeeded = this.houseItem.getResourcesNeeded();
 //        List<Resource> subCategories = resourcesNeeded.keySet().stream()
 //                .filter(resource -> resource.getResourceType().equals(resourceType)).collect(Collectors.toList());
 
@@ -202,14 +206,15 @@ public class GuiHouseDetails extends Gui {
         if (subCategories.isEmpty())
             return;
 
-        subCategoriesTab.clearComponents();
-        subCategoriesTab.setChildrenConstraints(new PatternGlobalConstraint(subCategories.size(), 1, 0));
+        this.subCategoriesTab.clearComponents();
+        this.subCategoriesTab.setChildrenConstraints(new PatternGlobalConstraint(subCategories.size(), 1, 0));
 
         AtomicBoolean selected = new AtomicBoolean();
         ButtonGroup group = new ButtonGroup(subCategories.size());
         subCategories.forEach(resource -> {
             if (resourcesNeeded.containsKey(resource)) {
-                GuiRectangleButton button = new GuiRectangleButton(subCategoriesTab, resource.getTexture(), null);
+                GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab, resource.getTexture(),
+                        (GuiConstraintsManager) null);
                 button.enableFilter();
                 button.setToggleType(true);
                 button.setButtonGroup(group);
@@ -254,10 +259,10 @@ public class GuiHouseDetails extends Gui {
 
         this.peopleButton = createButton(ButtonType.RECTANGLE,
                 new Background<>(new Color(0, 0, 0, 50)), text, null, new GuiConstraintsManager.Builder()
-                        .setWidthConstraint(new RelativeConstraint(0.18f, overallView))
-                        .setHeightConstraint(new RelativeConstraint(0.35f, overallView))
-                        .setxConstraint(new RelativeConstraint(0, overallView))
-                        .setyConstraint(new RelativeConstraint(0.5f, overallView))
+                        .setWidthConstraint(new RelativeConstraint(0.18f, this.overallView))
+                        .setHeightConstraint(new RelativeConstraint(0.35f, this.overallView))
+                        .setxConstraint(new RelativeConstraint(0, this.overallView))
+                        .setyConstraint(new RelativeConstraint(0.5f, this.overallView))
                         .create());
         this.peopleButton.enableFilter();
 
@@ -436,18 +441,19 @@ public class GuiHouseDetails extends Gui {
         this.moneyButton.setDisplayed(true);
         this.moneyButton.setDisplayedComponents(true);
         this.categoriesTab.setDisplayed(true);
-
-        this.categoriesTab.drinksCatButton.setDisplayed(true);
-        this.categoriesTab.drinksCatButton.setDisplayedComponents(true);
-        this.categoriesTab.foodCatButton.setDisplayed(true);
-        this.categoriesTab.foodCatButton.setDisplayedComponents(true);
-        this.categoriesTab.socialCatButton.setDisplayed(true);
-        this.categoriesTab.socialCatButton.setDisplayedComponents(true);
+//
+//        this.categoriesTab.drinksCatButton.setDisplayed(true);
+//        this.categoriesTab.drinksCatButton.setDisplayedComponents(true);
+//        this.categoriesTab.foodCatButton.setDisplayed(true);
+//        this.categoriesTab.foodCatButton.setDisplayedComponents(true);
+//        this.categoriesTab.socialCatButton.setDisplayed(true);
+//        this.categoriesTab.socialCatButton.setDisplayedComponents(true);
 
         this.categoryView.setDisplayed(true);
-        this.categoryView.categoryPercentage.setDisplayed(true);
-        this.categoryView.categoryIcon.setDisplayed(true);
+//        this.categoryView.categoryPercentage.setDisplayed(true);
+//        this.categoryView.categoryIcon.setDisplayed(true);
 
+        this.subCategoriesTab.setDisplayed(true);
         showFoodCategory();
     }
 

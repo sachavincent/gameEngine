@@ -11,7 +11,7 @@ public interface ConnectableItem {
     void disconnect(Direction direction);
 
     // WEST NORTH EAST SOUTH
-    boolean[] getAccessPoints();
+    Boolean[] getAccessPoints();
 
     boolean isConnected(Direction direction);
 

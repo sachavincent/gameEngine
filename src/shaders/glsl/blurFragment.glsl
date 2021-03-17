@@ -2,13 +2,12 @@
 
 in vec2 blurTextureCoords[11];
 
-out vec4 out_colour;
+out vec4 out_Color;
 
 uniform sampler2D originalTexture;
 
 void main(void) {
-
-    out_colour = vec4(0.0);
+    out_Color = vec4(0.0);
 
     float blurValues[11];
 
@@ -20,10 +19,10 @@ void main(void) {
     blurValues[5] = 0.109317;
 
     for (int i = 0; i < 5; i++)
-        out_colour += texture(originalTexture, blurTextureCoords[i]) * blurValues[i];
+        out_Color += texture(originalTexture, blurTextureCoords[i]) * blurValues[i];
 
-    out_colour += texture(originalTexture, blurTextureCoords[5]) * blurValues[5];
+    out_Color += texture(originalTexture, blurTextureCoords[5]) * blurValues[5];
 
     for (int i = 0; i < 5; i++)
-        out_colour += texture(originalTexture, blurTextureCoords[6 + i]) * blurValues[4 - i];
+        out_Color += texture(originalTexture, blurTextureCoords[6 + i]) * blurValues[4 - i];
 }

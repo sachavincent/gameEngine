@@ -5,15 +5,19 @@ import static renderEngine.DisplayManager.MIN_LINE_WIDTH;
 import static renderEngine.GuiRenderer.filledQuad;
 import static renderEngine.GuiRenderer.unfilledQuad;
 
+import fontMeshCreator.Line;
+import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
+import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.GuiRenderer;
+import util.math.Vector2f;
 
 public abstract class GuiShape extends GuiBasics {
 

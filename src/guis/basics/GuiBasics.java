@@ -8,16 +8,6 @@ import guis.presets.Background;
 
 public abstract class GuiBasics extends GuiComponent {
 
-    private float baseWidth, baseHeight;
-
-    public float getBaseWidth() {
-        return this.baseWidth;
-    }
-
-    public float getBaseHeight() {
-        return this.baseHeight;
-    }
-
     private void initConstraints(GuiConstraints width, GuiConstraints height) {
         if (width == null || height == null)
             return;
@@ -27,9 +17,6 @@ public abstract class GuiBasics extends GuiComponent {
         constraints.setWidthConstraint(width);
 
         setConstraints(constraints);
-
-        this.baseHeight = getHeight();
-        this.baseWidth = getWidth();
 
         update(constraints);
     }
@@ -76,12 +63,5 @@ public abstract class GuiBasics extends GuiComponent {
 
     void update(GuiConstraintsManager constraints) {
         setConstraints(constraints);
-    }
-
-    @Override
-    public String toString() {
-        return "baseWidth=" + baseWidth +
-                ", baseHeight=" + baseHeight +
-                ", ";
     }
 }

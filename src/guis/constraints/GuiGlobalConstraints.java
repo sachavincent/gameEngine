@@ -39,7 +39,7 @@ public abstract class GuiGlobalConstraints extends GuiConstraints {
     public void addComponent(GuiComponent guiComponent) {
         guiComponent.setConstraints(addElement());
 
-        components.add(guiComponent);
+        this.components.add(guiComponent);
     }
 
     protected abstract GuiConstraintsManager addElement();

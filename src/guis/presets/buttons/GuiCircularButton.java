@@ -49,29 +49,27 @@ public class GuiCircularButton extends GuiAbstractButton {
         this(parent, background, null, constraintsManager, cornerRadius);
     }
 
-//    @Override
-//    protected void addBackgroundComponent(Background<?> background) {
-//        buttonLayout = new GuiEllipse(this, background, new RelativeConstraint(1, this),
-//                new RelativeConstraint(1, this));
-//    }
+    @Override
+    protected void setButtonShape(Background<?> background) {
+        this.buttonShape = new GuiEllipse(this, background, new RelativeConstraint(1), new RelativeConstraint(1));
+    }
 
     @Override
     protected void setFilter() {
-        filterLayout = new GuiEllipse(this, new Background<>(Color.WHITE), new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this));
+        this.filterLayout = new GuiEllipse(this, new Background<>(Color.WHITE), new RelativeConstraint(1),
+                new RelativeConstraint(1));
     }
 
     @Override
     public void setBorder(Color color) {
-        addBorderLayout(new GuiEllipse(this, new Background<>(color), new RelativeConstraint(1, this),
-                new RelativeConstraint(1, this), false));
+        addBorderLayout(new GuiEllipse(this, new Background<>(color), new RelativeConstraint(1),
+                new RelativeConstraint(1), false));
     }
 
     @Override
     public String toString() {
         return "GuiCircularButton{" +
                 "filterLayout=" + filterLayout +
-//                ", buttonLayout=" + buttonLayout +
                 ", borderLayout=" + borderLayout +
                 '}';
     }

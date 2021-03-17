@@ -12,7 +12,9 @@ import fontMeshCreator.Text;
 import guis.Gui;
 import guis.GuiInterface;
 import guis.basics.GuiEllipse;
+import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
+import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.constraints.RelativeConstraint;
@@ -43,9 +45,9 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
     private GuiEllipse innerCircle;
 
     // Hovering stuff
-    private final Gui       hoverSectorGui;
-    private       Sector<?> lastHoveredSector;
-    private       GuiText   currentGuiHoverText;
+    private final GuiRectangle hoverSectorGui;
+    private       Sector<?>    lastHoveredSector;
+    private       GuiText      currentGuiHoverText;
 
     public GuiDonutGraph(GuiInterface parent,
             GuiConstraintsManager constraintsManager) {
@@ -56,46 +58,17 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         this.sectors = new LinkedHashSet<>();
         this.renderPoints = new LinkedList<>();
 
-        hoverSectorGui = new Gui(new Background<>(new Color(64, 64, 64, 100)));
+        this.hoverSectorGui = new GuiRectangle(this, new Background<>(new Color(64, 64, 64, 100)));
         GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager.Builder()
                 .setDefault()
-                .setWidthConstraint(new RelativeConstraint(.05f))
+                .setWidthConstraint(new RelativeConstraint(.7f))
                 .setHeightConstraint(new PixelConstraint(30))
                 .create();
 
-        hoverSectorGui.setConstraints(guiConstraintsManager);
-        hoverSectorGui.setDisplayed(false);
-
-        hoverSectorGui.setOnUpdate(() -> {
-            Vector2f cursorPos = MouseUtils.getCursorPos();
-
-            float preX = hoverSectorGui.getX();
-            float preY = hoverSectorGui.getY();
-            hoverSectorGui
-                    .handleXConstraint(new PixelConstraint((int) (cursorPos.x * DisplayManager.WIDTH) - 70));
-            hoverSectorGui
-                    .handleYConstraint(new PixelConstraint((int) (cursorPos.y * DisplayManager.HEIGHT) - 70));
-            float postX = hoverSectorGui.getX();
-            float postY = hoverSectorGui.getY();
-
-            Sector<?> sector = getSectorAtMouseCoordinates();
-
-            boolean sectorsEqual = sector.equals(lastHoveredSector);
-            if (currentGuiHoverText != null && sectorsEqual) {
-                currentGuiHoverText.setX(currentGuiHoverText.getX() + (postX - preX));
-                currentGuiHoverText.setY(currentGuiHoverText.getY() + (postY - preY));
-            } else {
-                if (!sectorsEqual)
-                    hoverSectorGui.removeComponent(currentGuiHoverText);
-
-                hoverSectorGui.addComponent(currentGuiHoverText = hoverSectorGui
-                        .setupText(new Text(sector.getDescription(), .6f, DEFAULT_FONT, Color.LIGHT_GRAY)));
-                currentGuiHoverText.setDisplayed(true);
-            }
-
-            lastHoveredSector = sector;
-        });
+        this.hoverSectorGui.setConstraints(guiConstraintsManager);
+        this.hoverSectorGui.setDisplayed(false);
     }
+
 
     public void addSector(Sector<ValueType> sector) {
         this.sectors.add(sector);
@@ -113,12 +86,12 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         return this.outerCircle;
     }
 
-    public void setInnerCircle( GuiEllipse innerCircle) {
+    public void setInnerCircle(GuiEllipse innerCircle) {
         this.innerCircle = innerCircle;
         this.innerCircle.setOutlineWidth(1);
     }
 
-    public void setOuterCircle( GuiEllipse outerCircle) {
+    public void setOuterCircle(GuiEllipse outerCircle) {
         this.outerCircle = outerCircle;
         this.outerCircle.setOutlineWidth(1);
     }
@@ -127,11 +100,11 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         setOnHover(() -> {
             if (MouseUtils.isCursorInGuiComponent(this.outerCircle) &&
                     !MouseUtils.isCursorInGuiComponent(this.innerCircle)) {
-                Sector<?> lastSector = lastHoveredSector;
-                hoverSectorGui.update();
+                Sector<?> lastSector = this.lastHoveredSector;
+                updatePositionHoverSectorGui();
 
-                if (!lastHoveredSector.equals(lastSector))
-                    Gui.showGui(hoverSectorGui);
+                if (!this.lastHoveredSector.equals(lastSector))
+                    this.hoverSectorGui.setDisplayed(true);
             } else {
                 onLeaveDonut();
             }
@@ -140,11 +113,42 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         setOnLeave(this::onLeaveDonut);
     }
 
+    private void updatePositionHoverSectorGui() {
+        Vector2f cursorPos = MouseUtils.getCursorPos();
+
+        float preX = this.hoverSectorGui.getX();
+        float preY = this.hoverSectorGui.getY();
+        GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this.parent, this);
+        this.hoverSectorGui.setX(guiConstraintHandler
+                .handleXConstraint(new PixelConstraint((int) (cursorPos.x * DisplayManager.WIDTH) - 70)));
+        this.hoverSectorGui.setY(guiConstraintHandler
+                .handleYConstraint(new PixelConstraint((int) (cursorPos.y * DisplayManager.HEIGHT) - 70)));
+        float postX = this.hoverSectorGui.getX();
+        float postY = this.hoverSectorGui.getY();
+
+        Sector<?> sector = getSectorAtMouseCoordinates();
+
+        boolean sectorsEqual = sector.equals(lastHoveredSector);
+        if (this.currentGuiHoverText != null && sectorsEqual) {
+            this.currentGuiHoverText.setX(this.currentGuiHoverText.getX() + (postX - preX));
+            this.currentGuiHoverText.setY(this.currentGuiHoverText.getY() + (postY - preY));
+        } else {
+            if (!sectorsEqual)
+                this.hoverSectorGui.removeComponent(this.currentGuiHoverText);
+
+            this.hoverSectorGui.addComponent(this.currentGuiHoverText = Gui.setupText(this.hoverSectorGui,
+                    new Text(sector.getDescription(), .55f, DEFAULT_FONT, Color.LIGHT_GRAY)));
+            this.currentGuiHoverText.setDisplayed(true);
+        }
+
+        this.lastHoveredSector = sector;
+    }
+
     private void onLeaveDonut() {
-        hoverSectorGui.removeComponent(currentGuiHoverText);
-        lastHoveredSector = null;
-        currentGuiHoverText = null;
-        Gui.hideGui(hoverSectorGui);
+        this.hoverSectorGui.removeComponent(this.currentGuiHoverText);
+        this.lastHoveredSector = null;
+        this.currentGuiHoverText = null;
+        this.hoverSectorGui.setDisplayed(false);
     }
 
     /**
@@ -155,7 +159,7 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
             if (this.sectors.isEmpty() || this.sectors.size() == 1)
                 return this.renderPoints;
 
-            float height = this.innerCircle.getFinalHeight() / this.outerCircle.getFinalHeight();
+            float height = this.innerCircle.getHeight() / this.outerCircle.getHeight();
             Vector2f baseLine = new Vector2f(0, height);
             this.renderPoints.add(baseLine);
             Vector2f prevLine = baseLine;
@@ -202,8 +206,8 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
 
         Vector2f normalizedVector = MouseUtils.getCursorPos();
         Vector2f.sub(normalizedVector, new Vector2f(getX(), getY()), normalizedVector);
-        double width = this.innerCircle.getFinalWidth() / this.outerCircle.getFinalWidth();
-        double height = this.innerCircle.getFinalHeight() / this.outerCircle.getFinalHeight();
+        double width = this.innerCircle.getWidth() / this.outerCircle.getWidth();
+        double height = this.innerCircle.getWidth() / this.outerCircle.getWidth();
         normalizedVector.x = (float) Maths.scale(normalizedVector.x, -getWidth(), getWidth(), -width, width);
         normalizedVector.y = (float) Maths.scale(normalizedVector.y, -getHeight(), getHeight(), -height, height);
 
@@ -254,6 +258,11 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
 
         this.innerCircle.setDisplayed(displayed);
         this.outerCircle.setDisplayed(displayed);
+
+        this.hoverSectorGui.setDisplayed(false);
+        if (displayed)
+            if (MouseUtils.isCursorInGuiComponent(this)) // Appears on mouse cursor
+                this.hoverSectorGui.setDisplayed(true);
     }
 
     public static class Sector<ValueType> {
@@ -285,12 +294,12 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
             if (o == null || getClass() != o.getClass())
                 return false;
             Sector<?> sector = (Sector<?>) o;
-            return Objects.equals(color, sector.color);
+            return Objects.equals(this.color, sector.color);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(color);
+            return Objects.hash(this.color);
         }
 
         public double getValue() {
@@ -312,10 +321,10 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         @Override
         public String toString() {
             return "Sector{" +
-                    "value=" + value +
-                    ", color=" + color +
-                    ", description='" + description + '\'' +
-                    ", shownValue=" + shownValue +
+                    "value=" + this.value +
+                    ", color=" + this.color +
+                    ", description='" + this.description + '\'' +
+                    ", shownValue=" + this.shownValue +
                     '}';
         }
     }
@@ -323,9 +332,9 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
     @Override
     public String toString() {
         return "GuiDonutGraph{" +
-                "outerCircle=" + outerCircle +
-                ", innerCircle=" + innerCircle +
-                ", sectors=" + sectors +
+                "outerCircle=" + this.outerCircle +
+                ", innerCircle=" + this.innerCircle +
+                ", sectors=" + this.sectors +
                 "} ";
     }
 

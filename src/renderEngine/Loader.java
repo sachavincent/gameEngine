@@ -1,6 +1,7 @@
 package renderEngine;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_INT;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
@@ -123,6 +124,16 @@ public class Loader {
         return new RawModel(vaoID, 0, positions.length / dimensions, false);
     }
 
+    public RawModel loadToVAO(int[] positions, int dimensions) {
+        int vaoID = createVAO();
+
+        storeDataInAttributeList(0, dimensions, positions);
+
+        unbindVAO();
+
+        return new RawModel(vaoID, 0, positions.length / dimensions, false);
+    }
+
     public RawModel loadToVAO(float[] positions, int dimensions, int attributeNumber) {
         int vaoID = createVAO();
 
@@ -203,6 +214,16 @@ public class Loader {
         FloatBuffer buffer = storeDataInFloatBuffer(data);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
         GL20.glVertexAttribPointer(attributeNumber, coordinateSize, GL_FLOAT, false, 0, 0);
+    }
+
+
+    private void storeDataInAttributeList(int attributeNumber, int coordinateSize, int[] data) {
+        int vboID = GL15.glGenBuffers();
+        vbos.add(vboID);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboID);
+        IntBuffer buffer = storeDataInIntBuffer(data);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
+        GL20.glVertexAttribPointer(attributeNumber, coordinateSize, GL_INT, false, 0, 0);
     }
 
     private void storeInstancedDataInAttributeList(int attributeNumber, int coordinateSize, float[] data) {

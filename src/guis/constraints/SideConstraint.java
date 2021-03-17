@@ -16,6 +16,13 @@ public class SideConstraint extends GuiConstraints {
 
         this.constraint = DISTANCE_FROM_SIDE;
     }
+    public SideConstraint(Side side, float distanceFromSide) {
+        super(ConstraintsType.POSITION, Constraints.SIDE);
+
+        this.side = side;
+
+        this.constraint = distanceFromSide;
+    }
 
     public Side getSide() {
         return this.side;

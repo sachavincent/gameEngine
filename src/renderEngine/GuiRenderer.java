@@ -4,13 +4,13 @@ import static guis.basics.GuiRectangle.POSITIONS_FILLED;
 import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
 import static org.lwjgl.opengl.GL11.*;
 
-import fontRendering.TextMaster;
 import guis.Gui;
 import guis.GuiInterface;
 import guis.GuiTexture;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.presets.Background;
+import guis.presets.GuiSlider;
 import guis.presets.graphs.GuiDonutGraph;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -23,6 +23,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL42;
+import renderEngine.fontRendering.TextMaster;
 import shaders.GuiShader;
 import util.math.Maths;
 import util.math.Vector2f;
@@ -79,8 +80,8 @@ public class GuiRenderer {
                                     renderOutlineForDebug(guiComponent);
                             });
                     gui.animate();
-                    if (displayDebugOutlines)
-                        renderOutlineForDebug(gui);
+//                    if (displayDebugOutlines)
+//                        renderOutlineForDebug(gui);
                 });
 
 //        guis.stream()
@@ -124,15 +125,16 @@ public class GuiRenderer {
         GL33.glDrawArrays(GL_LINE_LOOP, 0, unfilledQuad.getVertexCount());
         if (guiInterface instanceof GuiText) {
             GuiText guiText = (GuiText) guiInterface;
-            Vector2f position = new Vector2f(guiText.getText().getPosition());
-            position.y = (float) (position.y * -2 + 1 - guiText.getText().getTextHeight() / 2);
-            position.x = (float) (position.x * 2 - 1 + guiText.getLine().getLineLength());
+            if (guiText.getText() != null && guiText.getText().getPosition() != null) {
+                Vector2f position = new Vector2f(guiText.getText().getPosition());
+                position.y = (float) (position.y * -2 + 1 - guiText.getText().getTextHeight() / 2);
+                position.x = (float) (position.x * 2 - 1 + guiText.getLine().getLineLength());
 
-            GuiTexture guiTexture = new GuiTexture(new Background<>(Color.decode("#512DA8")),
-                    position, new Vector2f(guiText.getLine().getLineLength(), guiText.getText().getTextHeight() / 2));
+                GuiTexture guiTexture = new GuiTexture(new Background<>(Color.decode("#512DA8")), position,
+                        new Vector2f(guiText.getLine().getLineLength(), guiText.getText().getTextHeight() / 2));
 
-            loadTexture(guiTexture, 0);
-            GL33.glDrawArrays(GL_LINE_LOOP, 0, unfilledQuad.getVertexCount());
+                loadTexture(guiTexture, 0);
+            }
         }
 
         GL33.glLineWidth(2);
@@ -226,8 +228,8 @@ public class GuiRenderer {
         shader.loadTransformation(Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
 
         shader.loadType(DONUT);
-        shader.loadInnerCircleRadius(guiDonutGraph.getInnerCircle().getFinalWidth());
-        shader.loadOuterCircleRadius(guiDonutGraph.getOuterCircle().getFinalWidth());
+        shader.loadInnerCircleRadius(guiDonutGraph.getInnerCircle().getWidth());
+        shader.loadOuterCircleRadius(guiDonutGraph.getOuterCircle().getWidth());
 
         List<Vector2f> points = guiDonutGraph.getRenderPoints();
         Set<Color> colors = guiDonutGraph.getRenderColors();

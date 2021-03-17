@@ -14,7 +14,7 @@ import util.math.Maths;
 public abstract class BuildingItem extends Item implements RotatableItem, ConnectableItem, SelectableItem {
 
     // WEST NORTH EAST SOUTH
-    private       boolean[]     accessPoints = new boolean[]{true, true, true, true};
+    private       Boolean[]     accessPoints = new Boolean[]{true, true, true, true};
     private final Connections[] connected    = new Connections[]{NONE, NONE, NONE, NONE};
 
     public BuildingItem(TerrainPosition position, String name, Item copy, int xNegativeOffset, int xPositiveOffset, int height,
@@ -70,7 +70,7 @@ public abstract class BuildingItem extends Item implements RotatableItem, Connec
     }
 
     @Override
-    public boolean[] getAccessPoints() {
+    public Boolean[] getAccessPoints() {
         return accessPoints;
     }
 }

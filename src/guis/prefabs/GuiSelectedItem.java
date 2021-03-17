@@ -1,6 +1,7 @@
 package guis.prefabs;
 
 import guis.Gui;
+import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
@@ -33,7 +34,6 @@ public class GuiSelectedItem extends Gui {
                 .create();
 
         setConstraints(menuConstraints);
-
     }
 
     public void setSelectedItem(AbstractItem abstractItem) {
@@ -64,8 +64,12 @@ public class GuiSelectedItem extends Gui {
 
     public void updatePosition() {
         Vector2f cursorPos = MouseUtils.getCursorPos();
-        handleXConstraint(new PixelConstraint((int) (cursorPos.x * DisplayManager.WIDTH) - 70));
-        handleYConstraint(new PixelConstraint((int) (cursorPos.y * DisplayManager.HEIGHT) - 70));
+
+        GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this);
+        setX(guiConstraintHandler
+                .handleXConstraint(new PixelConstraint(Math.max(0, (int) (cursorPos.x * DisplayManager.WIDTH) - 70))));
+        setY(guiConstraintHandler
+                .handleYConstraint(new PixelConstraint(Math.max(0, (int) (cursorPos.y * DisplayManager.HEIGHT) - 70))));
     }
 
     public static class Builder {
@@ -90,7 +94,6 @@ public class GuiSelectedItem extends Gui {
 
         public GuiSelectedItem create() {
             instance = guiSelectedItem;
-//             GuiRenderer.addGui(instance);
 
             Gui.hideGui(instance);
             return instance;

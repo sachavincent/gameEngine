@@ -6,8 +6,6 @@ import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public class RelativeConstraint extends GuiConstraints {
 
-    private GuiInterface relativeTo;
-
     public RelativeConstraint(float relative, GuiInterface relativeTo) {
         super(ConstraintsType.BOTH, Constraints.RELATIVE);
 
@@ -28,9 +26,5 @@ public class RelativeConstraint extends GuiConstraints {
             throw new IllegalArgumentException("Relative value: " + relative + " not allowed");
 
         this.constraint = relative;
-    }
-
-    public GuiInterface getRelativeTo() {
-        return this.relativeTo;
     }
 }

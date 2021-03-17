@@ -2,7 +2,7 @@ package guis.basics;
 
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
-import fontRendering.TextMaster;
+import renderEngine.fontRendering.TextMaster;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
@@ -16,14 +16,12 @@ public class GuiText extends GuiBasics {
 
     private Line line;
 
-    public GuiText(GuiInterface gui, Text text) {
-        super(gui, new Background<>(text == null ? null : text.getAWTColor()), null, null);
-
-        setText(text);
+    public GuiText(GuiInterface parent, Text text) {
+        this(parent, text, null);
     }
 
-    public GuiText(GuiInterface gui, Text text, GuiConstraintsManager guiConstraintsManager) {
-        super(gui, new Background<>(text == null ? null : text.getAWTColor()), guiConstraintsManager);
+    public GuiText(GuiInterface parent, Text text, GuiConstraintsManager guiConstraintsManager) {
+        super(parent, new Background<>(text == null ? null : text.getAWTColor()), guiConstraintsManager);
 
         setText(text);
     }

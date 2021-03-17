@@ -2,20 +2,19 @@
 
 in vec2 textureCoords;
 
-out vec4 out_Colour;
+out vec4 out_Color;
 
 uniform sampler2D colourTexture;
 
 vec4 toGray(vec4);
 
 void main(void) {
+    out_Color = texture(colourTexture, textureCoords);
 
-    out_Colour = texture(colourTexture, textureCoords);
-
-    out_Colour.r *= 255;
-    out_Colour.g *= 255;
-    out_Colour.b *= 255;
-    out_Colour = toGray(out_Colour);
+    out_Color.r *= 255;
+    out_Color.g *= 255;
+    out_Color.b *= 255;
+    out_Color = toGray(out_Color);
 }
 
 /**

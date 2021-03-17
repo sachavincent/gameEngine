@@ -66,7 +66,6 @@ public class Terrain {
 
     private RoadGraph roadGraph;
 
-    private int numberOfPeople;
 
     public static Terrain                                     instance;
     private       boolean                                     needUpdatePaths;
@@ -468,31 +467,11 @@ public class Terrain {
         items.remove(getItemAtPosition(position));
     }
 
-    public int getNumberOfPeople() {
-        return this.numberOfPeople;
-    }
-
-    public boolean addPerson() {
-        if (numberOfPeople >= getMaxPeopleCapacity())
-            return false;
-
-        numberOfPeople++;
-
-        return true;
-    }
-
     public int getMaxPeopleCapacity() {
         return this.items.stream().filter(HouseItem.class::isInstance)
                 .mapToInt(item -> ((HouseItem) item).getMaxPeopleCapacity()).sum();
     }
 
-
-    public void removePerson() {
-        if (numberOfPeople <= 0)
-            return;
-
-        numberOfPeople--;
-    }
 
     public void removeItems(Collection<TerrainPosition> positions) {
         for (TerrainPosition position : positions) {
@@ -565,7 +544,7 @@ public class Terrain {
         List<Item> tempItems = new ArrayList<>();
         if (item instanceof ConnectableItem) {
             ConnectableItem connectableItem = (ConnectableItem) item;
-            boolean[] accessPoints = connectableItem.getAccessPoints();
+            Boolean[] accessPoints = connectableItem.getAccessPoints();
 
             for (int x = position.getX() - xNegativeOffset; x <= position.getX() + xPositiveOffset; x++) {
                 for (int z = position.getZ() - zNegativeOffset; z <= position.getZ() + zPositiveOffset; z++) {
@@ -667,7 +646,7 @@ public class Terrain {
 
         Set<Direction> directions = new TreeSet<>();
         ConnectableItem connectableItem = (ConnectableItem) item;
-        boolean[] accessPoints = connectableItem.getAccessPoints();
+        Boolean[] accessPoints = connectableItem.getAccessPoints();
 
         for (Direction direction : Direction.values()) {
             if (accessPoints[direction.ordinal()]) {

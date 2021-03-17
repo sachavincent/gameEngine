@@ -1,7 +1,5 @@
 package guis.transitions;
 
-import static renderEngine.DisplayManager.FPS;
-
 import guis.GuiInterface;
 
 public class SlidingTransition extends Transition {
@@ -41,30 +39,30 @@ public class SlidingTransition extends Transition {
             throw new IllegalStateException("Transition should not be started at this point");
 
         switch (direction) {
-            case RIGHT:
-                gui.setFinalX(gui.getX());
-                gui.setX(gui.getX() - DISTANCE);
-                gui.setStartX(gui.getX());
-
-                break;
-            case LEFT:
-                gui.setFinalX(gui.getX());
-                gui.setX(gui.getX() + DISTANCE);
-                gui.setStartX(gui.getX());
-
-                break;
-            case BOTTOM:
-                gui.setFinalY(gui.getY());
-                gui.setY(gui.getY() + DISTANCE);
-                gui.setStartY(gui.getY());
-
-                break;
-            case TOP:
-                gui.setFinalY(gui.getY());
-                gui.setY(gui.getY() - DISTANCE);
-                gui.setStartY(gui.getY());
-
-                break;
+//            case RIGHT:
+//                gui.setFinalX(gui.getX());
+//                gui.setX(gui.getX() - DISTANCE);
+//                gui.setStartX(gui.getX());
+//
+//                break;
+//            case LEFT:
+//                gui.setFinalX(gui.getX());
+//                gui.setX(gui.getX() + DISTANCE);
+//                gui.setStartX(gui.getX());
+//
+//                break;
+//            case BOTTOM:
+//                gui.setFinalY(gui.getY());
+//                gui.setY(gui.getY() + DISTANCE);
+//                gui.setStartY(gui.getY());
+//
+//                break;
+//            case TOP:
+//                gui.setFinalY(gui.getY());
+//                gui.setY(gui.getY() - DISTANCE);
+//                gui.setStartY(gui.getY());
+//
+//                break;
         }
 
         started = true;
@@ -81,21 +79,21 @@ public class SlidingTransition extends Transition {
             throw new IllegalStateException("Transition should not be started at this point");
 
         switch (direction) {
-            case RIGHT:
-                gui.setFinalX(gui.getX() + DISTANCE);
-
-                break;
-            case LEFT:
-                gui.setFinalX(gui.getX() - DISTANCE);
-
-                break;
-            case BOTTOM:
-                gui.setFinalY(gui.getY() - DISTANCE);
-
-                break;
-            case TOP:
-                gui.setFinalY(gui.getY() + DISTANCE);
-                break;
+//            case RIGHT:
+//                gui.setFinalX(gui.getX() + DISTANCE);
+//
+//                break;
+//            case LEFT:
+//                gui.setFinalX(gui.getX() - DISTANCE);
+//
+//                break;
+//            case BOTTOM:
+//                gui.setFinalY(gui.getY() - DISTANCE);
+//
+//                break;
+//            case TOP:
+//                gui.setFinalY(gui.getY() + DISTANCE);
+//                break;
         }
 
         started = true;
@@ -108,23 +106,23 @@ public class SlidingTransition extends Transition {
             return false;
 
         switch (direction) {
-            case RIGHT:
-                gui.setX(Float.min(gui.getFinalX(), gui.getX() + DISTANCE / (length / 1000f) / FPS));
-
-                return gui.getX() == gui.getFinalX(); // Animation terminée
-            case LEFT:
-                gui.setX(Float.max(gui.getFinalX(), gui.getX() - DISTANCE / (length / 1000f) / FPS));
-
-                return gui.getX() == gui.getFinalX(); // Animation terminée
-            case BOTTOM:
-                gui.setY(Float.max(gui.getFinalY(), gui.getY() - DISTANCE / (length / 1000f) / FPS));
-
-                gui.setY(gui.getFinalY());
-                return gui.getY() == gui.getFinalY(); // Animation terminée
-            case TOP:
-                gui.setY(Float.min(gui.getFinalY(), gui.getY() + DISTANCE / (length / 1000f) / FPS));
-
-                return gui.getY() == gui.getFinalY(); // Animation terminée
+//            case RIGHT:
+//                gui.setX(Float.min(gui.getFinalX(), gui.getX() + DISTANCE / (length / 1000f) / MAX_FPS));
+//
+//                return gui.getX() == gui.getFinalX(); // Animation terminée
+//            case LEFT:
+//                gui.setX(Float.max(gui.getFinalX(), gui.getX() - DISTANCE / (length / 1000f) / MAX_FPS));
+//
+//                return gui.getX() == gui.getFinalX(); // Animation terminée
+//            case BOTTOM:
+//                gui.setY(Float.max(gui.getFinalY(), gui.getY() - DISTANCE / (length / 1000f) / MAX_FPS));
+//
+//                gui.setY(gui.getFinalY());
+//                return gui.getY() == gui.getFinalY(); // Animation terminée
+//            case TOP:
+//                gui.setY(Float.min(gui.getFinalY(), gui.getY() + DISTANCE / (length / 1000f) / MAX_FPS));
+//
+//                return gui.getY() == gui.getFinalY(); // Animation terminée
         }
 
         return false;

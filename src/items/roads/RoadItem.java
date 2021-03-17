@@ -87,8 +87,8 @@ public abstract class RoadItem extends Item implements ConnectableItem {
     }
 
     @Override
-    public boolean[] getAccessPoints() {
-        return new boolean[]{true, true, true, true};
+    public Boolean[] getAccessPoints() {
+        return new Boolean[]{true, true, true, true};
     }
 
     public boolean isConnected(Direction direction) {

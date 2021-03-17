@@ -1,9 +1,12 @@
 package guis.constraints;
 
+import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 
 public abstract class GuiConstraints {
+
+    GuiInterface relativeTo;
 
     float constraint;
 
@@ -26,5 +29,9 @@ public abstract class GuiConstraints {
 
     public float constraint() {
         return this.constraint;
+    }
+
+    public GuiInterface getRelativeTo() {
+        return this.relativeTo;
     }
 }

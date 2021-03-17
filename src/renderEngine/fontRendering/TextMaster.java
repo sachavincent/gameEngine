@@ -1,4 +1,4 @@
-package fontRendering;
+package renderEngine.fontRendering;
 
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;

@@ -9,16 +9,20 @@ import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 import static renderEngine.DisplayManager.getWindow;
 import static util.math.Maths.isPointIn2DBounds;
 
+import engineTester.Game;
 import entities.Camera;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.basics.GuiEllipse;
+import guis.basics.GuiTriangle;
 import guis.prefabs.GuiSelectedItem;
+import guis.presets.buttons.GuiAbstractButton;
 import items.Item;
 import items.SelectableItem;
 import items.abstractItem.AbstractItem;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,7 +65,9 @@ public class MouseUtils {
 
     private static final Terrain terrain = Terrain.getInstance();
 
-    private static final List<GuiComponent> ENTERED_GUI_COMPONENTS = new ArrayList<>();
+    private static final List<GuiComponent>      ENTERED_GUI_COMPONENTS = new ArrayList<>();
+    private static       List<GuiAbstractButton> buttons;
+    private static       List<Gui>               guis;
 
     public static Vector2f getCursorPos() {
         long windowID = DisplayManager.getWindow();
@@ -102,9 +108,12 @@ public class MouseUtils {
     }
 
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent) {
-        if (guiComponent instanceof GuiEllipse) {
-            Vector2f cursorPos = getCursorPos();
+        return isCursorInGuiComponent(guiComponent, false);
+    }
 
+    public static boolean isCursorInGuiComponent(GuiComponent guiComponent, boolean print) {
+        Vector2f cursorPos = getCursorPos();
+        if (guiComponent instanceof GuiEllipse) {
             float x = cursorPos.x;
             float y = cursorPos.y;
 
@@ -118,52 +127,118 @@ public class MouseUtils {
                     Math.pow(y - k, 2) / Math.pow(r2, 2)) <= 1;
         }
 
-        return isPointIn2DBounds(getCursorPos(), guiComponent.getX(), guiComponent.getY(), guiComponent.getWidth(),
+        if (guiComponent instanceof GuiTriangle) {
+            GuiTriangle guiTriangle = (GuiTriangle) guiComponent;
+            Vector2f p0, p1, p2;
+            float width = guiTriangle.getWidth();
+            float height = guiTriangle.getHeight();
+            float xCenter = guiTriangle.getX();
+            float yCenter = guiTriangle.getY();
+
+            int rotation = guiTriangle.getRotation() * 90;
+            switch (rotation) {
+                case 0:
+                    float yCenterMinusHeight = yCenter - height;
+                    p0 = new Vector2f(xCenter - width, yCenterMinusHeight);
+                    p1 = new Vector2f(xCenter, yCenter + height);
+                    p2 = new Vector2f(xCenter + width, yCenterMinusHeight);
+                    break;
+                case 90:
+                    float xCenterMinusWidth = xCenter - width;
+                    p0 = new Vector2f(xCenterMinusWidth, yCenter - height);
+                    p1 = new Vector2f(xCenterMinusWidth, yCenter + height);
+                    p2 = new Vector2f(xCenter + width, yCenter);
+                    break;
+                case 180:
+                    float yCenterPlusHeight = yCenter + height;
+                    p0 = new Vector2f(xCenter - width, yCenterPlusHeight);
+                    p1 = new Vector2f(xCenter + width, yCenterPlusHeight);
+                    p2 = new Vector2f(xCenter, yCenter - height);
+                    break;
+                case 270:
+                    float xCenterPlusWidth = xCenter + width;
+                    p0 = new Vector2f(xCenterPlusWidth, yCenter - height);
+                    p1 = new Vector2f(xCenter - width, yCenter);
+                    p2 = new Vector2f(xCenterPlusWidth, yCenter + height);
+                    break;
+                default:
+                    return false;
+            }
+            if (print) {
+                System.out.println(p0);
+                System.out.println(p1);
+                System.out.println(p2);
+            }
+            var dX = cursorPos.x - p2.x;
+            var dY = cursorPos.y - p2.y;
+            var dX21 = p2.x - p1.x;
+            var dY12 = p1.y - p2.y;
+            var D = dY12 * (p0.x - p2.x) + dX21 * (p0.y - p2.y);
+            var s = dY12 * dX + dX21 * dY;
+            var t = (p2.y - p0.y) * dX + (p0.x - p2.x) * dY;
+            if (D < 0)
+                return s <= 0 && t <= 0 && s + t >= D;
+            return s >= 0 && t >= 0 && s + t <= D;
+        }
+
+        return isPointIn2DBounds(cursorPos, guiComponent.getX(), guiComponent.getY(), guiComponent.getWidth(),
                 guiComponent.getHeight());
     }
 
     public static void setupListeners() {
-        long window = DisplayManager.getWindow();
-
+        long window = getWindow();
+        guis = new ArrayList<>(GuiRenderer.getGuis());
+        buttons = guis.stream().map(gui -> gui.getAllComponents().stream()
+                .filter(GuiAbstractButton.class::isInstance)
+                .map(GuiAbstractButton.class::cast).collect(Collectors.toList())).flatMap(
+                Collection::stream).collect(Collectors.toList());
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
-            final List<Gui> guis = new ArrayList<>(GuiRenderer.getGuis());
-
             boolean inGui = guis.stream()
                     .filter(Gui::isDisplayed)
                     .anyMatch(MouseUtils::isCursorInGui);
 
             switch (button) {
                 case GLFW_MOUSE_BUTTON_1:
-                    if (!inGui)
+                    if (!inGui && Game.getInstance().isStarted())
                         onM1OnTerrain(action);
-                    else {
-                        guis.stream()
-                                .filter(Gui::isDisplayed).forEach(
-                                gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
-                                        .filter(MouseUtils::isCursorInGuiComponent)
-                                        .forEach(guiComponent -> {
-                                            switch (action) {
-                                                case GLFW_PRESS:
-                                                    guiComponent.onPress();
-                                                    break;
-                                                case GLFW_RELEASE:
-                                                    guiComponent.onRelease();
-                                                    break;
-                                                default:
-                                                    System.err.println("Unknown action (M1)");
-                                                    break;
-                                            }
-                                        }));
+
+                    switch (action) {
+                        case GLFW_PRESS:
+                            if (inGui)
+                                guis.stream()
+                                        .filter(Gui::isDisplayed).forEach(
+                                        gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
+                                                .filter(GuiAbstractButton.class::isInstance)
+                                                .map(GuiAbstractButton.class::cast)
+                                                .filter(guiButton -> isCursorInGuiComponent(guiButton.getButtonShape()))
+                                                .forEach(GuiAbstractButton::onPress));
+                            break;
+                        case GLFW_RELEASE:
+                            buttons.stream().filter(GuiComponent::isClicked).forEach(guiButton -> {
+                                guiButton.resetFilter();
+
+                                if (!guiButton.isReleaseInsideNeeded()
+                                        || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
+                                        guiButton.isDisplayed() &&
+                                        isCursorInGuiComponent(guiButton.getButtonShape())))
+                                    guiButton.onRelease();
+                            });
+                            break;
+                        default:
+                            System.err.println("Unknown action (M1)");
+                            break;
                     }
                     break;
                 case GLFW_MOUSE_BUTTON_2:
                     switch (action) {
                         case GLFW_PRESS:
-                            onM2Pressed();
+                            if (Game.getInstance().isStarted())
+                                onM2Pressed();
                             break;
                         case GLFW_RELEASE:
-                            onM2Released();
+                            if (Game.getInstance().isStarted())
+                                onM2Released();
                             break;
                         default:
                             System.err.println("Unknown action (M2)");
@@ -181,12 +256,14 @@ public class MouseUtils {
         });
 
         callback2 = GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
-            if (yoffset > 0)
-                Camera.getInstance().moveCloser();
-            else if (yoffset < 0)
-                Camera.getInstance().moveFurther();
+            if (Game.getInstance().isStarted()) {
+                if (yoffset > 0)
+                    Camera.getInstance().moveCloser();
+                else if (yoffset < 0)
+                    Camera.getInstance().moveFurther();
 
-            FrustumCullingFilter.updateFrustum();
+                FrustumCullingFilter.updateFrustum();
+            }
         });
 
 
@@ -196,7 +273,6 @@ public class MouseUtils {
     }
 
     private static void onMouseMove(Vector2f pos) {
-        final List<Gui> guis = new ArrayList<>(GuiRenderer.getGuis());
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
 
         List<Gui> enteredGuis = guis.stream()
@@ -212,13 +288,16 @@ public class MouseUtils {
                     ENTERED_GUI_COMPONENTS.remove(guiComponent);
                 });
 
-        if (!inGui)
+        boolean gameStarted = Game.getInstance().isStarted();
+
+        if (!inGui && gameStarted)
             MousePicker.getInstance().update();
 
         switch (state) {
             case DEFAULT:
-                Gui.hideGui(selectedItemGui);
-                if (!inGui && MousePicker.getInstance().isPointOnTerrain())
+                if (gameStarted)
+                    Gui.hideGui(selectedItemGui);
+                if (!inGui && MousePicker.getInstance().isPointOnTerrain() && gameStarted)
                     onHoverOnTerrain(pos.x, pos.y);
                 else if (inGui)
                     updateGuis(enteredGuis);
@@ -231,16 +310,18 @@ public class MouseUtils {
             case PRESSED_WITH_DESTRUCTION:
                 selectedItemGui.updatePosition();
 
-                if (!inGui) {
+                if (!inGui && gameStarted) {
                     if (MousePicker.getInstance().isPointOnTerrain())
                         onHoverOnTerrain(pos.x, pos.y);
                     else {
                         Terrain.getInstance().resetPreviewItems();
                     }
                     Gui.showGui(selectedItemGui);
-                } else {
-                    Gui.showGui(selectedItemGui);
-                    terrain.resetPreviewItems();
+                } else if (inGui) {
+                    if (gameStarted) {
+                        Gui.showGui(selectedItemGui);
+                        terrain.resetPreviewItems();
+                    }
 
                     updateGuis(enteredGuis);
                 }
@@ -251,18 +332,21 @@ public class MouseUtils {
     }
 
     private static void updateGuis(List<Gui> enteredGuis) {
-        enteredGuis.forEach(gui -> gui.getComponents().keySet().stream()
+        List<GuiComponent> toUpdate = enteredGuis.stream()
+                .filter(Gui::areTransitionsDone)
+                .map(Gui::getAllComponents).flatMap(Collection::stream)
                 .filter(GuiComponent::isDisplayed)
                 .filter(MouseUtils::isCursorInGuiComponent)
-                .filter(gui::areTransitionsOfComponentDone)
-                .forEach(guiComponent -> {
+                .collect(Collectors.toList());
+
+                toUpdate.forEach(guiComponent -> {
                     if (ENTERED_GUI_COMPONENTS.contains(guiComponent))
                         guiComponent.onHover();
                     else {
                         guiComponent.onEnter();
                         ENTERED_GUI_COMPONENTS.add(guiComponent);
                     }
-                }));
+                });
     }
 
     private static void onHoverOnTerrain(double xPos, double yPos) {

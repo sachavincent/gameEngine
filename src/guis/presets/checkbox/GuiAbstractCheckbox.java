@@ -27,32 +27,32 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
     }
 
     public void setCheckmark(GuiBasics checkmark) {
-        if (checkmark.getBaseWidth() > getWidth() ||
-                checkmark.getBaseHeight() > getHeight())
+        if (checkmark.getWidth() > getWidth() ||
+                checkmark.getHeight() > getHeight())
             throw new IllegalArgumentException("Checkmark out of checkbox bounds.");
 
         this.checkmark = checkmark;
     }
 
     private void setListeners() {
-        setOnRelease(() -> {
-            //System.out.println("Release");
-
-            if (isClicked() && MouseUtils.isCursorInGuiComponent(this) && checkmark != null)
-                checkmark.setDisplayed(!checkmark.isDisplayed());
-
-            setClicked(false);
-
-            updateTexturesOnClick();
-        });
-
-        setOnPress(() -> {
-            System.out.println("Press");
-
-            setClicked(true);
-
-            updateTexturesOnClick();
-        });
+//        setOnRelease(() -> {
+//            //System.out.println("Release");
+//
+//            if (isClicked() && MouseUtils.isCursorInGuiComponent(this) && checkmark != null)
+//                checkmark.setDisplayed(!checkmark.isDisplayed());
+//
+//            setClicked(false);
+//
+//            updateTexturesOnClick();
+//        });
+//
+//        setOnPress(() -> {
+//            System.out.println("Press");
+//
+//            setClicked(true);
+//
+//            updateTexturesOnClick();
+//        });
 
         setOnHover(() -> {
 //            System.out.println("Hover");

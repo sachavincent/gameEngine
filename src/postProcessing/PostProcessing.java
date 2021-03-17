@@ -13,15 +13,17 @@ public class PostProcessing {
 
     private static RawModel quad;
 
-    private static ContrastChanger contrastChanger;
-    private static HorizontalBlur  horizontalBlur;
-    private static VerticalBlur    verticalBlur;
-    private static MonochromaticFilter    monochromaticFilter;
+    private static ContrastChanger     contrastChanger;
+    private static HorizontalBlur      horizontalBlur;
+    private static VerticalBlur        verticalBlur;
+    private static MonochromaticFilter monochromaticFilter;
+    private static PassthroughFilter   passthroughFilter;
 
     public static void init() {
         quad = Loader.getInstance().loadToVAO(POSITIONS, 2);
         contrastChanger = new ContrastChanger();
         monochromaticFilter = new MonochromaticFilter();
+        passthroughFilter = new PassthroughFilter();
 
         horizontalBlur = new HorizontalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
         verticalBlur = new VerticalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
@@ -32,8 +34,11 @@ public class PostProcessing {
 
 //        horizontalBlur.render(colourTexture);
 //        verticalBlur.render(horizontalBlur.getOutputTexture());
-        monochromaticFilter.render(colourTexture);
+//        monochromaticFilter.render(colourTexture);
 //        contrastChanger.render(verticalBlur.getOutputTexture());
+
+        passthroughFilter.render(colourTexture);
+
         end();
     }
 

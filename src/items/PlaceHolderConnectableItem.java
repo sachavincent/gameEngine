@@ -30,8 +30,8 @@ public class PlaceHolderConnectableItem extends PlaceHolderItem implements Conne
 
     // WEST NORTH EAST SOUTH
     @Override
-    public boolean[] getAccessPoints() {
-        boolean[] accessPoints = new boolean[4];
+    public Boolean[] getAccessPoints() {
+        Boolean[] accessPoints = new Boolean[4];
         if (relativePosition.getZ() < 0)
             accessPoints[0] = true;
         if (relativePosition.getX() > 0)

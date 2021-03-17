@@ -1,6 +1,6 @@
 package guis.transitions;
 
-import static renderEngine.DisplayManager.FPS;
+import static renderEngine.DisplayManager.MAX_FPS;
 
 import guis.GuiInterface;
 
@@ -55,12 +55,12 @@ public class FadeTransition extends Transition {
 
         switch (getTrigger()) {
             case SHOW:
-                float futureAlpha = gui.getTexture().getAlpha() + 1 / (length / 1000f) / FPS;
+                float futureAlpha = gui.getTexture().getAlpha() + 1 / (length / 1000f) / MAX_FPS;
                 gui.setAlpha(Float.min(futureAlpha, 1f));
 
                 return futureAlpha == 1f;
             case HIDE:
-                futureAlpha = gui.getTexture().getAlpha() - 1 / (length / 1000f) / FPS;
+                futureAlpha = gui.getTexture().getAlpha() - 1 / (length / 1000f) / MAX_FPS;
                 gui.setAlpha(Float.max(futureAlpha, 0f));
 
                 return futureAlpha <= 0;
