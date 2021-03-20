@@ -33,22 +33,23 @@ public class CategoryView extends GuiRectangle {
 
     public CategoryView(GuiHouseDetails gui) {
         super(gui, Background.NO_BACKGROUND, CONSTRAINTS);
+
         setChildrenConstraints(new RatioedPatternGlobalConstraint(2, 1, 0.06f, 0.06f, 70f, -1f, 30f, -1f));
 
-        categoryIcon = new GuiProgressIcon(this, Resource.FISH.getTexture(), null);
+        this.categoryIcon = new GuiProgressIcon(this, Resource.FISH.getTexture(), null);
         GuiTexture[] categoryIconsArray = new GuiTexture[Resource.values().length];
         for (Resource r : Resource.values()) {
-            categoryIconsArray[r.ordinal()] = new GuiTexture(r.getTexture(), categoryIcon);
+            categoryIconsArray[r.ordinal()] = new GuiTexture(r.getTexture(), this.categoryIcon);
         }
 
 //        categoryIconsArray[Resource.FISH.ordinal()] = new GuiTexture(Resource.FISH.getTexture(), categoryIcon);
 //        categoryIconsArray[ResourceType.BEVERAGE.ordinal()] = new GuiTexture(coinsImage, categoryIcon);
 //        categoryIconsArray[ResourceType.SOCIAL.ordinal()] = new GuiTexture(coinsImage, categoryIcon);
         for (int i = 1; i < ResourceType.values().length; i++)
-            categoryIcon.addTexture(categoryIconsArray[i]);
+            this.categoryIcon.addTexture(categoryIconsArray[i]);
 
         Text text = new Text("0%", 1.5f, DEFAULT_FONT, Color.BLACK);
 
-        categoryPercentage = new GuiText(this, text);
+        this.categoryPercentage = new GuiText(this, text);
     }
 }

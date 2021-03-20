@@ -22,7 +22,7 @@ public class GuiMainMenu extends Gui {
             new SideConstraint(Side.LEFT), new SideConstraint(Side.TOP)};
 
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
-            new RelativeConstraint(0.17f), new RelativeConstraint(.5f)};
+            new RelativeConstraint(0.4f), new RelativeConstraint(.5f)};
 
     private static GuiMainMenu instance;
 
@@ -57,13 +57,22 @@ public class GuiMainMenu extends Gui {
         createQuitButton();
 
         this.settingsMenu = new GuiSettingsMenu(this);
+        this.settingsMenu.onBackButtonPress(this::back);
+
+        formLoad();
+    }
+
+    private void formLoad() {
         this.state = State.MAIN;
+
+        this.settingsMenu.setDisplayed(false);
     }
 
     private void createNewGameButton() {
         Text text = new Text("New Game", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton newGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
+        newGameButton.enableFilter();
         newGameButton.setOnPress(() -> {
             Gui.hideGui(this);
             Game.getInstance().start();
@@ -74,6 +83,10 @@ public class GuiMainMenu extends Gui {
         Text text = new Text("Load Game", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton loadGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
+        loadGameButton.enableFilter();
+        loadGameButton.setOnPress(() -> {
+
+        });
     }
 
     private void createSettingsButton() {
@@ -82,10 +95,14 @@ public class GuiMainMenu extends Gui {
                 new Background<>(new Color(109, 109, 109, 100)), text);
         settingsButton.enableFilter();
         settingsButton.setOnPress(() -> {
-            state = State.SETTINGS;
             Gui.hideGui(this);
-            Gui.showGui(this.settingsMenu);
+            showSettings();
         });
+    }
+
+    public void showSettings() {
+        state = State.SETTINGS;
+        Gui.showGui(this.settingsMenu);
     }
 
     private void createQuitButton() {

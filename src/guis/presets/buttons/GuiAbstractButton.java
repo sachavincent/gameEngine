@@ -3,6 +3,7 @@ package guis.presets.buttons;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.GuiInterface;
+import guis.GuiTexture;
 import guis.basics.GuiBasics;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiShape;
@@ -214,8 +215,12 @@ public abstract class GuiAbstractButton extends GuiPreset {
         else
             this.clicked = false;
 
-        if (!this.toggleType && this.clicked && this.filterLayout != null)
-            this.filterLayout.scale(1 - SCALE_FACTOR);
+        if (!this.toggleType && this.filterLayout != null) {
+            if (clicked)
+                this.filterLayout.scale(1 - SCALE_FACTOR);
+            else
+                resetFilter();
+        }
     }
 
     private void setListeners() {
@@ -329,6 +334,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
             if (MouseUtils.isCursorInGuiComponent(this)) // Appears on mouse cursor
                 this.tooltipGui.setDisplayed(true);
         }
+        if (!displayed && this.clicked)
+            setClicked(false);
     }
 
     public GuiShape getButtonShape() {

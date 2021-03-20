@@ -7,14 +7,13 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.getWindow;
 
+import engineTester.Game.GameState;
 import entities.Camera;
 import entities.Light;
 import fontMeshCreator.FontType;
-import renderEngine.fontRendering.TextMaster;
 import guis.Gui;
 import guis.constraints.PatternGlobalConstraint;
 import guis.prefabs.GuiEscapeMenu;
-import guis.prefabs.GuiEscapeMenu.MenuButton;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiMainMenu.GuiMainMenu;
@@ -33,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import language.TextConverter;
 import org.lwjgl.opengl.GL;
 import postProcessing.Fbo;
@@ -42,6 +42,7 @@ import renderEngine.FrustumCullingFilter;
 import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
+import renderEngine.fontRendering.TextMaster;
 import shaders.WaterShader;
 import terrains.Terrain;
 import terrains.TerrainPosition;
@@ -62,8 +63,8 @@ public class MainGameLoop {
                 getInputArguments().toString().indexOf("jdwp") >= 0;
         glfwInit();
 //        if (!isDebug) {
-            DisplayManager.createDisplay();
-            SettingsManager.loadSettings();
+        DisplayManager.createDisplay();
+        SettingsManager.loadSettings();
 //        } else {
 //            DisplayManager.createDisplayForTests();
 //        }
@@ -139,26 +140,7 @@ public class MainGameLoop {
         WaterTile water = new WaterTile(75, -75, 0);
 //        waters.add(water);
 
-        new GuiEscapeMenu.Builder()
-                .setBackground(new Background<>(new Color(109, 109, 109, 80)))
-                .addButton(MenuButton.RESUME, ButtonType.RECTANGLE,
-                        new Background<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.SAVE_AND_QUIT, ButtonType.RECTANGLE,
-                        new Background<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.QUICK_SAVE, ButtonType.RECTANGLE,
-                        new Background<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.SETTINGS, ButtonType.RECTANGLE,
-                        new Background<>(new Color(109, 109, 109, 100)))
-                .addButton(MenuButton.QUIT, ButtonType.RECTANGLE,
-                        new Background<>(new Color(109, 109, 109, 100)))
-//                .setTransitionsToAllButtons(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT), 200,
-//                        true)
-//                .setTransitionsToAllButtons(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT), 200,
-//                        true)
-                //.setFont TODO
-//                .setTransitions(new SlidingTransition(Trigger.SHOW, 400, SlidingDirection.RIGHT))
-//                .setTransitions(new SlidingTransition(Trigger.HIDE, 400, SlidingDirection.LEFT))
-                .create();
+        GuiEscapeMenu.getInstance();
 
         new GuiItemSelection.Builder()
                 .setBackground(new Background<>(new Color(109, 109, 109, 80)))
@@ -203,6 +185,8 @@ public class MainGameLoop {
         // Listeners at the end, after initializing all GUIs
         MouseUtils.setupListeners();
         KeyboardUtils.setupListeners();
+        Game.getInstance().updateGuis();
+
         double time = Timer.getTime();
         double unprocessed = 0;
         int frames = 0;
@@ -229,7 +213,7 @@ public class MainGameLoop {
                 if (frameTime >= 1.0) {
                     frameTime = 0;
 //                    System.out.println("frames: " + frames);
-//                    GuiHouseDetails.getInstance().setCurrentCategoryPercentage(new Random().nextInt(100));
+                    GuiHouseDetails.getInstance().setCurrentCategoryPercentage(new Random().nextInt(100));
                     frames = 0;
                 }
 //                glfwPollEvents();
@@ -238,7 +222,7 @@ public class MainGameLoop {
             if (canRender) {
                 glfwPollEvents();
 
-                if (Game.getInstance().isStarted()) {
+                if (Game.getInstance().getGameState() == GameState.STARTED) {
                     camera.move();
 
                     renderer.renderScene(lights, new Vector4f(0, -1, 0, 1000000));

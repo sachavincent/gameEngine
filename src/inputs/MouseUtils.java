@@ -10,6 +10,7 @@ import static renderEngine.DisplayManager.getWindow;
 import static util.math.Maths.isPointIn2DBounds;
 
 import engineTester.Game;
+import engineTester.Game.GameState;
 import entities.Camera;
 import guis.Gui;
 import guis.GuiComponent;
@@ -36,7 +37,6 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import renderEngine.DisplayManager;
 import renderEngine.FrustumCullingFilter;
-import renderEngine.GuiRenderer;
 import terrains.Terrain;
 import terrains.TerrainPosition;
 import util.MousePicker;
@@ -67,7 +67,6 @@ public class MouseUtils {
 
     private static final List<GuiComponent>      ENTERED_GUI_COMPONENTS = new ArrayList<>();
     private static       List<GuiAbstractButton> buttons;
-    private static       List<Gui>               guis;
 
     public static Vector2f getCursorPos() {
         long windowID = DisplayManager.getWindow();
@@ -187,42 +186,43 @@ public class MouseUtils {
 
     public static void setupListeners() {
         long window = getWindow();
-        guis = new ArrayList<>(GuiRenderer.getGuis());
-        buttons = guis.stream().map(gui -> gui.getAllComponents().stream()
+        buttons = new ArrayList<>(Game.getInstance().getAllGuis()).stream().map(gui -> gui.getAllComponents().stream()
                 .filter(GuiAbstractButton.class::isInstance)
                 .map(GuiAbstractButton.class::cast).collect(Collectors.toList())).flatMap(
                 Collection::stream).collect(Collectors.toList());
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
-            boolean inGui = guis.stream()
-                    .filter(Gui::isDisplayed)
-                    .anyMatch(MouseUtils::isCursorInGui);
+            boolean inGui = Game.getInstance().getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
 
             switch (button) {
                 case GLFW_MOUSE_BUTTON_1:
-                    if (!inGui && Game.getInstance().isStarted())
+                    if (!inGui && Game.getInstance().getGameState() == GameState.STARTED)
                         onM1OnTerrain(action);
 
                     switch (action) {
                         case GLFW_PRESS:
                             if (inGui)
-                                guis.stream()
-                                        .filter(Gui::isDisplayed).forEach(
+                                new ArrayList<>(Game.getInstance().getDisplayedGuis()).forEach(
                                         gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
                                                 .filter(GuiAbstractButton.class::isInstance)
                                                 .map(GuiAbstractButton.class::cast)
                                                 .filter(guiButton -> isCursorInGuiComponent(guiButton.getButtonShape()))
                                                 .forEach(GuiAbstractButton::onPress));
+
+                            Game.getInstance().getGuiTextInputs().forEach(guiTextInput -> {
+                                if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
+                                    guiTextInput.unfocus();
+                            });
                             break;
                         case GLFW_RELEASE:
                             buttons.stream().filter(GuiComponent::isClicked).forEach(guiButton -> {
-                                guiButton.resetFilter();
-
                                 if (!guiButton.isReleaseInsideNeeded()
                                         || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
                                         guiButton.isDisplayed() &&
                                         isCursorInGuiComponent(guiButton.getButtonShape())))
                                     guiButton.onRelease();
+                                else
+                                    guiButton.resetFilter();
                             });
                             break;
                         default:
@@ -233,11 +233,11 @@ public class MouseUtils {
                 case GLFW_MOUSE_BUTTON_2:
                     switch (action) {
                         case GLFW_PRESS:
-                            if (Game.getInstance().isStarted())
+                            if (Game.getInstance().getGameState() == GameState.STARTED)
                                 onM2Pressed();
                             break;
                         case GLFW_RELEASE:
-                            if (Game.getInstance().isStarted())
+                            if (Game.getInstance().getGameState() == GameState.STARTED)
                                 onM2Released();
                             break;
                         default:
@@ -256,7 +256,7 @@ public class MouseUtils {
         });
 
         callback2 = GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
-            if (Game.getInstance().isStarted()) {
+            if (Game.getInstance().getGameState() == GameState.STARTED) {
                 if (yoffset > 0)
                     Camera.getInstance().moveCloser();
                 else if (yoffset < 0)
@@ -266,17 +266,13 @@ public class MouseUtils {
             }
         });
 
-
-        callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> {
-            onMouseMove(new Vector2f(xPos, yPos));
-        });
+        callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> onMouseMove(new Vector2f(xPos, yPos)));
     }
 
     private static void onMouseMove(Vector2f pos) {
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
 
-        List<Gui> enteredGuis = guis.stream()
-                .filter(Gui::isDisplayed)
+        List<Gui> enteredGuis = Game.getInstance().getDisplayedGuis().stream()
                 .filter(MouseUtils::isCursorInGui).collect(Collectors.toList());
 
         boolean inGui = !enteredGuis.isEmpty();
@@ -288,7 +284,7 @@ public class MouseUtils {
                     ENTERED_GUI_COMPONENTS.remove(guiComponent);
                 });
 
-        boolean gameStarted = Game.getInstance().isStarted();
+        boolean gameStarted = Game.getInstance().getGameState() == GameState.STARTED;
 
         if (!inGui && gameStarted)
             MousePicker.getInstance().update();
@@ -315,8 +311,8 @@ public class MouseUtils {
                         onHoverOnTerrain(pos.x, pos.y);
                     else {
                         Terrain.getInstance().resetPreviewItems();
+                        Gui.showGui(selectedItemGui);
                     }
-                    Gui.showGui(selectedItemGui);
                 } else if (inGui) {
                     if (gameStarted) {
                         Gui.showGui(selectedItemGui);
@@ -339,14 +335,14 @@ public class MouseUtils {
                 .filter(MouseUtils::isCursorInGuiComponent)
                 .collect(Collectors.toList());
 
-                toUpdate.forEach(guiComponent -> {
-                    if (ENTERED_GUI_COMPONENTS.contains(guiComponent))
-                        guiComponent.onHover();
-                    else {
-                        guiComponent.onEnter();
-                        ENTERED_GUI_COMPONENTS.add(guiComponent);
-                    }
-                });
+        toUpdate.forEach(guiComponent -> {
+            if (ENTERED_GUI_COMPONENTS.contains(guiComponent))
+                guiComponent.onHover();
+            else {
+                guiComponent.onEnter();
+                ENTERED_GUI_COMPONENTS.add(guiComponent);
+            }
+        });
     }
 
     private static void onHoverOnTerrain(double xPos, double yPos) {

@@ -139,6 +139,7 @@ public class GuiHouseDetails extends Gui {
     }
 
     public void setCurrentCategoryPercentage(int percentage) {
+
         this.categoryView.categoryIcon.setProgressPercentage(percentage);
 
         Text text = this.categoryView.categoryPercentage.getText();
@@ -464,6 +465,10 @@ public class GuiHouseDetails extends Gui {
         if (displayed) {
             formLoad();
             update();
+        } else if (this.houseItem != null) {
+            HouseItem houseItem = this.houseItem;
+            this.houseItem = null; // Prevent infinite loop
+            houseItem.unselect();
         }
     }
 

@@ -43,10 +43,11 @@ public class DisplayManager {
     public static Screen       currentScreen;
     public static int          indexCurrentScreen;
 
-    public static WindowType windowType;
+    public static DisplayMode displayMode;
 
     private static GLFWErrorCallback           callback;
     private static GLFWFramebufferSizeCallback callback2;
+    private static long                        firstWindow;
 
     public static void createDisplay() {
         screens = new ArrayList<>();
@@ -58,8 +59,8 @@ public class DisplayManager {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GLFW_DECORATED, GL_FALSE);
         glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
-        glfwWindowHint(GLFW_DECORATED, GL_TRUE);
 //        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);//=less fps
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
@@ -70,7 +71,7 @@ public class DisplayManager {
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-        windowType = WindowType.WINDOWED;
+        displayMode = DisplayMode.defaultMode();
         indexCurrentScreen = 0;
         loadScreens();
         WIDTH = currentScreen.resolution.width;
@@ -78,19 +79,20 @@ public class DisplayManager {
     }
 
     private static void setWindow() {
+        if (window != 0)
+            return;
+
         GLFWVidMode mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwWindowHint(GLFW_RED_BITS, mode.redBits());
         glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
         glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
         glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
-        window = glfwCreateWindow(mode.width(), mode.height(), "OpenGL Tests", 0, 0);
-        if (window == 0)
-            throw new RuntimeException("Failed to create window");
 
+
+        window = glfwCreateWindow(mode.width(), mode.height(), "OpenGL Tests", 0, 0);
 
         glfwMakeContextCurrent(window);
         GL.createCapabilities();
-        glViewport(0, 0, mode.width(), mode.height());
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetFramebufferSizeCallback(window, (callback2 = new GLFWFramebufferSizeCallback() {
@@ -101,7 +103,6 @@ public class DisplayManager {
                 glViewport(0, 0, WIDTH, HEIGHT);
             }
         }));
-
 
         GLFWImage image = GLFWImage.malloc();
         ByteBuffer buf = null;
@@ -217,36 +218,45 @@ public class DisplayManager {
         GL.createCapabilities();
     }
 
-    public static void setWindowType(WindowType type) {
-        windowType = type;
-        GLFWVidMode mode;
+    public static void setDisplayMode(DisplayMode type) {
+        displayMode = type;
 
-        System.out.println(type.name());
+//        System.out.println("setWindowMode=" + type.name() + " for screen n°" + indexCurrentScreen);
 
-        System.out.println(indexCurrentScreen);
-
-        if (type == WindowType.FULLSCREEN)
-            glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
-        else if (type == WindowType.BORDERLESS_WINDOWED)
-            glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
         setWindow();
 
+        GLFWVidMode mode = glfwGetVideoMode(currentScreen.id);
+        if (mode == null)
+            throw new IllegalArgumentException(
+                    "VidMode null for screen id=" + currentScreen.id + " at index " + indexCurrentScreen);
 
-        mode = glfwGetVideoMode(currentScreen.id);
-        glfwWindowHint(GLFW_RED_BITS, mode.redBits());
-        glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
-        glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
-        glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
-        if (type == WindowType.FULLSCREEN) {
-            glfwSetWindowMonitor(window, currentScreen.id, 0, 0, mode.width(),
-                    mode.height(), mode.refreshRate());
-        } else if (type == WindowType.BORDERLESS_WINDOWED) {
-            glfwSetWindowMonitor(window, indexCurrentScreen != 0 ? 0 : currentScreen.id, 0, 0, mode.width(),
-                    mode.height(), mode.refreshRate());
-        } else {
-            glfwSetWindowPos(window, currentScreen.x, currentScreen.y);
-            glfwMaximizeWindow(window);
+        switch (type) {
+            case FULLSCREEN:
+                glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, GL_TRUE);
+
+                glfwSetWindowMonitor(window, currentScreen.id, 0, 0, mode.width(), mode.height(), mode.refreshRate());
+                break;
+            case BORDERLESS_WINDOWED:
+                glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, GL_FALSE);
+                glfwSetWindowAttrib(window, GLFW_DECORATED, GL_FALSE);
+
+                glfwSetWindowMonitor(window, currentScreen.id, 0, 0, mode.width(), mode.height(), mode.refreshRate());
+                break;
+            case WINDOWED:
+                glfwSetWindowAttrib(window, GLFW_DECORATED, GL_TRUE);
+                glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, GL_FALSE);
+
+                glfwSetWindowMonitor(window, 0, currentScreen.x, currentScreen.y, mode.width(), mode.height(),
+                        mode.refreshRate());
+                glfwMaximizeWindow(window);
+                break;
+            default:
+                break;
         }
+    }
+
+    public static void hideWindow() {
+        glfwHideWindow(window);
     }
 
     public static void showWindow() {
@@ -258,7 +268,7 @@ public class DisplayManager {
         if (screens.size() <= index)
             return;
 
-        System.out.println("setScreen : " + windowType.name());
+//        System.out.println("setScreen : " + displayMode.name());
 
         currentScreen = screens.get(index);
         indexCurrentScreen = index;
@@ -275,11 +285,12 @@ public class DisplayManager {
 
         if (indexCurrentScreen != 0)
             glfwSetWindowPos(window, currentScreen.x, currentScreen.y);
-        if (windowType == WindowType.BORDERLESS_WINDOWED)
+        if (displayMode == DisplayMode.BORDERLESS_WINDOWED || displayMode == DisplayMode.FULLSCREEN)
             glfwSetWindowSize(window, currentScreen.resolution.width, currentScreen.resolution.height);
-        else if (windowType == WindowType.WINDOWED)
+        else
             glfwSetWindowSize(window, currentScreen.resolution.width, currentScreen.resolution.height - 50);
     }
+
 
     public static class Resolution implements Comparable<Resolution> {
 
@@ -361,9 +372,18 @@ public class DisplayManager {
         }
     }
 
-    public enum WindowType {
+    public enum DisplayMode {
         FULLSCREEN,
         BORDERLESS_WINDOWED,
         WINDOWED;
+
+        public static DisplayMode defaultMode() {
+            return FULLSCREEN;
+        }
+
+        @Override
+        public String toString() {
+            return name().replace("_", " ");
+        }
     }
 }

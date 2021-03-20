@@ -7,6 +7,7 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiGlobalConstraints;
 import guis.presets.Background;
 import guis.transitions.Transition;
+import inputs.MouseUtils;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
 import inputs.callbacks.LeaveCallback;
@@ -67,14 +68,15 @@ public abstract class GuiComponent implements GuiInterface {
 
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
 
-
         parent.addComponent(this);
     }
 
-    public GuiComponent(GuiInterface parent, Background<?> texture) {
+    public GuiComponent(GuiInterface parent, Background<?> background) {
         this(parent);
 
-        this.textures.add(new GuiTexture(texture, new Vector2f(this.x, this.y), new Vector2f(this.width, this.height)));
+        if (background != null)
+            this.textures.add(new GuiTexture(background, new Vector2f(this.x, this.y),
+                    new Vector2f(this.width, this.height)));
     }
 
     public float getCornerRadius() {
@@ -315,12 +317,19 @@ public abstract class GuiComponent implements GuiInterface {
 
     @Override
     public void setDisplayed(boolean displayed) {
+        if (this.displayed == displayed)
+            return;
+
         this.displayed = displayed;
 
         Gui parent = GuiComponent.getParentGui(this);
         List<GuiComponent> list = parent.getAllComponents().stream()
                 .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
-        list.forEach(guiC -> guiC.setDisplayed(displayed));
+        list.forEach(guiC -> {
+            guiC.setDisplayed(displayed);
+            if (MouseUtils.isCursorInGuiComponent(guiC)) // happens if shown when cursor is there
+                guiC.onEnter();
+        });
     }
 
     public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
@@ -333,9 +342,41 @@ public abstract class GuiComponent implements GuiInterface {
         this.textureIndex = textureIndex;
     }
 
+    public int getTextureIndex() {
+        return this.textureIndex;
+    }
+
     @Override
     public boolean isDisplayed() {
         return this.displayed;
+    }
+
+    @Override
+    public void setAlpha(float alpha) {
+        if (this.textures.size() > textureIndex) {
+            GuiTexture guiTexture = this.textures.get(textureIndex);
+
+            guiTexture.setAlpha(alpha);
+        }
+    }
+
+    public void addTexture(GuiTexture texture) {
+        if (texture != null)
+            this.textures.add(texture);
+    }
+
+    public int getNbTextures() {
+        return this.textures.size();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        GuiComponent that = (GuiComponent) o;
+        return this.ID == that.ID;
     }
 
     @Override
@@ -348,33 +389,9 @@ public abstract class GuiComponent implements GuiInterface {
                 '}';
     }
 
-
-    @Override
-    public void setAlpha(float alpha) {
-        if (this.textures.size() > textureIndex) {
-            GuiTexture guiTexture = this.textures.get(textureIndex);
-
-            guiTexture.setAlpha(alpha);
-        }
-    }
-
-    public void addTexture(GuiTexture guiTexture) {
-        this.textures.add(guiTexture);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        GuiComponent that = (GuiComponent) o;
-        return ID == that.ID;
-    }
-
     @Override
     public int hashCode() {
-        return Objects.hash(ID);
+        return Objects.hash(this.ID);
     }
 
     public abstract void render();

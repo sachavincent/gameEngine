@@ -1,15 +1,25 @@
 package engineTester;
 
+import guis.Gui;
+import guis.presets.GuiTextInput;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import terrains.Terrain;
 
 public class Game {
 
     private static Game instance;
 
-    private int     numberOfPeople;
-    private boolean isStarted;
+    private int       numberOfPeople;
+    private GameState gameState;
+
+    private final List<Gui>          guis          = new ArrayList<>();
+    private final List<GuiTextInput> guiTextInputs = new ArrayList<>();
+    private final List<Gui>          displayedGuis = new ArrayList<>();
 
     private Game() {
+        this.gameState = GameState.NOT_STARTED;
     }
 
     public static Game getInstance() {
@@ -37,10 +47,55 @@ public class Game {
     }
 
     public void start() {
-        this.isStarted = true;
+        if (this.gameState == GameState.NOT_STARTED)
+            this.gameState = GameState.STARTED;
+        else
+            throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
     }
 
-    public boolean isStarted() {
-        return this.isStarted;
+    public void pause() {
+        if (this.gameState == GameState.STARTED)
+            this.gameState = GameState.PAUSED;
+        else
+            throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
+    }
+
+    public void resume() {
+        if (this.gameState == GameState.PAUSED)
+            this.gameState = GameState.STARTED;
+        else
+            throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
+    }
+
+    public GameState getGameState() {
+        return this.gameState;
+    }
+
+    public List<Gui> getAllGuis() {
+        return this.guis;
+    }
+
+    public List<Gui> getDisplayedGuis() {
+        return this.displayedGuis;
+    }
+
+    public List<GuiTextInput> getGuiTextInputs() {
+        return this.guiTextInputs;
+    }
+
+    public void addGui(Gui gui) {
+        this.guis.add(gui);
+    }
+
+    public void updateGuis() {
+        this.guis.forEach(
+                gui -> this.guiTextInputs.addAll(gui.getAllComponents().stream().filter(GuiTextInput.class::isInstance)
+                        .map(GuiTextInput.class::cast).collect(Collectors.toList())));
+    }
+
+    public enum GameState {
+        STARTED,
+        PAUSED,
+        NOT_STARTED;
     }
 }

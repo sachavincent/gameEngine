@@ -11,10 +11,10 @@ public class GuiConstraintsManager {
     private final Set<Character> order = new LinkedHashSet<>();
 
     public GuiConstraintsManager setDefault() {
-        setxConstraint(new CenterConstraint());
-        setyConstraint(new CenterConstraint());
         setWidthConstraint(new RelativeConstraint(0.1f));
         setHeightConstraint(new RelativeConstraint(0.1f));
+        setxConstraint(new CenterConstraint());
+        setyConstraint(new CenterConstraint());
 
         return this;
     }
@@ -37,7 +37,10 @@ public class GuiConstraintsManager {
 
     public void setxConstraint(GuiConstraints xConstraint) {
         if (xConstraint == null || xConstraint.getConstraintType() == ConstraintsType.DIMENSION)
-            throw new IllegalGuiConstraintException();
+            throw new IllegalGuiConstraintException("Wrong constraint type");
+
+        if ((!this.order.contains('W') || !this.order.contains('H')) && !this.order.contains('X'))
+            throw new IllegalGuiConstraintException("Width and height should be set before X");
 
         this.xConstraint = xConstraint;
 
@@ -47,7 +50,10 @@ public class GuiConstraintsManager {
 
     public void setyConstraint(GuiConstraints yConstraint) {
         if (yConstraint == null || yConstraint.getConstraintType() == ConstraintsType.DIMENSION)
-            throw new IllegalGuiConstraintException();
+            throw new IllegalGuiConstraintException("Wrong constraint type");
+
+        if ((!this.order.contains('W') || !this.order.contains('H')) && !this.order.contains('Y'))
+            throw new IllegalGuiConstraintException("Width and height should be set before Y");
 
         this.yConstraint = yConstraint;
 
@@ -57,7 +63,10 @@ public class GuiConstraintsManager {
 
     public void setWidthConstraint(GuiConstraints widthConstraint) {
         if (widthConstraint == null || widthConstraint.getConstraintType() == ConstraintsType.POSITION)
-            throw new IllegalGuiConstraintException();
+            throw new IllegalGuiConstraintException("Wrong constraint type");
+
+        if ((this.order.contains('X') || this.order.contains('Y')) && !this.order.contains('W'))
+            throw new IllegalGuiConstraintException("Width should be set after X & Y");
 
         this.widthConstraint = widthConstraint;
 
@@ -67,7 +76,10 @@ public class GuiConstraintsManager {
 
     public void setHeightConstraint(GuiConstraints heightConstraint) {
         if (heightConstraint == null || heightConstraint.getConstraintType() == ConstraintsType.POSITION)
-            throw new IllegalGuiConstraintException();
+            throw new IllegalGuiConstraintException("Wrong constraint type");
+
+        if ((this.order.contains('X') || this.order.contains('Y')) && !this.order.contains('H'))
+            throw new IllegalGuiConstraintException("Height should be set after X & Y");
 
         this.heightConstraint = heightConstraint;
 

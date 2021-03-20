@@ -2,6 +2,7 @@ package guis;
 
 import static renderEngine.GuiRenderer.filledQuad;
 
+import engineTester.Game;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
@@ -16,6 +17,7 @@ import guis.presets.buttons.GuiCircularButton;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import guis.transitions.Transition.Trigger;
+import inputs.MouseUtils;
 import inputs.callbacks.UpdateCallback;
 import java.awt.Color;
 import java.io.File;
@@ -62,7 +64,7 @@ public class Gui implements GuiInterface {
         this.components = new LinkedHashMap<>();
         this.transitions = new HashSet<>();
 
-        GuiRenderer.addGui(this);
+        Game.getInstance().addGui(this);
     }
 
     public void setBackground(Background<?> background) {
@@ -201,10 +203,7 @@ public class Gui implements GuiInterface {
         text.setCentered(true);
         text.setPosition(new Vector2f(guiInterface.getX() - guiInterface.getWidth() + line.getLineLength(),
                 -guiInterface.getY() - text.getTextHeight() / 2));
-        GuiText guiText = new GuiText(guiInterface, text);
-        guiText.setDisplayed(false);
-
-        return guiText;
+        return new GuiText(guiInterface, text);
     }
 
     public boolean areTransitionsOfComponentDone(GuiComponent guiComponent) {
@@ -431,11 +430,24 @@ public class Gui implements GuiInterface {
 
     @Override
     public void setDisplayed(boolean displayed) {
+        if (this.displayed == displayed)
+            return;
+
         this.displayed = displayed;
+
+        Game gameInstance = Game.getInstance();
+        if (displayed)
+            gameInstance.getDisplayedGuis().add(this);
+        else
+            gameInstance.getDisplayedGuis().remove(this);
 
         List<GuiComponent> list = getAllComponents().stream()
                 .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
-        list.forEach(guiC -> guiC.setDisplayed(displayed));
+        list.forEach(guiC -> {
+            guiC.setDisplayed(displayed);
+            if (MouseUtils.isCursorInGuiComponent(guiC))
+                guiC.onEnter();
+        });
     }
 
     public Map<GuiComponent, Set<Transition>> getComponents() {

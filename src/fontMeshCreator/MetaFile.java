@@ -58,7 +58,7 @@ public class MetaFile {
         return spaceWidth;
     }
 
-    protected Character getCharacter(int ascii) {
+    public Character getCharacter(int ascii) {
         return metaData.get(ascii);
     }
 

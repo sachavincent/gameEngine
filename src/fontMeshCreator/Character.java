@@ -89,16 +89,31 @@ public class Character {
 		return yOffset;
 	}
 
-	protected double getSizeX() {
+	public double getSizeX() {
 		return sizeX;
 	}
 
-	protected double getSizeY() {
+	public double getSizeY() {
 		return sizeY;
 	}
 
-	protected double getxAdvance() {
+	public double getxAdvance() {
 		return xAdvance;
 	}
 
+	@Override
+	public String toString() {
+		return "Character{" +
+				"id=" + id +
+				", xTextureCoord=" + xTextureCoord +
+				", yTextureCoord=" + yTextureCoord +
+				", xMaxTextureCoord=" + xMaxTextureCoord +
+				", yMaxTextureCoord=" + yMaxTextureCoord +
+				", xOffset=" + xOffset +
+				", yOffset=" + yOffset +
+				", sizeX=" + sizeX +
+				", sizeY=" + sizeY +
+				", xAdvance=" + xAdvance +
+				'}';
+	}
 }

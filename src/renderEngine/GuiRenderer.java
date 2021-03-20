@@ -4,16 +4,15 @@ import static guis.basics.GuiRectangle.POSITIONS_FILLED;
 import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
 import static org.lwjgl.opengl.GL11.*;
 
-import guis.Gui;
+import engineTester.Game;
 import guis.GuiInterface;
 import guis.GuiTexture;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
 import guis.presets.Background;
-import guis.presets.GuiSlider;
+import guis.presets.GuiTextInput;
 import guis.presets.graphs.GuiDonutGraph;
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import models.RawModel;
@@ -40,13 +39,8 @@ public class GuiRenderer {
     public final static RawModel filledCircle   = drawFilledCircle();
 
     private static final GuiShader shader = new GuiShader();
-    private static final List<Gui> guis   = new ArrayList<>();
 
     private static boolean displayDebugOutlines;
-
-    public static void addGui(Gui gui) {
-        guis.add(gui);
-    }
 
     public static void render() {
         shader.start();
@@ -61,15 +55,13 @@ public class GuiRenderer {
         GL11.glDisable(GL42.GL_MULTISAMPLE);
 
         TextMaster.getInstance().removeText();
-        guis.stream()
-                .filter(gui -> gui.isDisplayed()/* ||
-                        gui.getHideTransitions().stream().anyMatch(transition -> !transition.isDone()) ||
-                        gui.getComponentsHideTransitions().values().stream().anyMatch(
-                                transitions -> transitions.stream().anyMatch(transition -> !transition.isDone()))*/)
+
+        Game.getInstance().getGuiTextInputs().forEach(GuiTextInput::updateCursor);
+        Game.getInstance().getDisplayedGuis()
                 .forEach(gui -> {
                     gui.render();
 
-                    gui.getComponents().keySet()
+                    gui.getAllComponents()
                             .stream().filter(guiComponent -> guiComponent.isDisplayed() /*||
                             gui.getComponentsHideTransitions().get(guiComponent).stream()
                                     .anyMatch(transition -> !transition.isDone() && transition.isStarted())*/)
@@ -106,10 +98,6 @@ public class GuiRenderer {
         GL30.glBindVertexArray(0);
 
         shader.stop();
-    }
-
-    public static List<Gui> getGuis() {
-        return guis;
     }
 
     public static void renderOutlineForDebug(GuiInterface guiInterface) {

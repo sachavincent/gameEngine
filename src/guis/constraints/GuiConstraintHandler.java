@@ -2,6 +2,7 @@ package guis.constraints;
 
 import guis.Gui;
 import guis.GuiInterface;
+import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.exceptions.IllegalGuiConstraintException;
 import renderEngine.DisplayManager;
 
@@ -53,18 +54,16 @@ public class GuiConstraintHandler {
 
         switch (widthConstraint.getConstraint()) {
             case RELATIVE:
-                if (relativeTo != null)
-                    width = constraint * relativeTo.getWidth();
-                else
-                    width = constraint * this.parent.getWidth();
+                if (relativeTo == null)
+                    relativeTo = this.parent;
 
+                width = constraint * relativeTo.getWidth();
                 break;
             case ASPECT:
                 width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.toHandle.getHeight();
                 break;
             case PIXEL:
                 width = constraint / DisplayManager.WIDTH;
-
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -83,11 +82,10 @@ public class GuiConstraintHandler {
 
         switch (heightConstraint.getConstraint()) {
             case RELATIVE:
-                if (relativeTo != null)
-                    height = constraint * relativeTo.getHeight();
-                else
-                    height = constraint * this.parent.getHeight();
+                if (relativeTo == null)
+                    relativeTo = this.parent;
 
+                height = constraint * relativeTo.getHeight();
                 break;
             case ASPECT:
                 height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.toHandle.getWidth();
@@ -132,20 +130,28 @@ public class GuiConstraintHandler {
                 }
                 break;
             case SIDE:
-                switch (((SideConstraint) yConstraint).getSide()) {
+                if (relativeTo == null)
+                    relativeTo = this.parent;
+
+                SideConstraint sideConstraint = (SideConstraint) yConstraint;
+                Constraints distanceType = sideConstraint.getDistanceType();
+                if (distanceType == Constraints.PIXEL)
+                    constraint /= DisplayManager.HEIGHT;
+
+                switch (sideConstraint.getSide()) {
                     case BOTTOM:
                         if (this.toHandle instanceof Gui)
                             y = -1 + constraint * 2 + height;
                         else
-                            y = this.parent.getY() - this.parent.getHeight() + height +
-                                    constraint * this.parent.getHeight() * 2;
+                            y = relativeTo.getY() - relativeTo.getHeight() + height +
+                                    constraint * relativeTo.getHeight() * 2;
                         break;
                     case TOP:
                         if (this.toHandle instanceof Gui)
                             y = 1 - constraint * 2 - height;
                         else
-                            y = this.parent.getY() + this.parent.getHeight() - height -
-                                    constraint * this.parent.getHeight() * 2;
+                            y = relativeTo.getY() + relativeTo.getHeight() - height -
+                                    constraint * relativeTo.getHeight() * 2;
                         break;
                     default:
                         throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
@@ -153,30 +159,34 @@ public class GuiConstraintHandler {
 
                 break;
             case PIXEL:
-                if (constraint < 0 || constraint > DisplayManager.HEIGHT)
+                if (constraint < -DisplayManager.HEIGHT || constraint > DisplayManager.HEIGHT)
                     throw new IllegalGuiConstraintException(
                             "Component y = " + constraint + " coordinate doesn't belong in window");
 
                 y = constraint / DisplayManager.HEIGHT;
                 break;
             case CENTER:
-                if (relativeTo != null)
-                    y = relativeTo.getY();
-                else
-                    y = parent.getY();
+                if (relativeTo == null)
+                    relativeTo = this.parent;
+
+                y = relativeTo.getY();
                 break;
             case STICKY:
                 if (relativeTo == null)
                     relativeTo = this.parent;
 
-                switch (((StickyConstraint) yConstraint).getSide()) {
+                StickyConstraint stickyConstraint = (StickyConstraint) yConstraint;
+                if (stickyConstraint.getDistanceType() == Constraints.PIXEL)
+                    constraint /= DisplayManager.HEIGHT;
+
+                switch (stickyConstraint.getSide()) {
                     case TOP:
                         y = relativeTo.getY() + relativeTo.getHeight() + height +
-                                constraint * parent.getHeight() * 2;
+                                constraint * this.parent.getHeight() * 2;
                         break;
                     case BOTTOM:
                         y = relativeTo.getY() - relativeTo.getHeight() - height -
-                                constraint * parent.getHeight() * 2;
+                                constraint * this.parent.getHeight() * 2;
                         break;
                     default:
                         y = relativeTo.getY(); // error?
@@ -197,6 +207,7 @@ public class GuiConstraintHandler {
 
         float width = this.toHandle.getWidth();
 
+        Constraints distanceType;
         float constraint = xConstraint.constraint();
         GuiInterface relativeTo = xConstraint.getRelativeTo();
         switch (xConstraint.getConstraint()) {
@@ -216,50 +227,62 @@ public class GuiConstraintHandler {
                 }
                 break;
             case SIDE:
-                switch (((SideConstraint) xConstraint).getSide()) {
+                if (relativeTo == null)
+                    relativeTo = this.parent;
+                else
+                    System.out.println();
+                SideConstraint sideConstraint = (SideConstraint) xConstraint;
+                distanceType = sideConstraint.getDistanceType();
+                if (distanceType == Constraints.PIXEL)
+                    constraint /= DisplayManager.WIDTH;
+
+                switch (sideConstraint.getSide()) {
                     case LEFT:
                         if (this.toHandle instanceof Gui)
                             x = -1 + constraint * 2 + width;
                         else
-                            x = this.parent.getX() - this.parent.getWidth() + width +
-                                    constraint * this.parent.getWidth() * 2;
+                            x = relativeTo.getX() - relativeTo.getWidth() + width +
+                                    constraint * relativeTo.getWidth() * 2;
                         break;
                     case RIGHT:
                         if (this.toHandle instanceof Gui)
                             x = 1 - constraint * 2 - width;
                         else
-                            x = this.parent.getX() + this.parent.getWidth() - width -
-                                    constraint * this.parent.getWidth() * 2;
+                            x = relativeTo.getX() + relativeTo.getWidth() - width -
+                                    constraint * relativeTo.getWidth() * 2;
                         break;
                     default:
                         throw new IllegalGuiConstraintException("Wrong side constraint for coordinate");
                 }
                 break;
             case PIXEL:
-                if (constraint < 0 || constraint > DisplayManager.WIDTH)
-                    throw new IllegalGuiConstraintException(
-                            "Component x coordinate doesn't belong in window");
+                if (constraint < -DisplayManager.WIDTH || constraint > DisplayManager.WIDTH)
+                    throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in window");
 
                 x = constraint / DisplayManager.WIDTH;
                 break;
             case CENTER:
-                if (relativeTo != null)
-                    x = relativeTo.getX();
-                else
-                    x = parent.getX();
+                if (relativeTo == null)
+                    relativeTo = this.parent;
+
+                x = relativeTo.getX();
                 break;
             case STICKY:
                 if (relativeTo == null)
-                    relativeTo = parent;
+                    relativeTo = this.parent;
 
-                switch (((StickyConstraint) xConstraint).getSide()) {
+                StickyConstraint stickyConstraint = (StickyConstraint) xConstraint;
+                distanceType = stickyConstraint.getDistanceType();
+                if (distanceType == Constraints.PIXEL)
+                    constraint /= DisplayManager.WIDTH;
+                switch (stickyConstraint.getSide()) {
                     case LEFT:
                         x = relativeTo.getX() - relativeTo.getWidth() - width -
-                                constraint * parent.getWidth() * 2;
+                                constraint * this.parent.getWidth() * 2;
                         break;
                     case RIGHT:
                         x = relativeTo.getX() + relativeTo.getWidth() + width +
-                                constraint * parent.getWidth() * 2;
+                                constraint * this.parent.getWidth() * 2;
                         break;
                     default:
                         x = relativeTo.getX(); // error?
@@ -269,6 +292,7 @@ public class GuiConstraintHandler {
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
         }
+
         return x;
     }
 }

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import renderEngine.DisplayManager;
 import renderEngine.DisplayManager.Resolution;
-import renderEngine.DisplayManager.WindowType;
+import renderEngine.DisplayManager.DisplayMode;
 
 public class SettingsManager {
 
@@ -109,12 +109,12 @@ public class SettingsManager {
 
         final static List<Option<?>> OPTIONS = new ArrayList<>();
 
-        final static Option<Integer> DISPLAY    = new Option<>("display", 0, DisplayManager::setScreen,
+        final static Option<Integer> DISPLAY    = new Option<>("display", DisplayMode.defaultMode().ordinal(), DisplayManager::setScreen,
                 () -> DisplayManager.indexCurrentScreen);
         final static Option<Integer>    FPS_CAP    = new Option<>("fpscap",
                 300, DisplayManager::setFPS, () -> DisplayManager.MAX_FPS);
-        final static Option<Integer> FULLSCREEN = new Option<>("window_type", WindowType.FULLSCREEN.ordinal(),
-                value -> DisplayManager.setWindowType(WindowType.values()[value]), () -> DisplayManager.windowType.ordinal());
+        final static Option<Integer> FULLSCREEN = new Option<>("display_mode", DisplayMode.FULLSCREEN.ordinal(),
+                value -> DisplayManager.setDisplayMode(DisplayMode.values()[value]), () -> DisplayManager.displayMode.ordinal());
         final static Option<Boolean>    VSYNC      = new Option<>("vsync", true, DisplayManager::setVsync,
                 () -> DisplayManager.vSync);
         final static Option<String>  RESOLUTION = new Option<>("resolution", "1920x1080", value -> {

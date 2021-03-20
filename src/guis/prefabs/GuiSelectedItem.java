@@ -58,6 +58,11 @@ public class GuiSelectedItem extends Gui {
         hideGui(this);
     }
 
+    @Override
+    public void setDisplayed(boolean displayed) {
+        this.displayed = displayed;
+    }
+
     public static GuiSelectedItem getSelectedItemGui() {
         return instance;
     }
@@ -66,10 +71,14 @@ public class GuiSelectedItem extends Gui {
         Vector2f cursorPos = MouseUtils.getCursorPos();
 
         GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this);
-        setX(guiConstraintHandler
-                .handleXConstraint(new PixelConstraint(Math.max(0, (int) (cursorPos.x * DisplayManager.WIDTH) - 70))));
-        setY(guiConstraintHandler
-                .handleYConstraint(new PixelConstraint(Math.max(0, (int) (cursorPos.y * DisplayManager.HEIGHT) - 70))));
+        int xPixels = (int) (cursorPos.x * DisplayManager.WIDTH) - 70;
+        int yPixels = (int) (cursorPos.y * DisplayManager.HEIGHT) - 70;
+        if (xPixels < -DisplayManager.WIDTH || yPixels < -DisplayManager.HEIGHT) {
+            hideGui(this); // GUI is too far left and/or too far low to be rendered fully
+        } else {
+            setX(guiConstraintHandler.handleXConstraint(new PixelConstraint(xPixels)));
+            setY(guiConstraintHandler.handleYConstraint(new PixelConstraint(yPixels)));
+        }
     }
 
     public static class Builder {

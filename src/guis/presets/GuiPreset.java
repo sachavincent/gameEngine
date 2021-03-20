@@ -17,9 +17,7 @@ public abstract class GuiPreset extends GuiComponent {
     protected int type = DEFAULT;
 
     protected GuiPreset(GuiInterface parent, GuiConstraintsManager constraintsManager) {
-        super(parent);
-
-        setConstraints(constraintsManager);
+        this(parent, Background.NO_BACKGROUND, constraintsManager);
     }
 
     protected GuiPreset(GuiInterface parent, Background<?> background, GuiConstraintsManager constraintsManager) {
@@ -32,9 +30,6 @@ public abstract class GuiPreset extends GuiComponent {
         super(parent, background);
     }
 
-    protected GuiPreset(GuiInterface parent) {
-        super(parent);
-    }
 
     @Override
     public RawModel getTemplate() {

@@ -10,16 +10,23 @@ public class StickyConstraint extends GuiConstraints {
 
     private final static float DISTANCE_FROM_SIDE = 0.01f;
 
-    public StickyConstraint(Side side, GuiInterface relativeTo) {
-        this(side, relativeTo, DISTANCE_FROM_SIDE);
-    }
+    private final Constraints distanceType; // Distance can be given in pixels or relative to parent
 
-    public StickyConstraint(Side side, GuiInterface relativeTo, float distance) {
+    private StickyConstraint(Side side, GuiInterface relativeTo, float distance, Constraints type) {
         super(ConstraintsType.POSITION, Constraints.STICKY);
 
         this.relativeTo = relativeTo;
         this.side = side;
         this.constraint = distance;
+        this.distanceType = type;
+    }
+
+    public StickyConstraint(Side side, GuiInterface relativeTo) {
+        this(side, relativeTo, DISTANCE_FROM_SIDE);
+    }
+
+    public StickyConstraint(Side side, GuiInterface relativeTo, float distance) {
+        this(side, relativeTo, distance, Constraints.RELATIVE);
     }
 
     public StickyConstraint(Side side, float distance) {
@@ -30,8 +37,16 @@ public class StickyConstraint extends GuiConstraints {
         this(side, null);
     }
 
+    public StickyConstraint(Side side, GuiInterface relativeTo, int distance) {
+        this(side, relativeTo, distance, Constraints.PIXEL);
+    }
+
     public Side getSide() {
         return this.side;
+    }
+
+    public Constraints getDistanceType() {
+        return this.distanceType;
     }
 
     public StickyConstraint setDistanceFromSide(float distance) {

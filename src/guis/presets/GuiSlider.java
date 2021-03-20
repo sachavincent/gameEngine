@@ -7,15 +7,12 @@ import guis.GuiInterface;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiShape;
 import guis.basics.GuiText;
-import guis.constraints.GuiConstraintHandler;
-import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RelativeConstraint;
-import guis.constraints.Side;
-import guis.constraints.StickyConstraint;
+import guis.constraints.*;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
 import java.awt.Color;
+import renderEngine.DisplayManager;
 
 public class GuiSlider extends GuiPreset {
 
@@ -23,8 +20,9 @@ public class GuiSlider extends GuiPreset {
 
     GuiShape          outline;
     GuiAbstractButton sliderCursor;
-    private GuiRectangleButton sliderBase;
-    private GuiText            valueText;
+
+    private final GuiRectangleButton sliderBase;
+    private       GuiText            valueText;
 
     private boolean clicked;
 
@@ -43,18 +41,24 @@ public class GuiSlider extends GuiPreset {
         this.interval = interval;
         this.value = this.interval.defaultValue;
 
-        addBase(color);
-        addCursor(colorMovable);
+        this.sliderBase = new GuiRectangleButton(this, new Background<>(color),
+                new GuiConstraintsManager.Builder()
+                        .setDefault()
+                        .setWidthConstraint(new RelativeConstraint(1))
+                        .setHeightConstraint(new RelativeConstraint(1.1f)).create());
+        this.sliderBase.setCornerRadius(0);
+
+        GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager.Builder()
+                .setDefault()
+                .setWidthConstraint(new PixelConstraint(8))
+                .setHeightConstraint(
+                        new PixelConstraint(
+                                (int) (Math.ceil(this.sliderBase.getHeight() * DisplayManager.HEIGHT)) + 10))
+                .create();
+        this.sliderCursor = new GuiRectangleButton(this, new Background<>(colorMovable), guiConstraintsManager);
+        this.sliderCursor.setCornerRadius(0);
 
         setupCursor();
-    }
-
-    private void addCursor(Color color) {
-        GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager.Builder().setDefault()
-                .setWidthConstraint(new RelativeConstraint(.05f))
-                .setHeightConstraint(new RelativeConstraint(1)).create();
-        this.sliderCursor = new GuiRectangleButton(this, new Background<>(color), guiConstraintsManager);
-        this.sliderCursor.setCornerRadius(0);
     }
 
     private void addOutline() {
@@ -71,15 +75,6 @@ public class GuiSlider extends GuiPreset {
         return this.sliderBase;
     }
 
-    private void addBase(Color unmovableColor) {
-        this.sliderBase = new GuiRectangleButton(this, new Background<>(unmovableColor),
-                new GuiConstraintsManager.Builder()
-                        .setDefault()
-                        .setWidthConstraint(new RelativeConstraint(1))
-                        .setHeightConstraint(new RelativeConstraint(.85f)).create());
-        this.sliderBase.setCornerRadius(0);
-    }
-
     private void setupCursor() {
         this.maxPosition = this.sliderBase.getX() + this.sliderBase.getWidth();
         this.minPosition = this.sliderBase.getX() - this.sliderBase.getWidth();
@@ -92,6 +87,14 @@ public class GuiSlider extends GuiPreset {
 
         this.sliderCursor.setReleaseInsideNeeded(false);
         setListeners();
+    }
+
+    /**
+     * Width should probably be set in pixels
+     */
+    public void setCursorWidth(GuiConstraints widthConstraints) {
+        GuiConstraintHandler handler = new GuiConstraintHandler(this, this.sliderCursor);
+        this.sliderCursor.setX(handler.handleWidthConstraint(widthConstraints));
     }
 
     private void setListeners() {
@@ -134,9 +137,7 @@ public class GuiSlider extends GuiPreset {
             }
         });
 
-        this.sliderBase.setOnPress(() -> {
-            updateSliderValue();
-        });
+        this.sliderBase.setOnPress(this::updateSliderValue);
     }
 
     private void updateSliderValue() {
@@ -182,9 +183,9 @@ public class GuiSlider extends GuiPreset {
 
         this.valueText = new GuiText(this, text, new GuiConstraintsManager.Builder()
                 .setDefault()
-                .setWidthConstraint(new RelativeConstraint(.1f, getParent()))
+                .setWidthConstraint(new RelativeConstraint(.07f, getParent()))
                 .setHeightConstraint(new RelativeConstraint(.3f, getParent()))
-                .setxConstraint(new StickyConstraint(side, this, 0.05f))
+                .setxConstraint(new StickyConstraint(side, this, 0))
                 .create());
     }
 

@@ -46,12 +46,17 @@ public class PatternGlobalConstraint extends GuiGlobalConstraints {
 
         int row = this.nbElements / maxHorizontalElements;
         int nbElementsOnRow = this.nbElements % maxHorizontalElements;
-        float x = -1 + distanceX * 2 * (nbElementsOnRow + 1) +
-                this.itemWidth * maxHorizontalElements / 2 * nbElementsOnRow;
+
+        float x;
+        if (maxHorizontalElements == 1)
+            x = this.parent.getX();
+        else
+            x = -1 + distanceX * 2 * (nbElementsOnRow + 1) +
+                    this.itemWidth * maxHorizontalElements * 2 / (maxHorizontalElements - 1) * nbElementsOnRow;
 
         float y;
         if (maxVerticalElements > 1)
-            y = -1 + (distanceY * (row + 1) +
+            y = -1 + (distanceY * 2 * (row + 1) +
                     this.itemHeight * maxVerticalElements * 2 / (maxVerticalElements - 1) * row);
         else
             y = this.parent.getY();

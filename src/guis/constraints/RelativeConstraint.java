@@ -12,7 +12,7 @@ public class RelativeConstraint extends GuiConstraints {
         if (relativeTo == null)
             throw new NullPointerException("Null relative interface");
 
-        if (relative < -1 || relative > 1)
+        if (relative < -1)
             throw new IllegalArgumentException("Relative value: " + relative + " not allowed");
 
         this.relativeTo = relativeTo;
@@ -22,9 +22,8 @@ public class RelativeConstraint extends GuiConstraints {
     public RelativeConstraint(float relative) {
         super(ConstraintsType.BOTH, Constraints.RELATIVE);
 
-        if (relative < 0 || relative > 1)
+        if (relative < 0)
             throw new IllegalArgumentException("Relative value: " + relative + " not allowed");
-
         this.constraint = relative;
     }
 }
