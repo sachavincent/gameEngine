@@ -2,12 +2,12 @@ package guis.basics;
 
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
-import renderEngine.fontRendering.TextMaster;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
 import java.util.List;
 import javax.naming.SizeLimitExceededException;
+import renderEngine.fontRendering.TextMaster;
 import util.math.Vector2f;
 
 public class GuiText extends GuiBasics {
@@ -21,7 +21,7 @@ public class GuiText extends GuiBasics {
     }
 
     public GuiText(GuiInterface parent, Text text, GuiConstraintsManager guiConstraintsManager) {
-        super(parent, new Background<>(text == null ? null : text.getAWTColor()), guiConstraintsManager);
+        super(parent, new Background<>(text == null ? null : text.getColor()), guiConstraintsManager);
 
         setText(text);
     }
@@ -119,6 +119,7 @@ public class GuiText extends GuiBasics {
         if (this.text == null)
             return;
 
-        TextMaster.getInstance().loadText(getText());
+        if (isDisplayed())
+            TextMaster.getInstance().loadText(getText());
     }
 }

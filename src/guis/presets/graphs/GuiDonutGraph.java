@@ -66,7 +66,7 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
                 .create();
 
         this.hoverSectorGui.setConstraints(guiConstraintsManager);
-        this.hoverSectorGui.setDisplayed(false);
+        this.hoverSectorGui.setDisplayedByDefault(false);
     }
 
 
@@ -136,8 +136,10 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
             if (!sectorsEqual)
                 this.hoverSectorGui.removeComponent(this.currentGuiHoverText);
 
-            this.hoverSectorGui.addComponent(this.currentGuiHoverText = Gui.setupText(this.hoverSectorGui,
-                    new Text(sector.getDescription(), .55f, DEFAULT_FONT, Color.LIGHT_GRAY)));
+            GuiText currentGuiHoverText = Gui.setupText(this.hoverSectorGui,
+                    new Text(sector.getDescription(), .55f, DEFAULT_FONT, Color.LIGHT_GRAY));
+            currentGuiHoverText.setDisplayed(false);
+            this.hoverSectorGui.addComponent(this.currentGuiHoverText = currentGuiHoverText);
             this.currentGuiHoverText.setDisplayed(true);
         }
 
@@ -250,19 +252,6 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         }
 
         return lastSector;
-    }
-
-    @Override
-    public void setDisplayed(boolean displayed) {
-        super.setDisplayed(displayed);
-
-        this.innerCircle.setDisplayed(displayed);
-        this.outerCircle.setDisplayed(displayed);
-
-        this.hoverSectorGui.setDisplayed(false);
-        if (displayed)
-            if (MouseUtils.isCursorInGuiComponent(this)) // Appears on mouse cursor
-                this.hoverSectorGui.setDisplayed(true);
     }
 
     public static class Sector<ValueType> {

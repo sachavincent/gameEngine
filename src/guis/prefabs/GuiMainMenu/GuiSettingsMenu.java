@@ -1,7 +1,6 @@
 package guis.prefabs.GuiMainMenu;
 
 import fontMeshCreator.Text;
-import inputs.callbacks.BackCallback;
 import guis.Gui;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
@@ -14,6 +13,7 @@ import guis.presets.GuiSlider;
 import guis.presets.GuiSlider.Interval;
 import guis.presets.GuiTextInput;
 import guis.presets.buttons.GuiRectangleButton;
+import inputs.callbacks.BackCallback;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import renderEngine.DisplayManager;
 import renderEngine.DisplayManager.DisplayMode;
 import renderEngine.DisplayManager.Resolution;
+import util.Utils;
 
 public class GuiSettingsMenu extends Gui {
 
@@ -28,7 +29,7 @@ public class GuiSettingsMenu extends Gui {
     private final GuiRectangle               buttonsArea;
     public        GuiSlider                  fpsSlider;
     private       GuiMultiOption<Resolution> resolutionOptions;
-    private final GuiRectangle backButtonArea;
+    private final GuiRectangle               backButtonArea;
 
     public GuiSettingsMenu(Gui parent) {
         super(Background.NO_BACKGROUND);
@@ -57,16 +58,18 @@ public class GuiSettingsMenu extends Gui {
         guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
         guiTextInput.setOutlineColor(Color.WHITE);
         guiTextInput.setMaxLength(20);
+        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
     }
 
     public void onBackButtonPress(BackCallback backCallback) {
         Background<String> back = new Background<>("back_arrow.png");
-        GuiRectangleButton guiBack = new GuiRectangleButton(this.backButtonArea, back, new GuiConstraintsManager.Builder()
-                .setHeightConstraint(new RelativeConstraint(1))
-                .setWidthConstraint(new AspectConstraint(1))
-                .setxConstraint(new SideConstraint(Side.LEFT, 0f))
-                .setyConstraint(new CenterConstraint())
-                .create());
+        GuiRectangleButton guiBack = new GuiRectangleButton(this.backButtonArea, back,
+                new GuiConstraintsManager.Builder()
+                        .setHeightConstraint(new RelativeConstraint(1))
+                        .setWidthConstraint(new AspectConstraint(1))
+                        .setxConstraint(new SideConstraint(Side.LEFT, 0f))
+                        .setyConstraint(new CenterConstraint())
+                        .create());
 
         guiBack.setOnPress(backCallback::onBack);
     }

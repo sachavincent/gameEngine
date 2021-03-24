@@ -292,7 +292,7 @@ public class MouseUtils {
         switch (state) {
             case DEFAULT:
                 if (gameStarted)
-                    Gui.hideGui(selectedItemGui);
+                    selectedItemGui.setDisplayed(false);
                 if (!inGui && MousePicker.getInstance().isPointOnTerrain() && gameStarted)
                     onHoverOnTerrain(pos.x, pos.y);
                 else if (inGui)
@@ -311,11 +311,11 @@ public class MouseUtils {
                         onHoverOnTerrain(pos.x, pos.y);
                     else {
                         Terrain.getInstance().resetPreviewItems();
-                        Gui.showGui(selectedItemGui);
+                        selectedItemGui.setDisplayed(true);
                     }
                 } else if (inGui) {
                     if (gameStarted) {
-                        Gui.showGui(selectedItemGui);
+                        selectedItemGui.setDisplayed(true);
                         terrain.resetPreviewItems();
                     }
 
@@ -329,7 +329,6 @@ public class MouseUtils {
 
     private static void updateGuis(List<Gui> enteredGuis) {
         List<GuiComponent> toUpdate = enteredGuis.stream()
-                .filter(Gui::areTransitionsDone)
                 .map(Gui::getAllComponents).flatMap(Collection::stream)
                 .filter(GuiComponent::isDisplayed)
                 .filter(MouseUtils::isCursorInGuiComponent)
@@ -652,21 +651,21 @@ public class MouseUtils {
             case PRESSED_WITH_BUILDING:
                 if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
-                        Gui.hideGui(selectedItemGui);
+                        selectedItemGui.setDisplayed(false);
 
                     terrain.resetPreviewItems();
                     terrain.addPreviewItem(terrainPoint);
                 } else {
                     terrain.resetPreviewItems();
                     selectedItemGui.updatePosition();
-                    Gui.showGui(selectedItemGui);
+                    selectedItemGui.setDisplayed(true);
                 }
 
                 break;
             case PRESSED_WITH_ROAD:
                 if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
-                        Gui.hideGui(selectedItemGui);
+                        selectedItemGui.setDisplayed(false);
 
                     terrain.resetPreviewItems();
                     lastTerrainPos = terrainPoint;
@@ -676,7 +675,7 @@ public class MouseUtils {
                 } else {
                     terrain.resetPreviewItems();
                     selectedItemGui.updatePosition();
-                    Gui.showGui(selectedItemGui);
+                    selectedItemGui.setDisplayed(true);
                 }
                 break;
             case PRESSED_WITH_DESTRUCTION:

@@ -12,10 +12,10 @@ import shaders.FontShader;
 
 public class FontRenderer {
 
-    private FontShader shader;
+    private final FontShader shader;
 
     public FontRenderer() {
-        shader = new FontShader();
+        this.shader = new FontShader();
     }
 
     public void render(Map<FontType, Set<Text>> texts) {
@@ -31,22 +31,23 @@ public class FontRenderer {
     }
 
     public void cleanUp() {
-        shader.cleanUp();
+        this.shader.cleanUp();
     }
 
     private void prepare() {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
-        shader.start();
+        this.shader.start();
     }
 
     private void renderText(Text text) {
         GL30.glBindVertexArray(text.getMesh());
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
-        shader.loadColor(text.getColor());
-        shader.loadTranslation(text.getPosition());
+        this.shader.loadColor(text.getColor());
+        this.shader.loadTranslation(text.getPosition());
+        this.shader.loadCharWidths(text.getCharWidth(), text.getEdgeCharWidth());
         GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, text.getVertexCount());
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
@@ -54,9 +55,8 @@ public class FontRenderer {
     }
 
     private void endRendering() {
-        shader.stop();
+        this.shader.stop();
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
-
 }

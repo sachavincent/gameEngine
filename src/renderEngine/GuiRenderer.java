@@ -71,7 +71,7 @@ public class GuiRenderer {
                                 if (displayDebugOutlines)
                                     renderOutlineForDebug(guiComponent);
                             });
-                    gui.animate();
+//                    gui.animate();
 //                    if (displayDebugOutlines)
 //                        renderOutlineForDebug(gui);
                 });

@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import models.RawModel;
+import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
 public abstract class GuiComponent implements GuiInterface {
@@ -44,11 +45,11 @@ public abstract class GuiComponent implements GuiInterface {
     private HoverCallback  onHoverCallback;
     private ScrollCallback onScrollCallback;
 
-    private boolean displayed;
+    private boolean displayed, displayedByDefault;
 
     public boolean clicked;
 
-    protected float cornerRadius = Gui.CORNER_RADIUS;
+    protected float cornerRadius;
 
     protected GuiGlobalConstraints childrenConstraints;
 
@@ -64,7 +65,7 @@ public abstract class GuiComponent implements GuiInterface {
         this.x = parent.getX();
         this.y = parent.getY();
 
-        this.displayed = true;
+        this.displayed = this.displayedByDefault = true;
 
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
 
@@ -83,12 +84,25 @@ public abstract class GuiComponent implements GuiInterface {
         return this.cornerRadius;
     }
 
+    public void setDisplayedByDefault(boolean displayedByDefault) {
+        this.displayedByDefault = displayedByDefault;
+        if (!displayedByDefault)
+            this.displayed = false;
+//        getParentGui(this).getAllComponents().stream()
+//                .filter(guiComponent -> guiComponent.getParent().equals(this))
+//                .forEach(guiComponent -> guiComponent.setDisplayedByDefault(displayedByDefault));
+    }
+
+    public boolean isDisplayedByDefault() {
+        return this.displayedByDefault;
+    }
+
     public void setCornerRadius(float cornerRadius) {
         this.cornerRadius = cornerRadius;
 
         getParentGui(this).getAllComponents().stream()
                 .filter(guiComponent -> guiComponent.getParent().equals(this))
-                .forEach(guiComponent -> guiComponent.cornerRadius = cornerRadius);
+                .forEach(guiComponent -> guiComponent.setCornerRadius(cornerRadius));
     }
 
     public void removeComponent(GuiComponent guiComponent) {
@@ -125,7 +139,7 @@ public abstract class GuiComponent implements GuiInterface {
         if (constraints == null)
             return;
 
-        GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(parent, this);
+        GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this.parent, this);
         guiConstraintHandler.setConstraints(constraints);
 
         updateTexturePosition();
@@ -134,7 +148,13 @@ public abstract class GuiComponent implements GuiInterface {
     public void updateTexturePosition() {
         for (GuiTexture guiTexture : this.textures) {
             guiTexture.getScale().x = this.width;
-            guiTexture.getScale().y = this.height;
+            float height = this.height;
+            if (guiTexture.dokeepAspectRatio())
+                height = Math.min(this.height,
+                        this.width * ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) *
+                                ((float) guiTexture.getHeight() / (float) guiTexture.getWidth()));
+
+            guiTexture.getScale().y = height;
             guiTexture.getPosition().x = this.x;
             guiTexture.getPosition().y = this.y;
         }
@@ -289,6 +309,13 @@ public abstract class GuiComponent implements GuiInterface {
         return new GuiTexture(Background.BLACK_BACKGROUND, this);
     }
 
+    public void setTexture(Background<?> background) {
+        if (this.textures.size() == 1) {
+            this.textures.clear();
+            this.textures.add(new GuiTexture(background, this));
+        }
+    }
+
     public void scale(float scale) {
         this.width = this.width * scale;
         this.height = this.height * scale;
@@ -322,8 +349,8 @@ public abstract class GuiComponent implements GuiInterface {
 
         this.displayed = displayed;
 
-        Gui parent = GuiComponent.getParentGui(this);
-        List<GuiComponent> list = parent.getAllComponents().stream()
+        List<GuiComponent> list = GuiComponent.getParentGui(this).getAllComponents().stream()
+                .filter(GuiComponent::isDisplayedByDefault)
                 .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
         list.forEach(guiC -> {
             guiC.setDisplayed(displayed);
@@ -360,9 +387,18 @@ public abstract class GuiComponent implements GuiInterface {
         }
     }
 
+    public void addBackground(Background<?> background) {
+        if (background != null)
+            this.textures.add(new GuiTexture(background, this));
+
+        updateTexturePosition();
+    }
+
     public void addTexture(GuiTexture texture) {
         if (texture != null)
             this.textures.add(texture);
+
+        updateTexturePosition();
     }
 
     public int getNbTextures() {

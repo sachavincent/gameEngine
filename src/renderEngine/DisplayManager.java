@@ -23,6 +23,8 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWVidMode.Buffer;
+import org.lwjgl.glfw.GLFWWindowMaximizeCallback;
+import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -47,6 +49,8 @@ public class DisplayManager {
 
     private static GLFWErrorCallback           callback;
     private static GLFWFramebufferSizeCallback callback2;
+    private static GLFWWindowMaximizeCallback  callback3;
+    private static GLFWWindowPosCallback       callback4;
     private static long                        firstWindow;
 
     public static void createDisplay() {
@@ -59,8 +63,6 @@ public class DisplayManager {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-        glfwWindowHint(GLFW_DECORATED, GL_FALSE);
-        glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
 //        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);//=less fps
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
@@ -79,9 +81,6 @@ public class DisplayManager {
     }
 
     private static void setWindow() {
-        if (window != 0)
-            return;
-
         GLFWVidMode mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwWindowHint(GLFW_RED_BITS, mode.redBits());
         glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
@@ -101,6 +100,23 @@ public class DisplayManager {
                 WIDTH = width;
                 HEIGHT = height;
                 glViewport(0, 0, WIDTH, HEIGHT);
+            }
+        }));
+
+        glfwSetWindowMaximizeCallback(window, (callback3 = new GLFWWindowMaximizeCallback() {
+            @Override
+            public void invoke(long window, boolean maximized) {
+                if (maximized && currentScreen != null)
+                    glfwSetWindowPos(window, currentScreen.x, currentScreen.y);
+            }
+        }));
+        glfwSetWindowPosCallback(window, (callback4 = new GLFWWindowPosCallback() {
+            @Override
+            public void invoke(long window, int xpos, int ypos) {
+                if (currentScreen != null) {
+                    currentScreen.x = xpos;
+                    currentScreen.y = ypos;
+                }
             }
         }));
 
@@ -174,6 +190,8 @@ public class DisplayManager {
             if (screenId == glfwGetPrimaryMonitor())
                 currentScreen = screen;
         }
+        if (currentScreen == null)
+            throw new NullPointerException("Could not find primary screen");
     }
 
     public static void closeDisplay() {
@@ -193,6 +211,10 @@ public class DisplayManager {
             callback.free();
         if (callback2 != null)
             callback2.free();
+        if (callback3 != null)
+            callback3.free();
+        if (callback4 != null)
+            callback4.free();
     }
 
     public static void createDisplayForTests() {
@@ -223,7 +245,8 @@ public class DisplayManager {
 
 //        System.out.println("setWindowMode=" + type.name() + " for screen n°" + indexCurrentScreen);
 
-        setWindow();
+        if (window == 0)
+            setWindow();
 
         GLFWVidMode mode = glfwGetVideoMode(currentScreen.id);
         if (mode == null)
@@ -280,9 +303,7 @@ public class DisplayManager {
     }
 
     public static void setWindowSize(Resolution resolution) {
-//        glfwSetWindowSize(window, resolution.width, resolution.height);
-        System.out.println("setWindowSize");
-
+        //TODO
         if (indexCurrentScreen != 0)
             glfwSetWindowPos(window, currentScreen.x, currentScreen.y);
         if (displayMode == DisplayMode.BORDERLESS_WINDOWED || displayMode == DisplayMode.FULLSCREEN)

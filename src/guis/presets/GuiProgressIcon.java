@@ -29,7 +29,7 @@ public class GuiProgressIcon extends GuiPreset {
 
     @Override
     public void render() {
-        GuiRenderer.loadPercentage(progressPercentage / 100f);
+        GuiRenderer.loadPercentage(this.progressPercentage / 100f);
 
         super.render();
     }
@@ -37,7 +37,7 @@ public class GuiProgressIcon extends GuiPreset {
     @Override
     public String toString() {
         return "GuiProgressIcon{" +
-                "progressPercentage=" + progressPercentage +
+                "progressPercentage=" + this.progressPercentage +
                 "} ";
     }
 }

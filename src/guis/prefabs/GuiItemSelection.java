@@ -230,12 +230,6 @@ public class GuiItemSelection extends Gui {
             return this;
         }
 
-        public Builder setTransitions(Transition... transitions) {
-            guiItemSelection.setTransitions(transitions);
-
-            return this;
-        }
-
         public Builder setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
             guiItemSelection.setChildrenConstraints(guiConstraints);
 
@@ -245,7 +239,7 @@ public class GuiItemSelection extends Gui {
         public GuiItemSelection create() {
             instance = guiItemSelection;
 
-            Gui.hideGui(instance);
+            instance.setDisplayed(false);
             return instance;
         }
     }

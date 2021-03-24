@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import engineTester.Game;
 import engineTester.Game.GameState;
 import entities.Camera;
+import fontMeshCreator.Text;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.prefabs.GuiEscapeMenu;
@@ -59,7 +60,7 @@ public class KeyboardUtils {
                                         lastGuiOpened.setDisplayed(false);
                                         displayedGuis.remove(lastGuiOpened);
                                     } else {
-                                        Gui.showGui(guiEscapeMenu);
+                                        guiEscapeMenu.setDisplayed(true);
                                         Game.getInstance().pause();
                                     }
                                     break;
@@ -69,10 +70,10 @@ public class KeyboardUtils {
                                         lastGuiOpened.setDisplayed(false);
                                         displayedGuis.remove(lastGuiOpened);
                                         if (Game.getInstance().getDisplayedGuis().isEmpty())
-                                            Gui.showGui(guiEscapeMenu);
+                                            guiEscapeMenu.setDisplayed(true);
                                     } else if (isNoGuiDisplayed ||
                                             Game.getInstance().getGameState() == GameState.PAUSED) {
-                                        Gui.hideGui(guiEscapeMenu);
+                                        guiEscapeMenu.setDisplayed(false);
                                         Game.getInstance().resume();
                                     }
                                     break;
@@ -105,6 +106,26 @@ public class KeyboardUtils {
                         break;
                     case GLFW_KEY_SEMICOLON:
                         GuiRenderer.switchDisplayDebugOutlines();
+                        break;
+                    case GLFW_KEY_DOWN:
+                        Text textSettings = GuiMainMenu.getInstance().textSettings;
+                        textSettings.setCharWidth(textSettings.getCharWidth() - 0.01f);
+                        System.out.println("CharWidth : " + textSettings.getCharWidth());
+                        break;
+                    case GLFW_KEY_UP:
+                        textSettings = GuiMainMenu.getInstance().textSettings;
+                        textSettings.setCharWidth(textSettings.getCharWidth() + 0.01f);
+                        System.out.println("CharWidth : " + textSettings.getCharWidth());
+                        break;
+                    case GLFW_KEY_LEFT:
+                        textSettings = GuiMainMenu.getInstance().textSettings;
+                        textSettings.setEdgeCharWidth(textSettings.getEdgeCharWidth() - 0.01f);
+                        System.out.println("EdgeCharWidth : " + textSettings.getEdgeCharWidth());
+                        break;
+                    case GLFW_KEY_RIGHT:
+                        textSettings = GuiMainMenu.getInstance().textSettings;
+                        textSettings.setEdgeCharWidth(textSettings.getEdgeCharWidth() + 0.01f);
+                        System.out.println("EdgeCharWidth : " + textSettings.getEdgeCharWidth());
                         break;
                 }
             } else if (action == GLFW_RELEASE) {

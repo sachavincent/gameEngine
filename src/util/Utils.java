@@ -1,5 +1,6 @@
 package util;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -149,5 +150,16 @@ public class Utils {
 
     public static <T> boolean listContentEquals(Collection<T> list1, Collection<T> list2) {
         return list1.size() == list2.size() && list1.containsAll(list2) && list2.containsAll(list1);
+    }
+
+    /**
+     * Changes alpha value of color
+     *
+     * @param color original color
+     * @param alpha must be between 0 and 255
+     * @return new color
+     */
+    public static Color setAlphaColor(Color color, int alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 }

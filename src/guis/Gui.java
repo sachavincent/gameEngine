@@ -16,7 +16,6 @@ import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiCircularButton;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
-import guis.transitions.Transition.Trigger;
 import inputs.MouseUtils;
 import inputs.callbacks.UpdateCallback;
 import java.awt.Color;
@@ -26,9 +25,9 @@ import java.util.stream.Collectors;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import textures.FontTexture;
-import util.Timer;
 import util.math.Vector2f;
 
 public class Gui implements GuiInterface {
@@ -43,12 +42,10 @@ public class Gui implements GuiInterface {
     private       GuiTexture background;
     private final GuiTexture debugOutline;
 
-    private Set<Transition> transitions;
-
     private float x, y;
     private float width, height;
 
-    private float cornerRadius = Gui.CORNER_RADIUS;
+    private float cornerRadius;
 
     protected boolean focused, displayed;
 
@@ -62,13 +59,13 @@ public class Gui implements GuiInterface {
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
 
         this.components = new LinkedHashMap<>();
-        this.transitions = new HashSet<>();
 
         Game.getInstance().addGui(this);
     }
 
     public void setBackground(Background<?> background) {
-        this.background = new GuiTexture(background, new Vector2f(x, y), new Vector2f(width, height));
+        this.background = new GuiTexture(background, new Vector2f(this.x, this.y),
+                new Vector2f(this.width, this.height));
     }
 
     public Gui(int r, int g, int b) {
@@ -80,10 +77,10 @@ public class Gui implements GuiInterface {
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
-        width = 1;
-        height = 1;
-        x = 0;
-        y = 0;
+        this.width = 1;
+        this.height = 1;
+        this.x = 0;
+        this.y = 0;
 
         GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this);
         guiConstraintHandler.setConstraints(constraints);
@@ -92,10 +89,17 @@ public class Gui implements GuiInterface {
     }
 
     public void updateTexturePosition() {
-        this.background.getScale().x = this.width;
-        this.background.getScale().y = this.height;
         this.background.getPosition().x = this.x;
         this.background.getPosition().y = this.y;
+
+        this.background.getScale().x = this.width;
+        float height = this.height;
+        if (this.background.dokeepAspectRatio())
+            height = Math.min(this.height,
+                    this.width * ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) *
+                            ((float) this.background.getHeight() / (float) this.background.getWidth()));
+
+        this.background.getScale().y = height;
 
         this.debugOutline.getScale().x = this.width;
         this.debugOutline.getScale().y = this.height;
@@ -112,73 +116,6 @@ public class Gui implements GuiInterface {
                 ", width=" + width +
                 ", height=" + height +
                 '}';
-    }
-
-    protected void show() {
-        if (getShowTransitions().isEmpty())
-            setDisplayed(true);
-        else
-            getShowTransitions().forEach(transition -> {
-                transition.setStarted(false);
-                Timer.scheduleTransition(transition, this);
-            });
-//
-//        getComponentsShowTransitions().
-//                forEach((component, lTransitions) -> {
-//                    if (lTransitions.isEmpty())
-//                        component.setDisplayed(true);
-//                    else
-//                        lTransitions.forEach(transition -> {
-//                            transition.setStarted(false);
-//                            // Started from previous iteration, set to false before it begins
-//
-//                            Timer.scheduleTransition(transition, component);
-//                        });
-//                });
-//
-//        getHideTransitions().forEach(transition -> transition.setDone(false));
-//
-//        getComponentsHideTransitions()
-//                .forEach((guiComponent, lTransitions) -> lTransitions
-//                        .forEach(transition -> transition.setDone(false)));
-    }
-
-
-    protected void hide() {
-//        System.out.println("hiding");
-
-        if (getHideTransitions().isEmpty())
-            setDisplayed(false);
-        else
-            getHideTransitions().forEach(transition -> {
-                transition.setStarted(false);
-
-                Timer.scheduleTransition(transition, this);
-            });
-//
-//
-//        getComponentsHideTransitions().forEach(
-//                (component, lTransitions) -> {
-//                    if (lTransitions.isEmpty())
-//                        component.setDisplayed(false);
-//                    else
-//                        lTransitions.forEach(transition -> Timer.scheduleTransition(transition, component));
-//                });
-//
-//        getShowTransitions().forEach(transition -> transition.setDone(false));
-//
-//        getComponentsShowTransitions()
-//                .forEach((guiComponent, lTransitions) -> lTransitions
-//                        .forEach(transition -> transition.setDone(false)));
-    }
-
-    public boolean areTransitionsDone() {
-        if (isDisplayed())
-            return this.transitions.stream().filter(transition -> transition.getTrigger() == Trigger.SHOW)
-                    .allMatch(Transition::isDone);
-        else
-            return this.transitions.stream().filter(transition -> transition.getTrigger() == Trigger.HIDE)
-                    .allMatch(Transition::isDone);
     }
 
     public static GuiText setupText(GuiInterface guiInterface, Text text) {
@@ -204,27 +141,6 @@ public class Gui implements GuiInterface {
         text.setPosition(new Vector2f(guiInterface.getX() - guiInterface.getWidth() + line.getLineLength(),
                 -guiInterface.getY() - text.getTextHeight() / 2));
         return new GuiText(guiInterface, text);
-    }
-
-    public boolean areTransitionsOfComponentDone(GuiComponent guiComponent) {
-//        if (!this.components.containsKey(guiComponent) && guiComponent instanceof GuiBasics &&
-//                guiComponent.getParent() instanceof GuiComponent)
-//            guiComponent = (GuiComponent) guiComponent.getParent();
-
-//        if (!this.components.containsKey(guiComponent))
-//            return false;
-
-        while (guiComponent.getParent() instanceof GuiComponent)
-            guiComponent = (GuiComponent) guiComponent.getParent();
-
-        if (!this.components.containsKey(guiComponent))
-            return false;
-
-        if (this.components.get(guiComponent).isEmpty())
-            return true;
-
-
-        return this.components.get(guiComponent).stream().allMatch(Transition::isDone);
     }
 
     @Override
@@ -264,40 +180,40 @@ public class Gui implements GuiInterface {
 //        guiPreset.getBasics().forEach(this::addComponent);
 //    }
 
-    public void animate() {
-        Set<Transition> transitions;
-        if (isDisplayed())
-            transitions = getShowTransitions().stream()
-                    .filter(transition -> !transition.isDone() && transition.isStarted())
-                    .collect(Collectors.toSet());
-        else
-            transitions = getHideTransitions().stream()
-                    .filter(transition -> !transition.isDone() && transition.isStarted())
-                    .collect(Collectors.toSet());
-
-
-        transitions.forEach(transition -> {
-            boolean done = transition.animate(this);
-            if (done) {
-                transition.setDone(true);
-            }
-        });
-
-        Map<GuiComponent, Set<Transition>> map =
-                isDisplayed() ? getComponentsShowTransitions() : getComponentsHideTransitions();
-
-        map.forEach((guiComponent, lTransitions) -> lTransitions.stream().filter(transition -> !transition.isDone())
-                .forEach(transition -> {
-                            boolean done = transition.animate(guiComponent);
-                            if (done)
-                                transition.setDone(true);
-
-                            guiComponent.updateTexturePosition();
-                        }
-                ));
-
-        updateTexturePosition();
-    }
+//    public void animate() {
+//        Set<Transition> transitions;
+//        if (isDisplayed())
+//            transitions = getShowTransitions().stream()
+//                    .filter(transition -> !transition.isDone() && transition.isStarted())
+//                    .collect(Collectors.toSet());
+//        else
+//            transitions = getHideTransitions().stream()
+//                    .filter(transition -> !transition.isDone() && transition.isStarted())
+//                    .collect(Collectors.toSet());
+//
+//
+//        transitions.forEach(transition -> {
+//            boolean done = transition.animate(this);
+//            if (done) {
+//                transition.setDone(true);
+//            }
+//        });
+//
+//        Map<GuiComponent, Set<Transition>> map =
+//                isDisplayed() ? getComponentsShowTransitions() : getComponentsHideTransitions();
+//
+//        map.forEach((guiComponent, lTransitions) -> lTransitions.stream().filter(transition -> !transition.isDone())
+//                .forEach(transition -> {
+//                            boolean done = transition.animate(guiComponent);
+//                            if (done)
+//                                transition.setDone(true);
+//
+//                            guiComponent.updateTexturePosition();
+//                        }
+//                ));
+//
+//        updateTexturePosition();
+//    }
 
     @Override
     public GuiTexture getDebugOutline() {
@@ -323,25 +239,6 @@ public class Gui implements GuiInterface {
             return;
 
         this.background.setAlpha(alpha);
-
-//        this.components.keySet().forEach(guiComponent -> {
-//            if (guiComponent instanceof GuiPreset) {
-//                ((GuiPreset) guiComponent).getBasics()
-//                        .stream()
-//                        .filter(Objects::nonNull)
-//                        .filter(guiBasics -> guiBasics.getTexture().getFinalAlpha() == 1)
-//                        // Ignore components which aren't going to be fully opaque
-//                        .forEach(guiBasics -> {
-//                            if (guiBasics.getTexture() != null)
-//                                guiBasics.getTexture().setAlpha(alpha);
-//                        });
-//            } else if (guiComponent.getTexture().getFinalAlpha() == 1)
-//                guiComponent.getTexture().setAlpha(alpha);
-//        });
-    }
-
-    public void setTransitions(Transition... transitions) {
-        this.transitions = new HashSet<>(Arrays.asList(transitions));
     }
 
     public void setComponentTransitions(GuiComponent guiComponent, Transition... transitions) {
@@ -359,61 +256,52 @@ public class Gui implements GuiInterface {
         this.focused = focused;
     }
 
-    public Set<Transition> getShowTransitions() {
-        return transitions.stream().filter(transition -> transition.getTrigger() == Trigger.SHOW)
-                .collect(Collectors.toSet());
-    }
 
-    public Set<Transition> getHideTransitions() {
-        return transitions.stream().filter(transition -> transition.getTrigger() == Trigger.HIDE)
-                .collect(Collectors.toSet());
-    }
-
-    public Map<GuiComponent, Set<Transition>> getComponentsHideTransitions() {
-        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
-
-        components.forEach((guiComponent, transitionSet) ->
-                transitions.put(guiComponent,
-                        transitionSet.stream().filter(transition -> transition.getTrigger() == Trigger.HIDE)
-                                .collect(Collectors.toSet())));
-
-        return transitions;
-    }
-
-    public Map<GuiComponent, Set<Transition>> getComponentsShowTransitions() {
-        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
-
-        components.forEach((guiComponent, transitionSet) ->
-                transitions.put(guiComponent,
-                        transitionSet.stream().filter(transition -> transition.getTrigger() == Trigger.SHOW)
-                                .collect(Collectors.toSet())));
-
-        return transitions;
-    }
+//    public Map<GuiComponent, Set<Transition>> getComponentsHideTransitions() {
+//        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
+//
+//        components.forEach((guiComponent, transitionSet) ->
+//                transitions.put(guiComponent,
+//                        transitionSet.stream().filter(transition -> transition.getTrigger() == Trigger.HIDE)
+//                                .collect(Collectors.toSet())));
+//
+//        return transitions;
+//    }
+//
+//    public Map<GuiComponent, Set<Transition>> getComponentsShowTransitions() {
+//        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
+//
+//        components.forEach((guiComponent, transitionSet) ->
+//                transitions.put(guiComponent,
+//                        transitionSet.stream().filter(transition -> transition.getTrigger() == Trigger.SHOW)
+//                                .collect(Collectors.toSet())));
+//
+//        return transitions;
+//    }
 
     public void setX(float x) {
-        if ((x < -1 || x > 1) && areTransitionsDone())
+        if (x < -1 || x > 1)
             throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.x = x;
     }
 
     public void setY(float y) {
-        if ((y < -1 || y > 1) && areTransitionsDone())
+        if (y < -1 || y > 1)
             throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.y = y;
     }
 
     public void setWidth(float width) {
-        if ((width < 0 || width > 2) && areTransitionsDone())
+        if (width < 0 || width > 2)
             throw new IllegalArgumentException("New width don't fit in window");
 
         this.width = width;
     }
 
     public void setHeight(float height) {
-        if ((height < 0 || height > 2) && areTransitionsDone())
+        if (height < 0 || height > 2)
             throw new IllegalArgumentException("New height don't fit in window");
 
         this.height = height;
@@ -442,6 +330,7 @@ public class Gui implements GuiInterface {
             gameInstance.getDisplayedGuis().remove(this);
 
         List<GuiComponent> list = getAllComponents().stream()
+                .filter(GuiComponent::isDisplayedByDefault)
                 .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
         list.forEach(guiC -> {
             guiC.setDisplayed(displayed);
@@ -454,9 +343,6 @@ public class Gui implements GuiInterface {
         return this.components;
     }
 
-    public Set<Transition> getTransitions() {
-        return this.transitions;
-    }
 
     @Override
     public float getX() {
@@ -492,11 +378,6 @@ public class Gui implements GuiInterface {
     }
 
 
-    public boolean hasTransitions() {
-        return !this.transitions.isEmpty();
-    }
-
-
     public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
         guiConstraints.setParent(this);
 
@@ -507,42 +388,7 @@ public class Gui implements GuiInterface {
         if (gui == null)
             return;
 
-        if (gui.isDisplayed())
-            gui.hide();
-        else//TODO: boolean attribute transitioning to make sure
-            gui.show();
-    }
-
-    public static void showGui(Gui gui) {
-        if (gui == null)
-            return;
-
-//        System.out.println("Showing gui");
-//        final List<Transition> lTransitions = gui.getAllTransitions();
-//        final Set<Transition> hideTransitions = gui.getHideTransitions();
-//        final Set<Transition> showTransitions = gui.getShowTransitions();
-
-        gui.show();
-    }
-
-    public static void hideGui(Gui gui) {
-        if (gui == null)
-            return;
-
-//        System.out.println("Hiding gui");
-//        final List<Transition> lTranshiitions = gui.getAllTransitions();
-//        final Set<Transition> hideTransitions = gui.getHideTransitions();
-//        final Set<Transition> showTransitions = gui.getShowTransitions();
-
-        gui.hide();
-    }
-
-    protected List<Transition> getAllTransitions() {
-        final List<Transition> lTransitions = new ArrayList<>();
-        this.components.values().forEach(lTransitions::addAll);
-        lTransitions.addAll(getTransitions());
-
-        return lTransitions;
+        gui.setDisplayed(!gui.isDisplayed());
     }
 
     public float getCornerRadius() {

@@ -51,7 +51,7 @@ public class CategoriesTab extends GuiRectangle {
     }
 
     private void addFoodButton() {
-        this.foodCatButton = new GuiRectangleButton(this, Resource.FISH.getTexture(), null, null, null);
+        this.foodCatButton = new GuiRectangleButton(this, Resource.FISH.getBackgroundTexture(), null, null, null);
 
         this.foodCatButton.setOnPress(() -> ((GuiHouseDetails) getParent()).onFoodCategoryClick());
     }

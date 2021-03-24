@@ -11,7 +11,6 @@ import engineTester.Game.GameState;
 import entities.Camera;
 import entities.Light;
 import fontMeshCreator.FontType;
-import guis.Gui;
 import guis.constraints.PatternGlobalConstraint;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
@@ -157,7 +156,7 @@ public class MainGameLoop {
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         new GuiSelectedItem.Builder().create();
-        Gui.showGui(GuiMainMenu.getInstance());
+        GuiMainMenu.getInstance().setDisplayed(true);
         TextMaster textMaster = TextMaster.getInstance();
 
         AbstractMarket.getInstance().place(new TerrainPosition(50, 50));

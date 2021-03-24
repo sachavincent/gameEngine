@@ -42,8 +42,7 @@ public class GuiSelectedItem extends Gui {
 
         Terrain.getInstance().setPreviewedItem(abstractItem);
 
-        if (!isDisplayed())
-            showGui(this);
+        setDisplayed(true);
     }
 
     public AbstractItem getSelectedItem() {
@@ -55,7 +54,7 @@ public class GuiSelectedItem extends Gui {
         currentSelectedItem = null;
         setBackground(DEFAULT_BACKGROUND);
 
-        hideGui(this);
+        setDisplayed(false);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class GuiSelectedItem extends Gui {
         int xPixels = (int) (cursorPos.x * DisplayManager.WIDTH) - 70;
         int yPixels = (int) (cursorPos.y * DisplayManager.HEIGHT) - 70;
         if (xPixels < -DisplayManager.WIDTH || yPixels < -DisplayManager.HEIGHT) {
-            hideGui(this); // GUI is too far left and/or too far low to be rendered fully
+            setDisplayed(false); // GUI is too far left and/or too far low to be rendered fully
         } else {
             setX(guiConstraintHandler.handleXConstraint(new PixelConstraint(xPixels)));
             setY(guiConstraintHandler.handleYConstraint(new PixelConstraint(yPixels)));
@@ -104,7 +103,7 @@ public class GuiSelectedItem extends Gui {
         public GuiSelectedItem create() {
             instance = guiSelectedItem;
 
-            Gui.hideGui(instance);
+            instance.setDisplayed(false);
             return instance;
         }
     }

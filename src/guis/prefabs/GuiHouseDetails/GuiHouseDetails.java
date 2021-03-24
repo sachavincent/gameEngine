@@ -44,8 +44,6 @@ public class GuiHouseDetails extends Gui {
     private final SubCategoriesTab subCategoriesTab;
     private final CategoryView     categoryView;
 
-    private final GuiConstraints upperWidthConstraint;
-
     private GuiAbstractButton peopleButton;
     private GuiAbstractButton moneyButton;
 
@@ -53,8 +51,6 @@ public class GuiHouseDetails extends Gui {
 
     private State        state;
     private ResourceType resourceType;
-
-    private GuiRectangle outlineRectangle, outlineRectangle2;
 
     private final static Background<String> stickyFigureImage = new Background<>("stick_figure.png");
 
@@ -108,18 +104,9 @@ public class GuiHouseDetails extends Gui {
 
         this.categoryView = new CategoryView(this);
 
-        this.outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
-                new RelativeConstraint(1), new RelativeConstraint(1), false);
-        this.outlineRectangle.setOutlineWidth(.5);
-
-        this.upperWidthConstraint = upperRectangleConstraints.getWidthConstraint();
-        this.outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
-                this.upperWidthConstraint, new RelativeConstraint(1), false);
-        this.outlineRectangle2.setOutlineWidth(.5);
-
         addDistributionGraph();
 
-        Gui.hideGui(this);
+        setDisplayed(false);
     }
 
     public void setHouseItem(HouseItem houseItem) {
@@ -139,7 +126,6 @@ public class GuiHouseDetails extends Gui {
     }
 
     public void setCurrentCategoryPercentage(int percentage) {
-
         this.categoryView.categoryIcon.setProgressPercentage(percentage);
 
         Text text = this.categoryView.categoryPercentage.getText();
@@ -174,17 +160,6 @@ public class GuiHouseDetails extends Gui {
                             Color.LIGHT_GRAY, Words.AVAILABLE_SPACE));
         }
 
-        // Reset borders
-        removeComponent(this.outlineRectangle);
-        removeComponent(this.outlineRectangle2);
-        this.outlineRectangle = new GuiRectangle(this, new Background<>(Color.BLACK),
-                new RelativeConstraint(1, this), new RelativeConstraint(1, this), false);
-        this.outlineRectangle.setOutlineWidth(.5);
-
-        this.outlineRectangle2 = new GuiRectangle(this, new Background<>(Color.BLACK),
-                upperWidthConstraint, new RelativeConstraint(1, this), false);
-        this.outlineRectangle2.setOutlineWidth(.5);
-
         return true;
     }
 
@@ -214,7 +189,7 @@ public class GuiHouseDetails extends Gui {
         ButtonGroup group = new ButtonGroup(subCategories.size());
         subCategories.forEach(resource -> {
             if (resourcesNeeded.containsKey(resource)) {
-                GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab, resource.getTexture(),
+                GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab, resource.getBackgroundTexture(),
                         (GuiConstraintsManager) null);
                 button.enableFilter();
                 button.setToggleType(true);
@@ -236,7 +211,7 @@ public class GuiHouseDetails extends Gui {
                     button.setClicked(true);
                 }
             } else {
-                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getTexture(), null);
+                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getBackgroundTexture(), null);
             }
         });
 
@@ -266,6 +241,7 @@ public class GuiHouseDetails extends Gui {
                         .setyConstraint(new RelativeConstraint(0.5f, this.overallView))
                         .create());
         this.peopleButton.enableFilter();
+        this.peopleButton.setCornerRadius(Gui.CORNER_RADIUS);
 
         this.stickyFigure = new GuiRectangle(this, stickyFigureImage, new GuiConstraintsManager.Builder()
                 .setHeightConstraint(new RelativeConstraint(1, this.peopleButton))

@@ -49,7 +49,7 @@ public class ResourceManager {
             return this.name;
         }
 
-        public Background<String> getTexture() {
+        public Background<String> getBackgroundTexture() {
             return this.texture;
         }
     }

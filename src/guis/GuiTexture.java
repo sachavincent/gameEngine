@@ -2,6 +2,7 @@ package guis;
 
 import guis.presets.Background;
 import java.awt.Color;
+import renderEngine.DisplayManager;
 import textures.Texture;
 import util.math.Vector2f;
 
@@ -20,8 +21,11 @@ public class GuiTexture extends Texture {
         super(background);
 
         this.position = position;
-        this.scale = scale;
+        if (this.keepAspectRatio)
+            scale.y = ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) * scale.x *
+                    ((float) this.height / (float) this.width);
 
+        this.scale = scale;
         if (background.getBackground() instanceof String)
             this.alpha = 1f;
         else if (background.getBackground() instanceof Color)

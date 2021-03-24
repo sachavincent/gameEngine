@@ -20,7 +20,7 @@ public class MetaFile {
     private static final int PAD_BOTTOM = 2;
     private static final int PAD_RIGHT  = 3;
 
-    private static final int DESIRED_PADDING = 3;
+    private static final int DESIRED_PADDING = 8;
 
     private static final String SPLITTER         = " ";
     private static final String NUMBER_SEPARATOR = ",";
@@ -46,6 +46,7 @@ public class MetaFile {
      */
     protected MetaFile(File file) {
         this.aspectRatio = (double) DisplayManager.WIDTH / (double) DisplayManager.HEIGHT;
+        //TODO: Update aspect ratio with window?
         openFile(file);
         loadPaddingData();
         loadLineSizes();
@@ -94,7 +95,11 @@ public class MetaFile {
      * @return The value of the variable.
      */
     private int getValueOfVariable(String variable) {
-        return Integer.parseInt(values.get(variable));
+        String value = values.get(variable);
+        if (value == null)
+            throw new IllegalArgumentException("Could not read " + variable);
+
+        return Integer.parseInt(value);
     }
 
     /**

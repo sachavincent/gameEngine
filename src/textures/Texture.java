@@ -14,13 +14,13 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
-import util.math.Vector3f;
 
 public abstract class Texture {
 
-    private int textureID, width, height;
+    protected int textureID, width, height;
 
-    private Vector3f color;
+    private   Color   color = Color.BLACK;
+    protected boolean keepAspectRatio;
 
     public Texture(Background<?> background) {
         Object back = background.getBackground();
@@ -43,10 +43,7 @@ public abstract class Texture {
         this.width = 8;
         this.height = 8;
 
-        this.color = new Vector3f(
-                Integer.valueOf(hexColor.substring(1, 3), 16) / 255f,
-                Integer.valueOf(hexColor.substring(3, 5), 16) / 255f,
-                Integer.valueOf(hexColor.substring(5, 7), 16) / 255f);
+        this.color = Color.decode(hexColor);
     }
 
     private void instantiateWithColor(Color color) {
@@ -56,11 +53,11 @@ public abstract class Texture {
         if (color == null)
             color = Color.WHITE;
 
-        this.color = new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
+        this.color = color;
     }
 
     private void instantiateWithInteger(Integer integer) {
-        textureID = integer;
+        this.textureID = integer;
     }
 
     private void instantiateWithFile(String fileName) {
@@ -77,8 +74,8 @@ public abstract class Texture {
             return;
         }
 
-        textureID = GL11.glGenTextures();
-
+        this.textureID = GL11.glGenTextures();
+        this.keepAspectRatio = true;
         this.width = width.get();
         this.height = height.get();
 
@@ -108,11 +105,23 @@ public abstract class Texture {
         STBImage.stbi_image_free(byteBuffer);
     }
 
-    public Vector3f getColor() {
+    public boolean dokeepAspectRatio() {
+        return this.keepAspectRatio;
+    }
+
+    public Color getColor() {
         return this.color;
     }
 
     public int getTextureID() {
         return this.textureID;
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+
+    public int getHeight() {
+        return this.height;
     }
 }

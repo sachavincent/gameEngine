@@ -29,6 +29,7 @@ public class GuiMainMenu extends Gui {
     private final GuiRectangle    menuButtonPanel;
     private final GuiSettingsMenu settingsMenu;
     private       State           state;
+    public Text textSettings;
 
     private GuiMainMenu() {
         super(Background.NO_BACKGROUND);
@@ -69,18 +70,18 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createNewGameButton() {
-        Text text = new Text("New Game", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text("New Game", 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton newGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         newGameButton.enableFilter();
         newGameButton.setOnPress(() -> {
-            Gui.hideGui(this);
+            setDisplayed(false);
             Game.getInstance().start();
         });
     }
 
     private void createLoadGameButton() {
-        Text text = new Text("Load Game", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text("Load Game", 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton loadGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         loadGameButton.enableFilter();
@@ -90,23 +91,24 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createSettingsButton() {
-        Text text = new Text("Settings", .7f, DEFAULT_FONT, Color.BLACK);
+        textSettings = new Text("Settings", 1.2f, DEFAULT_FONT, Color.BLACK);
+
         GuiRectangleButton settingsButton = new GuiRectangleButton(this.menuButtonPanel,
-                new Background<>(new Color(109, 109, 109, 100)), text);
+                new Background<>(new Color(109, 109, 109, 100)), textSettings);
         settingsButton.enableFilter();
         settingsButton.setOnPress(() -> {
-            Gui.hideGui(this);
+            setDisplayed(false);
             showSettings();
         });
     }
 
     public void showSettings() {
         state = State.SETTINGS;
-        Gui.showGui(this.settingsMenu);
+        this.settingsMenu.setDisplayed(true);
     }
 
     private void createQuitButton() {
-        Text text = new Text("Quit", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text("Quit", 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         quitButton.enableFilter();
@@ -126,8 +128,8 @@ public class GuiMainMenu extends Gui {
                 // null
                 break;
             case SETTINGS:
-                Gui.hideGui(this.settingsMenu);
-                Gui.showGui(this);
+                this.settingsMenu.setDisplayed(false);
+                setDisplayed(true);
                 state = State.MAIN;
                 break;
             default:

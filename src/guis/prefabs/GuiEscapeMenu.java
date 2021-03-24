@@ -44,17 +44,17 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void addResumeButton() {
-        Text text = new Text("Resume", .7f, DEFAULT_FONT, new Color(72, 72, 72));
+        Text text = new Text("Resume", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton resumeButton = new GuiRectangleButton(this, this.buttonBackground, text);
         resumeButton.enableFilter();
         resumeButton.setOnPress(() -> {
-            Gui.hideGui(this);
+            setDisplayed(false);
             Game.getInstance().resume();
         });
     }
 
     private void addSaveAndQuitButton() {
-        Text text = new Text("Save & Quit", .7f, DEFAULT_FONT, new Color(72, 72, 72));
+        Text text = new Text("Save & Quit", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnPress(() -> {
@@ -63,7 +63,7 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void addQuickSaveButton() {
-        Text text = new Text("Quick Save", .7f, DEFAULT_FONT, new Color(72, 72, 72));
+        Text text = new Text("Quick Save", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnPress(() -> {
@@ -75,21 +75,21 @@ public class GuiEscapeMenu extends Gui {
         GuiSettingsMenu guiSettingsMenu = new GuiSettingsMenu(GuiMainMenu.getInstance());
         guiSettingsMenu.onBackButtonPress(() -> {
             guiSettingsMenu.setDisplayed(false);
-            Gui.showGui(this);
+            setDisplayed(true);
         });
 
-        Text text = new Text("Settings", .7f, DEFAULT_FONT, new Color(72, 72, 72));
+        Text text = new Text("Settings", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton settingsButton = new GuiRectangleButton(this, this.buttonBackground, text);
         settingsButton.enableFilter();
         settingsButton.setOnPress(() -> {
-            Gui.hideGui(this);
+            setDisplayed(false);
             guiSettingsMenu.setDisplayed(true);
         });
     }
 
 
     private void addQuitButton() {
-        Text text = new Text("Quit", .7f, DEFAULT_FONT, new Color(72, 72, 72));
+        Text text = new Text("Quit", .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         quitButton.enableFilter();
         quitButton.setOnPress(() -> {

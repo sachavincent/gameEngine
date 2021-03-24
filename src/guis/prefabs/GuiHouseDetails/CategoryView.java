@@ -34,12 +34,12 @@ public class CategoryView extends GuiRectangle {
     public CategoryView(GuiHouseDetails gui) {
         super(gui, Background.NO_BACKGROUND, CONSTRAINTS);
 
-        setChildrenConstraints(new RatioedPatternGlobalConstraint(2, 1, 0.06f, 0.06f, 70f, -1f, 30f, -1f));
+        setChildrenConstraints(new RatioedPatternGlobalConstraint(2, 1, 0.06f, 0, 70f, -1f, 30f, -1f));
 
-        this.categoryIcon = new GuiProgressIcon(this, Resource.FISH.getTexture(), null);
+        this.categoryIcon = new GuiProgressIcon(this, Resource.FISH.getBackgroundTexture(), null);
         GuiTexture[] categoryIconsArray = new GuiTexture[Resource.values().length];
         for (Resource r : Resource.values()) {
-            categoryIconsArray[r.ordinal()] = new GuiTexture(r.getTexture(), this.categoryIcon);
+            categoryIconsArray[r.ordinal()] = new GuiTexture(r.getBackgroundTexture(), this.categoryIcon);
         }
 
 //        categoryIconsArray[Resource.FISH.ordinal()] = new GuiTexture(Resource.FISH.getTexture(), categoryIcon);

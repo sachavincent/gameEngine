@@ -3,7 +3,6 @@ package guis.presets.buttons;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.GuiInterface;
-import guis.GuiTexture;
 import guis.basics.GuiBasics;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiShape;
@@ -15,7 +14,6 @@ import guis.constraints.Side;
 import guis.constraints.StickyConstraint;
 import guis.presets.Background;
 import guis.presets.GuiPreset;
-import inputs.MouseUtils;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.LeaveCallback;
 import inputs.callbacks.PressCallback;
@@ -239,14 +237,15 @@ public abstract class GuiAbstractButton extends GuiPreset {
             return;
 
         this.tooltipGui = new GuiRectangle(this, new Background<>(new Color(64, 64, 64, 100)));
-        GuiConstraintsManager guiConstraintsManager = new GuiConstraintsManager();
-        guiConstraintsManager.setWidthConstraint(new RelativeConstraint(1));
-        guiConstraintsManager.setHeightConstraint(new PixelConstraint(30));
-        guiConstraintsManager.setxConstraint(new RelativeConstraint(0));
-        guiConstraintsManager.setyConstraint(new StickyConstraint(Side.TOP, 0.05f));
-        this.tooltipGui.setConstraints(guiConstraintsManager);
-
-        this.tooltipGui.addComponent(Gui.setupText(this.tooltipGui, text));
+        this.tooltipGui.setConstraints(new GuiConstraintsManager.Builder()
+                .setWidthConstraint(new RelativeConstraint(1))
+                .setHeightConstraint(new PixelConstraint(30))
+                .setxConstraint(new RelativeConstraint(0))
+                .setyConstraint(new StickyConstraint(Side.TOP, 0.05f)).create());
+        GuiText guiText = Gui.setupText(this.tooltipGui, text);
+        guiText.setDisplayed(false);
+        this.tooltipGui.addComponent(guiText);
+        this.tooltipGui.setDisplayedByDefault(false);
     }
 
     @Override
@@ -329,11 +328,6 @@ public abstract class GuiAbstractButton extends GuiPreset {
     public void setDisplayed(boolean displayed) {
         super.setDisplayed(displayed);
 
-        if (this.tooltipGui != null) {
-            this.tooltipGui.setDisplayed(false);
-            if (MouseUtils.isCursorInGuiComponent(this)) // Appears on mouse cursor
-                this.tooltipGui.setDisplayed(true);
-        }
         if (!displayed && this.clicked)
             setClicked(false);
     }

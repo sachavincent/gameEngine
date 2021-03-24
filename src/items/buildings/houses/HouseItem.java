@@ -97,7 +97,7 @@ public abstract class HouseItem extends BuildingItem implements RequireBuilding 
     public void unselect() {
         super.unselect();
 
-        Gui.hideGui(GuiHouseDetails.getInstance());
+        GuiHouseDetails.getInstance().setDisplayed(false);
         GuiHouseDetails.getInstance().removeHouseItem();
     }
 

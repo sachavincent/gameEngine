@@ -35,24 +35,24 @@ public class GuiShader extends ShaderProgram {
 
     @Override
     protected void getAllUniformLocations() {
-        location_transformationMatrix = super.getUniformLocation("transformationMatrix");
-        location_guiWidth = super.getUniformLocation("guiWidth");
-        location_guiHeight = super.getUniformLocation("guiHeight");
-        location_radius = super.getUniformLocation("radius");
-        location_alpha = super.getUniformLocation("alpha");
-        location_color = super.getUniformLocation("color");
-        location_type = super.getUniformLocation("type");
-        location_innerCircleRadius = super.getUniformLocation("innerCircleRadius");
-        location_outerCircleRadius = super.getUniformLocation("outerCircleRadius");
-        location_percentage = super.getUniformLocation("percentage");
-        location_nbLines = super.getUniformLocation("nbLines");
+        this.location_transformationMatrix = super.getUniformLocation("transformationMatrix");
+        this.location_guiWidth = super.getUniformLocation("guiWidth");
+        this.location_guiHeight = super.getUniformLocation("guiHeight");
+        this.location_radius = super.getUniformLocation("radius");
+        this.location_alpha = super.getUniformLocation("alpha");
+        this.location_color = super.getUniformLocation("color");
+        this.location_type = super.getUniformLocation("type");
+        this.location_innerCircleRadius = super.getUniformLocation("innerCircleRadius");
+        this.location_outerCircleRadius = super.getUniformLocation("outerCircleRadius");
+        this.location_percentage = super.getUniformLocation("percentage");
+        this.location_nbLines = super.getUniformLocation("nbLines");
 
-        location_donutLines = new int[100];
-        location_donutColors = new int[100];
+        this.location_donutLines = new int[100];
+        this.location_donutColors = new int[100];
 
         for (int i = 0; i < location_donutLines.length; i++) {
-            location_donutLines[i] = super.getUniformLocation("donutLines[" + i + "]");
-            location_donutColors[i] = super.getUniformLocation("donutColors[" + i + "]");
+            this.location_donutLines[i] = super.getUniformLocation("donutLines[" + i + "]");
+            this.location_donutColors[i] = super.getUniformLocation("donutColors[" + i + "]");
         }
     }
 
@@ -62,27 +62,28 @@ public class GuiShader extends ShaderProgram {
     }
 
     public void loadTransformation(Matrix4f matrix) {
-        super.loadMatrix(location_transformationMatrix, matrix);
+        super.loadMatrix(this.location_transformationMatrix, matrix);
     }
 
     public void loadAlpha(float alpha) {
-        super.loadFloat(location_alpha, alpha);
+        super.loadFloat(this.location_alpha, alpha);
     }
 
     public void loadRadius(float radius) {
-        super.loadFloat(location_radius, radius);
+        super.loadFloat(this.location_radius, radius);
     }
 
     public void loadWidth(float width) {
-        super.loadFloat(location_guiWidth, width * DisplayManager.WIDTH);
+        super.loadFloat(this.location_guiWidth, width * DisplayManager.WIDTH);
     }
 
     public void loadHeight(float height) {
-        super.loadFloat(location_guiHeight, height * DisplayManager.HEIGHT);
+        super.loadFloat(this.location_guiHeight, height * DisplayManager.HEIGHT);
     }
 
-    public void loadColor(Vector3f color) {
-        super.loadVector(location_color, color == null ? new Vector3f(-1, -1, -1) : color);
+    public void loadColor(Color color) {
+        super.loadVector(this.location_color,
+                new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f));
     }
 
     public void loadType(int type) {
@@ -90,24 +91,24 @@ public class GuiShader extends ShaderProgram {
     }
 
     public void loadInnerCircleRadius(float radius) {
-        super.loadFloat(location_innerCircleRadius, radius);
+        super.loadFloat(this.location_innerCircleRadius, radius);
     }
 
     public void loadOuterCircleRadius(float radius) {
-        super.loadFloat(location_outerCircleRadius, radius);
+        super.loadFloat(this.location_outerCircleRadius, radius);
     }
 
     public void loadPercentage(float percentage) {
-        super.loadFloat(location_percentage, percentage);
+        super.loadFloat(this.location_percentage, percentage);
     }
 
     public void loadDonutLines(List<Vector2f> points) {
-        super.loadInt(location_nbLines, points.size());
+        super.loadInt(this.location_nbLines, points.size());
 
         int i = 0;
         for (Vector2f point : points) {
-            if (i < location_donutLines.length)
-                super.load2DVector(location_donutLines[i++], point);
+            if (i < this.location_donutLines.length)
+                super.load2DVector(this.location_donutLines[i++], point);
             else
                 break;
         }
@@ -116,8 +117,8 @@ public class GuiShader extends ShaderProgram {
     public void loadDonutColors(Set<Color> colors) {
         int i = 0;
         for (Color color : colors) {
-            if (i < location_donutColors.length)
-                super.loadVector(location_donutColors[i++],
+            if (i < this.location_donutColors.length)
+                super.loadVector(this.location_donutColors[i++],
                         new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f));
             else
                 break;

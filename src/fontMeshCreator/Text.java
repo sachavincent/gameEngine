@@ -1,11 +1,10 @@
 package fontMeshCreator;
 
-import renderEngine.fontRendering.TextMaster;
 import java.awt.Color;
 import java.util.Objects;
 import language.LanguageAssets;
+import renderEngine.fontRendering.TextMaster;
 import util.math.Vector2f;
-import util.math.Vector3f;
 
 /**
  * Represents a piece of text in the game.
@@ -17,9 +16,9 @@ public class Text {
     private String textString;
     private float  fontSize;
 
-    private int      textMeshVao;
-    private int      vertexCount;
-    private Vector3f color = new Vector3f(0f, 0f, 0f);
+    private int   textMeshVao;
+    private int   vertexCount;
+    private Color color = Color.BLACK;
 
     private Vector2f position;
     private float    lineMaxSize;
@@ -29,6 +28,9 @@ public class Text {
 
     private boolean centerText;
     private boolean stringChanged;
+
+    private float charWidth     = 0.5f;
+    private float edgeCharWidth = 0.1f;
 
     /**
      * Creates a new text, loads the text's quads into a VAO, and adds the text
@@ -57,8 +59,6 @@ public class Text {
         this.lineMaxSize = maxLineLength;
         this.centerText = centered;
         this.stringChanged = false;
-
-//        TextMaster.getInstance().loadText(this);
     }
 
     public Text(String text, float fontSize, FontType font, Color color) {
@@ -67,9 +67,30 @@ public class Text {
         this.font = font;
         this.stringChanged = false;
 
-        setColor(color);
+        this.color = color;
 
-//        TextMaster.getInstance().loadText(this);
+//        this.charWidth = fontSize / 2.5f;
+        this.charWidth = 0.48f;
+        this.edgeCharWidth = Math.max(0, 0.1f + (2f - fontSize) * 0.0625f);
+    }
+
+    /**
+     * Get width of given character
+     *
+     * @param c character
+     * @return width
+     */
+    public double getCharacterWidth(int c) {
+        MetaFile metaData = this.font.getLoader().getMetaData();
+
+        if (c == ' ')
+            return metaData.getSpaceWidth() * 2 * this.fontSize;
+
+        Character character = metaData.getCharacter(c);
+        if (character == null)
+            return 0; //TODO: Accents ne fonctionnent pas
+
+        return character.getxAdvance() * 2 * this.fontSize;
     }
 
     /**
@@ -83,7 +104,7 @@ public class Text {
      * @return The font used by this text.
      */
     public FontType getFont() {
-        return font;
+        return this.font;
     }
 
     /**
@@ -94,7 +115,7 @@ public class Text {
      * @param b - blue value, between 0 and 1.
      */
     public void setColor(float r, float g, float b) {
-        color.set(r, g, b);
+        this.color = new Color(r, g, b);
     }
 
     /**
@@ -103,7 +124,7 @@ public class Text {
      * @param color - color of the value
      */
     public void setColor(Color color) {
-        this.color = new Vector3f(color.getRed(), color.getGreen(), color.getBlue());
+        this.color = color;
     }
 
     /**
@@ -118,15 +139,8 @@ public class Text {
     /**
      * @return the color of the text.
      */
-    public Vector3f getColor() {
-        return color;
-    }
-
-    /**
-     * @return the color of the text.
-     */
-    public Color getAWTColor() {
-        return new Color(color.x / 255, color.y / 255, color.z / 255);
+    public Color getColor() {
+        return this.color;
     }
 
     /**
@@ -144,7 +158,7 @@ public class Text {
      * that is set.
      */
     public int getNumberOfLines() {
-        return numberOfLines;
+        return this.numberOfLines;
     }
 
     /**
@@ -153,7 +167,7 @@ public class Text {
      * right.
      */
     public Vector2f getPosition() {
-        return position;
+        return this.position;
     }
 
     /**
@@ -161,7 +175,7 @@ public class Text {
      * the quads on which the text will be rendered.
      */
     public int getMesh() {
-        return textMeshVao;
+        return this.textMeshVao;
     }
 
     /**
@@ -193,7 +207,7 @@ public class Text {
     public void setPosition(Vector2f position) {
         this.position = new Vector2f((position.x / 2 + 0.5), (position.y / 2 + 0.5));
 
-        setStringChanged(true);
+        this.stringChanged = true;
     }
 
     /**
@@ -207,7 +221,7 @@ public class Text {
      * @return the font size of the text (a font size of 1 is normal).
      */
     public float getFontSize() {
-        return fontSize;
+        return this.fontSize;
     }
 
     /**
@@ -222,21 +236,21 @@ public class Text {
      * @return {@code true} if the text should be centered.
      */
     protected boolean isCentered() {
-        return centerText;
+        return this.centerText;
     }
 
     /**
      * @return The maximum length of a line of this text.
      */
     protected float getMaxLineSize() {
-        return lineMaxSize;
+        return this.lineMaxSize;
     }
 
     /**
      * @return The string of text.
      */
     public String getTextString() {
-        return textString;
+        return this.textString;
     }
 
     public void setTextString(String textString) {
@@ -254,7 +268,27 @@ public class Text {
     }
 
     public double getTextHeight() {
-        return TextMeshCreator.LINE_HEIGHT * fontSize * 2;
+        return TextMeshCreator.LINE_HEIGHT * this.fontSize * 2;
+    }
+
+    public float getCharWidth() {
+        return this.charWidth;
+    }
+
+    public float getEdgeCharWidth() {
+        return this.edgeCharWidth;
+    }
+
+    public void setCharWidth(float charWidth) {
+        this.charWidth = charWidth;
+
+        this.stringChanged = true;
+    }
+
+    public void setEdgeCharWidth(float edgeCharWidth) {
+        this.edgeCharWidth = edgeCharWidth;
+
+        this.stringChanged = true;
     }
 
     @Override
@@ -264,11 +298,11 @@ public class Text {
         if (o == null || getClass() != o.getClass())
             return false;
         Text text = (Text) o;
-        return textMeshVao == text.textMeshVao;
+        return this.textMeshVao == text.textMeshVao;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(textMeshVao);
+        return Objects.hash(this.textMeshVao);
     }
 }
