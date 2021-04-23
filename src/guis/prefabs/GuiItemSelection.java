@@ -6,21 +6,15 @@ import guis.Gui;
 import guis.constraints.*;
 import guis.presets.Background;
 import guis.presets.buttons.GuiAbstractButton;
-import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.transitions.Transition;
+import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
-import inputs.callbacks.PressCallback;
-import items.Item;
-import items.abstractItem.AbstractDirtRoadItem;
-import items.abstractItem.AbstractInsula;
-import items.abstractItem.AbstractItem;
-import items.abstractItem.AbstractMarket;
-import items.buildings.Market;
-import items.buildings.houses.Insula;
-import items.roads.DirtRoadItem;
+import items.GameObjectPreviews;
 import java.awt.Color;
 import java.io.File;
-import java.util.EnumSet;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Insula;
+import scene.gameObjects.Market;
 import textures.FontTexture;
 
 public class GuiItemSelection extends Gui {
@@ -34,14 +28,14 @@ public class GuiItemSelection extends Gui {
     private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.25f)};
 
-    private final static Background<?> DEFAULT_BACKGROUND = new Background<>(Color.WHITE);
-
     private static GuiItemSelection instance;
 
-    private final EnumSet<MenuButton> buttons = EnumSet.noneOf(MenuButton.class);
+    public static GuiItemSelection getInstance() {
+        return instance == null ? (instance = new GuiItemSelection()) : instance;
+    }
 
     private GuiItemSelection() {
-        super(DEFAULT_BACKGROUND);
+        super(new Background<>(new Color(109, 109, 109, 80)));
 
         GuiConstraintsManager menuConstraints = new GuiConstraintsManager.Builder()
                 .setWidthConstraint(DEFAULT_DIMENSIONS[0])
@@ -51,72 +45,52 @@ public class GuiItemSelection extends Gui {
                 .create();
 
         setConstraints(menuConstraints);
+
+
+        setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f));
+
+        GuiAbstractButton dirtRoadButton = addButton("Dirt Road", GameObjectPreviews.DIRT_ROAD);
+        dirtRoadButton.setOnPress(() -> {
+            System.out.println("DirtRoad selected");
+
+            MouseUtils.setRoadState();
+            selectOrUnselect(DirtRoad.class);
+        });
+        GuiAbstractButton insulaButton = addButton("Insula", GameObjectPreviews.INSULA);
+        insulaButton.setOnPress(() -> {
+            System.out.println("Insula selected");
+
+            MouseUtils.setBuildingState();
+            selectOrUnselect(Insula.class);
+        });
+        GuiAbstractButton marketButton = addButton("Market", GameObjectPreviews.MARKET);
+        marketButton.setOnPress(() -> {
+            System.out.println("Market selected");
+
+            MouseUtils.setBuildingState();
+            selectOrUnselect(Market.class);
+        });
+
+        setDisplayed(false);
     }
 
-    private GuiItemSelection(Background<?> background, GuiConstraintsManager constraintsManager) {
-        super(background);
+    public GuiAbstractButton addButton(String name, Background<?> background) {
+        Text text = new Text(name, .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton button = new GuiRectangleButton(this, background, null, text);
+        button.enableFilter();
 
-        setConstraints(constraintsManager);
+        return button;
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
-            Transition... transitions) {
-        PressCallback pressCallback;
+    private void selectOrUnselect(Class<? extends GameObject> gameObjectClass) {
+        GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
+        Class<? extends GameObject> selectedItemClass = selectedItemGui.getSelectedItem();
 
-        final AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
-        final AbstractInsula abstractInsula = AbstractInsula.getInstance();
-        final AbstractMarket abstractMarket = AbstractMarket.getInstance();
-
-        switch (menuButton) {
-            case DIRT_ROAD:
-                pressCallback = () -> {
-                    System.out.println("DirtRoad selected");
-
-                    MouseUtils.setRoadState();
-                    selectOrUnselect(abstractDirtRoadItem);
-                };
-                break;
-            case INSULA:
-                pressCallback = () -> {
-                    System.out.println("Insula selected");
-
-                    MouseUtils.setBuildingState();
-                    selectOrUnselect(abstractInsula);
-                };
-                break;
-            case MARKET:
-                pressCallback = () -> {
-                    System.out.println("Market selected");
-
-                    MouseUtils.setBuildingState();
-                    selectOrUnselect(abstractMarket);
-                };
-                break;
-            default:
-                throw new IllegalArgumentException("Incompatible button");
-        }
-
-
-        addButton(menuButton, buttonType, background, pressCallback, transitions);
-    }
-
-    private void selectOrUnselect(AbstractItem item) {
-        GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
-        AbstractItem selectedItem = selectedItemGui.getSelectedItem();
-
-        boolean select = false;
-
-        if (selectedItem == null)
-            select = true;
-        else {
-            Item itemInstance = selectedItem.newInstance(null);
-            if (item.newInstance(null).getClass() != itemInstance.getClass())
-                select = true;
-        }
+        boolean select = selectedItemClass == null || selectedItemClass != gameObjectClass;
 
         if (select) {
             selectedItemGui.updatePosition();
-            selectedItemGui.setSelectedItem(item);
+            selectedItemGui.setSelectedItem(gameObjectClass);
         } else {
             selectedItemGui.removeSelectedItem();
 
@@ -124,124 +98,8 @@ public class GuiItemSelection extends Gui {
         }
     }
 
-    public void addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
-            PressCallback onPress, Transition... transitions) {
-//        GuiConstraintsManager constraints = new GuiConstraintsManager.Builder()
-//                .setWidthConstraint(new RelativeConstraint(0.2f, this))
-//                .setHeightConstraint(new AspectConstraint(1))
-//                .setxConstraint(new RelativeConstraint(-1 + .5f * buttons.size(), this))
-//                .setyConstraint(new RelativeConstraint(1, this))
-//                .create();
-
-        GuiAbstractButton button = createButton(buttonType, background, null,
-                new Text(menuButton.getString(), .55f, DEFAULT_FONT, Color.DARK_GRAY), null);
-
-        if (button != null) {
-            buttons.add(menuButton);
-
-            button.enableFilter();
-
-            button.setDisplayed(false);
-            button.setOnPress(onPress);
-
-            setComponentTransitions(button, transitions);
-        }
-    }
-
-    public void setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
-        if (delayFirst)
-            transition.setDelay(delay);
-
-        getComponents().keySet().stream().filter(GuiAbstractButton.class::isInstance)
-                .forEach(guiComponent -> {
-                    setComponentTransitions(guiComponent, transition.copy());
-
-                    transition.setDelay(transition.getDelay() + delay);
-                });
-
-    }
-
 
     public static GuiItemSelection getItemSelectionGui() {
         return instance;
     }
-
-    public enum MenuButton implements MenuButtons {
-        DIRT_ROAD(DirtRoadItem.NAME),
-        INSULA(Insula.NAME),
-        MARKET(Market.NAME);
-
-        private final String string;
-
-        MenuButton(String string) {
-            this.string = string;
-        }
-
-        @Override
-        public String getString() {
-            return string;
-        }
-    }
-
-    public static class Builder {
-
-        private final GuiItemSelection guiItemSelection;
-
-        public Builder() {
-            guiItemSelection = new GuiItemSelection();
-        }
-
-        public Builder setBackground(Background<?> background) {
-            guiItemSelection.setBackground(background);
-
-            return this;
-        }
-
-        public Builder setConstraints(GuiConstraintsManager constraintsManager) {
-            guiItemSelection.setConstraints(constraintsManager);
-
-            return this;
-        }
-
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
-                PressCallback clickListener, Transition... transitions) {
-            guiItemSelection.addButton(menuButton, buttonType, background, clickListener, transitions);
-
-            return this;
-        }
-
-        public Builder addButton(MenuButton menuButton, ButtonType buttonType, Background<?> background,
-                Transition... transitions) {
-//            if (!guiItemSelection.buttons.contains(menuButton))
-            guiItemSelection.addButton(menuButton, buttonType, background, transitions);
-
-            return this;
-        }
-
-        public Builder setTransitionsToAllButtons(final Transition transition, final int delay, boolean delayFirst) {
-            guiItemSelection.setTransitionsToAllButtons(transition, delay, delayFirst);
-
-            return this;
-        }
-
-        public Builder setTransitionsToAllButtons(Transition transition) {
-            guiItemSelection.setTransitionsToAllButtons(transition, 0, false);
-
-            return this;
-        }
-
-        public Builder setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
-            guiItemSelection.setChildrenConstraints(guiConstraints);
-
-            return this;
-        }
-
-        public GuiItemSelection create() {
-            instance = guiItemSelection;
-
-            instance.setDisplayed(false);
-            return instance;
-        }
-    }
-
 }

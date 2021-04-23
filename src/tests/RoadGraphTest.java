@@ -3,7 +3,6 @@ package tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 
-import items.abstractItem.AbstractDirtRoadItem;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,12 +18,14 @@ import pathfinding.RoadGraph;
 import pathfinding.RoadNode;
 import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
-import terrains.Terrain;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.Scene;
 import terrains.TerrainPosition;
 
 public class RoadGraphTest {
 
-    private final Terrain terrain = Terrain.getInstance();
+    private final static Scene scene = Scene.getInstance();
 
     @BeforeAll
     public static void init() {
@@ -33,31 +34,30 @@ public class RoadGraphTest {
     }
 
     @BeforeEach
-    public void resetTerrainItems() {
-        Terrain.getInstance().resetItems();
-        Terrain.getInstance().updateRequirements();
-        Terrain.getInstance().resetRoadGraph();
+    public void resetGameObjects() {
+        scene.resetObjects();
+        scene.updateRequirements();
+        scene.resetRoadGraph();
     }
 
     @Test
     void testRoadGraph1() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
         TerrainPosition v4 = new TerrainPosition(53, 50);
 
         // v1 -> v2 -> v3 -> v4
-        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(50, 51));
-        abstractDirtRoadItem.place(new TerrainPosition(53, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(53, 51));
-        abstractDirtRoadItem.place(v1);
-        abstractDirtRoadItem.place(v2);
-        abstractDirtRoadItem.place(v3);
-        abstractDirtRoadItem.place(v4);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 51));
+        GameObject.newInstance(DirtRoad.class, v1);
+        GameObject.newInstance(DirtRoad.class, v2);
+        GameObject.newInstance(DirtRoad.class, v3);
+        GameObject.newInstance(DirtRoad.class, v4);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -87,7 +87,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph2() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -95,18 +94,18 @@ public class RoadGraphTest {
         TerrainPosition v5 = new TerrainPosition(54, 50);
 
         // v1 -> v2 -> v3 -> v4 -> v5
-        abstractDirtRoadItem.place(new TerrainPosition(49, 50));
-        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(52, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(54, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 50));
-        abstractDirtRoadItem.place(v1);
-        abstractDirtRoadItem.place(v2);
-        abstractDirtRoadItem.place(v3);
-        abstractDirtRoadItem.place(v4);
-        abstractDirtRoadItem.place(v5);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 50));
+        GameObject.newInstance(DirtRoad.class, v1);
+        GameObject.newInstance(DirtRoad.class, v2);
+        GameObject.newInstance(DirtRoad.class, v3);
+        GameObject.newInstance(DirtRoad.class, v4);
+        GameObject.newInstance(DirtRoad.class, v5);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -143,7 +142,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph3() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(50, 48);
@@ -172,9 +170,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -211,7 +209,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph4() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -244,9 +241,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -293,7 +290,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph5() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -343,9 +339,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -412,7 +408,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph6() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -472,9 +467,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -557,7 +552,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph7() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -580,9 +574,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -612,7 +606,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph8() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -649,9 +642,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -697,7 +690,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph9() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -719,9 +711,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -738,7 +730,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph10() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -760,9 +751,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -782,7 +773,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph11() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -810,9 +800,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -843,7 +833,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph12() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -869,9 +858,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -891,7 +880,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph13() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -906,9 +894,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -925,7 +913,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph14() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -949,9 +936,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -971,7 +958,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph15() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -995,9 +981,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1019,7 +1005,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph16() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1035,9 +1020,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1054,7 +1039,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph17() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1070,9 +1054,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1092,7 +1076,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph18() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1112,9 +1095,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1142,7 +1125,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph19() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1168,9 +1150,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1214,7 +1196,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph20() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1232,9 +1213,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1254,7 +1235,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph21() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(50, 49);
@@ -1270,9 +1250,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1289,7 +1269,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph22() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(52, 50);
         TerrainPosition v2 = new TerrainPosition(53, 50);
         TerrainPosition v3 = new TerrainPosition(54, 50);
@@ -1317,9 +1296,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1357,7 +1336,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph23() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(52, 48);
         TerrainPosition v2 = new TerrainPosition(53, 48);
         TerrainPosition v3 = new TerrainPosition(54, 48);
@@ -1387,9 +1365,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1443,7 +1421,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph24() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1471,9 +1448,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1490,7 +1467,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph25() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1526,9 +1502,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1550,7 +1526,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph26() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1577,9 +1552,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1596,7 +1571,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph27() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -1624,9 +1598,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1648,7 +1622,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph28() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(51, 50);
         TerrainPosition v2 = new TerrainPosition(52, 50);
         TerrainPosition v3 = new TerrainPosition(53, 50);
@@ -1681,9 +1654,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1723,7 +1696,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1750,9 +1722,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1810,7 +1782,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29b() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -1838,9 +1809,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1859,7 +1830,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph30() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(51, 51);
@@ -1872,9 +1842,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1891,7 +1861,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph31() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 49);
         TerrainPosition v3 = new TerrainPosition(51, 49);
@@ -1906,9 +1875,9 @@ public class RoadGraphTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();
@@ -1927,7 +1896,6 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph32() {
-        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition[] positions = new TerrainPosition[15];
         TerrainPosition[] positions2 = new TerrainPosition[14];
         for (int i = 55; i < 70; i++)
@@ -1935,18 +1903,18 @@ public class RoadGraphTest {
         for (int i = 50; i < 64; i++)
             positions2[i - 50] = new TerrainPosition(i, 70);
 
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
-        abstractDirtRoadItem.place(new TerrainPosition(62, 71));
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 71));
 
         List<TerrainPosition> pos2 = Arrays.asList(positions2);
         Collections.reverse(pos2);
         positions2 = pos2.toArray(new TerrainPosition[0]);
-        abstractDirtRoadItem.place(positions2);
+        GameObject.newInstances(DirtRoad.class, positions2);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         Set<RoadNode> nodes = roadGraph.getNodes();
         Set<RouteRoad> routes = roadGraph.getRoutes();

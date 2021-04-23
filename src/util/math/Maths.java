@@ -104,7 +104,8 @@ public class Maths {
         return value;
     }
 
-    public static boolean closestRectangle(Vector3f[] cornersRec1, Vector3f[] cornersRec2, Vector3f point) {
+    public static boolean closestRectangle(
+            Vector3f[] cornersRec1, Vector3f[] cornersRec2, Vector3f point) {
         float closestDistanceRec1 = Float.MAX_VALUE;
 
         for (Vector3f corner : cornersRec1)

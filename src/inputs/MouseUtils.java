@@ -18,17 +18,11 @@ import guis.basics.GuiEllipse;
 import guis.basics.GuiTriangle;
 import guis.prefabs.GuiSelectedItem;
 import guis.presets.buttons.GuiAbstractButton;
-import items.Item;
-import items.SelectableItem;
-import items.abstractItem.AbstractItem;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import models.BoundingBox;
-import models.RawModel;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
@@ -37,11 +31,15 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import renderEngine.DisplayManager;
 import renderEngine.FrustumCullingFilter;
-import terrains.Terrain;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Player;
+import scene.components.RepleacableComponent;
+import scene.Scene;
+import scene.components.SelectableComponent;
+import scene.components.TerrainComponent;
 import terrains.TerrainPosition;
 import util.MousePicker;
 import util.math.Maths;
-import util.math.Plane3D;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
@@ -63,7 +61,7 @@ public class MouseUtils {
 
     private static State state = State.DEFAULT;
 
-    private static final Terrain terrain = Terrain.getInstance();
+    private static final Scene   scene   = Scene.getInstance();
 
     private static final List<GuiComponent>      ENTERED_GUI_COMPONENTS = new ArrayList<>();
     private static       List<GuiAbstractButton> buttons;
@@ -270,7 +268,7 @@ public class MouseUtils {
     }
 
     private static void onMouseMove(Vector2f pos) {
-        GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
+        GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
 
         List<Gui> enteredGuis = Game.getInstance().getDisplayedGuis().stream()
                 .filter(MouseUtils::isCursorInGui).collect(Collectors.toList());
@@ -310,13 +308,15 @@ public class MouseUtils {
                     if (MousePicker.getInstance().isPointOnTerrain())
                         onHoverOnTerrain(pos.x, pos.y);
                     else {
-                        Terrain.getInstance().resetPreviewItems();
+//                        Terrain.getInstance().resetPreviewItems();
+                        scene.resetPreviewedPositions();
                         selectedItemGui.setDisplayed(true);
                     }
                 } else if (inGui) {
                     if (gameStarted) {
                         selectedItemGui.setDisplayed(true);
-                        terrain.resetPreviewItems();
+//                        terrain.resetPreviewItems();
+                        scene.resetPreviewedPositions();
                     }
 
                     updateGuis(enteredGuis);
@@ -345,14 +345,14 @@ public class MouseUtils {
     }
 
     private static void onHoverOnTerrain(double xPos, double yPos) {
-        Vector3f point = MousePicker.getInstance().getCurrentTerrainPoint();
+        Vector3f point = MousePicker.getInstance().getIntersectionPoint();
         if (point == null)
             return;
 
         Vector2f p = new Vector2f(point.getX(), point.getZ());
 
-        TerrainPosition terrainPoint = p.toGridCoordinates();
-
+        TerrainPosition terrainPoint = p.toTerrainPosition();
+//        System.out.println(terrainPoint);
         onTerrainHover(terrainPoint);
         // TODO: UX à finir pour le reste
         if (middleMouseButtonPressed) {
@@ -370,29 +370,28 @@ public class MouseUtils {
 
                 camera.setYaw((int) (previousYaw - xOffset));
                 camera.setPitch(previousPitch - yOffset);
-                camera.setFocusPoint(point);
+//                camera.setFocusPoint(point);
                 if (camera.getFocusPoint() != null) {
                     camera.setDistanceFromTerrainPoint((float) camera.getFocusPoint().distance(camera.getPosition()));
 //                        camera.setDistanceFromTerrainPointChanged(true);
-                    FrustumCullingFilter.updateFrustum();
                 }
+                FrustumCullingFilter.updateFrustum();
             }
         }
     }
 
     private static void onM1OnTerrain(int action) {
         MousePicker picker = MousePicker.getInstance();
-        Vector3f terrainPoint = picker.getCurrentTerrainPoint();
-        if (terrainPoint == null)
+
+        GameObject gameObject = picker.getGameObject();
+        if (gameObject == null)
             return;
 
-        Vector2f currTerrainPoint = new Vector2f(terrainPoint.getX(), terrainPoint.getZ());
-
-        TerrainPosition currentTerrainPoint = currTerrainPoint.toGridCoordinates();
+        Vector3f point = picker.getIntersectionPoint();
 
         switch (action) {
             case GLFW_PRESS:
-                onM1Pressed(currentTerrainPoint);
+                onM1Pressed(point, gameObject);
                 break;
             case GLFW_RELEASE:
                 onM1Released();
@@ -491,76 +490,65 @@ public class MouseUtils {
         }
     }
 
-    public static void onM1Pressed(TerrainPosition currentTerrainPoint) {
+    public static void onM1Pressed(Vector3f point, GameObject gameObject) {
         startTerrainPos = null;
         lastTerrainPos = null;
-        if (terrain.isPositionOccupied(currentTerrainPoint)) {
-            Set<Item> items = terrain.getItems().stream().filter(SelectableItem.class::isInstance)
-                    .collect(Collectors.toSet());
-            for (Item item : items) {
-                BoundingBox boundingBox = item.getBoundingBox();
-                if (boundingBox == null)
-                    continue;
 
-                RawModel boundingBoxRawModel = boundingBox.getRawModel();
-                if (boundingBoxRawModel == null)
-                    continue;
+        TerrainComponent terrainComponent = gameObject.getComponent(TerrainComponent.class);
 
-                TerrainPosition position = item.getPosition();
+        boolean onTerrain = terrainComponent != null;
 
-                boolean found = true;
-                for (Plane3D plane3D : boundingBox.getPlanes()) {
-                    Plane3D plane = new Plane3D(plane3D);
-                    plane.rotate(-item.getFacingDirection().getDegree());
+        if (onTerrain) {
+            Vector2f currTerrainPoint = new Vector2f(point.getX(), point.getZ());
 
-                    plane.add(new Vector3f(position.getX(), 0, position.getZ())); //TODO temp 0
+            TerrainPosition currentTerrainPoint = currTerrainPoint.toTerrainPosition();
+            GameObject gameObjectAtPosition = scene.getGameObjectAtPosition(currentTerrainPoint);
 
-                    found = MousePicker.getInstance().intersectionWithPlane(plane, true) != null;
-
-                    if (found)
-                        break;
-                }
-
-                if (!found)
-                    continue;
-
-                if (!item.isSelected())
-                    item.select();
-                else
-                    item.unselect();
-
-                System.out.println("Intersection avec " + item.getId());
+            boolean placeable = gameObjectAtPosition == null;
+            if (!placeable) {
+                RepleacableComponent repleacableComponent = gameObjectAtPosition
+                        .getComponent(RepleacableComponent.class);
+                if (repleacableComponent != null)
+                    placeable = repleacableComponent.isRepleacable();
             }
-            return;
-        }
+            if (placeable) {
+                switch (state) {
+                    case DEFAULT:
+                        //TODO
+                        break;
+                    case PRESSED_WITH_ROAD:
+                    case PRESSED_WITH_BUILDING:
+                    case PRESSED_WITH_DESTRUCTION:
+                        // null
+                        break;
+                    case ROAD:
+                        state = State.PRESSED_WITH_ROAD;
 
-        switch (state) {
-            case DEFAULT:
-                //TODO
-                break;
-            case PRESSED_WITH_ROAD:
-            case PRESSED_WITH_BUILDING:
-            case PRESSED_WITH_DESTRUCTION:
-                // null
-                break;
-            case ROAD:
-                state = State.PRESSED_WITH_ROAD;
+//                        terrain.resetPreviewItems();
+//                        scene.resetPreviewedPositions();
+                        lastTerrainPos = startTerrainPos = currentTerrainPoint;
+//                        terrain.addPreviewItem(currentTerrainPoint);
+//                        scene.addToPreview(currentTerrainPoint);
+                        break;
+                    case BUILDING:
+                        state = State.PRESSED_WITH_BUILDING;
 
-                terrain.resetPreviewItems();
-                lastTerrainPos = startTerrainPos = currentTerrainPoint;
-                terrain.addPreviewItem(currentTerrainPoint);
-                break;
-            case BUILDING:
-                state = State.PRESSED_WITH_BUILDING;
-
-                terrain.resetPreviewItems();
-                terrain.addPreviewItem(currentTerrainPoint);
-                break;
-            case DESTRUCTION:
-                //TODO
-                break;
-            default:
-                throw new IllegalStateException("Impossible state : " + state.name());
+//                        terrain.resetPreviewItems();
+//                        scene.resetPreviewedPositions();
+//                        terrain.addPreviewItem(currentTerrainPoint);
+//                        scene.addToPreview(currentTerrainPoint);
+                        break;
+                    case DESTRUCTION:
+                        //TODO
+                        break;
+                    default:
+                        throw new IllegalStateException("Impossible state : " + state.name());
+                }
+            }
+        } else {
+            SelectableComponent selectableComponent = gameObject.getComponent(SelectableComponent.class);
+            if (selectableComponent != null)
+                selectableComponent.getPressCallback().onPress();
         }
     }
 
@@ -575,17 +563,20 @@ public class MouseUtils {
             case PRESSED_WITH_ROAD:
                 state = State.ROAD;
 
-                terrain.placePreviewItems();
-                terrain.resetPreviewItems();
-
+//                terrain.placePreviewItems();
+                scene.placePreviewedObjects();
+//                terrain.resetPreviewItems();
+                scene.resetPreviewedPositions();
                 startTerrainPos = null;
                 lastTerrainPos = null;
                 break;
             case PRESSED_WITH_BUILDING:
                 state = State.BUILDING;
 
-                terrain.placePreviewItems();
-                terrain.resetPreviewItems();
+//                terrain.placePreviewItems();
+                scene.placePreviewedObjects();
+//                terrain.resetPreviewItems();
+                scene.resetPreviewedPositions();
 
                 startTerrainPos = null;
                 lastTerrainPos = null;
@@ -629,8 +620,9 @@ public class MouseUtils {
             case PRESSED_WITH_DESTRUCTION:
                 state = State.DEFAULT;
 
-                GuiSelectedItem.getSelectedItemGui().removeSelectedItem();
-                Terrain.getInstance().resetPreviewItems();
+                GuiSelectedItem.getInstance().removeSelectedItem();
+//                Terrain.getInstance().resetPreviewItems();
+                scene.resetPreviewedPositions();
                 break;
             default:
                 throw new IllegalStateException("Impossible state : " + state.name());
@@ -638,8 +630,9 @@ public class MouseUtils {
     }
 
     public static void onTerrainHover(TerrainPosition terrainPoint) {
-        GuiSelectedItem selectedItemGui = GuiSelectedItem.getSelectedItemGui();
-        AbstractItem selectedItem = terrain.getPreviewedItem();
+        GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
+//        AbstractItem selectedItem = terrain.getPreviewedItem();
+        Class<? extends GameObject> selectedGameObjectClass = Player.getSelectedGameObject();
 
         switch (state) {
             case DEFAULT:
@@ -649,31 +642,35 @@ public class MouseUtils {
             case ROAD: // Previews only this road
             case BUILDING: // Previews only this building
             case PRESSED_WITH_BUILDING:
-                if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
+                scene.resetPreviewedPositions();
+                if (scene.canGameObjectBePlaced(selectedGameObjectClass, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         selectedItemGui.setDisplayed(false);
 
-                    terrain.resetPreviewItems();
-                    terrain.addPreviewItem(terrainPoint);
+                    scene.addToPreview(terrainPoint);
                 } else {
-                    terrain.resetPreviewItems();
                     selectedItemGui.updatePosition();
                     selectedItemGui.setDisplayed(true);
                 }
 
                 break;
             case PRESSED_WITH_ROAD:
-                if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
+//                if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
+                if (scene.canGameObjectBePlaced(selectedGameObjectClass, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         selectedItemGui.setDisplayed(false);
 
-                    terrain.resetPreviewItems();
+//                    terrain.resetPreviewItems();
+                    scene.resetPreviewedPositions();
                     lastTerrainPos = terrainPoint;
-                    RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
-                    Route unobstructedRouteV1 = routeFinder.findUnobstructedRouteV1(startTerrainPos, lastTerrainPos);
-                    unobstructedRouteV1.getAllRoads().stream().map(Road::getPosition).forEach(terrain::addPreviewItem);
+                    RouteFinder routeFinder = new RouteFinder(scene.getRoadGraph());
+                    Route unobstructedRouteV1 = routeFinder
+                            .findUnobstructedRouteV1(startTerrainPos, lastTerrainPos);
+//                    unobstructedRouteV1.getAllRoads().stream().map(Road::getPosition).forEach(terrain::addPreviewItem);
+                    unobstructedRouteV1.getAllRoads().stream().map(Road::getPosition).forEach(scene::addToPreview);
                 } else {
-                    terrain.resetPreviewItems();
+//                    terrain.resetPreviewItems();
+                    scene.resetPreviewedPositions();
                     selectedItemGui.updatePosition();
                     selectedItemGui.setDisplayed(true);
                 }

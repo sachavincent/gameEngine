@@ -34,8 +34,8 @@ public class LanguageAssets {
 
     public String getWord(String key) {
         if (currentLanguage == null || !currentLanguage.containsKey(key)) {
-            System.out.println("Warning: Couldn't find word: \"" + key + "\"");
-
+//            System.out.println("Warning: Couldn't find word: \"" + key + "\"");
+//TODO :)
             return key;
         }
 

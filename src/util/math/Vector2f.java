@@ -206,7 +206,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         return Float.compare(y, o.y);
     }
 
-    public TerrainPosition toGridCoordinates() {
+    public TerrainPosition toTerrainPosition() {
         return new TerrainPosition((int) Math.rint(x), (int) Math.rint(y));
     }
 }

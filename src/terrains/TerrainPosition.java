@@ -1,6 +1,7 @@
 package terrains;
 
 import java.util.Objects;
+import util.math.Vector3f;
 
 public class TerrainPosition implements Comparable<TerrainPosition> {
 
@@ -85,5 +86,9 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
     @Override
     public String toString() {
         return "TerrainPosition{" + "x=" + x + ", z=" + z + '}';
+    }
+
+    public Vector3f toVector3f() {
+        return new Vector3f(x, 0.05f, z);
     }
 }

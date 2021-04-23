@@ -12,14 +12,12 @@ import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiMainMenu.GuiMainMenu;
 import guis.presets.GuiTextInput;
-import items.RotatableItem;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.lwjgl.system.Callback;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
-import renderEngine.MasterRenderer;
-import terrains.Terrain;
+import renderEngine.HouseRenderer;
 
 public class KeyboardUtils {
 
@@ -38,12 +36,7 @@ public class KeyboardUtils {
                 return;
 
             if (action == GLFW_PRESS) {
-                Terrain terrain = Terrain.getInstance();
                 switch (key) {
-                    case GLFW_KEY_R:
-                        terrain.getSelectedItems().stream().filter(RotatableItem.class::isInstance)
-                                .forEach(item -> item.setRotation(item.getFacingDirection().getDegree() + 90));
-                        break;
                     case GLFW_KEY_ESCAPE:
                         if (Game.getInstance().getGameState() == GameState.NOT_STARTED)
                             GuiMainMenu.getInstance().back();
@@ -82,7 +75,7 @@ public class KeyboardUtils {
                         break;
                     case GLFW_KEY_K:
                         if (Game.getInstance().getGameState() == GameState.STARTED)
-                            MasterRenderer.getInstance().getItemRenderer().switchDisplayBoundingBoxes();
+                            HouseRenderer.getInstance().switchDisplayBoundingBoxes();
                         break;
                     case GLFW_KEY_W:
                         if (Game.getInstance().getGameState() == GameState.STARTED)

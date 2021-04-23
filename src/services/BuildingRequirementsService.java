@@ -1,53 +1,57 @@
 package services;
 
-import items.ConnectableItem;
-import items.abstractItem.AbstractItem;
-import items.buildings.BuildingItem;
-import items.buildings.houses.RequireBuilding;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
-import terrains.Terrain;
+import scene.gameObjects.GameObject;
+import scene.components.RequireBuildingComponent;
+import scene.components.RoadConnectionsComponent;
+import scene.Scene;
 
 public class BuildingRequirementsService extends Service<List<Route>> {
 
-    private final Set<BuildingItem> buildings;
+    private final Set<GameObject> gameObjects;
 
     public BuildingRequirementsService(boolean singleton, OnServiceDone<List<Route>> onServiceDone) {
         super(singleton, onServiceDone);
 
-        this.buildings = Terrain.getInstance().getBuildings().stream()
-                .filter(RequireBuilding.class::isInstance)
-                .filter(buildingItem -> !((RequireBuilding) buildingItem).doesMeetAllRequirements())
-                .collect(Collectors.toSet());
+//        this.buildings = Terrain.getInstance().getBuildings().stream()
+//                .filter(RequireBuilding.class::isInstance)
+//                .filter(buildingItem -> !((RequireBuilding) buildingItem).doesMeetAllRequirements())
+//                .collect(Collectors.toSet());
+        this.gameObjects = Scene.getInstance().getGameObjects().stream().filter(gameObject -> gameObject.hasComponent(
+                RequireBuildingComponent.class)).collect(Collectors.toSet());
     }
 
     @Override
     protected synchronized List<Route> execute() {
         List<Route> paths = new ArrayList<>();
         try {
-            for (BuildingItem item : buildings) {
+            for (GameObject gameObject : gameObjects) {
                 if (!running)
                     return paths;
 
-                final RequireBuilding requiringBuilding = (RequireBuilding) item;
-
                 Set<Route> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
+                boolean hasRoadConnections = gameObject.hasComponent(RoadConnectionsComponent.class);
+                if (!hasRoadConnections)
+                    continue;
 
-                if (((ConnectableItem) requiringBuilding).isConnected()) {
-                    Map<AbstractItem, Integer> requirements = requiringBuilding.getRequirements();
-                    for (Entry<AbstractItem, Integer> entry : requirements.entrySet()) {
-                        AbstractItem neededBuilding = entry.getKey();
+                RoadConnectionsComponent component = gameObject.getComponent(RoadConnectionsComponent.class);
+                RequireBuildingComponent requireComponent = gameObject.getComponent(RequireBuildingComponent.class);
+                if (component.isConnected()) {
+                    Map<Class<? extends GameObject>, Integer> requirements = requireComponent.getRequirements();
+                    for (Entry<Class<? extends GameObject>, Integer> entry : requirements.entrySet()) {
+                        Class<? extends GameObject> objectClass = entry.getKey();
                         if (!running)
                             return paths;
 
-                        Route route = RouteFinder.findRoute(item, neededBuilding, entry.getValue());
+                        Route route = RouteFinder.findRoute(gameObject, objectClass, entry.getValue());
                         if (!route.isEmpty()) {
                             foundRoutes.add(route);
 
-                            requiringBuilding.meetRequirement(neededBuilding, route);
+                            requireComponent.meetRequirement(objectClass, route);
 //                                try {
 //                                    sleep(200);
 //                                } catch (InterruptedException e) {

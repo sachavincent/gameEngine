@@ -284,6 +284,8 @@ public class Gui implements GuiInterface {
             throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.x = x;
+
+        updateTexturePosition();
     }
 
     public void setY(float y) {
@@ -291,6 +293,8 @@ public class Gui implements GuiInterface {
             throw new IllegalArgumentException("New coordinates don't belong in window");
 
         this.y = y;
+
+        updateTexturePosition();
     }
 
     public void setWidth(float width) {
@@ -298,6 +302,8 @@ public class Gui implements GuiInterface {
             throw new IllegalArgumentException("New width don't fit in window");
 
         this.width = width;
+
+        updateTexturePosition();
     }
 
     public void setHeight(float height) {
@@ -305,6 +311,8 @@ public class Gui implements GuiInterface {
             throw new IllegalArgumentException("New height don't fit in window");
 
         this.height = height;
+
+        updateTexturePosition();
     }
 
     public List<GuiComponent> getAllComponents() {

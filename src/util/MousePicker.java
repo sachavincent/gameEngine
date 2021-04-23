@@ -3,9 +3,15 @@ package util;
 
 import entities.Camera;
 import inputs.MouseUtils;
+import java.util.Objects;
+import models.BoundingBox;
 import renderEngine.DisplayManager;
 import renderEngine.MasterRenderer;
-import terrains.Terrain;
+import scene.*;
+import scene.components.BoundingBoxComponent;
+import scene.components.PositionComponent;
+import scene.components.TerrainComponent;
+import scene.gameObjects.GameObject;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Plane3D;
@@ -15,37 +21,34 @@ import util.math.Vector4f;
 
 public class MousePicker {
 
-    private static final int   RECURSION_COUNT = 200;
-    private static final float RAY_RANGE       = 600;
-
     private Vector3f currentRay = new Vector3f();
 
-    private final Matrix4f projectionMatrix;
     private       Matrix4f viewMatrix;
     private final Camera   camera;
 
-    private final Terrain  terrain;
-    private       Vector3f currentTerrainPoint;
+    //    private final Terrain  terrain;
+    private Vector3f intersectionPoint;
 
     private static MousePicker instance;
 
+    private GameObject gameObject;
+
     private MousePicker() {
         this.camera = Camera.getInstance();
-        this.projectionMatrix = MasterRenderer.getInstance().getProjectionMatrix();
         this.viewMatrix = Maths.createViewMatrix();
-        this.terrain = Terrain.getInstance();
+//        this.terrain = Terrain.getInstance();
     }
 
     public static MousePicker getInstance() {
         return instance == null ? (instance = new MousePicker()) : instance;
     }
 
-    public Vector3f getCurrentTerrainPoint() {
-        return currentTerrainPoint;
+    public Vector3f getIntersectionPoint() {
+        return this.intersectionPoint;
     }
 
     public boolean isPointOnTerrain() {
-        return currentTerrainPoint != null;
+        return intersectionPoint != null && gameObject.getComponent(TerrainComponent.class) != null;
     }
 
     public Vector3f getCurrentRay() {
@@ -58,11 +61,29 @@ public class MousePicker {
         currentRay = calculateMouseRay();
         currentRay = (Vector3f) currentRay.normalise();
 
-        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, Terrain.SIZE),
-                new Vector3f(Terrain.SIZE, 0, Terrain.SIZE), new Vector3f(Terrain.SIZE, 0, 0));
-        currentTerrainPoint = intersectionWithPlane(terrainPlane, false);
-        if (currentTerrainPoint != null)
-            currentTerrainPoint.y = terrain.getHeightOfTerrain(currentTerrainPoint.x, currentTerrainPoint.z);
+        this.gameObject = Scene.getInstance().getGameObjects().stream().filter(gameObject -> {
+            BoundingBoxComponent boundingBoxComponent = gameObject.getComponent(BoundingBoxComponent.class);
+            if (boundingBoxComponent == null)
+                return false;
+            PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
+            if (positionComponent == null)
+                return false;
+            BoundingBox boundingBox = boundingBoxComponent.getBoundingBox();
+            this.intersectionPoint = boundingBox.getPlanes().stream()
+                    .map(plane3D -> {
+                        Vector3f position = positionComponent.getPosition();
+                        plane3D = plane3D.add(position);
+                        return intersectionWithPlane(plane3D, false);
+                    }).filter(Objects::nonNull).findFirst().orElse(null);
+
+            return this.intersectionPoint != null;
+        }).findFirst().orElse(null);
+
+//        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, Terrain.SIZE),
+//                new Vector3f(Terrain.SIZE, 0, Terrain.SIZE), new Vector3f(Terrain.SIZE, 0, 0));
+//        System.out.println("TerrainPoint: " + intersectionWithPlane(terrainPlane, false));
+//        if (currentTerrainPoint != null)
+//            currentTerrainPoint.y = terrain.getHeightOfTerrain(currentTerrainPoint.x, currentTerrainPoint.z);
         //TODO: Temp parce que le terrain est plat
 
 //        if (intersectionInRange(0, RAY_RANGE, currentRay)) {
@@ -72,7 +93,7 @@ public class MousePicker {
 //        } else
 //            currentTerrainPoint = null;
 
-        return currentTerrainPoint;
+        return this.intersectionPoint;
     }
 
     public Vector3f intersectionWithPlane(Plane3D plane, boolean print) {
@@ -123,7 +144,7 @@ public class MousePicker {
     }
 
     private Vector4f toEyeCoords(Vector4f clipCoords) {
-        Matrix4f invertedProjection = Matrix4f.invert(projectionMatrix, null);
+        Matrix4f invertedProjection = Matrix4f.invert(MasterRenderer.getInstance().getProjectionMatrix(), null);
         Vector4f eyeCoords = Matrix4f.transform(invertedProjection, clipCoords, null);
 
         return new Vector4f(eyeCoords.x, eyeCoords.y, -1f, 0f);
@@ -136,39 +157,7 @@ public class MousePicker {
         return new Vector2f(x, y);
     }
 
-//    private Vector3f getPointOnRay(Vector3f ray, float distance) {
-//        Vector3f camPos = camera.getPosition();
-//        Vector3f start = new Vector3f(camPos.x, camPos.y, camPos.z);
-//        Vector3f scaledRay = new Vector3f(ray.x * distance, ray.y * distance, ray.z * distance);
-//
-//        return Vector3f.add(start, scaledRay, null);
-//    }
-
-//    private Vector3f binarySearch(int count, float start, float finish, Vector3f ray) {
-//        float half = start + ((finish - start) / 2f);
-//        if (count >= RECURSION_COUNT)
-//            return getPointOnRay(ray, half);
-//
-//        if (intersectionInRange(start, half, ray)) {
-//            return binarySearch(count + 1, start, half, ray);
-//        } else {
-//            return binarySearch(count + 1, half, finish, ray);
-//        }
-//    }
-
-//    private boolean intersectionInRange(float start, float finish, Vector3f ray) {
-//        Vector3f startPoint = getPointOnRay(ray, start);
-//        Vector3f endPoint = getPointOnRay(ray, finish);
-//
-//        return !isUnderGround(startPoint) && isUnderGround(endPoint);
-//    }
-
-//    private boolean isUnderGround(Vector3f testPoint) {
-//        float height = 0;
-//        if (terrain != null)
-//            height = terrain.getHeightOfTerrain(testPoint.getX(), testPoint.getZ());
-//
-//        return testPoint.y < height;
-//    }
-
+    public GameObject getGameObject() {
+        return this.gameObject;
+    }
 }

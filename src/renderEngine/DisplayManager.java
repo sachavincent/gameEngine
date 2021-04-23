@@ -59,17 +59,17 @@ public class DisplayManager {
         callback = glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err));
 
         glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 //        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);//=less fps
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
-        //glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
+//        glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
 
         glfwWindowHint(GLFW_SAMPLES, 8);
-
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
@@ -146,15 +146,14 @@ public class DisplayManager {
         }
 
         GL11.glEnable(GL13.GL_MULTISAMPLE);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
 
         float[] lineWidthRange = new float[2];
         GL30.glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);
         MIN_LINE_WIDTH = lineWidthRange[0];
         MAX_LINE_WIDTH = lineWidthRange[1];
 
-//        System.out.println("min: " + MIN_LINE_WIDTH);
-//        System.out.println("max: " + MAX_LINE_WIDTH);
+        System.out.println("min: " + MIN_LINE_WIDTH);
+        System.out.println("max: " + MAX_LINE_WIDTH);
     }
 
     public static void setFPS(int fps) {

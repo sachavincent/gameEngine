@@ -9,8 +9,8 @@ public class Plane3D {
     private Vector3f pointC;
     private Vector3f pointD;
 
-    public Plane3D( Vector3f pointA,  Vector3f pointB,  Vector3f pointC,
-             Vector3f pointD) {
+    public Plane3D(Vector3f pointA, Vector3f pointB, Vector3f pointC,
+            Vector3f pointD) {
         this.pointA = pointA;
         this.pointB = pointB;
         this.pointC = pointC;
@@ -239,11 +239,14 @@ public class Plane3D {
         return anglesum > 360 - 0.001 && anglesum < 360 + 0.001;
     }
 
-    public void add(Vector3f vector) {
-        pointA = pointA.add(vector);
-        pointB = pointB.add(vector);
-        pointC = pointC.add(vector);
-        pointD = pointD.add(vector);
+    public Plane3D add(Vector3f vector) {
+        Plane3D newPlane = new Plane3D(this);
+        newPlane.pointA = newPlane.pointA.add(vector);
+        newPlane.pointB = newPlane.pointB.add(vector);
+        newPlane.pointC = newPlane.pointC.add(vector);
+        newPlane.pointD = newPlane.pointD.add(vector);
+
+        return newPlane;
     }
 
     public void rotate(int degree) {

@@ -1,6 +1,5 @@
 package renderEngine;
 
-import items.Item;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -13,6 +12,7 @@ import java.util.Map;
 import models.BoundingBox;
 import models.RawModel;
 import models.TexturedModel;
+import scene.gameObjects.OBJGameObject;
 import textures.ModelTexture;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -63,10 +63,10 @@ public class OBJLoader {
         return Loader.getInstance().loadInstancesToVAO(vertices, textureCoords, normals, indices, min, max);
     }
 
-    public static Item loadObjForItem(Item item, boolean doesUseDirectionalColor) {
+    public static OBJGameObject loadOBJGameObject(String name, boolean doesUseDirectionalColor) {
         FileReader fr;
         try {
-            fr = new FileReader("res/" + item.getName().toLowerCase() + ".obj");
+            fr = new FileReader("res/" + name.toLowerCase() + ".obj");
         } catch (FileNotFoundException e) {
             System.err.println("Couldn't load obj file!");
             e.printStackTrace();
@@ -79,13 +79,14 @@ public class OBJLoader {
 
         List<Vector3f> vertices = new ArrayList<>();
 
+        OBJGameObject objGameObject = new OBJGameObject();
         try {
-            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);
+            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);//TODO Temp false
 
-            item.setTexture(new TexturedModel(rawModel, new ModelTexture(item.getName() + ".png", false)));
+            objGameObject.setTexture(new TexturedModel(rawModel, new ModelTexture(name.toLowerCase() + ".png", false)));
 //            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));
-            item.setPreviewTexture(item.getTexture());
-            item.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
+            objGameObject.setPreviewTexture(objGameObject.getTexture());
+            objGameObject.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
 //
             line = handleVertices(reader, vertices);
             final float[] textureArray = new float[vertices.size() * 2];
@@ -94,9 +95,9 @@ public class OBJLoader {
             final int[] indicesArray = handleIndicesVertex(reader, line, "SelectionBox");
 
 
-            BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, item.getName());
+            BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, name.toLowerCase());
 
-            item.setBoundingBox(boundingBox);
+            objGameObject.setBoundingBox(boundingBox);
 
             Map<float[], float[]> verticesMapResult = floatArrayToFloatList(vertices, true);
 
@@ -113,7 +114,7 @@ public class OBJLoader {
             final int[] indicesArray2 = handleIndicesVertex(reader, line, null);
 
             verticesMapResult = floatArrayToFloatList(vertices, false);
-            verticesMapResult.forEach((key, minMaxArray) -> item.setSelectionBox(new TexturedModel(
+            verticesMapResult.forEach((key, minMaxArray) -> objGameObject.setSelectionBox(new TexturedModel(
                     Loader.getInstance().loadToVAO(key, textureArray2, normalsArray2, indicesArray2))));
 
         } catch (IOException e) {
@@ -127,7 +128,7 @@ public class OBJLoader {
                 e.printStackTrace();
             }
         }
-        return item;
+        return objGameObject;
     }
 
     private static Map<float[], float[]> floatArrayToFloatList(List<Vector3f> vertices, boolean minMax) {
@@ -210,25 +211,35 @@ public class OBJLoader {
         String line;
 
         while ((line = reader.readLine()) != null) {
-            String[] currentLine = line.split(" ");
+            if (line.startsWith("# ") || line.startsWith("o ") || line.startsWith("s "))
+                continue;
 
-            if (line.startsWith("v ")) {
-                Vector3f vertex = new Vector3f(Float.parseFloat(currentLine[1]),
-                        Float.parseFloat(currentLine[2]), Float.parseFloat(currentLine[3]));
-                vertices.add(vertex);
-            } else if (line.startsWith("vt ")) {
-                Vector2f texture = new Vector2f(Float.parseFloat(currentLine[1]),
-                        Float.parseFloat(currentLine[2]));
-                textures.add(texture);
-            } else if (line.startsWith("vn ")) {
-                Vector3f normal = new Vector3f(Float.parseFloat(currentLine[1]),
-                        Float.parseFloat(currentLine[2]), Float.parseFloat(currentLine[3]));
-                normals.add(normal);
-            } else if (line.startsWith("f ")) {
+            if (line.startsWith("f ")) {
                 textureArray = new float[vertices.size() * 2];
                 normalsArray = new float[vertices.size() * 3];
 
                 break;
+            }
+
+            String[] currentLine = line.split(" ");
+            try {
+                float arg1 = Float.parseFloat(currentLine[1].equalsIgnoreCase("nan") ? "0" : currentLine[1]);
+                float arg2 = Float.parseFloat(currentLine[1].equalsIgnoreCase("nan") ? "0" : currentLine[2]);
+                if (line.startsWith("v ")) {
+                    float arg3 = Float.parseFloat(currentLine[3]);
+                    Vector3f vertex = new Vector3f(arg1, arg2, arg3);
+                    vertices.add(vertex);
+                } else if (line.startsWith("vt ")) {
+                    Vector2f texture = new Vector2f(arg1, arg2);
+                    textures.add(texture);
+                } else if (line.startsWith("vn ")) {
+                    float arg3 = Float.parseFloat(currentLine[3]);
+                    Vector3f normal = new Vector3f(arg1, arg2, arg3);
+                    normals.add(normal);
+                }
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                System.err.println("Error while loading OBJ File : (line=" + line + ")");
+                e.printStackTrace();
             }
         }
 

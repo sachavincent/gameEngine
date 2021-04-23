@@ -1,140 +1,168 @@
 package renderEngine;
 
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
 import java.util.ArrayList;
 import java.util.List;
 import models.RawModel;
+import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import shaders.TerrainShader;
-import terrains.Terrain;
+import scene.gameObjects.GameObject;
+import scene.components.PositionComponent;
+import scene.components.TextureComponent;
+import scene.components.TexturePackComponent;
+import renderEngine.shaders.TerrainShader;
 import textures.TerrainTexturePack;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 
-public class TerrainRenderer {
+public class TerrainRenderer extends Renderer {
 
-    private final TerrainShader shader;
-
-    private final Terrain terrain = Terrain.getInstance();
+    private static TerrainRenderer instance;
 
     private List<RawModel> paths = new ArrayList<>();
 
-    public TerrainRenderer(TerrainShader shader, Matrix4f projectionMatrix) {
-        this.shader = shader;
-        shader.start();
+    public static TerrainRenderer getInstance() {
+        return instance == null ? (instance = new TerrainRenderer()) : instance;
+    }
 
-        shader.loadProjectionMatrix(projectionMatrix);
-        shader.connectTextureUnits();
+    private TerrainRenderer() {
+        super(new TerrainShader());
 
-        shader.stop();
+        this.shader.start();
+
+        ((TerrainShader) this.shader).loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
+        ((TerrainShader) this.shader).connectTextureUnits();
+
+        this.shader.stop();
     }
 
     public void setPaths(List<RawModel> paths) {
         this.paths = paths;
     }
 
+    @Override
     public void render() {
-        GL11.glLineWidth(2);
+        GameObject terrain = this.gameObjects.stream().findFirst().orElse(null);
+        if (terrain != null) {
+            RawModel rawModel = prepareTerrain(terrain);
+            if (rawModel != null) {
+                Vector3f vector3f = terrain.getComponent(PositionComponent.class).getPosition();
+                loadModelMatrix(vector3f);
+                GL11.glLineWidth(2);
+                GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+                unbindTexturedModel();
+            }
 
-        prepareTerrain();
-        loadModelMatrix();
-        GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-        unbindTexturedModel();
+            GL11.glLineWidth(5);
+            ((TerrainShader) this.shader).loadUniformColor(true);
+            for (RawModel path : this.paths) {
+                GL30.glBindVertexArray(path.getVaoID());
+                GL20.glEnableVertexAttribArray(0);
+                GL20.glEnableVertexAttribArray(1);
+                GL20.glEnableVertexAttribArray(2);
+                bindTextures(terrain);
 
-//        shader.loadUniformColor(true);
-//        prepareColorlessTerrain();
-//        loadModelMatrix();
-//        terrain.setY(terrain.getY() + 0.01f);
-//        GL11.glDrawElements(GL11.GL_LINES, terrain.getModelGrid().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-//        unbindTexturedModel();
-//        terrain.setY(terrain.getY() - 0.01f);
+                GL11.glDrawElements(GL11.GL_LINES, path.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+                unbindTexturedModel();
+            }
 
-        GL11.glLineWidth(5);
-        shader.loadUniformColor(true);
-        for (RawModel path : paths) {
-            GL30.glBindVertexArray(path.getVaoID());
-            GL20.glEnableVertexAttribArray(0);
-            GL20.glEnableVertexAttribArray(1);
-            GL20.glEnableVertexAttribArray(2);
-            bindTextures(terrain.getBlueTexturePack());
-
-            GL11.glDrawElements(GL11.GL_LINES, path.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-            unbindTexturedModel();
+            ((TerrainShader) this.shader).loadUniformColor(false);
         }
 
-        shader.loadUniformColor(false);
+        this.gameObjects.clear();
+        this.shader.stop();
     }
 
-    private void prepareTerrain() {
-        RawModel rawModel = terrain.getModel();
+    public void prepareRender(GameObject gameObject) {
+        if (!this.shader.isStarted()) {
+            this.shader.start();
+            ((TerrainShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
+            ((TerrainShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
+            ((TerrainShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects());
+            ((TerrainShader) this.shader).loadViewMatrix();
+        }
+
+        this.gameObjects.add(gameObject);
+    }
+
+    private RawModel prepareTerrain(GameObject terrain) {
+        TextureComponent textureComponent = terrain.getComponent(TextureComponent.class);
+        if (textureComponent == null)
+            return null;
+
+        TexturedModel texture = textureComponent.getTexture();
+        if (texture == null)
+            return null;
+
+        RawModel rawModel = texture.getRawModel();
         GL30.glBindVertexArray(rawModel.getVaoID());
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
         GL20.glEnableVertexAttribArray(2);
+        TexturePackComponent texturePackComponent = terrain.getComponent(TexturePackComponent.class);
+        if (texturePackComponent == null)
+            return null;
 
-        bindTextures(terrain.getTexturePack());
+        bindTextures(terrain);
 
-        shader.loadShineVariables(1, 0);
+        ((TerrainShader) this.shader).loadShineVariables(1, 0);
+        return rawModel;
     }
 
-    private void prepareColorlessTerrain() {
-        RawModel rawModel = terrain.getModelGrid();
-
-        GL30.glBindVertexArray(rawModel.getVaoID());
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-        GL20.glEnableVertexAttribArray(2);
-
-        bindTextures(terrain.getRedTexturePack());
-
-//        shader.loadShineVariables(1, 0);
-    }
-
-    private void bindTextures(TerrainTexturePack texturePack) {
+    private void bindTextures(GameObject terrain) {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+        TexturePackComponent texturePackComponent = terrain.getComponent(TexturePackComponent.class);
+        if (texturePackComponent == null)
+            return;
+        TerrainTexturePack texturePack = texturePackComponent.getTerrainTexturePack();
 
         if (texturePack.getBackgroundTexture() != null) {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE1);
         }
 
-        if (texturePack.getrTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getrTexture().getTextureID());
+        if (texturePack.getRedTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getRedTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE2);
         }
 
-        if (texturePack.getgTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getgTexture().getTextureID());
+        if (texturePack.getGreenTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getGreenTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE3);
         }
 
-        if (texturePack.getbTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getbTexture().getTextureID());
+        if (texturePack.getBlueTexture() != null) {
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBlueTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE4);
         }
 
-        if (terrain.getBlendMap() != null && texturePack.equals(terrain.getTexturePack()))
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.getBlendMap().getTextureID());
+//        if (terrain.getBlendMap() != null && texturePack.equals(terrain.getTexturePack()))
+//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.getBlendMap().getTextureID());
     }
 
     private void unbindTexturedModel() {
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
         GL20.glDisableVertexAttribArray(2);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
     }
 
-    private void loadModelMatrix() {
+    private void loadModelMatrix(Vector3f position) {
         Matrix4f transformationMatrix = Maths.createTransformationMatrix(
-                new Vector3f(terrain.getX(), terrain.getY(), terrain.getZ()), 0, 0, 0, 1);
+                new Vector3f(position.getX(), 0, position.getZ()), 0, 0, 0, 1);
 
         if (transformationMatrix == null)
             return;
 
-        shader.loadTransformationMatrix(transformationMatrix);
+        ((TerrainShader) this.shader).loadTransformationMatrix(transformationMatrix);
     }
-
 }

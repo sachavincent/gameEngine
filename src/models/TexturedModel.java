@@ -218,6 +218,10 @@ public class TexturedModel {
         this.rawModel = rawModel;
     }
 
+    public void setModelTexture(ModelTexture modelTexture) {
+        this.modelTexture = modelTexture;
+    }
+
     @Deprecated
     public enum TypeModel {
         BOUNDING_BOX,

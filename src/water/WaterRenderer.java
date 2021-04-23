@@ -1,20 +1,20 @@
 package water;
 
 import java.util.List;
-import entities.Camera;
-import entities.Light;
 import models.RawModel;
-import renderEngine.DisplayManager;
-import renderEngine.Loader;
-import shaders.WaterShader;
-import textures.ModelTexture;
-import util.math.Maths;
-import util.math.Matrix4f;
-import util.math.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import renderEngine.DisplayManager;
+import renderEngine.LightRenderer;
+import renderEngine.Loader;
+import scene.components.SunComponent;
+import renderEngine.shaders.WaterShader;
+import textures.ModelTexture;
+import util.math.Maths;
+import util.math.Matrix4f;
+import util.math.Vector3f;
 
 public class WaterRenderer {
 
@@ -46,8 +46,8 @@ public class WaterRenderer {
         setUpVAO(loader);
     }
 
-    public void render(List<WaterTile> water, Camera camera, Light sun) {
-        prepareRender(camera, sun);
+    public void render(List<WaterTile> water) {
+        prepareRender();
         for (WaterTile tile : water) {
             Matrix4f modelMatrix = Maths.createTransformationMatrix(
                     new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), 0, 0, 0,
@@ -58,15 +58,17 @@ public class WaterRenderer {
         unbind();
     }
 
-    private void prepareRender(Camera camera, Light sun) {
+    private void prepareRender() {
         shader.start();
-        shader.loadViewMatrix(camera);
+        shader.loadViewMatrix();
 
         moveFactor += WAVE_SPEED * DisplayManager.MAX_FPS;
         moveFactor %= 1;
         shader.loadMoveFactor(moveFactor);
         shader.loadPlaneValues();
-        shader.loadLight(sun);
+        shader.loadLight(
+                LightRenderer.getInstance().getGameObjects().stream().filter(gameObject -> gameObject.hasComponent(
+                        SunComponent.class)).findFirst().orElse(null));
 
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
@@ -93,6 +95,7 @@ public class WaterRenderer {
     private void unbind() {
         GL11.glDisable(GL11.GL_BLEND);
         GL20.glDisableVertexAttribArray(0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
         shader.stop();
     }

@@ -2,7 +2,7 @@ package postProcessing;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import shaders.HorizontalBlurShader;
+import renderEngine.shaders.HorizontalBlurShader;
 
 public class HorizontalBlur {
 

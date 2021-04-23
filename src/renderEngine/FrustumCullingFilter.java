@@ -1,10 +1,8 @@
 package renderEngine;
 
-import items.Item;
-import models.RawModel;
-import terrains.TerrainPosition;
 import util.math.Maths;
 import util.math.Matrix4f;
+import util.math.Vector3f;
 import util.math.Vector4f;
 
 public class FrustumCullingFilter {
@@ -25,20 +23,15 @@ public class FrustumCullingFilter {
             frustumPlanes[i] = projMatrix.frustumPlane(i);
         }
 
-        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
+//        MasterRenderer.getInstance().getItemRenderer().setUpdateNeeded(true);
     }
 
-    public static boolean insideFrustum(Item item) {
-        if(frustumPlanes[0] == null)
+    public static boolean isPosInsideFrustum(Vector3f pos, float boundingRadius) {
+        if (frustumPlanes[0] == null)
             return false;
-
-        TerrainPosition pos = item.getPosition();
-        RawModel rawModel = item.getTexture().getRawModel();
-        float boundingRadius = item.getScale() * rawModel.getMax().sub(rawModel.getMin()).scale(0.5f).length();
-
         for (int i = 0; i < NUM_PLANES; i++) {
             Vector4f plane = frustumPlanes[i];
-            if (plane.x * pos.getX() + plane.y * 0 + plane.z * pos.getZ() + plane.w <= -boundingRadius) {
+            if (plane.x * pos.getX() + plane.y * pos.getY() + plane.z * pos.getZ() + plane.w <= -boundingRadius) {
                 return false;
             }
         }

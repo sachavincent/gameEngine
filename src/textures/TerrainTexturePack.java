@@ -2,29 +2,32 @@ package textures;
 
 public class TerrainTexturePack {
 
-    private TerrainTexture backgroundTexture, rTexture, gTexture, bTexture;
+    private final TerrainTexture backgroundTexture;
+    private final TerrainTexture redTexture;
+    private final TerrainTexture greenTexture;
+    private final TerrainTexture blueTexture;
 
-    public TerrainTexturePack(TerrainTexture backgroundTexture, TerrainTexture rTexture,
-            TerrainTexture gTexture, TerrainTexture bTexture) {
+    public TerrainTexturePack(TerrainTexture backgroundTexture, TerrainTexture redTexture,
+            TerrainTexture greenTexture, TerrainTexture blueTexture) {
         this.backgroundTexture = backgroundTexture;
-        this.rTexture = rTexture;
-        this.gTexture = gTexture;
-        this.bTexture = bTexture;
+        this.redTexture = redTexture;
+        this.greenTexture = greenTexture;
+        this.blueTexture = blueTexture;
     }
 
     public TerrainTexture getBackgroundTexture() {
         return this.backgroundTexture;
     }
 
-    public TerrainTexture getrTexture() {
-        return this.rTexture;
+    public TerrainTexture getRedTexture() {
+        return this.redTexture;
     }
 
-    public TerrainTexture getgTexture() {
-        return this.gTexture;
+    public TerrainTexture getGreenTexture() {
+        return this.greenTexture;
     }
 
-    public TerrainTexture getbTexture() {
-        return this.bTexture;
+    public TerrainTexture getBlueTexture() {
+        return this.blueTexture;
     }
 }

@@ -1,50 +1,33 @@
 package renderEngine;
 
-import entities.Light;
-import java.util.List;
+import scene.gameObjects.GameObject;
 import org.lwjgl.opengl.GL11;
-import shaders.ItemShader;
-import shaders.StaticShader;
-import shaders.TerrainShader;
+import renderEngine.shaders.StaticShader;
 import skybox.SkyboxRenderer;
 import util.math.Matrix4f;
 import util.math.Vector4f;
 
-public class MasterRenderer {
+public class MasterRenderer extends Renderer {
 
     private static final float FOV        = 70;
     public static final  float NEAR_PLANE = 0.1f;
     public static final  float FAR_PLANE  = 1000;
 
-    private static final float RED   = 0.5f;
-    private static final float GREEN = 0.5f;
-    private static final float BLUE  = 0.5f;
+    public static final float RED   = 0.5f;
+    public static final float GREEN = 0.5f;
+    public static final float BLUE  = 0.5f;
 
     private Matrix4f projectionMatrix;
 
-    private final StaticShader  shader        = new StaticShader();
-    private final ItemShader    itemShader    = new ItemShader();
-    private final TerrainShader terrainShader = new TerrainShader();
+    private final StaticShader shader = new StaticShader();
 
-    private final EntityRenderer  entityRenderer;
-    private final ItemRenderer    itemRenderer;
-    private final SkyboxRenderer  skyboxRenderer;
-    private final TerrainRenderer terrainRenderer;
-
-//    private final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
+    private final SkyboxRenderer skyboxRenderer;
 
     private static MasterRenderer instance;
+    private static Vector4f       clipPlane;
 
-    public TerrainRenderer getTerrainRenderer() {
-        return this.terrainRenderer;
-    }
-
-    public EntityRenderer getEntityRenderer() {
-        return this.entityRenderer;
-    }
-
-    public ItemRenderer getItemRenderer() {
-        return this.itemRenderer;
+    public static void setClipPlane(Vector4f clipPlane) {
+        MasterRenderer.clipPlane = clipPlane;
     }
 
     public static MasterRenderer getInstance() {
@@ -55,78 +38,50 @@ public class MasterRenderer {
         enableCulling();
 
         createProjectionMatrix();
-        entityRenderer = new EntityRenderer(shader, projectionMatrix);
-        itemRenderer = new ItemRenderer(itemShader, projectionMatrix);
-        terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
-        skyboxRenderer = new SkyboxRenderer(Loader.getInstance(), projectionMatrix);
+        skyboxRenderer = new SkyboxRenderer(projectionMatrix);
     }
 
-    public void renderScene(List<Light> lights, Vector4f clipPlane) {
-//        entities.forEach(this::processEntity);
-
-        render(lights, clipPlane);
+    public static void renderScene() {
+        MasterRenderer.getInstance().render();
     }
 
-    public void render(List<Light> lights, Vector4f clipPlane) {
+    public void render() {
         prepare();
-        shader.start();
-        shader.loadClipPlane(clipPlane);
-        shader.loadSkyColor(RED, GREEN, BLUE);
-        shader.loadLights(lights);
-        shader.loadViewMatrix();
-//        entityRenderer.render(entities);
-        shader.stop();
-
-        itemShader.start();
-        itemShader.loadClipPlane(clipPlane);
-        itemShader.loadSkyColor(RED, GREEN, BLUE);
-        itemShader.loadLights(lights);
-        itemShader.loadViewMatrix();
-        itemRenderer.render();
-        itemShader.stop();
-
-        terrainShader.start();
-        terrainShader.loadClipPlane(clipPlane);
-        terrainShader.loadSkyColor(RED, GREEN, BLUE);
-        terrainShader.loadLights(lights);
-        terrainShader.loadViewMatrix();
-        terrainRenderer.render();
-        terrainShader.stop();
+//        shader.start();
+//        shader.loadClipPlane(clipPlane);
+//        shader.loadSkyColor(RED, GREEN, BLUE);
+//        shader.loadLights(LightRenderer.getInstance().getGameObjects());
+//        shader.loadViewMatrix();
+//        shader.stop();
 
         skyboxRenderer.render();
-//        entities.clear();
     }
 
-//    private void processEntity(Entity entity) {
-//        TexturedModel entityModel = entity.getModel();
-//        List<Entity> batch = entities.get(entityModel);
-//        if (batch != null)
-//            batch.add(entity);
-//        else {
-//            List<Entity> newBatch = new ArrayList<>();
-//            newBatch.add(entity);
-//            entities.put(entityModel, newBatch);
-//        }
-//    }
+    @Override
+    public void prepareRender(GameObject gameObject) {
+
+    }
+
+    public static Vector4f getClipPlane() {
+        return clipPlane;
+    }
 
     /**
      * Doesn't render normals facing away from the camera
      */
-    static void enableCulling() {
+    public static void enableCulling() {
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
     }
 
-
-    static void disableCulling() {
+    public static void disableCulling() {
         GL11.glDisable(GL11.GL_CULL_FACE);
     }
 
-
     public void cleanUp() {
         shader.cleanUp();
-        terrainShader.cleanUp();
-        itemShader.cleanUp();
+        TerrainRenderer.getInstance().getShader().cleanUp();
+        HouseRenderer.getInstance().getShader().cleanUp();
     }
 
     private void prepare() {

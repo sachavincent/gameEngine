@@ -2,7 +2,7 @@ package postProcessing;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import shaders.MonochromaticShader;
+import renderEngine.shaders.MonochromaticShader;
 
 public class MonochromaticFilter {
 

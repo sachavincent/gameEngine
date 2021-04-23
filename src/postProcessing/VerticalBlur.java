@@ -2,7 +2,7 @@ package postProcessing;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import shaders.VerticalBlurShader;
+import renderEngine.shaders.VerticalBlurShader;
 
 public class VerticalBlur {
 

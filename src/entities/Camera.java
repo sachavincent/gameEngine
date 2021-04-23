@@ -11,7 +11,7 @@ public class Camera {
     private static final int    MAX_ZOOM    = 10;
 
     private final Vector3f position = new Vector3f(1, 20, 1);
-    private       float    pitch    = 20;
+    private       float              pitch    = 20;
     private       int      yaw;
     private       float    roll;
 
@@ -72,7 +72,7 @@ public class Camera {
         this.position.y += movingFactor.y;
         this.position.z += movingFactor.z;
         if (!movingFactor.equals(new Vector3f(0, 0, 0))) {
-            focusPoint = MousePicker.getInstance().getCurrentTerrainPoint();
+            focusPoint = MousePicker.getInstance().getIntersectionPoint();
             FrustumCullingFilter.updateFrustum();
         }
 

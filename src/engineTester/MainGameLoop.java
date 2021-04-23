@@ -9,27 +9,16 @@ import static renderEngine.DisplayManager.getWindow;
 
 import engineTester.Game.GameState;
 import entities.Camera;
-import entities.Light;
 import fontMeshCreator.FontType;
-import guis.constraints.PatternGlobalConstraint;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiMainMenu.GuiMainMenu;
 import guis.prefabs.GuiSelectedItem;
-import guis.presets.Background;
-import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
-import items.abstractItem.AbstractDirtRoadItem;
-import items.abstractItem.AbstractInsula;
-import items.abstractItem.AbstractMarket;
-import items.abstractItem.ItemPreviews;
-import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import language.TextConverter;
@@ -42,8 +31,15 @@ import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import renderEngine.fontRendering.TextMaster;
-import shaders.WaterShader;
-import terrains.Terrain;
+import scene.*;
+import scene.components.PositionComponent;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Insula;
+import scene.gameObjects.Light;
+import scene.gameObjects.Market;
+import scene.gameObjects.Terrain;
+import renderEngine.shaders.WaterShader;
 import terrains.TerrainPosition;
 import textures.FontTexture;
 import util.Timer;
@@ -108,9 +104,6 @@ public class MainGameLoop {
             e.printStackTrace();
         }*/
 
-        AbstractInsula.getInstance();
-        AbstractMarket.getInstance();
-
 
         TextConverter.loadDefaultLanguage();
 //        TextConverter.loadLanguage(Language.FRENCH);
@@ -122,13 +115,7 @@ public class MainGameLoop {
         FontType font = new FontType(roboto.getTextureID(), new File("res/roboto.fnt"));
 
 
-        List<Light> lights = new ArrayList<>();
-
-        Light sun = new Light(new Vector3f(75, 200, 75), new Vector3f(1.3f, 1.3f, 1.3f));
-        lights.add(sun);
-
         MasterRenderer renderer = MasterRenderer.getInstance();
-
         Camera camera = Camera.getInstance();
 
         WaterFrameBuffers buffers = new WaterFrameBuffers();
@@ -140,45 +127,58 @@ public class MainGameLoop {
 //        waters.add(water);
 
         GuiEscapeMenu.getInstance();
-
-        new GuiItemSelection.Builder()
-                .setBackground(new Background<>(new Color(109, 109, 109, 80)))
-                .setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f))
-                .addButton(GuiItemSelection.MenuButton.DIRT_ROAD, ButtonType.RECTANGLE, ItemPreviews.DIRT_ROAD)
-                .addButton(GuiItemSelection.MenuButton.INSULA, ButtonType.RECTANGLE, ItemPreviews.INSULA)
-                .addButton(GuiItemSelection.MenuButton.MARKET, ButtonType.RECTANGLE, ItemPreviews.MARKET)
-                .create();
-
+        GuiItemSelection.getInstance();
 
         Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
 
         PostProcessing.init();
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
-        new GuiSelectedItem.Builder().create();
+        GuiSelectedItem.getInstance();
         GuiMainMenu.getInstance().setDisplayed(true);
         TextMaster textMaster = TextMaster.getInstance();
 
-        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+//        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+//
+//        TerrainPosition[] positions = new TerrainPosition[15];
+//        TerrainPosition[] positions2 = new TerrainPosition[14];
+//        for (int i = 55; i < 70; i++)
+//            positions[i - 55] = new TerrainPosition(50, i);
+//        for (int i = 50; i < 64; i++)
+//            positions2[i - 50] = new TerrainPosition(i, 70);
 
-        TerrainPosition[] positions = new TerrainPosition[15];
-        TerrainPosition[] positions2 = new TerrainPosition[14];
-        for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
-        for (int i = 50; i < 64; i++)
-            positions2[i - 50] = new TerrainPosition(i, 70);
+//        AbstractInsula.getInstance().place(new TerrainPosition(62, 74));
+//        AbstractDirtRoadItem.getInstance().place(positions);
+//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 55));
+//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(49, 55));
+//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 63));
+//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(62, 71));
 
-        AbstractInsula.getInstance().place(new TerrainPosition(62, 74));
-        AbstractDirtRoadItem.getInstance().place(positions);
-        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 55));
-        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(49, 55));
-        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 63));
-        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(62, 71));
+//        List<TerrainPosition> pos = Arrays.asList(positions2);
+//        Collections.reverse(pos);
+//        positions2 = pos.toArray(new TerrainPosition[0]);
+//        AbstractDirtRoadItem.getInstance().place(positions2);
+        Scene.getInstance();
+//        DirtRoad dirtRoad = new DirtRoad();
+        Light sun = new Light(new Vector3f(75, 50, 75), new Vector3f(1, 1, 1));
+        new Light(new Vector3f(-75, 50, -75), new Vector3f(1, 1, 1));
+        new Light(new Vector3f(75, 50, -75), new Vector3f(1, 1, 1));
+        new Light(new Vector3f(-75, 50, 75), new Vector3f(1, 1, 1));
 
-        List<TerrainPosition> pos = Arrays.asList(positions2);
-        Collections.reverse(pos);
-        positions2 = pos.toArray(new TerrainPosition[0]);
-        AbstractDirtRoadItem.getInstance().place(positions2);
+//        insula.addComponent(new PositionComponent(new TerrainPosition(62, 74)));
+        Terrain terrain = new Terrain();
+        terrain.addComponent(new PositionComponent(new Vector3f(0, 0, 0)));
+
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+
+        TerrainPosition[] positions = new TerrainPosition[23];
+        for (int i = 53; i < 76; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        GameObject.newInstances(DirtRoad.class, positions);
 
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
@@ -193,6 +193,8 @@ public class MainGameLoop {
         double time2;
         double diff;
         boolean canRender;
+        Vector4f clipPlane = new Vector4f(0, -1, 0, 1000000);
+        MasterRenderer.setClipPlane(clipPlane);
         while (!glfwWindowShouldClose(getWindow())) {
             canRender = false;
             time2 = Timer.getTime();
@@ -224,18 +226,20 @@ public class MainGameLoop {
                 if (Game.getInstance().getGameState() == GameState.STARTED) {
                     camera.move();
 
-                    renderer.renderScene(lights, new Vector4f(0, -1, 0, 1000000));
+                    MasterRenderer.renderScene();
+                    Scene.getInstance().render();
 
-                    Terrain.getInstance().updateHighlightedPaths();
+                   Scene.getInstance().updateHighlightedPaths();
                 } else {
                     fbo.bindFrameBuffer();
-                    renderer.renderScene(lights, new Vector4f(0, -1, 0, 1000000));
+                    MasterRenderer.renderScene();
+                    Scene.getInstance().render();
+
                     fbo.unbindFrameBuffer();
                     PostProcessing.doPostProcessing(fbo.getColourTexture());
                 }
-
                 GuiRenderer.render();
-                textMaster.render();//TODO: Handle double rendering w/ GuiRenderer
+                textMaster.render();
 
                 glfwSwapBuffers(DisplayManager.getWindow());
                 frames++;

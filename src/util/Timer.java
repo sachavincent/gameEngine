@@ -47,7 +47,7 @@ public class Timer {
     }
 
     public static void scheduleEvent(Event event) {
-        TIMER.schedule(event, event.getDelay());
+//        TIMER.schedule(event, event.getDelay());
         MISC_TASKS.add(event);
     }
 

@@ -2,7 +2,7 @@ package postProcessing;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import shaders.PassthroughShader;
+import renderEngine.shaders.PassthroughShader;
 
 public class PassthroughFilter {
 

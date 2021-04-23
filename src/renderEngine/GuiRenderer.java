@@ -23,7 +23,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL42;
 import renderEngine.fontRendering.TextMaster;
-import shaders.GuiShader;
+import renderEngine.shaders.GuiShader;
 import util.math.Maths;
 import util.math.Vector2f;
 
@@ -71,9 +71,8 @@ public class GuiRenderer {
                                 if (displayDebugOutlines)
                                     renderOutlineForDebug(guiComponent);
                             });
-//                    gui.animate();
-//                    if (displayDebugOutlines)
-//                        renderOutlineForDebug(gui);
+                    if (displayDebugOutlines)
+                        renderOutlineForDebug(gui);
                 });
 
 //        guis.stream()
@@ -95,8 +94,8 @@ public class GuiRenderer {
         GL11.glEnable(GL11.GL_POLYGON_SMOOTH);
 
         GL20.glDisableVertexAttribArray(0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
-
         shader.stop();
     }
 

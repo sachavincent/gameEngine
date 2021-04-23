@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import shaders.FontShader;
+import renderEngine.shaders.FontShader;
 
 public class FontRenderer {
 

@@ -157,7 +157,7 @@ public class Fbo {
 
     /**
      * Adds a depth buffer to the FBO in the form of a render buffer. This can't
-     * be used for sampling in the shaders.
+     * be used for sampling in the renderEngine.shaders.
      */
     private void createDepthBufferAttachment() {
         depthBuffer = GL30.glGenRenderbuffers();

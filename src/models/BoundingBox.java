@@ -70,6 +70,7 @@ public class BoundingBox extends TexturedModel {
 //            });
 //            planes.forEach(System.out::println);
             this.rawModel = Loader.getInstance().loadToVAO(verticesArray, textureCoords, normals, indices);
+
             this.modelTexture = ModelTexture.DEFAULT_MODEL;
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -77,7 +78,19 @@ public class BoundingBox extends TexturedModel {
         }
     }
 
+    public void addPlane(Plane3D plane3D) {
+        this.planes.add(plane3D);
+    }
     public Set<Plane3D> getPlanes() {
         return this.planes;
+    }
+
+    @Override
+    public String toString() {
+        return "BoundingBox{" +
+                "planes=" + planes +
+                ", modelTexture=" + modelTexture +
+                ", rawModel=" + rawModel +
+                '}';
     }
 }

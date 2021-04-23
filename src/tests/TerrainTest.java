@@ -6,12 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 
 import entities.Camera.Direction;
-import items.abstractItem.AbstractDirtRoadItem;
-import items.abstractItem.AbstractInsula;
-import items.abstractItem.AbstractMarket;
-import items.buildings.Market;
-import items.buildings.houses.Insula;
-import items.roads.RoadItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,143 +21,136 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
-import terrains.Terrain;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Insula;
+import scene.gameObjects.Market;
+import scene.components.PositionComponent;
+import scene.Scene;
 import terrains.TerrainPosition;
 import util.Utils;
 
 class TerrainTest {
 
-    private final Terrain terrain = Terrain.getInstance();
-
-    private static AbstractDirtRoadItem abstractDirtRoadItem;
+    private final Scene scene = Scene.getInstance();
 
     @BeforeAll
     public static void init() {
         glfwInit();
         DisplayManager.createDisplayForTests();
-
-        abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
     }
 
     @BeforeEach
-    public void resetTerrainItems() {
-        Terrain.getInstance().resetItems();
-        Terrain.getInstance().updateRequirements();
-        Terrain.getInstance().resetRoadGraph();
+    public void resetGameObjects() {
+        scene.resetObjects();
+        scene.updateRequirements();
+        scene.resetRoadGraph();
     }
 
-    @Test
-    void testGetRoadConnectionsToRoadItem() {
-        abstractDirtRoadItem.place(new TerrainPosition(50, 50));
 
-        Direction[] directions = terrain.getConnectionsToRoadItem(new TerrainPosition(50, 50), true);
+    @Test
+    void testGetRoadConnectionsToRoadGameObject() {
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 50));
+
+        Direction[] directions = scene.getRoadConnections(new TerrainPosition(50, 50));
 
         assertArrayEquals(new Direction[0], directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem2() {
+    void testGetRoadConnectionsToRoadGameObject2() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.EAST}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem3() {
+    void testGetRoadConnectionsToRoadGameObject3() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
 
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.WEST}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem4() {
+    void testGetRoadConnectionsToRoadGameObject4() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.SOUTH}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem5() {
+    void testGetRoadConnectionsToRoadGameObject5() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.NORTH}, directions);
     }
 
 
     @Test
-    void testGetRoadConnectionsToRoadItem6() {
+    void testGetRoadConnectionsToRoadGameObject6() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem7() {
-        AbstractInsula abstractInsula = AbstractInsula.getInstance();
+    void testGetRoadConnectionsToRoadGameObject7() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
-        abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem8() {
-        AbstractInsula abstractInsula = AbstractInsula.getInstance();
+    void testGetRoadConnectionsToRoadGameObject8() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
-        abstractInsula.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
 
         assertArrayEquals(new Direction[]{Direction.WEST, Direction.EAST}, directions);
     }
 
     @Test
-    void testGetRoadConnectionsToRoadItem9() {
+    void testGetRoadConnectionsToRoadGameObject9() {
         TerrainPosition center = new TerrainPosition(50, 50);
-        abstractDirtRoadItem.place(center);
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+        GameObject.newInstance(DirtRoad.class, center);
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-
-        Direction[] directions = terrain.getConnectionsToRoadItem(center, true);
+        Direction[] directions = scene.getRoadConnections(center);
         assertArrayEquals(new Direction[]{Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH},
                 directions);
     }
@@ -173,19 +160,19 @@ class TerrainTest {
 //    void testGetRoadGraph() {
 //
 //
-//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
-//        AbstractDirtRoadItem  abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
+//        AbstractDirtRoadGameObject  abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
 //
-//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
-//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
+//        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
 //        TerrainPosition center = new TerrainPosition(50, 50);
-//        abstractDirtRoadItem.place(center);
-//         abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.EAST)));
-//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.WEST)));
-//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.NORTH)));
-//        abstractDirtRoadItem.place(center.add(Direction.toRelativeDistance(Direction.SOUTH)));
+//        GameObject.newInstance(DirtRoad.class, center);
+//         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+//        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+//        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
+//        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 //
-//        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
+//        Map<RoadNode, Set<RouteRoad>> res = scene.getRoadGraph();
 //
 //        RoadNode roadNode = new RoadNode(center);
 //        Set<RouteRoad> routes = new HashSet<>();
@@ -200,7 +187,7 @@ class TerrainTest {
 //    void testGetRoadGraph2() {
 //
 //
-//        AbstractDirtRoadItem abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
+//        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
 //        TerrainPosition v0 = new TerrainPosition(49, 50);
 //        TerrainPosition v00 = new TerrainPosition(50, 51);
 //        TerrainPosition center = new TerrainPosition(50, 50);
@@ -210,16 +197,16 @@ class TerrainTest {
 //        TerrainPosition v4 = new TerrainPosition(53, 51);
 //        TerrainPosition v5 = new TerrainPosition(53, 49);
 //
-//        abstractDirtRoadItem.place(center);
-//        abstractDirtRoadItem.place(v0);
-//        abstractDirtRoadItem.place(v00);
-//        abstractDirtRoadItem.place(v1);
-//        abstractDirtRoadItem.place(v2);
-//        abstractDirtRoadItem.place(v3);
-//        abstractDirtRoadItem.place(v4);
-//        abstractDirtRoadItem.place(v5);
+//        GameObject.newInstance(DirtRoad.class, center);
+//        GameObject.newInstance(DirtRoad.class, v0);
+//        GameObject.newInstance(DirtRoad.class, v00);
+//        GameObject.newInstance(DirtRoad.class, v1);
+//        GameObject.newInstance(DirtRoad.class, v2);
+//        GameObject.newInstance(DirtRoad.class, v3);
+//        GameObject.newInstance(DirtRoad.class, v4);
+//        GameObject.newInstance(DirtRoad.class, v5);
 //
-//        Map<RoadNode, Set<RouteRoad>> res = terrain.getRoadGraph();
+//        Map<RoadNode, Set<RouteRoad>> res = scene.getRoadGraph();
 //
 //        RoadNode roadNode = new RoadNode(center);
 //        RoadNode roadNode2 = new RoadNode(v3);
@@ -403,23 +390,23 @@ class TerrainTest {
      */
     @Test
     void testPathfinding1() {
-        abstractDirtRoadItem = AbstractDirtRoadItem.getInstance();
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
         TerrainPosition v4 = new TerrainPosition(53, 50);
 
         // v1 -> v2 -> v3 -> v4
-        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(50, 51));
-        abstractDirtRoadItem.place(new TerrainPosition(53, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(53, 51));
-        abstractDirtRoadItem.place(v1);
-        abstractDirtRoadItem.place(v2);
-        abstractDirtRoadItem.place(v3);
-        abstractDirtRoadItem.place(v4);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 51));
+        GameObject.newInstance(DirtRoad.class, v1);
+        GameObject.newInstance(DirtRoad.class, v2);
+        GameObject.newInstance(DirtRoad.class, v3);
+        GameObject.newInstance(DirtRoad.class, v4);
+
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
@@ -449,18 +436,18 @@ class TerrainTest {
         TerrainPosition v5 = new TerrainPosition(54, 50);
 
         // v1 -> v2 -> v3 -> v4 -> v5
-        abstractDirtRoadItem.place(new TerrainPosition(49, 50));
-        abstractDirtRoadItem.place(new TerrainPosition(50, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(52, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(54, 49));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 50));
-        abstractDirtRoadItem.place(v1);
-        abstractDirtRoadItem.place(v2);
-        abstractDirtRoadItem.place(v3);
-        abstractDirtRoadItem.place(v4);
-        abstractDirtRoadItem.place(v5);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 50));
+        GameObject.newInstance(DirtRoad.class, v1);
+        GameObject.newInstance(DirtRoad.class, v2);
+        GameObject.newInstance(DirtRoad.class, v3);
+        GameObject.newInstance(DirtRoad.class, v4);
+        GameObject.newInstance(DirtRoad.class, v5);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -516,9 +503,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
@@ -576,9 +563,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
 
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
@@ -662,9 +649,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v12, 0);
@@ -767,9 +754,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v13, 0);
@@ -836,9 +823,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
@@ -901,9 +888,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -960,9 +947,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
@@ -1008,9 +995,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RouteFinder routeFinder = new RouteFinder(terrain.getRoadGraph());
+        RouteFinder routeFinder = new RouteFinder(scene.getRoadGraph());
         // Expected global routes
         Route expectedRoute1 = new Route();
         Route expectedRoute2;
@@ -1066,9 +1053,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v3, v5, 0);
@@ -1117,9 +1104,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v2, v6, 0);
@@ -1176,9 +1163,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
@@ -1218,9 +1205,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v5, 0);
@@ -1266,9 +1253,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v6, 0);
@@ -1300,9 +1287,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
         // Found route
         RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
@@ -1339,9 +1326,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1392,9 +1379,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1442,9 +1429,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1484,9 +1471,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1524,9 +1511,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1576,9 +1563,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1631,9 +1618,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1684,9 +1671,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1747,9 +1734,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1824,9 +1811,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1894,9 +1881,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -1995,9 +1982,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -2065,9 +2052,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -2156,9 +2143,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -2250,9 +2237,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -2291,9 +2278,9 @@ class TerrainTest {
 
         TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
 
-        abstractDirtRoadItem.place(roads);
+        GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         // Found route
@@ -2315,7 +2302,7 @@ class TerrainTest {
 
     @Test
     void testUnobstrusiveRoute1() {
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         TerrainPosition v1 = new TerrainPosition(50, 50);
@@ -2352,7 +2339,7 @@ class TerrainTest {
 
     @Test
     void testUnobstrusiveRoute2() {
-        RoadGraph roadGraph = terrain.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraph();
         RouteFinder routeFinder = new RouteFinder(roadGraph);
 
         TerrainPosition v1 = new TerrainPosition(50, 50);
@@ -2408,12 +2395,16 @@ class TerrainTest {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 60);
 
-        AbstractInsula abstractInsula = AbstractInsula.getInstance();
-        abstractInsula.place(v1);
+//        AbstractInsula abstractInsula = AbstractInsula.getInstance();
+//        abstractInsula.place(v1);
 
-        AbstractMarket abstractMarket = AbstractMarket.getInstance();
-        Market market = (Market) abstractMarket.place(v2);
+//        AbstractMarket abstractMarket = AbstractMarket.getInstance();
+//        Market market = (Market) abstractMarket.place(v2);
 
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(v1));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(v2));
 
         TerrainPosition[] positions = new TerrainPosition[]{
                 new TerrainPosition(50, 53),
@@ -2423,7 +2414,7 @@ class TerrainTest {
                 new TerrainPosition(45, 65),
                 new TerrainPosition(55, 65),
         };
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
         TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
         for (int i = 0; i < connectedRoads.length / 4; i++) {
@@ -2433,22 +2424,24 @@ class TerrainTest {
             connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 56);
         }
 
-        List<RoadItem> expectedRoads = new ArrayList<>();
+        List<GameObject> expectedRoads = new ArrayList<>();
 
         for (TerrainPosition roadPos : connectedRoads) {
-            abstractDirtRoadItem.place(roadPos);
-            expectedRoads.add((RoadItem) terrain.getItemAtPosition(roadPos));
+            GameObject.newInstance(DirtRoad.class, roadPos);
+            expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
 
-            assertTrue(Utils.listContentEquals(terrain.getRoadsConnectedToItem(market), expectedRoads));
+            assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(market), expectedRoads));
         }
     }
 
     @Test
     void testRoadsConnectedToItem2() {
-        List<RoadItem> expectedRoads = new ArrayList<>();
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
+        List<GameObject> expectedRoads = new ArrayList<>();
 
-        abstractDirtRoadItem.place(new TerrainPosition[]{
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
+
+        GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
                 new TerrainPosition(31, 48),
                 new TerrainPosition(32, 47),
                 new TerrainPosition(32, 53),
@@ -2471,23 +2464,25 @@ class TerrainTest {
         };
 
         for (TerrainPosition roadPos : connectedRoads) {
-            abstractDirtRoadItem.place(roadPos);
-            expectedRoads.add((RoadItem) terrain.getItemAtPosition(roadPos));
+            GameObject.newInstance(DirtRoad.class, roadPos);
+            expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
 
-            assertTrue(Utils.listContentEquals(terrain.getRoadsConnectedToItem(insula), expectedRoads));
+            assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(insula), expectedRoads));
         }
     }
 
     @Test
     void testPathfindingMarketToInsula1() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[23];
         for (int i = 53; i < 76; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
@@ -2502,8 +2497,10 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula2() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[29];
         for (int i = 53; i < 75; i++)
@@ -2517,16 +2514,16 @@ class TerrainTest {
         positions[27] = new TerrainPosition(55, 75);
         positions[28] = new TerrainPosition(55, 76);
 
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(55, 77));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 78));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 79));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 80));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 81));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 82));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 83));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 84));
-        abstractDirtRoadItem.place(new TerrainPosition(55, 85));
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 77));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 78));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 79));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 80));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 81));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 82));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 83));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 84));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 85));
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
@@ -2541,14 +2538,16 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula3() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
         TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
         for (int i = 0; i < connectedRoads.length / 4; i++) {
             connectedRoads[i * 4] = new TerrainPosition(i + 46, 75);
@@ -2556,7 +2555,7 @@ class TerrainTest {
             connectedRoads[i * 4 + 2] = new TerrainPosition(45, i + 76);
             connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 76);
         }
-        abstractDirtRoadItem.place(connectedRoads);
+        GameObject.newInstances(DirtRoad.class, connectedRoads);
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
@@ -2570,8 +2569,10 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula4() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(36, 61));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(36, 61)));
 
         TerrainPosition[] positions = new TerrainPosition[]{
                 new TerrainPosition(33, 47),
@@ -2599,7 +2600,7 @@ class TerrainTest {
                 new TerrainPosition(33, 56),
         };
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
         Route expectedRoute = new Route();
@@ -2615,16 +2616,38 @@ class TerrainTest {
                 new RoadNode(new TerrainPosition(33, 56)));
         routeRoad3.addRoad(new RoadNode(new TerrainPosition(33, 56)));
 
+        Route expectedRoute2 = new Route();
+        RouteRoad routeRoad21 = new RouteRoad(new RoadNode(new TerrainPosition(34, 53)),
+                new RoadNode(new TerrainPosition(34, 54)));
+        routeRoad21.addRoad(new RoadNode(new TerrainPosition(34, 54)));
+
+        RouteRoad routeRoad22 = new RouteRoad(new RoadNode(new TerrainPosition(34, 54)),
+                new RoadNode(new TerrainPosition(34, 55)));
+        routeRoad22.addRoad(new RoadNode(new TerrainPosition(34, 55)));
+
+        RouteRoad routeRoad23 = new RouteRoad(new RoadNode(new TerrainPosition(34, 55)),
+                new NormalRoad(new TerrainPosition(34, 56)));
+        routeRoad23.addRoad(new NormalRoad(new TerrainPosition(34, 56)));
+
         expectedRoute.add(routeRoad);
         expectedRoute.add(routeRoad2);
         expectedRoute.add(routeRoad3);
-        assertEquals(expectedRoute, bestRoute);
+
+        expectedRoute2.add(routeRoad21);
+        expectedRoute2.add(routeRoad22);
+        expectedRoute2.add(routeRoad23);
+
+        assertEquals(expectedRoute2, bestRoute);
+        assertTrue(expectedRoute.compareRoutes(bestRoute) || expectedRoute2.compareRoutes(bestRoute));
+        assertTrue(expectedRoute.compareCost(bestRoute) && expectedRoute2.compareCost(bestRoute));
     }
 
     @Test
     void testPathfindingMarketToInsula5() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(35, 50));
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(36, 61));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(36, 61)));
 
         TerrainPosition[] positions = new TerrainPosition[]{
                 new TerrainPosition(33, 47),
@@ -2652,7 +2675,7 @@ class TerrainTest {
                 new TerrainPosition(33, 56),
         };
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
         Route expectedRoute = new Route();
@@ -2676,15 +2699,18 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula6() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[23];
         for (int i = 53; i < 76; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
         Route expectedRoute = new Route();
@@ -2698,15 +2724,18 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula7() {
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(50, 50));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[23];
         for (int i = 53; i < 76; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
-        abstractDirtRoadItem.place(positions);
+        GameObject.newInstances(DirtRoad.class, positions);
 
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 80));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
         Route expectedRoute = new Route();
@@ -2720,15 +2749,18 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula8() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, i);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 
@@ -2744,17 +2776,20 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula9() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, i);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
-        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
         Route expectedRoute = new Route();
@@ -2769,18 +2804,21 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula10() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, i);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(46, 60));
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 68));
-        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 65));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 65));
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
         Route expectedRoute = new Route();
@@ -2795,17 +2833,20 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula11() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, i);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(53, 60));
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(53, 60)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
         Route expectedRoute = new Route();
@@ -2820,8 +2861,10 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula12() {
-        Market market = (Market) AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
-        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market2 = new Market();
+        market2.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         TerrainPosition[] positions2 = new TerrainPosition[14];
@@ -2830,17 +2873,19 @@ class TerrainTest {
         for (int i = 50; i < 64; i++)
             positions2[i - 50] = new TerrainPosition(i, 70);
 
-        Insula insula = (Insula) AbstractInsula.getInstance().place(new TerrainPosition(62, 74));
-        abstractDirtRoadItem.place(positions);
-        abstractDirtRoadItem.place(new TerrainPosition(51, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(49, 55));
-        abstractDirtRoadItem.place(new TerrainPosition(51, 63));
-        abstractDirtRoadItem.place(new TerrainPosition(62, 71));
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(62, 74)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 71));
 
         List<TerrainPosition> pos2 = Arrays.asList(positions2);
         Collections.reverse(pos2);
         positions2 = pos2.toArray(new TerrainPosition[0]);
-        abstractDirtRoadItem.place(positions2);
+        GameObject.newInstances(DirtRoad.class, positions2);
 
         Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
 

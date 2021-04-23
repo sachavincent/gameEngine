@@ -12,18 +12,24 @@ import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.presets.graphs.GuiDonutGraph;
 import guis.presets.graphs.GuiDonutGraph.Sector;
-import items.buildings.houses.HouseItem;
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import language.Words;
+import people.Person;
+import people.SocialClass;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
 import resources.ResourceType;
+import scene.components.FrequentedPlaceComponent;
+import scene.gameObjects.GameObject;
+import scene.components.RequireResourcesComponent;
+import scene.components.SelectableComponent;
 
 public class GuiHouseDetails extends Gui {
 
@@ -47,7 +53,7 @@ public class GuiHouseDetails extends Gui {
     private GuiAbstractButton peopleButton;
     private GuiAbstractButton moneyButton;
 
-    private HouseItem houseItem;
+    private GameObject houseObject;
 
     private State        state;
     private ResourceType resourceType;
@@ -109,16 +115,16 @@ public class GuiHouseDetails extends Gui {
         setDisplayed(false);
     }
 
-    public void setHouseItem(HouseItem houseItem) {
-        this.houseItem = houseItem;
+    public void setHouseObject(GameObject houseObject) {
+        this.houseObject = houseObject;
     }
 
-    public HouseItem getHouseItem() {
-        return this.houseItem;
+    public GameObject getHouseObject() {
+        return this.houseObject;
     }
 
     public void removeHouseItem() {
-        this.houseItem = null;
+        this.houseObject = null;
     }
 
     public static GuiHouseDetails getInstance() {
@@ -139,25 +145,34 @@ public class GuiHouseDetails extends Gui {
     public boolean update() {
         super.update();
 
-        assert this.houseItem != null;
+        assert this.houseObject != null;
+
+        FrequentedPlaceComponent frequentedPlaceComponent = this.houseObject
+                .getComponent(FrequentedPlaceComponent.class);
+        if (frequentedPlaceComponent == null)
+            return false;
+
+        int currentPeopleCount = frequentedPlaceComponent.getCurrentPeopleCount();
+        int maxPeopleCapacity = frequentedPlaceComponent.getMaxPeopleCapacity();
 
         Text text = this.peopleButton.getText().getText();
-        text.setTextString(this.houseItem.getNumberOfPeople() + " / " + this.houseItem.getMaxPeopleCapacity());
+        text.setTextString(currentPeopleCount + " / " + maxPeopleCapacity);
         this.peopleButton.getText().setText(text);
 
         this.peopleDistributionGraph.reset();
 
-        this.houseItem.getClasses().forEach((socialClass, people) -> {
+        EnumMap<SocialClass, List<Person>> listPeople = frequentedPlaceComponent.getPersons();
+
+        listPeople.forEach((socialClass, people) -> {
             int size = people.size();
             if (size > 0)
                 this.peopleDistributionGraph
                         .addSector(new Sector<>(size, socialClass.getColor(), socialClass.getName()));
         });
 
-        if (this.houseItem.getNumberOfPeople() < this.houseItem.getMaxPeopleCapacity()) {
+        if (currentPeopleCount < maxPeopleCapacity) {
             this.peopleDistributionGraph.addSector(
-                    new Sector<>(this.houseItem.getMaxPeopleCapacity() - this.houseItem.getNumberOfPeople(),
-                            Color.LIGHT_GRAY, Words.AVAILABLE_SPACE));
+                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY, Words.AVAILABLE_SPACE));
         }
 
         return true;
@@ -167,12 +182,14 @@ public class GuiHouseDetails extends Gui {
      * Called when category selected
      */
     private void setCategorySelected(ResourceType resourceType) {
-        if (this.houseItem == null)
+        if (this.houseObject == null)
             return;
 
         this.resourceType = resourceType;
 
-        Map<Resource, Integer> resourcesNeeded = this.houseItem.getResourcesNeeded();
+        RequireResourcesComponent requireResourcesComponent = this.houseObject
+                .getComponent(RequireResourcesComponent.class);
+        Map<Resource, Integer> resourcesNeeded = requireResourcesComponent.getResourcesNeeded();
 //        List<Resource> subCategories = resourcesNeeded.keySet().stream()
 //                .filter(resource -> resource.getResourceType().equals(resourceType)).collect(Collectors.toList());
 
@@ -188,31 +205,36 @@ public class GuiHouseDetails extends Gui {
         AtomicBoolean selected = new AtomicBoolean();
         ButtonGroup group = new ButtonGroup(subCategories.size());
         subCategories.forEach(resource -> {
-            if (resourcesNeeded.containsKey(resource)) {
-                GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab, resource.getBackgroundTexture(),
-                        (GuiConstraintsManager) null);
-                button.enableFilter();
-                button.setToggleType(true);
-                button.setButtonGroup(group);
-                button.setOnPress(() -> {
+//            if (resourcesNeeded.containsKey(resource)) {
+            GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab,
+                    resource.getBackgroundTexture(),
+                    (GuiConstraintsManager) null);
+            button.enableFilter();
+            button.setToggleType(true);
+            button.setButtonGroup(group);
+            button.setOnPress(() -> {
+                if (resourcesNeeded.containsKey(resource)) {
                     int value = resourcesNeeded.get(resource);
                     Stock stock = ResourceManager.getResources().get(resource);
 
                     setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
-                    this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
-                });
-
-                if (!selected.get()) {
-                    int value = resourcesNeeded.get(resource);
-                    Stock stock = ResourceManager.getResources().get(resource);
-
-                    setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
-                    selected.set(true);
-                    button.setClicked(true);
                 }
-            } else {
-                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getBackgroundTexture(), null);
+                this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
+            });
+
+            if (!selected.get()) {
+                if (resourcesNeeded.containsKey(resource)) {
+                    int value = resourcesNeeded.get(resource);
+                    Stock stock = ResourceManager.getResources().get(resource);
+
+                    setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
+                }
+                selected.set(true);
+                button.setClicked(true);
             }
+//            } else {
+//                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getBackgroundTexture(), null);
+//            }
         });
 
     }
@@ -441,10 +463,12 @@ public class GuiHouseDetails extends Gui {
         if (displayed) {
             formLoad();
             update();
-        } else if (this.houseItem != null) {
-            HouseItem houseItem = this.houseItem;
-            this.houseItem = null; // Prevent infinite loop
-            houseItem.unselect();
+        } else if (this.houseObject != null) {
+            GameObject houseObject = this.houseObject;
+            this.houseObject = null; // Prevent infinite loop
+            SelectableComponent selectableComponent = houseObject.getComponent(SelectableComponent.class);
+            if (selectableComponent != null)
+                selectableComponent.setSelected(false);
         }
     }
 

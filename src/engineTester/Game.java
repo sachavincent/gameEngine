@@ -5,7 +5,7 @@ import guis.presets.GuiTextInput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import terrains.Terrain;
+import scene.Scene;
 
 public class Game {
 
@@ -31,7 +31,8 @@ public class Game {
     }
 
     public boolean addPerson() {
-        if (this.numberOfPeople >= Terrain.getInstance().getMaxPeopleCapacity())
+//        if (this.numberOfPeople >= Terrain.getInstance().getMaxPeopleCapacity())
+        if (this.numberOfPeople >= Scene.getInstance().getMaxPeopleCapacity())
             return false;
 
         this.numberOfPeople++;

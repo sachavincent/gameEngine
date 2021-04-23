@@ -7,10 +7,11 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import guis.presets.Background;
 import inputs.MouseUtils;
-import items.abstractItem.AbstractItem;
 import java.awt.Color;
 import renderEngine.DisplayManager;
-import terrains.Terrain;
+import scene.gameObjects.GameObject;
+import scene.components.IconComponent;
+import scene.gameObjects.Player;
 import util.math.Vector2f;
 
 public class GuiSelectedItem extends Gui {
@@ -22,53 +23,61 @@ public class GuiSelectedItem extends Gui {
 
     private static GuiSelectedItem instance;
 
-    private AbstractItem currentSelectedItem;
+    private Class<? extends GameObject> currentSelectedItem;
 
     private GuiSelectedItem() {
         super(DEFAULT_BACKGROUND);
 
-        GuiConstraintsManager menuConstraints = new GuiConstraintsManager.Builder()
+        setConstraints(new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(DEFAULT_DIMENSIONS[0])
                 .setHeightConstraint(DEFAULT_DIMENSIONS[1])
-                .create();
-
-        setConstraints(menuConstraints);
-    }
-
-    public void setSelectedItem(AbstractItem abstractItem) {
-        currentSelectedItem = abstractItem;
-        setBackground(currentSelectedItem.getBackground());
-
-        Terrain.getInstance().setPreviewedItem(abstractItem);
-
-        setDisplayed(true);
-    }
-
-    public AbstractItem getSelectedItem() {
-        return this.currentSelectedItem;
-    }
-
-    public void removeSelectedItem() {
-        Terrain.getInstance().setPreviewedItem(null);
-        currentSelectedItem = null;
-        setBackground(DEFAULT_BACKGROUND);
+                .create());
 
         setDisplayed(false);
     }
 
-    @Override
-    public void setDisplayed(boolean displayed) {
-        this.displayed = displayed;
+    public static GuiSelectedItem getInstance() {
+        return instance == null ? (instance = new GuiSelectedItem()) : instance;
     }
 
-    public static GuiSelectedItem getSelectedItemGui() {
-        return instance;
+    public void setSelectedItem(Class<? extends GameObject> gameObjectClass) {
+        this.currentSelectedItem = gameObjectClass;
+        GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
+        if (objectFromClass == null)
+            return;
+        IconComponent iconComponent = objectFromClass.getComponent(IconComponent.class);
+        if (iconComponent == null)
+            return;
+        setBackground(iconComponent.getBackground());
+
+//        Terrain.getInstance().setPreviewedItem(abstractItem);
+        Player.setSelectedGameObject(gameObjectClass);
+
+        setDisplayed(true);
     }
+
+    public Class<? extends GameObject> getSelectedItem() {
+        return this.currentSelectedItem;
+    }
+
+    public void removeSelectedItem() {
+//        Terrain.getInstance().setPreviewedItem(null);
+        Player.removeSelectedGameObject();
+        currentSelectedItem = null;
+//        setBackground(DEFAULT_BACKGROUND);
+
+        setDisplayed(false);
+    }
+
+//    @Override
+//    public void setDisplayed(boolean displayed) {
+////        this.displayed = displayed;
+//        super.setDisplayed(true);
+//    }
 
     public void updatePosition() {
         Vector2f cursorPos = MouseUtils.getCursorPos();
-
         GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this);
         int xPixels = (int) (cursorPos.x * DisplayManager.WIDTH) - 70;
         int yPixels = (int) (cursorPos.y * DisplayManager.HEIGHT) - 70;
@@ -77,34 +86,6 @@ public class GuiSelectedItem extends Gui {
         } else {
             setX(guiConstraintHandler.handleXConstraint(new PixelConstraint(xPixels)));
             setY(guiConstraintHandler.handleYConstraint(new PixelConstraint(yPixels)));
-        }
-    }
-
-    public static class Builder {
-
-        private final GuiSelectedItem guiSelectedItem;
-
-        public Builder() {
-            guiSelectedItem = new GuiSelectedItem();
-        }
-
-        public Builder setBackground(Background<?> background) {
-            guiSelectedItem.setBackground(background);
-
-            return this;
-        }
-
-        public Builder setConstraints(GuiConstraintsManager constraintsManager) {
-            guiSelectedItem.setConstraints(constraintsManager);
-
-            return this;
-        }
-
-        public GuiSelectedItem create() {
-            instance = guiSelectedItem;
-
-            instance.setDisplayed(false);
-            return instance;
         }
     }
 }

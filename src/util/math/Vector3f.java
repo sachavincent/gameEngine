@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Locale;
 import java.util.Objects;
+import terrains.TerrainPosition;
 
 public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
 
@@ -212,5 +213,13 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         x = Float.parseFloat(String.format(Locale.ROOT, "%.4f", x));
         y = Float.parseFloat(String.format(Locale.ROOT, "%.4f", y));
         z = Float.parseFloat(String.format(Locale.ROOT, "%.4f", z));
+    }
+
+    public boolean isTerrainPosition() {
+        return y == 0.05f;
+    }
+
+    public TerrainPosition toTerrainPosition() {
+        return new TerrainPosition((int) Math.rint(x), (int) Math.rint(z));
     }
 }

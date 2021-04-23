@@ -3,7 +3,7 @@ package pathfinding;
 import entities.Camera.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
-import terrains.Terrain;
+import scene.Scene;
 import terrains.TerrainPosition;
 
 public class RoadGraph {
@@ -26,12 +26,12 @@ public class RoadGraph {
 
         assert currentRoute.getEnd() == null;
 
-        Terrain terrain = Terrain.getInstance();
+        Scene scene = Scene.getInstance();
         for (Direction direction : directions) {
             TerrainPosition nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
 //            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
-            Direction[] directionsNextRoadOnlyRoads = terrain.getConnectionsToRoadItem(nextRoadPosition, true);
+            Direction[] directionsNextRoadOnlyRoads = scene.getRoadConnections(nextRoadPosition);
 
             Direction oppositeDirection = direction.getOppositeDirection();
 
@@ -106,7 +106,7 @@ public class RoadGraph {
      * Add road to position dynamically
      */
     public void addRoad(TerrainPosition position) {
-        Direction[] connectionsToRoadItem = Terrain.getInstance().getConnectionsToRoadItem(position, true);
+        Direction[] connectionsToRoadItem = Scene.getInstance().getRoadConnections(position);
         if (connectionsToRoadItem.length >= 3) { // New road is a node
             searchForNextNode(position, connectionsToRoadItem, null);
         } else {
@@ -130,7 +130,7 @@ public class RoadGraph {
             } /*else {*/
             for (Direction direction : connectionsToRoadItem) {
                 TerrainPosition newPos = position.add(Direction.toRelativeDistance(direction));
-                Direction[] directions = Terrain.getInstance().getConnectionsToRoadItem(newPos, true);
+                Direction[] directions = Scene.getInstance().getRoadConnections(newPos);
                 if (directions.length == 3) { // New node created by this road
                     searchForNextNode(newPos, directions, null);
                 }

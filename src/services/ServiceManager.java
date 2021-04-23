@@ -34,7 +34,6 @@ public class ServiceManager<S extends Service<?>> {
         S service = serviceQueue.poll();
         if (currentService != null)
             while (currentService.isRunning()) {
-                System.out.println("ru");
             }
         currentService = service;
         if (service != null) {
