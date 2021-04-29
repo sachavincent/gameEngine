@@ -31,7 +31,7 @@ public class GuiMultiOption<T> extends GuiPreset {
         this.options = options;
         this.selectedOption = defaultOption;
 
-        setChildrenConstraints(new RatioedPatternGlobalConstraint(3, 1, 0, 0, 7f, 30f, 86f, 100f, 7f, 30f));
+        setLayout(new RatioedPatternGlobalConstraint(3, 1, 0, 0, 7f, 30f, 86f, 100f, 7f, 30f));
 
         Background<Color> arrowBackground = new Background<>(arrowsColor);
         this.previous = new GuiTriangleButton(this, arrowBackground, 270);

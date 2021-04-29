@@ -81,7 +81,7 @@ public class OBJLoader {
 
         OBJGameObject objGameObject = new OBJGameObject();
         try {
-            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);//TODO Temp false
+            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);
 
             objGameObject.setTexture(new TexturedModel(rawModel, new ModelTexture(name.toLowerCase() + ".png", false)));
 //            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));

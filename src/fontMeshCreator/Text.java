@@ -1,8 +1,10 @@
 package fontMeshCreator;
 
 import java.awt.Color;
+import java.util.Locale;
 import java.util.Objects;
-import language.LanguageAssets;
+import language.TextConverter;
+import language.Words;
 import renderEngine.fontRendering.TextMaster;
 import util.math.Vector2f;
 
@@ -32,11 +34,13 @@ public class Text {
     private float charWidth     = 0.5f;
     private float edgeCharWidth = 0.1f;
 
+    private boolean upperCase;
+
     /**
      * Creates a new text, loads the text's quads into a VAO, and adds the text
      * to the screen.
      *
-     * @param text - the text.
+     * @param word - the word.
      * @param fontSize - the font size of the text, where a font size of 1 is the
      * default size.
      * @param font - the font that this text should use.
@@ -51,8 +55,8 @@ public class Text {
      * the line, based on this line length value.
      * @param centered - whether the text should be centered or not.
      */
-    public Text(String text, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
-        this.textString = LanguageAssets.getInstance().getWord(text);
+    public Text(Words word, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
+        this.textString = word.toString();
         this.fontSize = fontSize;
         this.font = font;
         this.position = position;
@@ -61,8 +65,31 @@ public class Text {
         this.stringChanged = false;
     }
 
-    public Text(String text, float fontSize, FontType font, Color color) {
-        this.textString = LanguageAssets.getInstance().getWord(text);
+    public Text(Words word, float fontSize, FontType font, Color color) {
+        this.textString = word.toString();
+        this.fontSize = fontSize;
+        this.font = font;
+        this.stringChanged = false;
+
+        this.color = color;
+
+//        this.charWidth = fontSize / 2.5f;
+        this.charWidth = 0.48f;
+        this.edgeCharWidth = Math.max(0, 0.1f + (2f - fontSize) * 0.0625f);
+    }
+
+    public Text(String word, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
+        this.textString = TextConverter.getWordInCurrentLanguage(word);
+        this.fontSize = fontSize;
+        this.font = font;
+        this.position = position;
+        this.lineMaxSize = maxLineLength;
+        this.centerText = centered;
+        this.stringChanged = false;
+    }
+
+    public Text(String word, float fontSize, FontType font, Color color) {
+        this.textString = TextConverter.getWordInCurrentLanguage(word);
         this.fontSize = fontSize;
         this.font = font;
         this.stringChanged = false;
@@ -141,6 +168,14 @@ public class Text {
      */
     public Color getColor() {
         return this.color;
+    }
+
+    public void setUpperCase(boolean upperCase) {
+        this.upperCase = upperCase;
+    }
+
+    public boolean isUpperCase() {
+        return this.upperCase;
     }
 
     /**
@@ -250,13 +285,17 @@ public class Text {
      * @return The string of text.
      */
     public String getTextString() {
-        return this.textString;
+        return this.upperCase ? this.textString.toUpperCase(Locale.ROOT) : this.textString;
     }
 
     public void setTextString(String textString) {
         this.textString = textString;
 
         this.stringChanged = true;
+    }
+
+    public void setTextString(char textString) {
+        setTextString(String.valueOf(textString));
     }
 
     public boolean isStringChanged() {

@@ -1,4 +1,4 @@
-package engineTester;
+package util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,16 +7,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import language.Language;
+import language.TextConverter;
 import renderEngine.DisplayManager;
-import renderEngine.DisplayManager.Resolution;
 import renderEngine.DisplayManager.DisplayMode;
+import renderEngine.DisplayManager.Resolution;
 
 public class SettingsManager {
 
     public final static String SETTINGS_FILE = "assets/settings.conf";
 
     public static void loadSettings() {
-        FileReader fileReader = null;
+        FileReader fileReader;
         BufferedReader bufferedReader = null;
         try {
             fileReader = new FileReader(SETTINGS_FILE);
@@ -41,18 +43,15 @@ public class SettingsManager {
             try {
                 if (bufferedReader != null)
                     bufferedReader.close();
-                if (fileReader != null)
-                    fileReader.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                resetSettings();
             }
             DisplayManager.showWindow();
         }
     }
 
     public static void saveSettings() {
-        FileWriter fileWriter = null;
+        FileWriter fileWriter;
         BufferedWriter bufferedWriter = null;
         try {
             fileWriter = new FileWriter(SETTINGS_FILE, false);
@@ -69,17 +68,14 @@ public class SettingsManager {
             try {
                 if (bufferedWriter != null)
                     bufferedWriter.close();
-                if (fileWriter != null)
-                    fileWriter.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                resetSettings();
             }
         }
     }
 
     public static void resetSettings() {
-        FileWriter fileWriter = null;
+        FileWriter fileWriter;
         BufferedWriter bufferedWriter = null;
         try {
             fileWriter = new FileWriter(SETTINGS_FILE, false);
@@ -97,8 +93,6 @@ public class SettingsManager {
             try {
                 if (bufferedWriter != null)
                     bufferedWriter.close();
-                if (fileWriter != null)
-                    fileWriter.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -109,18 +103,28 @@ public class SettingsManager {
 
         final static List<Option<?>> OPTIONS = new ArrayList<>();
 
-        final static Option<Integer> DISPLAY    = new Option<>("display", DisplayMode.defaultMode().ordinal(), DisplayManager::setScreen,
-                () -> DisplayManager.indexCurrentScreen);
-        final static Option<Integer>    FPS_CAP    = new Option<>("fpscap",
+        final static Option<Integer> DISPLAY = new Option<>("display", DisplayMode.defaultMode().ordinal(),
+                DisplayManager::setScreen, () -> DisplayManager.indexCurrentScreen);
+
+        final static Option<Integer> FPS_CAP = new Option<>("fpscap",
                 300, DisplayManager::setFPS, () -> DisplayManager.MAX_FPS);
+
         final static Option<Integer> FULLSCREEN = new Option<>("display_mode", DisplayMode.FULLSCREEN.ordinal(),
-                value -> DisplayManager.setDisplayMode(DisplayMode.values()[value]), () -> DisplayManager.displayMode.ordinal());
-        final static Option<Boolean>    VSYNC      = new Option<>("vsync", true, DisplayManager::setVsync,
+                value -> DisplayManager.setDisplayMode(DisplayMode.values()[value]),
+                () -> DisplayManager.displayMode.ordinal());
+
+        final static Option<Boolean> VSYNC = new Option<>("vsync", true, DisplayManager::setVsync,
                 () -> DisplayManager.vSync);
-        final static Option<String>  RESOLUTION = new Option<>("resolution", "1920x1080", value -> {
+
+        final static Option<String> RESOLUTION = new Option<>("resolution", "1920x1080", value -> {
             String[] dim = value.split("x");
             DisplayManager.setWindowSize(new Resolution(Integer.parseInt(dim[0]), Integer.parseInt(dim[1])));
         }, () -> DisplayManager.currentScreen.resolution.toString().replaceAll("\\s", ""));
+
+        final static Option<String> LANGUAGE = new Option<>("language", Language.ENGLISH.getLang(),
+                value -> TextConverter.loadLanguage(Language.getLanguage(value)),
+                () -> TextConverter.getNewLanguage() == null ? TextConverter.getLanguage().getLang()
+                        : TextConverter.getNewLanguage().getLang());
 
         final T                    defaultValue;
         final String               name;

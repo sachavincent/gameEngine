@@ -1,78 +1,67 @@
 package language;
 
-import guis.exceptions.UnknownLanguageException;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import util.Utils;
 
 public class TextConverter {
 
-    public final static Language ENGLISH = Language.ENGLISH;
-    public final static Language FRENCH  = Language.FRENCH;
+    private static Language language;
+    private static Language newLanguage;
 
-    public final static Language DEFAULT_LANGUAGE = ENGLISH;
+    private static Map<Words, String> currentLanguage;
 
-    public static Language language;
-
-    private static List<String> defaultLanguage;
-
-
-    public static void loadLanguage(Language language) {
-        if (defaultLanguage == null)
-            loadDefaultLanguage();
-
-        try (BufferedReader bufferedReader = new BufferedReader(
-                new FileReader(new File("assets/" + language.getLang() + ".csv")))) {
-
-            String line;
-            List<String> words = new ArrayList<>();
-
-            while ((line = bufferedReader.readLine()) != null) {
-                words.add(line);
-            }
-
-            if (words.size() != defaultLanguage.size())
-                throw new UnknownLanguageException("Word count different from default language");
-
-
-            TextConverter.language = language;
-
-            addWords(words);
-        } catch (IOException e) {
-            throw new UnknownLanguageException();
-        }
+    public static void setNewLanguage(Language lang) {
+        newLanguage = lang;
     }
 
-    private static void addWords(List<String> words) {
-        if (language != DEFAULT_LANGUAGE) {
-            int i = 0;
-
-            while (i < words.size()) {
-                LanguageAssets.getInstance().addWord(defaultLanguage.get(i), words.get(i));
-                i++;
-            }
-        }
+    public static Language getLanguage() {
+        return language;
     }
 
-    public static void loadDefaultLanguage() {
-        if (defaultLanguage != null)
+    public static Language getNewLanguage() {
+        return newLanguage;
+    }
+
+    public static void loadLanguage(Language lang) {
+        if (lang == Language.ENGLISH) {
+            loadEnglishLanguage();
             return;
-
-        defaultLanguage = new ArrayList<>();
+        }
 
         try (BufferedReader bufferedReader = new BufferedReader(
-                new FileReader(new File("assets/" + DEFAULT_LANGUAGE.getLang() + ".csv")))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                defaultLanguage.add(line);
+                new FileReader("assets/" + lang.getLang() + ".conf"))) {
 
-                LanguageAssets.getInstance().addWord(line, line);
+            String word;
+            currentLanguage = new HashMap<>();
+            language = lang;
+
+            int i = 0;
+            while ((word = bufferedReader.readLine()) != null) {
+                if (!word.startsWith("#"))
+                    currentLanguage.put(Words.values()[i++], word);
             }
         } catch (IOException e) {
-            throw new UnknownLanguageException();
+            e.printStackTrace();
         }
+    }
+
+    public static void loadEnglishLanguage() {
+        language = Language.ENGLISH;
+
+        currentLanguage = new HashMap<>();
+        for (Words word : Words.values())
+            currentLanguage.put(word, Utils.formatText(word.getString()));
+    }
+
+    public static String getWordInCurrentLanguage(String word) {
+        Words wordFromString = Words.getWordFromString(Utils.formatText(word));
+        if (!currentLanguage.containsKey(wordFromString))
+            return word;
+
+        return currentLanguage.get(wordFromString);
     }
 }

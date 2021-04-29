@@ -21,7 +21,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import language.TextConverter;
 import org.lwjgl.opengl.GL;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
@@ -31,7 +30,8 @@ import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import renderEngine.fontRendering.TextMaster;
-import scene.*;
+import renderEngine.shaders.WaterShader;
+import scene.Scene;
 import scene.components.PositionComponent;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
@@ -39,9 +39,10 @@ import scene.gameObjects.Insula;
 import scene.gameObjects.Light;
 import scene.gameObjects.Market;
 import scene.gameObjects.Terrain;
-import renderEngine.shaders.WaterShader;
 import terrains.TerrainPosition;
 import textures.FontTexture;
+import util.KeybindingsManager;
+import util.SettingsManager;
 import util.Timer;
 import util.math.Vector3f;
 import util.math.Vector4f;
@@ -60,6 +61,7 @@ public class MainGameLoop {
 //        if (!isDebug) {
         DisplayManager.createDisplay();
         SettingsManager.loadSettings();
+        KeybindingsManager.loadKeyBindings();
 //        } else {
 //            DisplayManager.createDisplayForTests();
 //        }
@@ -105,7 +107,6 @@ public class MainGameLoop {
         }*/
 
 
-        TextConverter.loadDefaultLanguage();
 //        TextConverter.loadLanguage(Language.FRENCH);
 
         Loader loader = Loader.getInstance();
@@ -229,7 +230,7 @@ public class MainGameLoop {
                     MasterRenderer.renderScene();
                     Scene.getInstance().render();
 
-                   Scene.getInstance().updateHighlightedPaths();
+                    Scene.getInstance().updateHighlightedPaths();
                 } else {
                     fbo.bindFrameBuffer();
                     MasterRenderer.renderScene();
@@ -247,6 +248,8 @@ public class MainGameLoop {
         }
 
         SettingsManager.saveSettings();
+        KeybindingsManager.saveKeyBindings();
+
         PostProcessing.cleanUp();
         fbo.cleanUp();
         buffers.cleanUp();

@@ -10,6 +10,7 @@ import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
 import java.io.File;
+import language.Words;
 import renderEngine.DisplayManager;
 import textures.FontTexture;
 
@@ -29,7 +30,7 @@ public class GuiMainMenu extends Gui {
     private final GuiRectangle    menuButtonPanel;
     private final GuiSettingsMenu settingsMenu;
     private       State           state;
-    public Text textSettings;
+    public        Text            textSettings;
 
     private GuiMainMenu() {
         super(Background.NO_BACKGROUND);
@@ -50,7 +51,7 @@ public class GuiMainMenu extends Gui {
                 .setxConstraint(new CenterConstraint())
                 .setyConstraint(new CenterConstraint())
                 .create());
-        this.menuButtonPanel.setChildrenConstraints(new PatternGlobalConstraint(1, 4, 0, 0.07f));
+        this.menuButtonPanel.setLayout(new PatternGlobalConstraint(1, 4, 0, 0.07f));
 
         createNewGameButton();
         createLoadGameButton();
@@ -70,7 +71,7 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createNewGameButton() {
-        Text text = new Text("New Game", 1.2f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.NEW_GAME, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton newGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         newGameButton.enableFilter();
@@ -81,7 +82,7 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createLoadGameButton() {
-        Text text = new Text("Load Game", 1.2f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.LOAD_GAME, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton loadGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         loadGameButton.enableFilter();
@@ -91,7 +92,7 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createSettingsButton() {
-        textSettings = new Text("Settings", 1.2f, DEFAULT_FONT, Color.BLACK);
+        textSettings = new Text(Words.SETTINGS, 1.2f, DEFAULT_FONT, Color.BLACK);
 
         GuiRectangleButton settingsButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), textSettings);
@@ -108,7 +109,7 @@ public class GuiMainMenu extends Gui {
     }
 
     private void createQuitButton() {
-        Text text = new Text("Quit", 1.2f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.QUIT, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         quitButton.enableFilter();

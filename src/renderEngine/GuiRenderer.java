@@ -71,8 +71,8 @@ public class GuiRenderer {
                                 if (displayDebugOutlines)
                                     renderOutlineForDebug(guiComponent);
                             });
-                    if (displayDebugOutlines)
-                        renderOutlineForDebug(gui);
+//                    if (displayDebugOutlines)
+//                        renderOutlineForDebug(gui);
                 });
 
 //        guis.stream()
@@ -100,6 +100,9 @@ public class GuiRenderer {
     }
 
     public static void renderOutlineForDebug(GuiInterface guiInterface) {
+        if (!guiInterface.displayDebugOutline())
+            return;
+
         GL30.glBindVertexArray(unfilledQuad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
 

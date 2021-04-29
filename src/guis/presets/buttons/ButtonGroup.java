@@ -23,7 +23,7 @@ public class ButtonGroup {
         }
     }
 
-    public void addButton(GuiAbstractButton button) {
+    protected void addButton(GuiAbstractButton button) {
         this.buttons[Math.min(this.nbButtons++, this.maxButtons - 1)] = button;
     }
 

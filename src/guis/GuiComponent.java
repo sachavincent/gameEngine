@@ -14,6 +14,7 @@ import inputs.callbacks.LeaveCallback;
 import inputs.callbacks.ScrollCallback;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,7 +39,8 @@ public abstract class GuiComponent implements GuiInterface {
 
     private int textureIndex;
 
-    private final GuiTexture debugOutline;
+    public final GuiTexture debugOutline;
+    private      boolean    displayDebugOutline = true;
 
     private EnterCallback  onEnterCallback;
     private LeaveCallback  onLeaveCallback;
@@ -51,7 +53,7 @@ public abstract class GuiComponent implements GuiInterface {
 
     protected float cornerRadius;
 
-    protected GuiGlobalConstraints childrenConstraints;
+    protected GuiGlobalConstraints layout;
 
     public GuiComponent(GuiInterface parent) {
         if (parent == null)
@@ -100,8 +102,7 @@ public abstract class GuiComponent implements GuiInterface {
     public void setCornerRadius(float cornerRadius) {
         this.cornerRadius = cornerRadius;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> guiComponent.setCornerRadius(cornerRadius));
     }
 
@@ -130,8 +131,8 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     public void addElementToChildrenConstraints(GuiComponent guiComponent) {
-        if (childrenConstraints != null && this.equals(childrenConstraints.getParent())) {
-            childrenConstraints.addComponent(guiComponent);
+        if (layout != null && this.equals(layout.getParent())) {
+            layout.addComponent(guiComponent);
         }
     }
 
@@ -168,6 +169,15 @@ public abstract class GuiComponent implements GuiInterface {
     @Override
     public GuiTexture getDebugOutline() {
         return this.debugOutline;
+    }
+
+    @Override
+    public boolean displayDebugOutline() {
+        return this.displayDebugOutline;
+    }
+
+    public void setDisplayDebugOutline(boolean displayDebugOutline) {
+        this.displayDebugOutline = displayDebugOutline;
     }
 
     public void onEnter() {
@@ -243,8 +253,7 @@ public abstract class GuiComponent implements GuiInterface {
     public void setX(float x) {
         this.x = x;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> {
                     guiComponent.x = x;
                     guiComponent.updateTexturePosition();
@@ -257,8 +266,7 @@ public abstract class GuiComponent implements GuiInterface {
     public void setY(float y) {
         this.y = y;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> {
                     guiComponent.y = y;
                     guiComponent.updateTexturePosition();
@@ -270,8 +278,7 @@ public abstract class GuiComponent implements GuiInterface {
     public void setWidth(float width) {
         this.width = width;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> {
                     guiComponent.width = width;
                     guiComponent.updateTexturePosition();
@@ -283,8 +290,7 @@ public abstract class GuiComponent implements GuiInterface {
     public void setHeight(float height) {
         this.height = height;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> {
                     guiComponent.height = height;
                     guiComponent.updateTexturePosition();
@@ -320,8 +326,7 @@ public abstract class GuiComponent implements GuiInterface {
         this.width = this.width * scale;
         this.height = this.height * scale;
 
-        getParentGui(this).getAllComponents().stream()
-                .filter(guiComponent -> guiComponent.getParent().equals(this))
+        getChildrenComponents()
                 .forEach(guiComponent -> {
                     guiComponent.width = guiComponent.width * scale;
                     guiComponent.height = guiComponent.height * scale;
@@ -359,10 +364,33 @@ public abstract class GuiComponent implements GuiInterface {
         });
     }
 
-    public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
+    public void setLayout(GuiGlobalConstraints guiConstraints) {
         guiConstraints.setParent(this);
 
-        this.childrenConstraints = guiConstraints;
+        boolean addAgain = this.layout != null;
+
+        this.layout = guiConstraints;
+
+        if (addAgain) {
+            List<GuiComponent> components = getAllComponentsBelow();
+            components.forEach(guiComponent -> guiComponent.getParent().removeComponent(guiComponent));
+            components.forEach(guiComponent -> guiComponent.getParent().addComponent(guiComponent));
+        }
+    }
+
+    public List<GuiComponent> getAllComponentsBelow() {
+        List<GuiComponent> childrenComponents = getChildrenComponents();
+        List<GuiComponent> components = childrenComponents.stream().map(GuiComponent::getAllComponentsBelow)
+                .flatMap(Collection::stream).collect(Collectors.toList());
+        childrenComponents.addAll(components);
+
+        return childrenComponents;
+    }
+
+    public List<GuiComponent> getChildrenComponents() {
+        return GuiComponent.getParentGui(this).getAllComponents().stream()
+                .filter(guiComponent -> guiComponent.getParent().equals(this))
+                .collect(Collectors.toList());
     }
 
     public void setTextureIndex(int textureIndex) {

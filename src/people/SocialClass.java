@@ -2,6 +2,7 @@ package people;
 
 import java.awt.Color;
 import java.util.Locale;
+import util.Utils;
 
 public enum SocialClass {
     FARMER(Color.RED);
@@ -27,8 +28,6 @@ public enum SocialClass {
     }
 
     public String getName() {
-        String name = name();
-        return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
+        return Utils.formatText(name());
     }
-
 }

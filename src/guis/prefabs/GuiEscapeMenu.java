@@ -12,6 +12,7 @@ import guis.prefabs.GuiMainMenu.GuiSettingsMenu;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
+import language.Words;
 import renderEngine.DisplayManager;
 
 public class GuiEscapeMenu extends Gui {
@@ -34,7 +35,7 @@ public class GuiEscapeMenu extends Gui {
                 .setHeightConstraint(DEFAULT_DIMENSIONS[1])
                 .create());
 
-        setChildrenConstraints(new PatternGlobalConstraint(1, 5, 0.15f, 0.1f));
+        setLayout(new PatternGlobalConstraint(1, 5, 0.15f, 0.1f));
 
         addResumeButton();
         addSaveAndQuitButton();
@@ -44,7 +45,7 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void addResumeButton() {
-        Text text = new Text("Resume", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.RESUME, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton resumeButton = new GuiRectangleButton(this, this.buttonBackground, text);
         resumeButton.enableFilter();
         resumeButton.setOnPress(() -> {
@@ -54,7 +55,7 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void addSaveAndQuitButton() {
-        Text text = new Text("Save & Quit", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.SAVE_AND_QUIT, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnPress(() -> {
@@ -63,7 +64,7 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void addQuickSaveButton() {
-        Text text = new Text("Quick Save", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.QUICK_SAVE, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnPress(() -> {
@@ -78,7 +79,7 @@ public class GuiEscapeMenu extends Gui {
             setDisplayed(true);
         });
 
-        Text text = new Text("Settings", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.SETTINGS, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton settingsButton = new GuiRectangleButton(this, this.buttonBackground, text);
         settingsButton.enableFilter();
         settingsButton.setOnPress(() -> {
@@ -89,7 +90,7 @@ public class GuiEscapeMenu extends Gui {
 
 
     private void addQuitButton() {
-        Text text = new Text("Quit", .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(Words.QUIT, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         quitButton.enableFilter();
         quitButton.setOnPress(() -> {

@@ -100,8 +100,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
     private void setupComponents() {
         setListeners();
 
-        this.buttonGroup = new ButtonGroup(1);
-        this.buttonGroup.addButton(this);
+        setButtonGroup(new ButtonGroup(1));
 
         setDisplayedComponents(false);
     }
@@ -124,6 +123,46 @@ public abstract class GuiAbstractButton extends GuiPreset {
             return;
 
         this.text = new GuiText(this, text);
+    }
+
+    @Override
+    public void setX(float x) {
+        super.setX(x);
+
+        if (this.text != null)
+            this.text.setX(getX());
+        if (this.buttonShape != null)
+            this.buttonShape.setX(getX());
+    }
+
+    @Override
+    public void setY(float y) {
+        super.setY(y);
+
+        if (this.text != null)
+            this.text.setY(y);
+        if (this.buttonShape != null)
+            this.buttonShape.setY(getY());
+    }
+
+    @Override
+    public void setWidth(float width) {
+        super.setWidth(width);
+
+        if (this.text != null)
+            this.text.setWidth(width);
+        if (this.buttonShape != null)
+            this.buttonShape.setWidth(width);
+    }
+
+    @Override
+    public void setHeight(float height) {
+        super.setHeight(height);
+
+        if (this.text != null)
+            this.text.setHeight(height);
+        if (this.buttonShape != null)
+            this.buttonShape.setHeight(height);
     }
 
     public void setOnPress(PressCallback onPressCallback) {
@@ -292,9 +331,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
     }
 
     public void resetFilter() {
-        if (this.filterLayout != null) {
+        if (this.filterLayout != null && !this.toggleType)
             this.filterLayout.scale(1 / (1 - SCALE_FACTOR));
-        }
     }
 
     public void setToggleType(boolean toggleType) {
@@ -328,7 +366,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
     public void setDisplayed(boolean displayed) {
         super.setDisplayed(displayed);
 
-        if (!displayed && this.clicked)
+        if (!displayed && this.clicked && this.buttonGroup.getMaxButtons() == 1)
             setClicked(false);
     }
 

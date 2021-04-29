@@ -11,6 +11,7 @@ import inputs.MouseUtils;
 import items.GameObjectPreviews;
 import java.awt.Color;
 import java.io.File;
+import language.Words;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
@@ -47,23 +48,23 @@ public class GuiItemSelection extends Gui {
         setConstraints(menuConstraints);
 
 
-        setChildrenConstraints(new PatternGlobalConstraint(5, 3, .02f));
+        setLayout(new PatternGlobalConstraint(5, 3, .02f));
 
-        GuiAbstractButton dirtRoadButton = addButton("Dirt Road", GameObjectPreviews.DIRT_ROAD);
+        GuiAbstractButton dirtRoadButton = addButton(Words.DIRT_ROAD, GameObjectPreviews.DIRT_ROAD);
         dirtRoadButton.setOnPress(() -> {
             System.out.println("DirtRoad selected");
 
             MouseUtils.setRoadState();
             selectOrUnselect(DirtRoad.class);
         });
-        GuiAbstractButton insulaButton = addButton("Insula", GameObjectPreviews.INSULA);
+        GuiAbstractButton insulaButton = addButton(Words.INSULA, GameObjectPreviews.INSULA);
         insulaButton.setOnPress(() -> {
             System.out.println("Insula selected");
 
             MouseUtils.setBuildingState();
             selectOrUnselect(Insula.class);
         });
-        GuiAbstractButton marketButton = addButton("Market", GameObjectPreviews.MARKET);
+        GuiAbstractButton marketButton = addButton(Words.MARKET, GameObjectPreviews.MARKET);
         marketButton.setOnPress(() -> {
             System.out.println("Market selected");
 
@@ -74,7 +75,7 @@ public class GuiItemSelection extends Gui {
         setDisplayed(false);
     }
 
-    public GuiAbstractButton addButton(String name, Background<?> background) {
+    public GuiAbstractButton addButton(Words name, Background<?> background) {
         Text text = new Text(name, .55f, DEFAULT_FONT, Color.DARK_GRAY);
         GuiRectangleButton button = new GuiRectangleButton(this, background, null, text);
         button.enableFilter();

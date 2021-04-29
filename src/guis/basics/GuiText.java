@@ -119,6 +119,9 @@ public class GuiText extends GuiBasics {
         if (this.text == null)
             return;
 
+        if(this.text.isStringChanged())
+            setText(this.text);
+
         if (isDisplayed())
             TextMaster.getInstance().loadText(getText());
     }

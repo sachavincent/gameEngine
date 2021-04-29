@@ -37,12 +37,13 @@ public interface GuiInterface {
 
     void updateTexturePosition();
 
-    void setChildrenConstraints(GuiGlobalConstraints guiConstraints);
+    void setLayout(GuiGlobalConstraints guiConstraints);
 
     GuiTexture getDebugOutline();
+
+    boolean displayDebugOutline();
 
     default boolean update() {
         return true;
     }
-
 }

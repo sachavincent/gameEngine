@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import language.TextConverter;
 import renderEngine.Loader;
 
 public class TextMaster {

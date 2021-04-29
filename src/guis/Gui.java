@@ -50,8 +50,9 @@ public class Gui implements GuiInterface {
     protected boolean focused, displayed;
 
     private UpdateCallback updateCallback;
+    private      boolean    displayDebugOutline = true;
 
-    private GuiGlobalConstraints childrenConstraints;
+    private GuiGlobalConstraints layout;
 
     public Gui(Background<?> background) {
         setBackground(background);
@@ -66,14 +67,6 @@ public class Gui implements GuiInterface {
     public void setBackground(Background<?> background) {
         this.background = new GuiTexture(background, new Vector2f(this.x, this.y),
                 new Vector2f(this.width, this.height));
-    }
-
-    public Gui(int r, int g, int b) {
-        this(new Background<>(new Color(r, g, b)));
-    }
-
-    public Gui(float r, float g, float b) {
-        this(new Background<>(new Color(r, g, b)));
     }
 
     public void setConstraints(GuiConstraintsManager constraints) {
@@ -150,8 +143,8 @@ public class Gui implements GuiInterface {
 
         this.components.remove(guiComponent);
 
-        if (childrenConstraints != null && guiComponent.getParent().equals(childrenConstraints.getParent())) {
-            childrenConstraints.addComponent(guiComponent);
+        if (layout != null && guiComponent.getParent().equals(layout.getParent())) {
+            layout.addComponent(guiComponent);
             guiComponent.updateTexturePosition();
         }
 
@@ -218,6 +211,11 @@ public class Gui implements GuiInterface {
     @Override
     public GuiTexture getDebugOutline() {
         return this.debugOutline;
+    }
+
+    @Override
+    public boolean displayDebugOutline() {
+        return this.displayDebugOutline;
     }
 
     public void setOnUpdate(UpdateCallback updateCallback) {
@@ -386,10 +384,10 @@ public class Gui implements GuiInterface {
     }
 
 
-    public void setChildrenConstraints(GuiGlobalConstraints guiConstraints) {
+    public void setLayout(GuiGlobalConstraints guiConstraints) {
         guiConstraints.setParent(this);
 
-        this.childrenConstraints = guiConstraints;
+        this.layout = guiConstraints;
     }
 
     public static void toggleGui(Gui gui) {

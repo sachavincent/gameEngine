@@ -172,7 +172,7 @@ public class GuiHouseDetails extends Gui {
 
         if (currentPeopleCount < maxPeopleCapacity) {
             this.peopleDistributionGraph.addSector(
-                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY, Words.AVAILABLE_SPACE));
+                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY, Words.AVAILABLE_SPACE.getString()));
         }
 
         return true;
@@ -200,7 +200,7 @@ public class GuiHouseDetails extends Gui {
             return;
 
         this.subCategoriesTab.clearComponents();
-        this.subCategoriesTab.setChildrenConstraints(new PatternGlobalConstraint(subCategories.size(), 1, 0));
+        this.subCategoriesTab.setLayout(new PatternGlobalConstraint(subCategories.size(), 1, 0));
 
         AtomicBoolean selected = new AtomicBoolean();
         ButtonGroup group = new ButtonGroup(subCategories.size());

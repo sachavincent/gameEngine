@@ -10,7 +10,7 @@ public class OBJGameObjects {
 
     private final static RawModel ROAD_MODEL = OBJLoader.loadRoadModel();
 
-    public static final OBJGameObject INSULA = OBJLoader.loadOBJGameObject("FarmHouse", true);
+    public static final OBJGameObject INSULA = OBJLoader.loadOBJGameObject("Insula", true);
 
     public static final OBJGameObject MARKET = OBJLoader.loadOBJGameObject("Market", true);
 

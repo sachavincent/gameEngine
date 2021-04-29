@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
 
@@ -161,5 +164,15 @@ public class Utils {
      */
     public static Color setAlphaColor(Color color, int alpha) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+    }
+
+    public static String formatText(String text) {
+        if (text.isEmpty())
+            return "";
+
+        UnaryOperator<String> capitalize = str ->
+                str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+
+        return Stream.of(text.split(" ")).map(capitalize).collect(Collectors.joining(" "));
     }
 }
