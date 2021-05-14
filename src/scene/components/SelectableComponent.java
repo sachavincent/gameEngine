@@ -1,22 +1,22 @@
 package scene.components;
 
-import inputs.callbacks.PressCallback;
+import inputs.callbacks.MousePressCallback;
 
 public class SelectableComponent implements Component {
 
     private boolean selected;
 
-    private final PressCallback pressCallback;
+    private final MousePressCallback mousePressCallback;
 
-    public SelectableComponent(PressCallback pressCallback) {
-        this.pressCallback = () -> {
+    public SelectableComponent(MousePressCallback mousePressCallback) {
+        this.mousePressCallback = button -> {
             this.selected = true;
-            pressCallback.onPress();
+            mousePressCallback.onPress(button);
         };
     }
 
-    public PressCallback getPressCallback() {
-        return this.pressCallback;
+    public MousePressCallback getPressCallback() {
+        return this.mousePressCallback;
     }
 
     public boolean isSelected() {

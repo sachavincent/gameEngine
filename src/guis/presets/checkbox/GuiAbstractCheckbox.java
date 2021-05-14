@@ -46,7 +46,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset {
 //            updateTexturesOnClick();
 //        });
 //
-//        setOnPress(() -> {
+//        setOnPress(button -> {
 //            System.out.println("Press");
 //
 //            setClicked(true);

@@ -10,6 +10,7 @@ import guis.constraints.RatioedPatternGlobalConstraint;
 import guis.presets.buttons.GuiTriangleButton;
 import java.awt.Color;
 import java.util.List;
+import org.lwjgl.glfw.GLFW;
 
 public class GuiMultiOption<T> extends GuiPreset {
 
@@ -38,8 +39,16 @@ public class GuiMultiOption<T> extends GuiPreset {
         this.guiText = new GuiText(this, new Text(this.selectedOption.toString(), .8f, DEFAULT_FONT, Color.BLACK));
         this.next = new GuiTriangleButton(this, arrowBackground, 90);
 
-        this.previous.setOnPress(this::selectPrevious);
-        this.next.setOnPress(this::selectNext);
+        this.previous.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                selectPrevious();
+            }
+        });
+        this.next.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                selectNext();
+            }
+        });
     }
 
     public void setOptions(List<T> options) {

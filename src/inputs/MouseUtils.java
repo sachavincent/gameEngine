@@ -31,12 +31,12 @@ import pathfinding.RouteFinder;
 import pathfinding.RouteFinder.Route;
 import renderEngine.DisplayManager;
 import renderEngine.FrustumCullingFilter;
-import scene.gameObjects.GameObject;
-import scene.gameObjects.Player;
-import scene.components.RepleacableComponent;
 import scene.Scene;
+import scene.components.RepleacableComponent;
 import scene.components.SelectableComponent;
 import scene.components.TerrainComponent;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Player;
 import terrains.TerrainPosition;
 import util.MousePicker;
 import util.math.Maths;
@@ -61,7 +61,7 @@ public class MouseUtils {
 
     private static State state = State.DEFAULT;
 
-    private static final Scene   scene   = Scene.getInstance();
+    private static final Scene scene = Scene.getInstance();
 
     private static final List<GuiComponent>      ENTERED_GUI_COMPONENTS = new ArrayList<>();
     private static       List<GuiAbstractButton> buttons;
@@ -191,6 +191,14 @@ public class MouseUtils {
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
             boolean inGui = Game.getInstance().getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
+            final List<GuiAbstractButton> clickableButtons = new ArrayList<>(Game.getInstance().getDisplayedGuis())
+                    .stream().map(gui -> gui.getAllComponents().stream()
+                            .filter(GuiComponent::isDisplayed)
+                            .filter(GuiAbstractButton.class::isInstance)
+                            .map(GuiAbstractButton.class::cast)
+                            .filter(guiButton -> isCursorInGuiComponent(guiButton.getButtonShape()))
+                            .collect(Collectors.toList())).flatMap(Collection::stream)
+                    .collect(Collectors.toList());
 
             switch (button) {
                 case GLFW_MOUSE_BUTTON_1:
@@ -200,12 +208,7 @@ public class MouseUtils {
                     switch (action) {
                         case GLFW_PRESS:
                             if (inGui)
-                                new ArrayList<>(Game.getInstance().getDisplayedGuis()).forEach(
-                                        gui -> gui.getAllComponents().stream().filter(GuiComponent::isDisplayed)
-                                                .filter(GuiAbstractButton.class::isInstance)
-                                                .map(GuiAbstractButton.class::cast)
-                                                .filter(guiButton -> isCursorInGuiComponent(guiButton.getButtonShape()))
-                                                .forEach(GuiAbstractButton::onPress));
+                                clickableButtons.forEach(guiButton -> guiButton.onPress(GLFW_MOUSE_BUTTON_1));
 
                             Game.getInstance().getGuiTextInputs().forEach(guiTextInput -> {
                                 if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
@@ -213,12 +216,12 @@ public class MouseUtils {
                             });
                             break;
                         case GLFW_RELEASE:
-                            buttons.stream().filter(GuiComponent::isClicked).forEach(guiButton -> {
+                            buttons.stream().filter(b -> b.getClickType() == ClickType.M1).forEach(guiButton -> {
                                 if (!guiButton.isReleaseInsideNeeded()
                                         || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
                                         guiButton.isDisplayed() &&
                                         isCursorInGuiComponent(guiButton.getButtonShape())))
-                                    guiButton.onRelease();
+                                    guiButton.onRelease(GLFW_MOUSE_BUTTON_1);
                                 else
                                     guiButton.resetFilter();
                             });
@@ -233,10 +236,23 @@ public class MouseUtils {
                         case GLFW_PRESS:
                             if (Game.getInstance().getGameState() == GameState.STARTED)
                                 onM2Pressed();
+
+                            if (inGui)
+                                clickableButtons.forEach(guiButton -> guiButton.onPress(GLFW_MOUSE_BUTTON_2));
                             break;
                         case GLFW_RELEASE:
                             if (Game.getInstance().getGameState() == GameState.STARTED)
                                 onM2Released();
+
+                            buttons.stream().filter(b -> b.getClickType() == ClickType.M2).forEach(guiButton -> {
+                                if (!guiButton.isReleaseInsideNeeded()
+                                        || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
+                                        guiButton.isDisplayed() &&
+                                        isCursorInGuiComponent(guiButton.getButtonShape())))
+                                    guiButton.onRelease(GLFW_MOUSE_BUTTON_2);
+                                else
+                                    guiButton.resetFilter();
+                            });
                             break;
                         default:
                             System.err.println("Unknown action (M2)");
@@ -548,7 +564,7 @@ public class MouseUtils {
         } else {
             SelectableComponent selectableComponent = gameObject.getComponent(SelectableComponent.class);
             if (selectableComponent != null)
-                selectableComponent.getPressCallback().onPress();
+                selectableComponent.getPressCallback().onPress(GLFW_MOUSE_BUTTON_1);
         }
     }
 

@@ -13,6 +13,7 @@ import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
 import language.Words;
+import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
 
 public class GuiEscapeMenu extends Gui {
@@ -48,9 +49,11 @@ public class GuiEscapeMenu extends Gui {
         Text text = new Text(Words.RESUME, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton resumeButton = new GuiRectangleButton(this, this.buttonBackground, text);
         resumeButton.enableFilter();
-        resumeButton.setOnPress(() -> {
-            setDisplayed(false);
-            Game.getInstance().resume();
+        resumeButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                setDisplayed(false);
+                Game.getInstance().resume();
+            }
         });
     }
 
@@ -58,8 +61,10 @@ public class GuiEscapeMenu extends Gui {
         Text text = new Text(Words.SAVE_AND_QUIT, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
-        saveAndQuitButton.setOnPress(() -> {
+        saveAndQuitButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
+            }
         });
     }
 
@@ -67,8 +72,10 @@ public class GuiEscapeMenu extends Gui {
         Text text = new Text(Words.QUICK_SAVE, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         saveAndQuitButton.enableFilter();
-        saveAndQuitButton.setOnPress(() -> {
+        saveAndQuitButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
+            }
         });
     }
 
@@ -82,9 +89,11 @@ public class GuiEscapeMenu extends Gui {
         Text text = new Text(Words.SETTINGS, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton settingsButton = new GuiRectangleButton(this, this.buttonBackground, text);
         settingsButton.enableFilter();
-        settingsButton.setOnPress(() -> {
-            setDisplayed(false);
-            guiSettingsMenu.setDisplayed(true);
+        settingsButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                setDisplayed(false);
+                guiSettingsMenu.setDisplayed(true);
+            }
         });
     }
 
@@ -93,8 +102,9 @@ public class GuiEscapeMenu extends Gui {
         Text text = new Text(Words.QUIT, .7f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, text);
         quitButton.enableFilter();
-        quitButton.setOnPress(() -> {
-            quitFunction();
+        quitButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                quitFunction();
         });
     }
 

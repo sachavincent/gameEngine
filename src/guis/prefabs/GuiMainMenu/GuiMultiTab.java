@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.lwjgl.glfw.GLFW;
 
 public class GuiMultiTab extends Gui {
 
@@ -57,7 +58,11 @@ public class GuiMultiTab extends Gui {
         text.setUpperCase(true);
         GuiRectangleButton rectangleButton = new GuiRectangleButton(this.tabArea, Background.NO_BACKGROUND, text);
         final int num = this.tabs.size();
-        rectangleButton.setOnPress(() -> displayTab(num));
+        rectangleButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                displayTab(num);
+            }
+        });
         guiTab.setTabMenu(rectangleButton);
 
         this.tabs.add(guiTab);
@@ -114,6 +119,10 @@ public class GuiMultiTab extends Gui {
 
     public void onBackButtonPress(BackCallback backCallback) {
         if (this.guiBack != null)
-            this.guiBack.setOnPress(backCallback::onBack);
+            this.guiBack.setOnMousePress(button -> {
+                if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                    backCallback.onBack();
+                }
+            });
     }
 }

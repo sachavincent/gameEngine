@@ -1,5 +1,7 @@
 package guis.presets.buttons;
 
+import inputs.ClickType;
+
 public class ButtonGroup {
 
     private final int                 maxButtons;
@@ -13,13 +15,13 @@ public class ButtonGroup {
         this.nbButtons = 0;
     }
 
-    public void setButtonClicked(int id) {
+    public void setButtonClicked(ClickType clickType, int id) {
         for (GuiAbstractButton button : this.buttons) {
             if (button == null)
                 return;
 
-            button.clicked = button.ID == id;
-            button.setFilterTransparency(button.clicked ? 1 : 0);
+            button.clickType = button.ID == id ? clickType : ClickType.NONE;
+            button.setFilterTransparency(button.isClicked() ? 1 : 0);
         }
     }
 

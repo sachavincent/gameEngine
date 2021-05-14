@@ -115,24 +115,23 @@ public class Gui implements GuiInterface {
         if (text == null)
             return null;
 
-        List<Line> lines = text.getFont().getLoader().getLines(text);
-
-        Line line = lines.get(0);
-
-        if (line == null) {
-            try {
-                throw new IllegalArgumentException("Invalid text.");
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-
-                return null;
-            }
-        }
-
-        text.setLineMaxSize(guiInterface.getWidth());
-        text.setCentered(true);
-        text.setPosition(new Vector2f(guiInterface.getX() - guiInterface.getWidth() + line.getLineLength(),
-                -guiInterface.getY() - text.getTextHeight() / 2));
+//        List<Line> lines = text.getFont().getLoader().getLines(text);
+//
+//        Line line = lines.get(0);
+//
+//        if (line == null) {
+//            try {
+//                throw new IllegalArgumentException("Invalid text.");
+//            } catch (IllegalArgumentException e) {
+//                e.printStackTrace();
+//
+//                return null;
+//            }
+//        }
+//
+//        text.setLineMaxSize(guiInterface.getWidth());
+//        text.setPosition(new Vector2f(guiInterface.getX() - guiInterface.getWidth() + line.getLineLength(),
+//                -guiInterface.getY() - text.getTextHeight() / 2));
         return new GuiText(guiInterface, text);
     }
 

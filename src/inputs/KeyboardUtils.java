@@ -7,15 +7,13 @@ import engineTester.Game.GameState;
 import entities.Camera;
 import fontMeshCreator.Text;
 import guis.Gui;
-import guis.GuiComponent;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiItemSelection;
 import guis.prefabs.GuiMainMenu.GuiMainMenu;
-import guis.presets.GuiTextInput;
+import inputs.requests.Request;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.stream.Collectors;
 import org.lwjgl.system.Callback;
 import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
@@ -26,46 +24,68 @@ public class KeyboardUtils {
 
     private static final Queue<Request> requests = new LinkedList<>();
 
+    public static boolean isCapsLock;
+    public static boolean isNumLock;
+    public static boolean isSuper;
+    public static boolean isAlt;
+    public static boolean isControl;
+    public static boolean isShift;
+
     public static void cancelRequest(Request request) {
         requests.remove(request);
+    }
+
+    public static void cancelRequest() {
+        requests.poll();
     }
 
     public static void request(Request request) {
         requests.add(request);
     }
 
-    private static boolean handleRequests(int action, int key) {
+    private static boolean handleRequests(int action, char pressedKey) {
         if (requests.isEmpty())
             return false;
 
         Request request = requests.element();
 
-        if (request != null) {
-            request.getHecklingCallback().onKeyRequest(action, key);
-            if (request.getHecklingCallback().onKeyRequest(action, key)) {
-                requests.remove();
-            }
+        if (request != null)
+            return request.getOnHandleRequest().onHandle(action, pressedKey, request, requests);
 
-            return true;
-        }
         return false;
     }
 
     public static void setupListeners() {
         callback = glfwSetKeyCallback(DisplayManager.getWindow(), (w, key, scancode, action, mods) -> {
-            boolean handled = handleRequests(action, key);
-            if(handled)
+            // Caps lock & Num lock handling
+            {
+                int numLock = (mods & GLFW_MOD_NUM_LOCK);
+                int capsLock = ((mods - numLock) & GLFW_MOD_CAPS_LOCK);
+                int superPressed = ((mods - capsLock) & GLFW_MOD_SUPER);
+                int altPressed = ((mods - superPressed) & GLFW_MOD_ALT);
+                int ctrlPressed = ((mods - altPressed) & GLFW_MOD_CONTROL);
+                int shiftPressed = ((mods - ctrlPressed) & GLFW_MOD_SHIFT);
+
+                isCapsLock = capsLock == GLFW_MOD_CAPS_LOCK;
+                isNumLock = numLock == GLFW_MOD_NUM_LOCK;
+                isSuper = superPressed == GLFW_MOD_SUPER;
+                isAlt = altPressed == GLFW_MOD_ALT;
+                isControl = ctrlPressed == GLFW_MOD_CONTROL;
+                isShift = shiftPressed == GLFW_MOD_SHIFT;
+            }
+            boolean handled = handleRequests(action, (char) key);
+            if (handled)
                 return;
 
-            List<GuiTextInput> focusedInputs = Game.getInstance().getGuiTextInputs().stream()
-                    .filter(GuiComponent::isClicked).collect(Collectors.toList());
-            boolean isKeyProcessed = false;
-            if (!focusedInputs.isEmpty())
-                isKeyProcessed = focusedInputs.stream()
-                        .allMatch(guiTextInput -> guiTextInput.processKeyboardInput(action, key));
-
-            if (isKeyProcessed)
-                return;
+//            List<GuiTextInput> focusedInputs = Game.getInstance().getGuiTextInputs().stream()
+//                    .filter(guiTextInput -> guiTextInput.getClickType() != ClickType.NONE).collect(Collectors.toList());
+//            boolean isKeyProcessed = false;
+//            if (!focusedInputs.isEmpty())
+//                isKeyProcessed = focusedInputs.stream()
+//                        .allMatch(guiTextInput -> guiTextInput.processKeyboardInput(action, key));
+//
+//            if (isKeyProcessed)
+//                return;
 
             if (action == GLFW_PRESS) {
                 if (key == GLFW_KEY_ESCAPE) {

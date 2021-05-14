@@ -12,6 +12,7 @@ import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.presets.graphs.GuiDonutGraph;
 import guis.presets.graphs.GuiDonutGraph.Sector;
+import inputs.ClickType;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import language.Words;
+import org.lwjgl.glfw.GLFW;
 import people.Person;
 import people.SocialClass;
 import resources.ResourceManager;
@@ -27,9 +29,9 @@ import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
 import resources.ResourceType;
 import scene.components.FrequentedPlaceComponent;
-import scene.gameObjects.GameObject;
 import scene.components.RequireResourcesComponent;
 import scene.components.SelectableComponent;
+import scene.gameObjects.GameObject;
 
 public class GuiHouseDetails extends Gui {
 
@@ -172,7 +174,8 @@ public class GuiHouseDetails extends Gui {
 
         if (currentPeopleCount < maxPeopleCapacity) {
             this.peopleDistributionGraph.addSector(
-                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY, Words.AVAILABLE_SPACE.getString()));
+                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY,
+                            Words.AVAILABLE_SPACE.getString()));
         }
 
         return true;
@@ -212,14 +215,16 @@ public class GuiHouseDetails extends Gui {
             button.enableFilter();
             button.setToggleType(true);
             button.setButtonGroup(group);
-            button.setOnPress(() -> {
-                if (resourcesNeeded.containsKey(resource)) {
-                    int value = resourcesNeeded.get(resource);
-                    Stock stock = ResourceManager.getResources().get(resource);
+            button.setOnMousePress(b -> {
+                if (b == GLFW.GLFW_MOUSE_BUTTON_1) {
+                    if (resourcesNeeded.containsKey(resource)) {
+                        int value = resourcesNeeded.get(resource);
+                        Stock stock = ResourceManager.getResources().get(resource);
 
-                    setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
+                        setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
+                    }
+                    this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
                 }
-                this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
             });
 
             if (!selected.get()) {
@@ -230,7 +235,7 @@ public class GuiHouseDetails extends Gui {
                     setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
                 }
                 selected.set(true);
-                button.setClicked(true);
+                button.setClickType(ClickType.M1);
             }
 //            } else {
 //                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getBackgroundTexture(), null);
@@ -249,7 +254,10 @@ public class GuiHouseDetails extends Gui {
 
         this.moneyButton = createButton(ButtonType.RECTANGLE, coinsImage, null, null, constraintsManager);
 
-        this.moneyButton.setOnPress(this::onMoneyClick);
+        this.moneyButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                onMoneyClick();
+        });
     }
 
     private void addPeopleButton() {
@@ -274,7 +282,10 @@ public class GuiHouseDetails extends Gui {
 
         if (this.peopleButton != null) {
             this.peopleButton.setDisplayed(false);
-            this.peopleButton.setOnPress(this::onPeopleClick);
+            this.peopleButton.setOnMousePress(button -> {
+                if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                    onPeopleClick();
+            });
 
             setComponentTransitions(this.peopleButton);
         }

@@ -72,7 +72,7 @@ public class Text {
         this.stringChanged = false;
 
         this.color = color;
-
+        this.centerText = true;
 //        this.charWidth = fontSize / 2.5f;
         this.charWidth = 0.48f;
         this.edgeCharWidth = Math.max(0, 0.1f + (2f - fontSize) * 0.0625f);
@@ -93,6 +93,7 @@ public class Text {
         this.fontSize = fontSize;
         this.font = font;
         this.stringChanged = false;
+        this.centerText = true;
 
         this.color = color;
 
@@ -270,7 +271,7 @@ public class Text {
     /**
      * @return {@code true} if the text should be centered.
      */
-    protected boolean isCentered() {
+    public boolean isCentered() {
         return this.centerText;
     }
 

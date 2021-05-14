@@ -58,8 +58,9 @@ public class SettingsManager {
             bufferedWriter = new BufferedWriter(fileWriter);
 
             for (Option<?> option : Option.OPTIONS) {
+                if (!option.equals(Option.OPTIONS.get(0)))
+                    bufferedWriter.newLine();
                 bufferedWriter.write(option.name + "=" + option.getCallback.onOptionGet().toString());
-                bufferedWriter.newLine();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -84,8 +85,9 @@ public class SettingsManager {
             for (Option<?> option : Option.OPTIONS) {
                 option.reset();
 
+                if (!option.equals(Option.OPTIONS.get(0)))
+                    bufferedWriter.newLine();
                 bufferedWriter.write(option.name + "=" + option.defaultValue);
-                bufferedWriter.newLine();
             }
         } catch (IOException e) {
             e.printStackTrace();

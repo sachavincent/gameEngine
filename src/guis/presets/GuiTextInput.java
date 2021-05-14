@@ -11,10 +11,14 @@ import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
 import guis.constraints.*;
 import guis.presets.buttons.GuiRectangleButton;
+import inputs.ClickType;
+import inputs.KeyboardUtils;
 import inputs.MouseUtils;
+import inputs.requests.TextInputRequest;
 import java.awt.Color;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.lwjgl.glfw.GLFW;
 import util.math.Vector2f;
 
 public class GuiTextInput extends GuiPreset {
@@ -29,12 +33,13 @@ public class GuiTextInput extends GuiPreset {
 
     private int maxLength = Integer.MAX_VALUE;
 
-    private final float   minCursorXPosition;
-    private       boolean leftControlKeyPressed;
-    private       boolean rightControlKeyPressed;
-    private       float   textSize;
+    private final float minCursorXPosition;
+    private       float textSize;
 
     private boolean textSelected;
+
+    private final TextInputRequest textInputRequest = new TextInputRequest(
+            (action, keyInput) -> this.processKeyboardInput(action, keyInput.getKey()));
 
     public GuiTextInput(GuiInterface parent, GuiConstraintsManager constraintsManager) {
         this(parent, Background.NO_BACKGROUND, constraintsManager);
@@ -75,15 +80,16 @@ public class GuiTextInput extends GuiPreset {
         this.guiText = Gui.setupText(this.outline, text);
 
         this.minCursorXPosition = this.outline.getX() - this.outline.getWidth() + SideConstraint.DISTANCE_FROM_SIDE;
-        this.guiText.getText()
-                .setPosition(new Vector2f(this.minCursorXPosition, (this.guiText.getText().getPosition().y - 0.5) * 2));
+        this.guiText.getText().setCentered(false);
+        this.guiText.setOnUpdate(() -> this.guiText.getText().setPosition(
+                new Vector2f(this.minCursorXPosition, (this.guiText.getText().getPosition().y - 0.5) * 2)));
+
         this.cursor.setCornerRadius(0);
 
         this.textSelected = false;
     }
 
     public void setSelectedBackgroundColor(Color selectedBackgroundColor) {
-
         this.selectedTextOutline.setTexture(new Background<>(selectedBackgroundColor));
     }
 
@@ -103,85 +109,81 @@ public class GuiTextInput extends GuiPreset {
 
     /**
      * Handles input in input
-     * return true if input is processed
+     * return true if unfocused
      */
-    public boolean processKeyboardInput(int action, int key) {
+    public boolean processKeyboardInput(int action, char key) {
         Text text = this.guiText.getText();
         String content = text.getTextString();
 
         if (action == GLFW_PRESS || action == GLFW_REPEAT) {
             switch (key) {
-                case GLFW_KEY_LEFT_CONTROL:
-                    this.leftControlKeyPressed = true;
-                    return true;
-                case GLFW_KEY_RIGHT_CONTROL:
-                    this.rightControlKeyPressed = true;
-                    return true;
                 case GLFW_KEY_SPACE:
                     updateAddCursorAndText(' ');
-                    return true;
+                    break;
                 case GLFW_KEY_ESCAPE:
                     if (this.textSelected)
                         unselectText();
-                    else
+                    else {
                         unfocus();
-                    return true;
+                        return true;
+                    }
+                    break;
                 case GLFW_KEY_BACKSPACE:
                     updateDelCursorAndText(GLFW_KEY_BACKSPACE);
-                    return true;
+                    break;
                 case GLFW_KEY_DELETE:
                     updateDelCursorAndText(GLFW_KEY_DELETE);
-                    return true;
+                    break;
                 case GLFW_KEY_LEFT:
                     if (this.textSelected)
                         unselectText();
 
                     shiftCursorLeft();
-                    return true;
+                    break;
                 case GLFW_KEY_RIGHT:
                     if (this.textSelected)
                         unselectText();
 
                     shiftCursorRight();
-                    return true;
+                    break;
                 case GLFW_KEY_HOME:
                     if (this.textSelected)
                         unselectText();
 
                     this.cursorPosition = 0;
                     this.cursor.setX(this.minCursorXPosition);
-                    return true;
+                    break;
                 case GLFW_KEY_END:
                     if (this.textSelected)
                         unselectText();
 
                     this.cursorPosition = content.length();
                     this.cursor.setX(this.minCursorXPosition + this.textSize);
-                    return true;
+                    break;
                 default: // Any character
-                    if (action == GLFW_PRESS && key == GLFW_KEY_Q && isAnyControlKeyPressed()) {
+                    if (action == GLFW_PRESS && key == GLFW_KEY_Q && KeyboardUtils.isControl) {
                         if (!content.isEmpty())
                             selectText();
-                        return true;
+                        break;
+                    }
+                    boolean capsEnabled = (KeyboardUtils.isCapsLock && !KeyboardUtils.isShift) ||
+                            (!KeyboardUtils.isCapsLock && KeyboardUtils.isShift);
+
+                    char charToAdd;
+                    if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9 && capsEnabled)
+                        charToAdd = key;
+                    else {
+                        String keyText = glfwGetKeyName(key, 0);
+                        if (keyText == null || keyText.length() != 1)
+                            break;
+                        charToAdd = keyText.charAt(0);
+
+                        if (capsEnabled && Character.isAlphabetic(charToAdd)) // a -> A
+                            charToAdd -= 32;
                     }
 
-                    String keyText = glfwGetKeyName(key, 0);
-                    if (keyText == null || keyText.length() != 1)
-                        return false;
-
-                    updateAddCursorAndText(keyText.charAt(0));
-                    return true;
-            }
-        } else if (action == GLFW_RELEASE) {
-            switch (key) {
-                case GLFW_KEY_LEFT_CONTROL:
-                    this.leftControlKeyPressed = false;
-                    return true;
-                case GLFW_KEY_RIGHT_CONTROL:
-                    this.rightControlKeyPressed = false;
-                    return true;
-                default:
-                    return true;
+                    updateAddCursorAndText(charToAdd);
+                    break;
             }
         }
         return false;
@@ -242,6 +244,7 @@ public class GuiTextInput extends GuiPreset {
             content = "";
             unselectText();
         }
+
         if (content.length() < this.maxLength) {
             if (this.cursorPosition > 0)
                 text.setTextString(
@@ -278,10 +281,6 @@ public class GuiTextInput extends GuiPreset {
         this.cursor.setDisplayed(false);
         this.lastBlinkTime = 0;
         this.textSelected = true;
-    }
-
-    private boolean isAnyControlKeyPressed() {
-        return this.rightControlKeyPressed || this.leftControlKeyPressed;
     }
 
     /**
@@ -340,11 +339,17 @@ public class GuiTextInput extends GuiPreset {
         this.cursor.setHeight(handler.handleHeightConstraint(new RelativeConstraint(.8f, this.outline)));
         this.cursor.setDisplayed(false);
 
-        this.outline.setOnPress(() -> {
-            if (!this.clicked) { //Start blinking effect
+        this.outline.setOnMousePress(button -> {
+            if (button != GLFW.GLFW_MOUSE_BUTTON_1)
+                return;
+
+            if (this.clickType == ClickType.NONE) { // Start blinking effect
                 this.lastBlinkTime = System.currentTimeMillis();
-                this.clicked = true;
+                this.clickType = ClickType.M1;
+
                 this.cursor.setDisplayed(true);
+
+                KeyboardUtils.request(new TextInputRequest(this.textInputRequest));
             }
 
             if (this.textSelected)
@@ -391,12 +396,12 @@ public class GuiTextInput extends GuiPreset {
     public void unfocus() {
         unselectText();
         this.cursor.setDisplayed(false);
-        this.clicked = false;
+        this.clickType = ClickType.NONE;
         this.lastBlinkTime = 0;
     }
 
     public void updateCursor() {
-        if (this.clicked && !this.textSelected) {
+        if (this.clickType == ClickType.M1 && !this.textSelected) {
             if ((System.currentTimeMillis() - this.lastBlinkTime) > 1000) {
                 this.lastBlinkTime += 1000;
                 this.cursor.setDisplayed(!this.cursor.isDisplayed());

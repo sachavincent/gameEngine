@@ -14,10 +14,11 @@ import guis.constraints.Side;
 import guis.constraints.StickyConstraint;
 import guis.presets.Background;
 import guis.presets.GuiPreset;
+import inputs.ClickType;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.LeaveCallback;
-import inputs.callbacks.PressCallback;
-import inputs.callbacks.ReleaseCallback;
+import inputs.callbacks.MousePressCallback;
+import inputs.callbacks.MouseReleaseCallback;
 import java.awt.Color;
 import models.RawModel;
 
@@ -36,9 +37,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
 
     private boolean toggleType = false;
 
-    private ButtonGroup     buttonGroup;
-    private PressCallback   onPressCallback;
-    private ReleaseCallback onReleaseCallback;
+    private ButtonGroup        buttonGroup;
+    private MousePressCallback   onMousePressCallback;
+    private MouseReleaseCallback onMouseMouseReleaseCallback;
 
     private boolean releaseInsideNeeded = true; // If button needs to be released inside of this component
 
@@ -165,25 +166,25 @@ public abstract class GuiAbstractButton extends GuiPreset {
             this.buttonShape.setHeight(height);
     }
 
-    public void setOnPress(PressCallback onPressCallback) {
-        this.onPressCallback = () -> {
+    public void setOnMousePress(MousePressCallback onMousePressCallback) {
+        this.onMousePressCallback = button -> {
             if (!this.toggleType || !isClicked())
-                setClicked(true);
-            else if (this.toggleType && isClicked() && this.buttonGroup.getMaxButtons() == 1)
-                setClicked(false);
+                setClickType(ClickType.getClickTypeFromButton(button));
+            else if (this.toggleType && button == this.clickType.getButton() && this.buttonGroup.getMaxButtons() == 1)
+                setClickType(ClickType.NONE);
 
             updateTexturePosition();
-            onPressCallback.onPress();
+            onMousePressCallback.onPress(button);
         };
     }
 
-    public void setOnRelease(ReleaseCallback onReleaseCallback) {
-        this.onReleaseCallback = () -> {
+    public void setOnMousRelease(MouseReleaseCallback onMouseReleaseCallback) {
+        this.onMouseMouseReleaseCallback = button -> {
             if (!this.toggleType)
-                setClicked(false);
+                setClickType(ClickType.NONE);
 
             updateTexturePosition();
-            onReleaseCallback.onRelease();
+            onMouseReleaseCallback.onRelease(button);
         };
     }
 
@@ -191,7 +192,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
     public void setOnLeave(LeaveCallback onLeaveCallback) {
         LeaveCallback basicLeaveCallback = () -> {
             //System.out.println("Leave");
-            if (!isClicked() || !this.toggleType) {
+            if (this.clickType == ClickType.NONE || !this.toggleType) {
                 setFilterTransparency(0);
                 if (this.tooltipGui != null) {
                     this.tooltipGui.setDisplayed(false);
@@ -203,21 +204,21 @@ public abstract class GuiAbstractButton extends GuiPreset {
         super.setOnLeave(basicLeaveCallback);
     }
 
-    public void onRelease() {
-        if (this.onReleaseCallback == null)
+    public void onRelease(int button) {
+        if (this.onMouseMouseReleaseCallback == null)
             return;
 
-        this.onReleaseCallback.onRelease();
+        this.onMouseMouseReleaseCallback.onRelease(button);
     }
 
     /**
      * Click + release within component
      */
-    public void onPress() {
-        if (this.onPressCallback == null)
+    public void onPress(int button) {
+        if (this.onMousePressCallback == null)
             return;
 
-        this.onPressCallback.onPress();
+        this.onMousePressCallback.onPress(button);
     }
 
     public void setFilterTransparency(float alpha) {
@@ -232,7 +233,7 @@ public abstract class GuiAbstractButton extends GuiPreset {
     public void setOnEnter(EnterCallback onEnterCallback) {
         EnterCallback basicEnterCallback = () -> {
             //  System.out.println("Enter");
-            if (!isClicked() || !this.toggleType) {
+            if (this.clickType == ClickType.NONE || !this.toggleType) {
                 setFilterTransparency(1);
 
                 if (this.tooltipGui != null) {
@@ -245,15 +246,30 @@ public abstract class GuiAbstractButton extends GuiPreset {
         super.setOnEnter(basicEnterCallback);
     }
 
+//    @Override
+//    public void setClicked(boolean clicked) {
+//        if (clicked)
+//            this.buttonGroup.setButtonClicked(ID);
+//        else
+//            this.clickType = false;
+//
+//        if (!this.toggleType && this.filterLayout != null) {
+//            if (clicked)
+//                this.filterLayout.scale(1 - SCALE_FACTOR);
+//            else
+//                resetFilter();
+//        }
+//    }
+
     @Override
-    public void setClicked(boolean clicked) {
-        if (clicked)
-            this.buttonGroup.setButtonClicked(ID);
+    public void setClickType(ClickType clickType) {
+        if (clickType != ClickType.NONE)
+            this.buttonGroup.setButtonClicked(clickType, ID);
         else
-            this.clicked = false;
+            this.clickType = ClickType.NONE;
 
         if (!this.toggleType && this.filterLayout != null) {
-            if (clicked)
+            if (clickType != ClickType.NONE)
                 this.filterLayout.scale(1 - SCALE_FACTOR);
             else
                 resetFilter();
@@ -265,9 +281,9 @@ public abstract class GuiAbstractButton extends GuiPreset {
         });
         setOnLeave(() -> {
         });
-        setOnRelease(() -> {
+        setOnMousRelease(button -> {
         });
-        setOnPress(() -> {
+        setOnMousePress(button -> {
         });
     }
 
@@ -281,7 +297,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
                 .setHeightConstraint(new PixelConstraint(30))
                 .setxConstraint(new RelativeConstraint(0))
                 .setyConstraint(new StickyConstraint(Side.TOP, 0.05f)).create());
-        GuiText guiText = Gui.setupText(this.tooltipGui, text);
+//        GuiText guiText = Gui.setupText(this.tooltipGui, text);
+        GuiText guiText = new GuiText(this.tooltipGui, text);
         guiText.setDisplayed(false);
         this.tooltipGui.addComponent(guiText);
         this.tooltipGui.setDisplayedByDefault(false);
@@ -366,8 +383,8 @@ public abstract class GuiAbstractButton extends GuiPreset {
     public void setDisplayed(boolean displayed) {
         super.setDisplayed(displayed);
 
-        if (!displayed && this.clicked && this.buttonGroup.getMaxButtons() == 1)
-            setClicked(false);
+        if (!displayed && this.clickType != ClickType.NONE && this.buttonGroup.getMaxButtons() == 1)
+            setClickType(ClickType.NONE);
     }
 
     public GuiShape getButtonShape() {

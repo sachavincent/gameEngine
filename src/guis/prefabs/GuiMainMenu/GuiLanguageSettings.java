@@ -11,10 +11,12 @@ import guis.constraints.RelativeConstraint;
 import guis.presets.Background;
 import guis.presets.buttons.ButtonGroup;
 import guis.presets.buttons.GuiRectangleButton;
+import inputs.ClickType;
 import java.awt.Color;
 import language.Language;
 import language.TextConverter;
 import language.Words;
+import org.lwjgl.glfw.GLFW;
 
 public class GuiLanguageSettings extends GuiTab {
 
@@ -49,12 +51,13 @@ public class GuiLanguageSettings extends GuiTab {
             button.setToggleType(true);
             button.enableFilter();
             button.setButtonGroup(buttonGroup);
-            button.setOnPress(() -> {
-                TextConverter.setNewLanguage(language);
+            button.setOnMousePress(b -> {
+                if (b == GLFW.GLFW_MOUSE_BUTTON_1)
+                    TextConverter.setNewLanguage(language);
             });
 
             if (language == TextConverter.getLanguage())
-                buttonGroup.setButtonClicked(button.ID);
+                buttonGroup.setButtonClicked(ClickType.M1, button.ID);
         }
     }
 }

@@ -1,25 +1,28 @@
 package inputs;
 
+import language.Words;
+
 public enum KeyBindings {
 
     DISPLAY_BOUNDING_BOXES("display_bounding_boxes"),
-    FORWARD("forward"),
-    BACKWARD("backward"),
-    LEFT("left"),
-    RIGHT("right"),
+    FORWARD(Words.FORWARD.name()),
+    LEFT(Words.LEFT.name()),
+    BACKWARD(Words.BACKWARD.name()),
+    RIGHT(Words.RIGHT.name()),
 
     ;
 
 
-    protected final String name;
-    protected       int    key;
+    protected final String   name;
+    protected       KeyInput keyInput;
 
     KeyBindings(String name) {
         this.name = name;
     }
 
-    public void setKey(int key) {
-        this.key = key;
+
+    public void setKeyInput(KeyInput keyInput) {
+        this.keyInput = keyInput;
     }
 
     public String getName() {
@@ -27,6 +30,20 @@ public enum KeyBindings {
     }
 
     public int getKey() {
-        return this.key;
+        return this.keyInput.getKey();
     }
+
+    public KeyModifiers getModifier() {
+        return this.keyInput.getValue();
+    }
+
+    public KeyInput getKeyInput() {
+        return this.keyInput;
+    }
+
+    public static int getEmptyKey() {
+        return 48;
+    }
+
+
 }

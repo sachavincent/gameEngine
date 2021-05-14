@@ -1,13 +1,18 @@
 package util;
 
 import inputs.KeyBindings;
+import inputs.KeyInput;
+import inputs.KeyModifiers;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import renderEngine.DisplayManager;
 
 public class KeybindingsManager {
@@ -41,10 +46,10 @@ public class KeybindingsManager {
                 }
 
                 Key key = Key.getKey(name);
-                if (key == null || value.length() != 1)
+                if (key == null)
                     continue;
 
-                key.setValue(value.charAt(0));
+                key.setValue(value);
             } while ((line = bufferedReader.readLine()) != null);
         } catch (IllegalArgumentException | IOException | IndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -67,14 +72,13 @@ public class KeybindingsManager {
             fileWriter = new FileWriter(SETTINGS_FILE, false);
             bufferedWriter = new BufferedWriter(fileWriter);
 
-
-            bufferedWriter.write("layout=" + KeyboardLayout.getCurrentKeyboardLayout().name());
-            bufferedWriter.newLine();
-
             for (Key option : Key.KEYS) {
-                bufferedWriter.write(option.keyBinding.getName() + "=" + (char) option.keyBinding.getKey());
+                bufferedWriter
+                        .write(option.keyBinding.getName() + "=" + option.keyBinding.getKeyInput().formatKeyInput());
                 bufferedWriter.newLine();
             }
+
+            bufferedWriter.write("layout=" + KeyboardLayout.getCurrentKeyboardLayout().name());
         } catch (IOException e) {
             e.printStackTrace();
             resetKeyBindings();
@@ -95,15 +99,14 @@ public class KeybindingsManager {
             fileWriter = new FileWriter(SETTINGS_FILE, false);
             bufferedWriter = new BufferedWriter(fileWriter);
 
-            bufferedWriter.write("layout=" + KeyboardLayout.getDefaultKeyboardLayout().name());
-            bufferedWriter.newLine();
+            for (Key key : Key.KEYS) {
+                key.reset();
 
-            for (Key option : Key.KEYS) {
-                option.reset();
-
-                bufferedWriter.write(option.keyBinding.getName() + "=" + (char) option.defaultValue);
+                bufferedWriter.write(key.keyBinding.getName() + "=" + key.defaultKeyInput.formatKeyInput());
                 bufferedWriter.newLine();
             }
+
+            bufferedWriter.write("layout=" + KeyboardLayout.getDefaultKeyboardLayout().name());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -116,92 +119,75 @@ public class KeybindingsManager {
         }
     }
 
-    static class Key {
+    /**
+     * Parses key
+     *
+     * @param key format: "LCTRL+ALT+M"
+     */
+    public static KeyInput parseKey(String key) {
+        KeyInput keyInput = null;
+        if (key.isEmpty())
+            return null;
+
+        try {
+            if (key.length() == 1)
+                keyInput = new KeyInput(key.charAt(0), KeyModifiers.NONE); // Only one character
+            else {
+                String[] split = key.split("\\+");
+                if (split.length == 2) { // Only one modifier
+                    keyInput = new KeyInput(split[1].charAt(0),
+                            KeyModifiers.getKeyModifierFromName(split[0]));
+                } else { // 2 modifiers
+                    keyInput = new KeyInput(split[2].charAt(0),
+                            KeyModifiers.getKeyModifierFromName(split[0] + "_" + split[1]));
+                }
+            }
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+        return keyInput;
+    }
+
+    public static class Key {
 
         final static List<Key> KEYS = new ArrayList<>();
 
-        final static Key DISPLAY_BOUNDING_BOXES = new Key(KeyBindings.DISPLAY_BOUNDING_BOXES, 'K');
-        final static Key FORWARD                = new Key(KeyBindings.FORWARD, 'W');
-        final static Key LEFT                   = new Key(KeyBindings.LEFT, 'A');
-        final static Key BACKWARD               = new Key(KeyBindings.BACKWARD, 'S');
-        final static Key RIGHT                  = new Key(KeyBindings.RIGHT, 'D');
+        final static Key DISPLAY_BOUNDING_BOXES = new Key(KeyBindings.DISPLAY_BOUNDING_BOXES, new KeyInput('K'));
+        final static Key FORWARD                = new Key(KeyBindings.FORWARD, new KeyInput('W'));
+        final static Key LEFT                   = new Key(KeyBindings.LEFT, new KeyInput('A'));
+        final static Key BACKWARD               = new Key(KeyBindings.BACKWARD, new KeyInput('S'));
+        final static Key RIGHT                  = new Key(KeyBindings.RIGHT, new KeyInput('D'));
 
         final KeyBindings keyBinding;
-        final int         defaultValue; // Default value in the QWERTY layout
+        final KeyInput    defaultKeyInput; // Default value in the QWERTY layout
 
-        private Key(KeyBindings keyBinding, int defaultValue) {
+        private Key(KeyBindings keyBinding, KeyInput defaultKeyInput) {
             this.keyBinding = keyBinding;
-            this.defaultValue = defaultValue;
+            this.defaultKeyInput = defaultKeyInput;
 
             KEYS.add(this);
         }
 
-        void setValue(char value) {
-//            char key;
-//            KeyboardLayout currentKeyboardLayout = KeyboardLayout.getCurrentKeyboardLayout();
-//
-//            switch (value) {
-//                case 'A':
-//                    switch (currentKeyboardLayout) {
-//                        case AZERTY:
-//                            key = 'Q';
-//                            break;
-//                        default:
-//                            key = value;
-//                    }
-//                    break;
-//                case 'Q':
-//                    switch (currentKeyboardLayout) {
-//                        case AZERTY:
-//                            key = 'A';
-//                            break;
-//                        default:
-//                            key = value;
-//                    }
-//                    break;
-//                case 'Z':
-//                    switch (currentKeyboardLayout) {
-//                        case AZERTY:
-//                            key = 'W';
-//                            break;
-//                        case QWERTZ:
-//                            key = 'Y';
-//                            break;
-//                        default:
-//                            key = value;
-//                    }
-//                    break;
-//                case 'Y':
-//                    switch (currentKeyboardLayout) {
-//                        case QWERTZ:
-//                            key = 'Z';
-//                            break;
-//                        default:
-//                            key = value;
-//                    }
-//                    break;
-//                case 'W':
-//                    switch (currentKeyboardLayout) {
-//                        case AZERTY:
-//                            key = 'Z';
-//                            break;
-//                        default:
-//                            key = value;
-//                    }
-//                    break;
-//                default:
-//                    key = value;
-//            }
-            this.keyBinding.setKey(value);
+        public void setValue(String value) {
+            KeyInput keyInput = parseKey(value);
+            setValue(keyInput);
         }
 
-        static Key getKey(String name) {
+        public void setValue(KeyInput keyInput) {
+            this.keyBinding.setKeyInput(keyInput);
+        }
+
+        public static Key getKey(String name) {
             return KEYS.stream().filter(key -> key.keyBinding.getName().equalsIgnoreCase(name)).findFirst()
                     .orElse(null);
         }
 
+        public KeyBindings getKeyBinding() {
+            return this.keyBinding;
+        }
+
         void reset() {
-            this.keyBinding.setKey(this.defaultValue);
+            this.keyBinding.setKeyInput(this.defaultKeyInput);
         }
     }
 
@@ -209,6 +195,24 @@ public class KeybindingsManager {
         QWERTY,
         AZERTY,
         QWERTZ;
+
+        private static final Map<Character, Character>                      azertyMappings = new HashMap<>();
+        private static final Map<Character, Character>                      qwertzMappings = new HashMap<>();
+        private static final Map<KeyboardLayout, Map<Character, Character>> keyMappings    = new HashMap<>();
+
+        static {
+            azertyMappings.put('Q', 'A');
+            azertyMappings.put('A', 'Q');
+            azertyMappings.put('Z', 'W');
+            azertyMappings.put('W', 'Z');
+            azertyMappings.put('M', ',');
+            azertyMappings.put(';', 'M');
+            keyMappings.put(AZERTY, azertyMappings);
+
+            qwertzMappings.put('Z', 'Y');
+            qwertzMappings.put('Y', 'Z');
+            keyMappings.put(QWERTZ, qwertzMappings);
+        }
 
         public static KeyboardLayout currentKeyboardLayout;
 
@@ -232,6 +236,43 @@ public class KeybindingsManager {
             }
 
             return null;
+        }
+
+        /**
+         * given key is transformed to current layout
+         *
+         * @param value key in QWERTY
+         * @return key in currentLayout
+         */
+        public static char getKeyToCurrentLayout(char value) {
+            KeyboardLayout currentKeyboardLayout = KeyboardLayout.getCurrentKeyboardLayout();
+            if (currentKeyboardLayout == QWERTY)
+                return value;
+
+            Map<Character, Character> mappings = keyMappings.get(currentKeyboardLayout);
+            if (!mappings.containsKey(value)) // Same key, no mapping
+                return value;
+
+            return mappings.get(value);
+        }
+
+
+        /**
+         * @param value must be in currentLayout
+         * @return key in QWERTY
+         */
+        public static char getKeyToDefaultLayout(char value) {
+            KeyboardLayout currentKeyboardLayout = KeyboardLayout.getCurrentKeyboardLayout();
+            if (currentKeyboardLayout == QWERTY)
+                return value;
+
+            Entry<Character, Character> resEntry = keyMappings.get(currentKeyboardLayout).entrySet()
+                    .stream().filter(entry -> entry.getValue().equals(value)).findFirst().orElse(null);
+
+            if (resEntry != null)
+                return resEntry.getKey();
+
+            return value;
         }
     }
 }

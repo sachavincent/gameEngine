@@ -7,11 +7,13 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiGlobalConstraints;
 import guis.presets.Background;
 import guis.transitions.Transition;
+import inputs.ClickType;
 import inputs.MouseUtils;
 import inputs.callbacks.EnterCallback;
 import inputs.callbacks.HoverCallback;
 import inputs.callbacks.LeaveCallback;
 import inputs.callbacks.ScrollCallback;
+import inputs.callbacks.UpdateCallback;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,10 +48,11 @@ public abstract class GuiComponent implements GuiInterface {
     private LeaveCallback  onLeaveCallback;
     private HoverCallback  onHoverCallback;
     private ScrollCallback onScrollCallback;
+    private UpdateCallback onUpdateCallback;
 
     private boolean displayed, displayedByDefault;
 
-    public boolean clicked;
+    public ClickType clickType;
 
     protected float cornerRadius;
 
@@ -66,6 +69,8 @@ public abstract class GuiComponent implements GuiInterface {
         this.height = parent.getHeight();
         this.x = parent.getX();
         this.y = parent.getY();
+
+        this.clickType = ClickType.NONE;
 
         this.displayed = this.displayedByDefault = true;
 
@@ -144,6 +149,20 @@ public abstract class GuiComponent implements GuiInterface {
         guiConstraintHandler.setConstraints(constraints);
 
         updateTexturePosition();
+    }
+
+    public void setOnUpdate(UpdateCallback updateCallback) {
+        this.onUpdateCallback = updateCallback;
+    }
+
+    @Override
+    public boolean update() {
+        if (this.onUpdateCallback == null)
+            return false;
+
+        this.onUpdateCallback.onUpdate();
+
+        return true;
     }
 
     public void updateTexturePosition() {
@@ -300,11 +319,15 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     public boolean isClicked() {
-        return this.clicked;
+        return this.clickType != ClickType.NONE;
     }
 
-    public void setClicked(boolean clicked) {
-        this.clicked = clicked;
+    public ClickType getClickType() {
+        return this.clickType;
+    }
+
+    public void setClickType(ClickType clickType) {
+        this.clickType = clickType;
     }
 
     @Override

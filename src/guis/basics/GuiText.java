@@ -35,7 +35,6 @@ public class GuiText extends GuiBasics {
             return;
 
         text.setLineMaxSize(getWidth());
-        text.setCentered(false);
         List<Line> lines = text.getFont().getLoader().getLines(text);
 
         if (lines.size() > 1) {
@@ -102,7 +101,13 @@ public class GuiText extends GuiBasics {
         if (this.text == null || this.line == null)
             return false;
 
-        this.text.setPosition(new Vector2f(getX() - line.getLineLength(), -getY() - text.getTextHeight() / 2));
+        if (this.text.isCentered())
+            this.text.setPosition(new Vector2f(getX() - getWidth(), -getY() - text.getTextHeight() / 2));
+        else
+            this.text.setPosition(
+                    new Vector2f(getX() - getWidth() * 2 + line.getLineLength(), -getY() - text.getTextHeight() / 2));
+
+        super.update();
 
         return true;
     }
@@ -119,7 +124,7 @@ public class GuiText extends GuiBasics {
         if (this.text == null)
             return;
 
-        if(this.text.isStringChanged())
+        if (this.text.isStringChanged())
             setText(this.text);
 
         if (isDisplayed())

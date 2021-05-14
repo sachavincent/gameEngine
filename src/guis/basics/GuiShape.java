@@ -5,24 +5,21 @@ import static renderEngine.DisplayManager.MIN_LINE_WIDTH;
 import static renderEngine.GuiRenderer.filledQuad;
 import static renderEngine.GuiRenderer.unfilledQuad;
 
-import fontMeshCreator.Line;
-import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
-import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.GuiRenderer;
-import util.math.Vector2f;
+import util.math.Maths;
 
 public abstract class GuiShape extends GuiBasics {
 
     protected boolean filled;
-    private double  outlineWidth = 0;
+    private   double  outlineWidth = 2;
 
     public GuiShape(GuiInterface parent, Background<?> background, GuiConstraints width, GuiConstraints height,
             boolean filled) {
@@ -58,12 +55,7 @@ public abstract class GuiShape extends GuiBasics {
     }
 
     public void setOutlineWidth(double outlineWidth) {
-        if (outlineWidth > MAX_LINE_WIDTH)
-            outlineWidth = MAX_LINE_WIDTH;
-        else if (outlineWidth < MIN_LINE_WIDTH)
-            outlineWidth = MIN_LINE_WIDTH;
-
-        this.outlineWidth = outlineWidth;
+        this.outlineWidth = Maths.clamp(outlineWidth, MIN_LINE_WIDTH, MAX_LINE_WIDTH);
     }
 
     @Override

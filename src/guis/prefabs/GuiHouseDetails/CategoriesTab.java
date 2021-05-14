@@ -11,6 +11,7 @@ import guis.constraints.Side;
 import guis.constraints.StickyConstraint;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
+import org.lwjgl.glfw.GLFW;
 import resources.ResourceManager.Resource;
 
 /**
@@ -41,18 +42,27 @@ public class CategoriesTab extends GuiRectangle {
     private void addDrinksButton() {
         this.drinksCatButton = new GuiRectangleButton(this, DEFAULT_BACKGROUND, null, null, null);
 
-        this.drinksCatButton.setOnPress(() -> ((GuiHouseDetails) getParent()).onDrinksCategoryClick());
+        this.drinksCatButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                ((GuiHouseDetails) getParent()).onDrinksCategoryClick();
+        });
     }
 
     private void addSocialButton() {
         this.socialCatButton = new GuiRectangleButton(this, DEFAULT_BACKGROUND, null, null, null);
 
-        this.socialCatButton.setOnPress(() -> ((GuiHouseDetails) getParent()).onSocialCategoryClick());
+        this.socialCatButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                ((GuiHouseDetails) getParent()).onSocialCategoryClick();
+        });
     }
 
     private void addFoodButton() {
         this.foodCatButton = new GuiRectangleButton(this, Resource.FISH.getBackgroundTexture(), null, null, null);
 
-        this.foodCatButton.setOnPress(() -> ((GuiHouseDetails) getParent()).onFoodCategoryClick());
+        this.foodCatButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                ((GuiHouseDetails) getParent()).onFoodCategoryClick();
+        });
     }
 }

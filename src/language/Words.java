@@ -58,7 +58,6 @@ public enum Words {
     PRESS_KEY("Press Key"),
     PRESS_TO_ASSIGN("Press To Assign"),
 
-
     FORWARD("Forward"),
     LEFT("Left"),
     BACKWARD("Backward"),
@@ -87,6 +86,6 @@ public enum Words {
 
     @Override
     public String toString() {
-        return TextConverter.getWordInCurrentLanguage(string);
+        return TextConverter.getWordInCurrentLanguage(this.string);
     }
 }

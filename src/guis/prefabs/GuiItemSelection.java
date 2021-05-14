@@ -12,6 +12,7 @@ import items.GameObjectPreviews;
 import java.awt.Color;
 import java.io.File;
 import language.Words;
+import org.lwjgl.glfw.GLFW;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
@@ -51,25 +52,31 @@ public class GuiItemSelection extends Gui {
         setLayout(new PatternGlobalConstraint(5, 3, .02f));
 
         GuiAbstractButton dirtRoadButton = addButton(Words.DIRT_ROAD, GameObjectPreviews.DIRT_ROAD);
-        dirtRoadButton.setOnPress(() -> {
-            System.out.println("DirtRoad selected");
+        dirtRoadButton.setOnMousePress(button -> {
+            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("DirtRoad selected");
 
-            MouseUtils.setRoadState();
-            selectOrUnselect(DirtRoad.class);
+                MouseUtils.setRoadState();
+                selectOrUnselect(DirtRoad.class);
+            }
         });
         GuiAbstractButton insulaButton = addButton(Words.INSULA, GameObjectPreviews.INSULA);
-        insulaButton.setOnPress(() -> {
-            System.out.println("Insula selected");
+        insulaButton.setOnMousePress(button -> {
+            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("Insula selected");
 
-            MouseUtils.setBuildingState();
-            selectOrUnselect(Insula.class);
+                MouseUtils.setBuildingState();
+                selectOrUnselect(Insula.class);
+            }
         });
         GuiAbstractButton marketButton = addButton(Words.MARKET, GameObjectPreviews.MARKET);
-        marketButton.setOnPress(() -> {
-            System.out.println("Market selected");
+        marketButton.setOnMousePress(button -> {
+            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("Market selected");
 
-            MouseUtils.setBuildingState();
-            selectOrUnselect(Market.class);
+                MouseUtils.setBuildingState();
+                selectOrUnselect(Market.class);
+            }
         });
 
         setDisplayed(false);

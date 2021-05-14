@@ -93,6 +93,7 @@ public class DisplayManager {
         GL.createCapabilities();
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
         glfwSetFramebufferSizeCallback(window, (callback2 = new GLFWFramebufferSizeCallback() {
             @Override
             public void invoke(long window, int width, int height) {

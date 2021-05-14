@@ -10,6 +10,7 @@ import guis.presets.GuiOnOffOption;
 import guis.presets.GuiOnOffOption.OnOff;
 import guis.presets.GuiSlider;
 import guis.presets.GuiSlider.Interval;
+import guis.presets.GuiTextInput;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import language.Words;
 import renderEngine.DisplayManager;
 import renderEngine.DisplayManager.DisplayMode;
 import renderEngine.DisplayManager.Resolution;
+import util.Utils;
 
 public class GuiDisplaySettings extends GuiTab {
 
@@ -36,7 +38,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setyConstraint(new RelativeConstraint(0, parent.content))
                 .create());
 
-        setLayout(new PatternGlobalConstraint(1, 5, 0));
+        setLayout(new PatternGlobalConstraint(1, 6, 0));
 
         createDisplayOption();
         createDisplayModeOption();
@@ -44,11 +46,11 @@ public class GuiDisplaySettings extends GuiTab {
         createFPSOption();
         createVSyncOption();
 
-//        GuiTextInput guiTextInput = new GuiTextInput(this.buttonsArea);
-//        guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
-//        guiTextInput.setOutlineColor(Color.WHITE);
-//        guiTextInput.setMaxLength(20);
-//        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
+        GuiTextInput guiTextInput = new GuiTextInput(this);
+        guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
+        guiTextInput.setOutlineColor(Color.WHITE);
+        guiTextInput.setMaxLength(20);
+        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
     }
 
 

@@ -4,6 +4,7 @@ import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
 import java.util.Map;
+import org.lwjgl.glfw.GLFW;
 import people.Person;
 import renderEngine.HouseRenderer;
 import scene.components.*;
@@ -32,9 +33,11 @@ public class Insula extends GameObject {
 
         addComponent(new RequireResourcesComponent(Person.getResourcesNeeded(frequentedPlaceComponent.getPersons())));
         addComponent(new BoundingBoxComponent(OBJGameObjects.INSULA.getBoundingBox()));
-        addComponent(new SelectableComponent(() -> {
-            GuiHouseDetails.getInstance().setHouseObject(this);
-            GuiHouseDetails.getInstance().setDisplayed(true);
+        addComponent(new SelectableComponent(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                GuiHouseDetails.getInstance().setHouseObject(this);
+                GuiHouseDetails.getInstance().setDisplayed(true);
+            }
         }));
         addComponent(new RendererComponent(this, HouseRenderer.getInstance()));
     }

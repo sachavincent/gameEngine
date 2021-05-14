@@ -12,6 +12,7 @@ import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
 import java.awt.Color;
+import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
 
 public class GuiSlider extends GuiPreset {
@@ -98,12 +99,14 @@ public class GuiSlider extends GuiPreset {
     }
 
     private void setListeners() {
-        this.sliderCursor.setOnPress(() -> {
-            this.clicked = true;
+        this.sliderCursor.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                this.clicked = true;
         });
 
-        this.sliderCursor.setOnRelease(() -> {
-            this.clicked = false;
+        this.sliderCursor.setOnMousRelease(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                this.clicked = false;
         });
 
         this.sliderCursor.setOnHover(() -> {
@@ -137,7 +140,11 @@ public class GuiSlider extends GuiPreset {
             }
         });
 
-        this.sliderBase.setOnPress(this::updateSliderValue);
+        this.sliderBase.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                updateSliderValue();
+            }
+        });
     }
 
     private void updateSliderValue() {

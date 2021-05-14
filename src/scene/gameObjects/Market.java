@@ -3,6 +3,7 @@ package scene.gameObjects;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
+import org.lwjgl.glfw.GLFW;
 import renderEngine.HouseRenderer;
 import scene.components.*;
 
@@ -25,9 +26,11 @@ public class Market extends GameObject {
         addComponent(frequentedPlaceComponent);
 
         addComponent(new BoundingBoxComponent(OBJGameObjects.MARKET.getBoundingBox()));
-        addComponent(new SelectableComponent(() -> {
-            GuiHouseDetails.getInstance().setHouseObject(this);
-            GuiHouseDetails.getInstance().setDisplayed(true);
+        addComponent(new SelectableComponent(button -> {
+            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                GuiHouseDetails.getInstance().setHouseObject(this);
+                GuiHouseDetails.getInstance().setDisplayed(true);
+            }
         }));
         addComponent(new RendererComponent(this, HouseRenderer.getInstance()));
     }

@@ -11,6 +11,7 @@ import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
 import java.io.File;
 import language.Words;
+import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
 import textures.FontTexture;
 
@@ -75,9 +76,11 @@ public class GuiMainMenu extends Gui {
         GuiRectangleButton newGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         newGameButton.enableFilter();
-        newGameButton.setOnPress(() -> {
-            setDisplayed(false);
-            Game.getInstance().start();
+        newGameButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                setDisplayed(false);
+                Game.getInstance().start();
+            }
         });
     }
 
@@ -86,8 +89,10 @@ public class GuiMainMenu extends Gui {
         GuiRectangleButton loadGameButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         loadGameButton.enableFilter();
-        loadGameButton.setOnPress(() -> {
+        loadGameButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
+            }
         });
     }
 
@@ -97,9 +102,11 @@ public class GuiMainMenu extends Gui {
         GuiRectangleButton settingsButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), textSettings);
         settingsButton.enableFilter();
-        settingsButton.setOnPress(() -> {
-            setDisplayed(false);
-            showSettings();
+        settingsButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                setDisplayed(false);
+                showSettings();
+            }
         });
     }
 
@@ -113,7 +120,10 @@ public class GuiMainMenu extends Gui {
         GuiRectangleButton quitButton = new GuiRectangleButton(this.menuButtonPanel,
                 new Background<>(new Color(109, 109, 109, 100)), text);
         quitButton.enableFilter();
-        quitButton.setOnPress(DisplayManager::closeDisplay);
+        quitButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                DisplayManager.closeDisplay();
+        });
     }
 
     public static GuiMainMenu getInstance() {
