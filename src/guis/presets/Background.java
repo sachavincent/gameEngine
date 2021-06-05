@@ -1,6 +1,7 @@
 package guis.presets;
 
 import java.awt.Color;
+import java.util.Objects;
 
 public class Background<E> {
 
@@ -12,7 +13,7 @@ public class Background<E> {
     private final E background;
 
     public Background(E texture) {
-        background = texture;
+        this.background = texture;
     }
 
     public E getBackground() {
@@ -22,7 +23,22 @@ public class Background<E> {
     @Override
     public String toString() {
         return "Background{" +
-                "background=" + background +
+                "background=" + this.background +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Background<?> that = (Background<?>) o;
+        return Objects.equals(this.background, that.background);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.background);
     }
 }

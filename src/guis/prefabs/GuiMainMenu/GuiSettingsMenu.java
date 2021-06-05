@@ -16,9 +16,12 @@ public class GuiSettingsMenu extends GuiMultiTab {
                 .setyConstraint(new RelativeConstraint(0, parent))
                 .create());
 
-        new GuiDisplaySettings(this);
-        new GuiControlsSettings(this);
-        new GuiLanguageSettings(this);
+        GuiDisplaySettings guiDisplaySettings = new GuiDisplaySettings(this);
+        guiDisplaySettings.setDisplayed(false);
+        GuiControlsSettings guiControlsSettings = new GuiControlsSettings(this);
+        guiControlsSettings.setDisplayed(false);
+        GuiLanguageSettings guiLanguageSettings = new GuiLanguageSettings(this);
+        guiLanguageSettings.setDisplayed(false);
     }
 
 

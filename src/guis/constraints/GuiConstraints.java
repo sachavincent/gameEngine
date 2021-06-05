@@ -31,7 +31,15 @@ public abstract class GuiConstraints {
         return this.constraint;
     }
 
+    public Constraints getConstraints() {
+        return this.constraints;
+    }
+
     public GuiInterface getRelativeTo() {
         return this.relativeTo;
+    }
+
+    public void setRelativeTo(GuiInterface relativeTo) {
+        this.relativeTo = relativeTo;
     }
 }

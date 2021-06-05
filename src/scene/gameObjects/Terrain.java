@@ -39,7 +39,7 @@ public class Terrain extends GameObject {
         TerrainTexturePack terrainTexturePack = new TerrainTexturePack(new TerrainTexture("blue.png"),
                 new TerrainTexture("red.png"), new TerrainTexture("green.png"), new TerrainTexture("blue.png"));
         addComponent(new TexturePackComponent(terrainTexturePack));
-        addComponent(new RendererComponent(this, TerrainRenderer.getInstance()));
+        addComponent(new RendererComponent(TerrainRenderer.getInstance()));
     }
 
 

@@ -45,7 +45,7 @@ public class GuiLanguageSettings extends GuiTab {
         ButtonGroup buttonGroup = new ButtonGroup(Language.getNbSupportedLanguages());
 
         for (Language language : Language.values()) {
-            GuiRectangleButton button = new GuiRectangleButton(buttonArea, Background.NO_BACKGROUND,
+            GuiRectangleButton button = new GuiRectangleButton(buttonArea, Background.NO_BACKGROUND, null,
                     new Text(language.getName(), .8f, DEFAULT_FONT, Color.BLACK));
 
             button.setToggleType(true);

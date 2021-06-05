@@ -4,24 +4,19 @@ import static renderEngine.GuiRenderer.filledQuad;
 
 import engineTester.Game;
 import fontMeshCreator.FontType;
-import fontMeshCreator.Line;
-import fontMeshCreator.Text;
-import guis.basics.GuiText;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiGlobalConstraints;
+import guis.prefabs.GuiSelectedItem;
 import guis.presets.Background;
-import guis.presets.buttons.GuiAbstractButton;
-import guis.presets.buttons.GuiAbstractButton.ButtonType;
-import guis.presets.buttons.GuiCircularButton;
-import guis.presets.buttons.GuiRectangleButton;
 import guis.transitions.Transition;
 import inputs.MouseUtils;
+import inputs.callbacks.CloseCallback;
+import inputs.callbacks.OpenCallback;
 import inputs.callbacks.UpdateCallback;
 import java.awt.Color;
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
@@ -49,8 +44,14 @@ public class Gui implements GuiInterface {
 
     protected boolean focused, displayed;
 
-    private UpdateCallback updateCallback;
-    private      boolean    displayDebugOutline = true;
+    private UpdateCallback onUpdateCallback = () -> {
+    };
+    private OpenCallback   onOpenCallback   = () -> {
+    };
+    private CloseCallback  onCloseCallback  = () -> {
+    };
+
+    private boolean displayDebugOutline = true;
 
     private GuiGlobalConstraints layout;
 
@@ -60,7 +61,7 @@ public class Gui implements GuiInterface {
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
 
         this.components = new LinkedHashMap<>();
-
+        this.displayed = true;
         Game.getInstance().addGui(this);
     }
 
@@ -100,6 +101,9 @@ public class Gui implements GuiInterface {
         this.debugOutline.getPosition().y = this.y;
     }
 
+    public int getType() {
+        return GuiRenderer.DEFAULT;
+    }
 
     @Override
     public String toString() {
@@ -109,30 +113,6 @@ public class Gui implements GuiInterface {
                 ", width=" + width +
                 ", height=" + height +
                 '}';
-    }
-
-    public static GuiText setupText(GuiInterface guiInterface, Text text) {
-        if (text == null)
-            return null;
-
-//        List<Line> lines = text.getFont().getLoader().getLines(text);
-//
-//        Line line = lines.get(0);
-//
-//        if (line == null) {
-//            try {
-//                throw new IllegalArgumentException("Invalid text.");
-//            } catch (IllegalArgumentException e) {
-//                e.printStackTrace();
-//
-//                return null;
-//            }
-//        }
-//
-//        text.setLineMaxSize(guiInterface.getWidth());
-//        text.setPosition(new Vector2f(guiInterface.getX() - guiInterface.getWidth() + line.getLineLength(),
-//                -guiInterface.getY() - text.getTextHeight() / 2));
-        return new GuiText(guiInterface, text);
     }
 
     @Override
@@ -217,16 +197,12 @@ public class Gui implements GuiInterface {
         return this.displayDebugOutline;
     }
 
-    public void setOnUpdate(UpdateCallback updateCallback) {
-        this.updateCallback = updateCallback;
-    }
-
     @Override
-    public boolean update() {
-        if (this.updateCallback == null)
+    public final boolean update() {
+        if (this.onUpdateCallback == null)
             return false;
 
-        this.updateCallback.onUpdate();
+        this.onUpdateCallback.onUpdate();
 
         return true;
     }
@@ -248,11 +224,6 @@ public class Gui implements GuiInterface {
     public void setTransitionsToAllComponents(Transition... transitions) {
         components.keySet().forEach(guiComponent -> setComponentTransitions(guiComponent, transitions));
     }
-
-    public void setFocused(boolean focused) {
-        this.focused = focused;
-    }
-
 
 //    public Map<GuiComponent, Set<Transition>> getComponentsHideTransitions() {
 //        Map<GuiComponent, Set<Transition>> transitions = new HashMap<>();
@@ -322,32 +293,41 @@ public class Gui implements GuiInterface {
     }
 
     @Override
-    public void setDisplayed(boolean displayed) {
+    public final void setDisplayed(boolean displayed) {
         if (this.displayed == displayed)
             return;
 
         this.displayed = displayed;
 
         Game gameInstance = Game.getInstance();
-        if (displayed)
+        if (displayed) {
             gameInstance.getDisplayedGuis().add(this);
-        else
+
+            this.onOpenCallback.onOpen();
+        } else {
             gameInstance.getDisplayedGuis().remove(this);
 
-        List<GuiComponent> list = getAllComponents().stream()
-                .filter(GuiComponent::isDisplayedByDefault)
-                .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
-        list.forEach(guiC -> {
-            guiC.setDisplayed(displayed);
-            if (MouseUtils.isCursorInGuiComponent(guiC))
-                guiC.onEnter();
-        });
+            this.onCloseCallback.onClose();
+        }
+//        List<GuiComponent> list = getAllComponents().stream()
+//                .filter(GuiComponent::isDisplayedByDefault)
+//                .filter(guiComponent -> guiComponent.getParent().equals(this)).collect(Collectors.toList());
+
+        List<GuiComponent> enteredGuiComponents = MouseUtils.ENTERED_GUI_COMPONENTS;
+        enteredGuiComponents.forEach(GuiComponent::onLeave);
+        enteredGuiComponents.clear();
+        if (!(this instanceof GuiSelectedItem))
+            MouseUtils.onMouseMove(MouseUtils.getCursorPos());
+
+        getAllComponents().stream()
+                .filter(guiComponent -> guiComponent.isDisplayed() == displayed)
+                .filter(guiComponent -> guiComponent.isDisplayedByDefault() || !displayed)
+                .forEach(guiComponent -> guiComponent.setDisplayed(displayed));
     }
 
     public Map<GuiComponent, Set<Transition>> getComponents() {
         return this.components;
     }
-
 
     @Override
     public float getX() {
@@ -369,6 +349,17 @@ public class Gui implements GuiInterface {
         return this.height;
     }
 
+    @Override
+    public void focus() {
+        this.focused = true;
+    }
+
+    @Override
+    public void unfocus() {
+        this.focused = false;
+    }
+
+    @Override
     public boolean isFocused() {
         return this.focused;
     }
@@ -381,7 +372,6 @@ public class Gui implements GuiInterface {
     public float getAlphaOfGui() {
         return this.background.getAlpha();
     }
-
 
     public void setLayout(GuiGlobalConstraints guiConstraints) {
         guiConstraints.setParent(this);
@@ -396,6 +386,7 @@ public class Gui implements GuiInterface {
         gui.setDisplayed(!gui.isDisplayed());
     }
 
+    @Override
     public float getCornerRadius() {
         return this.cornerRadius;
     }
@@ -404,29 +395,23 @@ public class Gui implements GuiInterface {
         this.cornerRadius = cornerRadius;
     }
 
-    protected GuiAbstractButton createButton(ButtonType buttonType, Background<?> background, Text text,
-            Text tooltipText, GuiConstraintsManager constraints) {
-        return createButton(buttonType, background, text, tooltipText, constraints, this);
+    public void setOnUpdate(UpdateCallback updateCallback) {
+        this.onUpdateCallback = updateCallback;
     }
 
-    protected GuiAbstractButton createButton(ButtonType buttonType, Background<?> background, Text text,
-            Text tooltipText, GuiConstraintsManager constraints, GuiInterface parent) {
-        switch (buttonType) {
-            case CIRCULAR:
-                return new GuiCircularButton(parent, background, text, tooltipText,
-                        constraints); //TODO: Handle fontSize automatically (text length with button width)
-            // TODO: Add color parameter
-            case RECTANGLE:
-                return new GuiRectangleButton(parent, background, text, tooltipText, constraints);
-        }
-        return null;
+    public void setOnOpen(OpenCallback openCallback) {
+        this.onOpenCallback = openCallback;
+    }
+
+    public void setOnClose(CloseCallback closeCallback) {
+        this.onCloseCallback = closeCallback;
     }
 
     public void render() {
         GL30.glBindVertexArray(filledQuad.getVaoID());
         GL20.glEnableVertexAttribArray(0);
 
-        GuiRenderer.loadTexture(getTexture(), cornerRadius);
+        GuiRenderer.loadGui(this);
 
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, filledQuad.getVertexCount());
     }

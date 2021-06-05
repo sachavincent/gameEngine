@@ -1,31 +1,41 @@
 package people;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
+import people.SocialClass.PersonalResourceInfos;
 import resources.ResourceManager.Resource;
+import util.TimeSystem;
 
 public class Person {
 
     private static long max_id = 1;
 
-    private final EnumMap<Resource, Integer> resourcesNeeded;
-    private final SocialClass                socialClass;
-
     private final long id;
 
-    public Person(SocialClass socialClass, EnumMap<Resource, Integer> resourcesNeeded) {
-        this.resourcesNeeded = resourcesNeeded;
+    private final SocialClass socialClass;
+    private       int         settlementTime;
+    private       int         idHouse;
+
+    public Person(SocialClass socialClass) {
         this.socialClass = socialClass;
         this.id = max_id++;
     }
 
     public SocialClass getSocialClass() {
         return this.socialClass;
+    }
+
+    public int getSettlementTime() {
+        return this.settlementTime;
+    }
+
+    public void settle(int idHouse) {
+        this.settlementTime = TimeSystem.getCurrentTime();
+        this.idHouse = idHouse;
     }
 
     @Override
@@ -39,13 +49,13 @@ public class Person {
                 socialClass == person.socialClass;
     }
 
+    public int getIdHouse() {
+        return this.idHouse;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(socialClass, id);
-    }
-
-    public EnumMap<Resource, Integer> getResourcesNeeded() {
-        return this.resourcesNeeded;
     }
 
     @Override
@@ -58,14 +68,19 @@ public class Person {
 
     public static Map<Resource, Integer> getResourcesNeeded(EnumMap<SocialClass, List<Person>> persons) {
         List<Person> peopleList = persons.values().stream().flatMap(List::stream).collect(Collectors.toList());
-        List<EnumMap<Resource, Integer>> allResources = peopleList.stream().map(Person::getResourcesNeeded)
+        List<PersonalResourceInfos> allResources = peopleList.stream()
+                .map(person -> person.getSocialClass().getPersonalResourceInfos())
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        Set<Entry<Resource, Integer>> entries = allResources.stream()
-                .flatMap(map -> map.entrySet().stream()).collect(Collectors.toSet());
-
         EnumMap<Resource, Integer> enumMap = new EnumMap<>(Resource.class);
-        entries.forEach(entry -> enumMap.put(entry.getKey(), entry.getValue()));
+
+        for (Resource resource : Resource.values()) {
+            int nbResources = allResources.stream().filter(info -> info.getResource() == resource)
+                    .mapToInt(PersonalResourceInfos::getNbResourcesNeeded).sum();
+            if (nbResources > 0)
+                enumMap.put(resource, nbResources);
+        }
 
         return enumMap;
     }

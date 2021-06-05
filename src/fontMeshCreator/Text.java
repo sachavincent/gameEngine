@@ -1,105 +1,104 @@
 package fontMeshCreator;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import language.TextConverter;
 import language.Words;
 import renderEngine.fontRendering.TextMaster;
 import util.math.Vector2f;
 
-/**
- * Represents a piece of text in the game.
- *
- * @author Karl
- */
 public class Text {
 
     private String textString;
     private float  fontSize;
 
-    private int   textMeshVao;
-    private int   vertexCount;
-    private Color color = Color.BLACK;
+    private int textMeshVao;
+    private int vertexCount;
 
     private Vector2f position;
-    private float    lineMaxSize;
-    private int      numberOfLines;
+    private float    maxLineLength;
 
     private final FontType font;
 
-    private boolean centerText;
+    private boolean centerTextHorizontal;
+    private boolean centerTextVertical;
     private boolean stringChanged;
 
-    private float charWidth     = 0.5f;
-    private float edgeCharWidth = 0.1f;
+    private float charWidth;
+    private float edgeCharWidth;
 
     private boolean upperCase;
 
-    /**
-     * Creates a new text, loads the text's quads into a VAO, and adds the text
-     * to the screen.
-     *
-     * @param word - the word.
-     * @param fontSize - the font size of the text, where a font size of 1 is the
-     * default size.
-     * @param font - the font that this text should use.
-     * @param position - the position on the screen where the top left corner of the
-     * text should be rendered. The top left corner of the screen is
-     * (0, 0) and the bottom right is (1, 1).
-     * @param maxLineLength - basically the width of the virtual page in terms of screen
-     * width (1 is full screen width, 0.5 is half the width of the
-     * screen, etc.) Text cannot go off the edge of the page, so if
-     * the text is longer than this length it will go onto the next
-     * line. When text is centered it is centered into the middle of
-     * the line, based on this line length value.
-     * @param centered - whether the text should be centered or not.
-     */
-    public Text(Words word, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
-        this.textString = word.toString();
+    private List<Line>  lines;
+    private List<Color> colors;
+
+    private Vector2f topLeftCorner;
+    private Vector2f bottomRightCorner;
+
+    private int yOffset; // Used for scrolling, in amount of lines offset
+
+    public Text(String textString, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal, boolean centerTextVertical, float charWidth, float edgeCharWidth,
+            List<Color> colors) {
+        this.textString = TextConverter.getWordInCurrentLanguage(textString);
         this.fontSize = fontSize;
-        this.font = font;
         this.position = position;
-        this.lineMaxSize = maxLineLength;
-        this.centerText = centered;
+        this.maxLineLength = maxLineLength;
+        this.font = font;
+        this.centerTextHorizontal = centerTextHorizontal;
+        this.centerTextVertical = centerTextVertical;
+        this.charWidth = charWidth;
+        this.edgeCharWidth = edgeCharWidth;
         this.stringChanged = false;
+        this.colors = colors;
+        this.lines = new ArrayList<>();
+
+        if (!this.textString.isEmpty())
+            this.lines = font.getLoader().getLines(this);
     }
 
-    public Text(Words word, float fontSize, FontType font, Color color) {
-        this.textString = word.toString();
-        this.fontSize = fontSize;
-        this.font = font;
-        this.stringChanged = false;
-
-        this.color = color;
-        this.centerText = true;
-//        this.charWidth = fontSize / 2.5f;
-        this.charWidth = 0.48f;
-        this.edgeCharWidth = Math.max(0, 0.1f + (2f - fontSize) * 0.0625f);
+    public Text(Words word, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal) {
+        this(word, fontSize, font, position, maxLineLength, centerTextHorizontal, Color.BLACK);
     }
 
-    public Text(String word, float fontSize, FontType font, Vector2f position, float maxLineLength, boolean centered) {
-        this.textString = TextConverter.getWordInCurrentLanguage(word);
-        this.fontSize = fontSize;
-        this.font = font;
-        this.position = position;
-        this.lineMaxSize = maxLineLength;
-        this.centerText = centered;
-        this.stringChanged = false;
+    public Text(Words word, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal, Color color) {
+        this(word.toString(), fontSize, font, position, maxLineLength, centerTextHorizontal, color);
+    }
+
+    public Text(String word, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal, List<Color> colors) {
+        this(word, fontSize, font, position, maxLineLength, centerTextHorizontal, true, 0.48f,
+                Math.max(0, 0.1f + (2f - fontSize) * 0.0625f), colors);
+    }
+
+    public Text(String word, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal, Color color) {
+        this(word, fontSize, font, position, maxLineLength, centerTextHorizontal,
+                new ArrayList<>(Collections.singletonList(color)));
+    }
+
+    public Text(String word, float fontSize, FontType font, Vector2f position, float maxLineLength,
+            boolean centerTextHorizontal) {
+        this(word, fontSize, font, position, maxLineLength, centerTextHorizontal, Color.BLACK);
+    }
+
+    public Text(String word, float fontSize, FontType font, List<Color> colors) {
+        this(word, fontSize, font, null, 1.0f, true, colors);
     }
 
     public Text(String word, float fontSize, FontType font, Color color) {
-        this.textString = TextConverter.getWordInCurrentLanguage(word);
-        this.fontSize = fontSize;
-        this.font = font;
-        this.stringChanged = false;
-        this.centerText = true;
+        this(word, fontSize, font, null, 1.0f, true, color);
+    }
 
-        this.color = color;
-
-//        this.charWidth = fontSize / 2.5f;
-        this.charWidth = 0.48f;
-        this.edgeCharWidth = Math.max(0, 0.1f + (2f - fontSize) * 0.0625f);
+    public Text(Words word, float fontSize, FontType font, Color color) {
+        this(word.toString(), fontSize, font, null, 1.0f, true, color);
     }
 
     /**
@@ -113,10 +112,12 @@ public class Text {
 
         if (c == ' ')
             return metaData.getSpaceWidth() * 2 * this.fontSize;
+        if (c == '\t')
+            return metaData.getTabWidth() * 2 * this.fontSize;
 
         Character character = metaData.getCharacter(c);
         if (character == null)
-            return 0; //TODO: Accents ne fonctionnent pas
+            return 0;
 
         return character.getxAdvance() * 2 * this.fontSize;
     }
@@ -136,39 +137,39 @@ public class Text {
     }
 
     /**
-     * Set the color of the text.
+     * Set whether the text should be centered horizontally or not
      *
-     * @param r - red value, between 0 and 1.
-     * @param g - green value, between 0 and 1.
-     * @param b - blue value, between 0 and 1.
+     * @param centered - whether the text should be centered horizontally or not
      */
-    public void setColor(float r, float g, float b) {
-        this.color = new Color(r, g, b);
+    public void setCenteredHorizontally(boolean centered) {
+        this.centerTextHorizontal = centered;
+        this.stringChanged = true;
     }
 
     /**
-     * Set the color of the text.
+     * Sets the whole text in one single color
      *
-     * @param color - color of the value
+     * @param color the color to paint the text with
      */
     public void setColor(Color color) {
-        this.color = color;
+        if (this.colors.isEmpty())
+            this.colors.add(color);
+        else
+            this.colors = this.colors.stream().map(c -> color).collect(Collectors.toList());
+    }
+
+    public void setColors(List<Color> colors) {
+        this.colors = colors;
     }
 
     /**
-     * Set whether the text should be centered or not
+     * Set whether the text should be centered vertically or not
      *
-     * @param centered - whether the text should be centered or not
+     * @param centered - whether the text should be centered vertically or not
      */
-    public void setCentered(boolean centered) {
-        this.centerText = centered;
-    }
-
-    /**
-     * @return the color of the text.
-     */
-    public Color getColor() {
-        return this.color;
+    public void setCenteredVertically(boolean centered) {
+        this.centerTextVertical = centered;
+        this.stringChanged = true;
     }
 
     public void setUpperCase(boolean upperCase) {
@@ -177,6 +178,10 @@ public class Text {
 
     public boolean isUpperCase() {
         return this.upperCase;
+    }
+
+    public List<Color> getColors() {
+        return this.colors;
     }
 
     /**
@@ -188,13 +193,8 @@ public class Text {
         this.fontSize = fontSize;
     }
 
-    /**
-     * @return The number of lines of text. This is determined when the text is
-     * loaded, based on the length of the text and the max line length
-     * that is set.
-     */
     public int getNumberOfLines() {
-        return this.numberOfLines;
+        return this.lines.size();
     }
 
     /**
@@ -229,10 +229,10 @@ public class Text {
     /**
      * Set the line max size
      *
-     * @param lineMaxSize - line max size
+     * @param maxLineLength - line max size
      */
-    public void setLineMaxSize(float lineMaxSize) {
-        this.lineMaxSize = lineMaxSize;
+    public void setMaxLineLength(float maxLineLength) {
+        this.maxLineLength = maxLineLength;
     }
 
     /**
@@ -261,25 +261,24 @@ public class Text {
     }
 
     /**
-     * Sets the number of lines that this text covers (method used only in
-     * loading).
+     * @return {@code true} if the text should be centered horizontally.
      */
-    protected void setNumberOfLines(int number) {
-        this.numberOfLines = number;
+    public boolean isCenteredHorizontally() {
+        return this.centerTextHorizontal;
     }
 
     /**
-     * @return {@code true} if the text should be centered.
+     * @return {@code true} if the text should be centered vertically.
      */
-    public boolean isCentered() {
-        return this.centerText;
+    public boolean isCenteredVertically() {
+        return this.centerTextVertical;
     }
 
     /**
      * @return The maximum length of a line of this text.
      */
-    protected float getMaxLineSize() {
-        return this.lineMaxSize;
+    protected float getMaxLineLength() {
+        return this.maxLineLength;
     }
 
     /**
@@ -291,8 +290,28 @@ public class Text {
 
     public void setTextString(String textString) {
         this.textString = textString;
+        this.lines = font.getLoader().getLines(this);
 
         this.stringChanged = true;
+    }
+
+    public void addTextString(String textString, Color color) {
+        if (textString.isEmpty() || textString.matches("[\\n\\r]+"))
+            return;
+
+        this.textString = this.textString + textString;
+        this.colors.add(color);
+        this.lines = font.getLoader().getLines(this);
+//        if (this.lines.size() == 36)
+//            System.out.println();
+        this.stringChanged = true;
+    }
+
+    public Color getColor(int nbWords) {
+        if (this.colors.isEmpty())
+            return Color.BLACK;
+
+        return nbWords <= this.colors.size() ? this.colors.get(nbWords - 1) : this.colors.get(this.colors.size() - 1);
     }
 
     public void setTextString(char textString) {
@@ -307,7 +326,21 @@ public class Text {
         this.stringChanged = stringChanged;
     }
 
-    public double getTextHeight() {
+    /**
+     * Total text height, accounting for all lines
+     *
+     * @return text height
+     */
+    public double getTotalTextHeight() {
+        return getLineTextHeight() * this.lines.size();
+    }
+
+    /**
+     * Text height for one line
+     *
+     * @return line height
+     */
+    public double getLineTextHeight() {
         return TextMeshCreator.LINE_HEIGHT * this.fontSize * 2;
     }
 
@@ -344,5 +377,43 @@ public class Text {
     @Override
     public int hashCode() {
         return Objects.hash(this.textMeshVao);
+    }
+
+    public List<Line> getLines() {
+        return this.lines;
+    }
+
+    public void clear() {
+        this.textString = "";
+        this.colors.clear();
+        this.lines.clear();
+
+        this.stringChanged = true;
+    }
+
+    public Vector2f getTopLeftCorner() {
+        return this.topLeftCorner;
+    }
+
+    public void setTopLeftCorner(Vector2f topLeftCorner) {
+        this.topLeftCorner = topLeftCorner;
+    }
+
+    public Vector2f getBottomRightCorner() {
+        return this.bottomRightCorner;
+    }
+
+    public void setBottomRightCorner(Vector2f bottomRightCorner) {
+        this.bottomRightCorner = bottomRightCorner;
+    }
+
+    public int getyOffset() {
+        return this.yOffset;
+    }
+
+    public void setyOffset(int yOffset) {
+        this.yOffset = yOffset;
+
+        this.stringChanged = true;
     }
 }

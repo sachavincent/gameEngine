@@ -27,7 +27,6 @@ public class TexturedModel {
 
     @Deprecated
     public TexturedModel(RawModel model, TypeModel typeModel) {
-        this.rawModel = model;
         this.modelTexture = ModelTexture.DEFAULT_MODEL;
 
         switch (typeModel) {
@@ -204,7 +203,6 @@ public class TexturedModel {
         vertices.add(point.y);
         vertices.add(point.z);
     }
-
 
     public RawModel getRawModel() {
         return this.rawModel;

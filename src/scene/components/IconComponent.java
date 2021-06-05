@@ -2,7 +2,7 @@ package scene.components;
 
 import guis.presets.Background;
 
-public class IconComponent implements Component {
+public class IconComponent extends Component {
 
     private final Background<?> background;
 

@@ -1,30 +1,31 @@
 package fontMeshCreator;
 
-/**
- * Stores the vertex data for all the quads on which a text will be rendered.
- * @author Karl
- *
- */
 public class TextMeshData {
-	
-	private float[] vertexPositions;
-	private float[] textureCoords;
-	
-	protected TextMeshData(float[] vertexPositions, float[] textureCoords){
-		this.vertexPositions = vertexPositions;
-		this.textureCoords = textureCoords;
-	}
 
-	public float[] getVertexPositions() {
-		return vertexPositions;
-	}
+    private final float[] vertexPositions;
+    private final float[] textureCoords;
+    private final float[] colors;
 
-	public float[] getTextureCoords() {
-		return textureCoords;
-	}
+    public TextMeshData(float[] vertexPositions, float[] textureCoords, float[] colors) {
+        this.vertexPositions = vertexPositions;
+        this.textureCoords = textureCoords;
+        this.colors = colors;
+    }
 
-	public int getVertexCount() {
-		return vertexPositions.length/2;
-	}
+    public float[] getVertexPositions() {
+        return this.vertexPositions;
+    }
+
+    public float[] getColors() {
+        return this.colors;
+    }
+
+    public float[] getTextureCoords() {
+        return this.textureCoords;
+    }
+
+    public int getVertexCount() {
+        return this.vertexPositions.length / 2;
+    }
 
 }

@@ -9,16 +9,18 @@ public class Plane3D {
     private Vector3f pointC;
     private Vector3f pointD;
 
-    public Plane3D(Vector3f pointA, Vector3f pointB, Vector3f pointC,
-            Vector3f pointD) {
+    public Plane3D(Plane3D plane3D) {
+        this.pointA = new Vector3f(plane3D.pointA);
+        this.pointB = new Vector3f(plane3D.pointB);
+        this.pointC = new Vector3f(plane3D.pointC);
+        this.pointD = new Vector3f(plane3D.pointD);
+    }
+
+    public Plane3D(Vector3f pointA, Vector3f pointB, Vector3f pointC, Vector3f pointD) {
         this.pointA = pointA;
         this.pointB = pointB;
         this.pointC = pointC;
         this.pointD = pointD;
-    }
-
-    public Plane3D(Plane3D plane) {
-        this(plane.pointA, plane.pointB, plane.pointC, plane.pointD);
     }
 
     public static Plane3D planeFromTriangles(Triangle3D triangle1, Triangle3D triangle2) {
@@ -250,9 +252,18 @@ public class Plane3D {
     }
 
     public void rotate(int degree) {
+        if (degree == 0)
+            return;
+//        Vector3f M = getNormal();
+//        Vector3f N = new Vector3f();
+
         float c = (float) Math.round(Math.cos(Math.toRadians(degree)));
         float s = (float) Math.round(Math.sin(Math.toRadians(degree)));
-
+//
+//        N.x = c * M.x - s * M.z;
+//        N.y = M.y;
+//        N.z = s * M.x + c * M.z;
+//        if (M.equals(N)) {
         Vector3f newPointA = new Vector3f();
         Vector3f newPointB = new Vector3f();
         Vector3f newPointC = new Vector3f();
@@ -273,10 +284,53 @@ public class Plane3D {
         newPointD.x = c * pointD.x - s * pointD.z;
         newPointD.y = pointD.y;
         newPointD.z = s * pointD.x + c * pointD.z;
-
         setPointA(newPointA);
         setPointB(newPointB);
         setPointC(newPointC);
         setPointD(newPointD);
+
+        //        }
+//        float costheta = Vector3f.dot(M, N) / (M.length() * N.length());
+//        Vector3f axis = Vector3f.cross(M, N).normalize();
+//        float sqrt = (float) Math.sqrt(1 - costheta * costheta);
+//        Matrix3f rotationMatrix = new Matrix3f();
+//        float v = 1 - costheta;
+//        rotationMatrix.m00 = axis.x * axis.x * v + costheta;
+//        rotationMatrix.m10 = axis.x * axis.y * v - axis.z * sqrt;
+//        rotationMatrix.m20 = axis.x * axis.z * v + axis.y * sqrt;
+//
+//        rotationMatrix.m01 = axis.y * axis.x * v + axis.z * sqrt;
+//        rotationMatrix.m11 = axis.y * axis.y * v + costheta;
+//        rotationMatrix.m21 = axis.y * axis.z * v - axis.x * sqrt;
+//
+//        rotationMatrix.m02 = axis.z * axis.x * v - axis.y * sqrt;
+//        rotationMatrix.m12 = axis.z * axis.y * v + axis.x * sqrt;
+//        rotationMatrix.m22 = axis.z * axis.z * v + costheta;
+//
+//        pointA = Matrix3f.mul(rotationMatrix, pointA);
+//        pointB = Matrix3f.mul(rotationMatrix, pointB);
+//        pointC = Matrix3f.mul(rotationMatrix, pointC);
+//        pointD = Matrix3f.mul(rotationMatrix, pointD);
+//
+//        newPointA.x = c * pointA.x - s * pointA.z;
+//        newPointA.y = pointA.y;
+//        newPointA.z = s * pointA.x + c * pointA.z;
+//
+//        newPointB.x = c * pointB.x - s * pointB.z;
+//        newPointB.y = pointB.y;
+//        newPointB.z = s * pointB.x + c * pointB.z;
+//
+//        newPointC.x = c * pointC.x - s * pointC.z;
+//        newPointC.y = pointC.y;
+//        newPointC.z = s * pointC.x + c * pointC.z;
+//
+//        newPointD.x = c * pointD.x - s * pointD.z;
+//        newPointD.y = pointD.y;
+//        newPointD.z = s * pointD.x + c * pointD.z;
+//
+//        setPointA(newPointA);
+//        setPointB(newPointB);
+//        setPointC(newPointC);
+//        setPointD(newPointD);
     }
 }

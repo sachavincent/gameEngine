@@ -3,8 +3,8 @@ package renderEngine.shaders;
 import entities.Camera;
 import renderEngine.MasterRenderer;
 import scene.components.ColorComponent;
-import scene.gameObjects.GameObject;
 import scene.components.PositionComponent;
+import scene.gameObjects.GameObject;
 import util.math.Maths;
 import util.math.Matrix4f;
 
@@ -70,6 +70,9 @@ public class WaterShader extends ShaderProgram {
     }
 
     public void loadLight(GameObject sun) {
+        if (sun == null)
+            return;
+
         super.loadVector(location_lightColor, sun.getComponent(ColorComponent.class).getColor());
         super.loadVector(location_lightPosition, sun.getComponent(PositionComponent.class).getPosition());
     }

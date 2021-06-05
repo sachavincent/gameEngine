@@ -8,23 +8,35 @@ import terrains.TerrainPosition;
 
 public class RoadGraph {
 
-    private       Set<RoadNode>        nodes;
-    private final SortedSet<RouteRoad> routes;
+    private       Set<NodeRoad>           nodes;
+    private final TreeSet<NodeConnection> nodeConnections;
 
     public RoadGraph() {
         this.nodes = new HashSet<>();
-        this.routes = new TreeSet<>();
+        this.nodeConnections = new TreeSet<>();
     }
 
-    public void searchForNextNode(TerrainPosition position, Direction[] directions, RouteRoad currentRoute) {
-        if (currentRoute == null) {
-            RoadNode start = new RoadNode(position);
-            currentRoute = new RouteRoad(start);
+    public RoadGraph(Set<NodeRoad> nodes, TreeSet<NodeConnection> nodeConnections) {
+        this.nodes = nodes;
+        this.nodeConnections = nodeConnections;
+    }
+
+    public RoadGraph copy() {
+        return new RoadGraph(this.nodes.stream().map(NodeRoad::new).collect(Collectors.toSet()),
+                this.nodeConnections.stream().map(NodeConnection::new)
+                        .collect(Collectors.toCollection(TreeSet<NodeConnection>::new)));
+    }
+
+    public void searchForNextNode(TerrainPosition position, Direction[] directions,
+            NodeConnection currentNodeConnection) {
+        if (currentNodeConnection == null) {
+            NodeRoad start = new NodeRoad(position);
+            currentNodeConnection = new NodeConnection(start);
 
             nodes.add(start);
         }
 
-        assert currentRoute.getEnd() == null;
+        assert currentNodeConnection.getEnd() == null;
 
         Scene scene = Scene.getInstance();
         for (Direction direction : directions) {
@@ -44,28 +56,29 @@ public class RoadGraph {
 
             if (directionsNextRoadOnlyRoads.length > 2) {
                 // Node found (directionsNextRoad.length > 3 && directionsNextRoad.length <= 4)
-                RoadNode newNode = new RoadNode(nextRoadPosition);
-                RouteRoad newRoute = new RouteRoad(currentRoute);
-                newRoute.setEnd(newNode);
-                newRoute.addRoad(newNode);
+                NodeRoad newNode = new NodeRoad(nextRoadPosition);
+                NodeConnection newNodeConnection = new NodeConnection(currentNodeConnection);
+                newNodeConnection.setEnd(newNode);
+                newNodeConnection.addRoad(newNode);
 
-                routes.add(newRoute);
-                routes.add(newRoute.invertRoute());
+                this.nodeConnections.add(newNodeConnection);
+                this.nodeConnections.add(newNodeConnection.invert());
 
-                Set<RouteRoad> routesToDelete = new HashSet<>();
-                routes.stream().filter(route ->
-                        (route.getEnd().equals(newRoute.getEnd()) && !newRoute.getStart().equals(route.getStart()) &&
-                                route.getRoute().contains(newRoute.getStart())) ||
-                                (route.getEnd().equals(newRoute.getStart()) &&
-                                        !newRoute.getEnd().equals(route.getStart()) &&
-                                        route.getRoute().contains(newRoute.getEnd())))
-                        .forEach(routesToDelete::add);
+                Set<NodeConnection> nodeConnectionsToDelete = new HashSet<>();
+                this.nodeConnections.stream().filter(nodeConnection ->
+                        (nodeConnection.getEnd().equals(newNodeConnection.getEnd()) &&
+                                !newNodeConnection.getStart().equals(nodeConnection.getStart()) &&
+                                nodeConnection.getRoads().contains(newNodeConnection.getStart())) ||
+                                (nodeConnection.getEnd().equals(newNodeConnection.getStart()) &&
+                                        !newNodeConnection.getEnd().equals(nodeConnection.getStart()) &&
+                                        nodeConnection.getRoads().contains(newNodeConnection.getEnd())))
+                        .forEach(nodeConnectionsToDelete::add);
 
-                routes.removeAll(routesToDelete);
+                this.nodeConnections.removeAll(nodeConnectionsToDelete);
 
                 List<Direction> directionList = new ArrayList<>(Arrays.asList(directionsNextRoadOnlyRoads));
                 directionList.remove(oppositeDirection);
-                if (!nodes.contains(new RoadNode(nextRoadPosition)))
+                if (!this.nodes.contains(new NodeRoad(nextRoadPosition)))
                     searchForNextNode(nextRoadPosition, directionList.toArray(new Direction[0]), null);
                 continue;
             }
@@ -77,29 +90,30 @@ public class RoadGraph {
                     nextDir = nextDirection;
 
             if (nextDir != null) {
-                RouteRoad nextRoute = new RouteRoad(currentRoute);
-                nextRoute.addRoad(new NormalRoad(nextRoadPosition)); // No node yet, add road
+                NodeConnection nextNodeConnection = new NodeConnection(currentNodeConnection);
+                nextNodeConnection.addRoad(new NormalRoad(nextRoadPosition)); // No node yet, add road
 
-                searchForNextNode(nextRoadPosition, new Direction[]{nextDir}, nextRoute);
+                searchForNextNode(nextRoadPosition, new Direction[]{nextDir}, nextNodeConnection);
             }
         }
     }
 
-    public void setNodes(Set<RoadNode> nodes) {
+    public void setNodes(Set<NodeRoad> nodes) {
         this.nodes = nodes;
     }
 
-    public Set<RoadNode> getNodes() {
+    public Set<NodeRoad> getNodes() {
         return this.nodes;
     }
 
-    public Set<RouteRoad> getRoutes() {
-        return this.routes;
+    public Set<NodeConnection> getNodeConnections() {
+        return this.nodeConnections;
     }
 
-    public Set<RouteRoad> getRoutes(RoadNode node) {
-        return routes.stream().filter(routeRoad -> routeRoad.getStart().getPosition().equals(node.getPosition()))
-                .collect(Collectors.toSet());
+    public Set<NodeConnection> getNodeConnections(NodeRoad node) {
+        return this.nodeConnections.stream()
+                .filter(nodeConnection -> nodeConnection.getStart().getPosition().equals(node.getPosition()))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -111,21 +125,22 @@ public class RoadGraph {
             searchForNextNode(position, connectionsToRoadItem, null);
         } else {
             NormalRoad road = new NormalRoad(position);
-            RouteRoad[] closestNodes = RouteFinder.getClosestNodes(road);
+            NodeConnection[] closestNodes = PathFinder.getClosestNodes(road);
             if (closestNodes[0] != null && closestNodes[1] != null && connectionsToRoadItem.length == 2) {
-                RouteRoad routeRoad1 = closestNodes[0].invertRoute();
-                RouteRoad routeRoad2 = closestNodes[1];
-                if (!routeRoad1.getStart().equals(routeRoad2.getEnd())) {
-                    RouteRoad routeRoad = new RouteRoad(routeRoad1.getStart(), routeRoad2.getEnd());
-                    routeRoad1.getRoute().forEach(routeRoad::addRoad);
-                    routeRoad.addRoad(road);
-                    routeRoad2.getRoute().forEach(routeRoad::addRoad);
+                NodeConnection nodeConnection1 = closestNodes[0].invert();
+                NodeConnection nodeConnection2 = closestNodes[1];
+                if (!nodeConnection1.getStart().equals(nodeConnection2.getEnd())) {
+                    NodeConnection nodeConnection = new NodeConnection(nodeConnection1.getStart(),
+                            nodeConnection2.getEnd());
+                    nodeConnection1.getRoads().forEach(nodeConnection::addRoad);
+                    nodeConnection.addRoad(road);
+                    nodeConnection2.getRoads().forEach(nodeConnection::addRoad);
 
-                    nodes.add((RoadNode) routeRoad1.getStart());
-                    nodes.add((RoadNode) routeRoad2.getEnd());
+                    this.nodes.add((NodeRoad) nodeConnection1.getStart());
+                    this.nodes.add((NodeRoad) nodeConnection2.getEnd());
 
-                    routes.add(routeRoad);
-                    routes.add(routeRoad.invertRoute());
+                    this.nodeConnections.add(nodeConnection);
+                    this.nodeConnections.add(nodeConnection.invert());
                 }
             } /*else {*/
             for (Direction direction : connectionsToRoadItem) {
@@ -136,8 +151,8 @@ public class RoadGraph {
                 }
 
                 if (directions.length > 2 && connectionsToRoadItem.length > 1) { // See Test 19 to see why!
-                    RouteRoad route = new RouteRoad(new RoadNode(newPos));
-                    route.addRoad(new NormalRoad(position));
+                    NodeConnection nodeConnection = new NodeConnection(new NodeRoad(newPos));
+                    nodeConnection.addRoad(new NormalRoad(position));
 
                     Direction[] newDirections = new Direction[connectionsToRoadItem.length - 1];
                     int i = 0;
@@ -145,10 +160,9 @@ public class RoadGraph {
                         if (dir != direction)
                             newDirections[i++] = dir;
                     }
-                    searchForNextNode(position, newDirections, route);
+                    searchForNextNode(position, newDirections, nodeConnection);
                 }
             }
-//            }
         }
     }
 
@@ -159,24 +173,24 @@ public class RoadGraph {
         if (o == null || getClass() != o.getClass())
             return false;
         RoadGraph roadGraph = (RoadGraph) o;
-        return Objects.equals(nodes, roadGraph.nodes) &&
-                Objects.equals(routes, roadGraph.routes);
+        return Objects.equals(this.nodes, roadGraph.nodes) &&
+                Objects.equals(this.nodeConnections, roadGraph.nodeConnections);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nodes, routes);
+        return Objects.hash(nodes, nodeConnections);
     }
 
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        routes.forEach(route -> stringBuilder.append(route).append("\n"));
+        this.nodeConnections.forEach(nodeConnection -> stringBuilder.append(nodeConnection).append("\n"));
         StringBuilder stringBuilder2 = new StringBuilder();
-        nodes.forEach(node -> stringBuilder2.append(node).append("\n"));
+        this.nodes.forEach(node -> stringBuilder2.append(node).append("\n"));
         return "Graph{" +
-                "nodes (" + nodes.size() + ") =" + stringBuilder2.toString() +
-                "\t, routes(" + routes.size() + ") =" + stringBuilder.toString() +
+                "nodes (" + this.nodes.size() + ") =" + stringBuilder2 +
+                "\t, nodeConnections(" + this.nodeConnections.size() + ") =" + stringBuilder +
                 '}';
     }
 }

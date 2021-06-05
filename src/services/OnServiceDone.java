@@ -2,5 +2,5 @@ package services;
 
 public interface OnServiceDone<Result> {
 
-    void done(Result r);
+    void done(Result result);
 }

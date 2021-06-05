@@ -23,6 +23,7 @@ public class Matrix3f extends Matrix implements Serializable {
     public Matrix3f load(Matrix3f src) {
         return load(src, this);
     }
+
     public static Matrix3f load(Matrix3f src, Matrix3f dest) {
         if (dest == null) {
             dest = new Matrix3f();
@@ -307,5 +308,13 @@ public class Matrix3f extends Matrix implements Serializable {
         m.m21 = 0.0F;
         m.m22 = 0.0F;
         return m;
+    }
+
+    public static Vector3f mul(Matrix3f matrix, Vector3f vec) {
+        float x = matrix.m00 * vec.x + matrix.m10 * vec.y + matrix.m20 * vec.z;
+        float y = matrix.m01 * vec.x + matrix.m11 * vec.y + matrix.m21 * vec.z;
+        float z = matrix.m02 * vec.x + matrix.m12 * vec.y + matrix.m22 * vec.z;
+
+        return new Vector3f(x, y, z);
     }
 }

@@ -85,6 +85,10 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         return dest;
     }
 
+    public static Vector3f cross(Vector3f left, Vector3f right) {
+        return cross(left, right, null);
+    }
+
     public Vector negate() {
         this.x = -this.x;
         this.y = -this.y;

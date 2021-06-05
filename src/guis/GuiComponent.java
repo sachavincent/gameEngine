@@ -1,5 +1,6 @@
 package guis;
 
+import static renderEngine.GuiRenderer.DEFAULT;
 import static renderEngine.GuiRenderer.unfilledQuad;
 
 import guis.constraints.GuiConstraintHandler;
@@ -7,13 +8,8 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiGlobalConstraints;
 import guis.presets.Background;
 import guis.transitions.Transition;
-import inputs.ClickType;
 import inputs.MouseUtils;
-import inputs.callbacks.EnterCallback;
-import inputs.callbacks.HoverCallback;
-import inputs.callbacks.LeaveCallback;
-import inputs.callbacks.ScrollCallback;
-import inputs.callbacks.UpdateCallback;
+import inputs.callbacks.*;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,11 +25,13 @@ public abstract class GuiComponent implements GuiInterface {
 
     public static int maxID = 1;
 
+    protected int type = DEFAULT;
+
     public int ID;
 
-    private float x, y;
+    protected float x, y;
 
-    private float width, height;
+    protected float width, height;
 
     protected final GuiInterface parent;
 
@@ -44,15 +42,29 @@ public abstract class GuiComponent implements GuiInterface {
     public final GuiTexture debugOutline;
     private      boolean    displayDebugOutline = true;
 
-    private EnterCallback  onEnterCallback;
-    private LeaveCallback  onLeaveCallback;
-    private HoverCallback  onHoverCallback;
-    private ScrollCallback onScrollCallback;
-    private UpdateCallback onUpdateCallback;
+    private EnterCallback   onEnterCallback   = () -> {
+    };
+    private LeaveCallback   onLeaveCallback   = () -> {
+    };
+    private HoverCallback   onHoverCallback   = () -> {
+    };
+    private ScrollCallback  onScrollCallback  = (xOffset, yOffset) -> {
+    };
+    private UpdateCallback  onUpdateCallback  = () -> {
+    };
+    private OpenCallback    onOpenCallback    = () -> {
+    };
+    private CloseCallback   onCloseCallback   = () -> {
+    };
+    private UnfocusCallback onUnfocusCallback = () -> {
+    };
+    private FocusCallback   onFocusCallback   = () -> {
+    };
 
-    private boolean displayed, displayedByDefault;
+    // Unfocus if click outside of text input
+    private boolean unfocusOnClick = true;
 
-    public ClickType clickType;
+    private boolean displayed, displayedByDefault, focused;
 
     protected float cornerRadius;
 
@@ -70,8 +82,6 @@ public abstract class GuiComponent implements GuiInterface {
         this.x = parent.getX();
         this.y = parent.getY();
 
-        this.clickType = ClickType.NONE;
-
         this.displayed = this.displayedByDefault = true;
 
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
@@ -82,11 +92,14 @@ public abstract class GuiComponent implements GuiInterface {
     public GuiComponent(GuiInterface parent, Background<?> background) {
         this(parent);
 
-        if (background != null)
-            this.textures.add(new GuiTexture(background, new Vector2f(this.x, this.y),
-                    new Vector2f(this.width, this.height)));
+        if (background == null)
+            background = Background.NO_BACKGROUND;
+
+        this.textures.add(new GuiTexture(background, new Vector2f(this.x, this.y),
+                new Vector2f(this.width, this.height)));
     }
 
+    @Override
     public float getCornerRadius() {
         return this.cornerRadius;
     }
@@ -156,13 +169,28 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     @Override
-    public boolean update() {
-        if (this.onUpdateCallback == null)
-            return false;
+    public void setOnClose(CloseCallback closeCallback) {
+        this.onCloseCallback = closeCallback;
+    }
 
+    @Override
+    public void setOnOpen(OpenCallback openCallback) {
+        this.onOpenCallback = openCallback;
+    }
+
+    @Override
+    public boolean update() {
         this.onUpdateCallback.onUpdate();
 
         return true;
+    }
+
+    public int getType() {
+        return this.type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 
     public void updateTexturePosition() {
@@ -200,36 +228,20 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     public void onEnter() {
-        if (this.onEnterCallback == null)
-            return;
-
         this.onEnterCallback.onEnter();
     }
 
     public void onLeave() {
-        if (this.onLeaveCallback == null)
-            return;
-
         this.onLeaveCallback.onLeave();
     }
 
 
     public void onHover() {
-        if (this.onHoverCallback == null)
-            return;
-
         this.onHoverCallback.onHover();
     }
 
-    public void onScroll() {
-        if (this.onScrollCallback == null)
-            return;
-
-        this.onScrollCallback.onScroll();
-    }
-
-    public void onType() {
-
+    public void onScroll(double xOffset, double yOffset) {
+        this.onScrollCallback.onScroll(xOffset, yOffset);
     }
 
     public void setOnHover(HoverCallback onHoverCallback) {
@@ -272,11 +284,10 @@ public abstract class GuiComponent implements GuiInterface {
     public void setX(float x) {
         this.x = x;
 
-        getChildrenComponents()
-                .forEach(guiComponent -> {
-                    guiComponent.x = x;
-                    guiComponent.updateTexturePosition();
-                });
+        getChildrenComponents().forEach(guiComponent -> {
+            guiComponent.setX(x);
+            guiComponent.updateTexturePosition();
+        });
 
         updateTexturePosition();
     }
@@ -285,11 +296,10 @@ public abstract class GuiComponent implements GuiInterface {
     public void setY(float y) {
         this.y = y;
 
-        getChildrenComponents()
-                .forEach(guiComponent -> {
-                    guiComponent.y = y;
-                    guiComponent.updateTexturePosition();
-                });
+        getChildrenComponents().forEach(guiComponent -> {
+            guiComponent.setY(y);
+            guiComponent.updateTexturePosition();
+        });
 
         updateTexturePosition();
     }
@@ -297,11 +307,10 @@ public abstract class GuiComponent implements GuiInterface {
     public void setWidth(float width) {
         this.width = width;
 
-        getChildrenComponents()
-                .forEach(guiComponent -> {
-                    guiComponent.width = width;
-                    guiComponent.updateTexturePosition();
-                });
+        getChildrenComponents().forEach(guiComponent -> {
+            guiComponent.setWidth(width);
+            guiComponent.updateTexturePosition();
+        });
 
         updateTexturePosition();
     }
@@ -309,25 +318,12 @@ public abstract class GuiComponent implements GuiInterface {
     public void setHeight(float height) {
         this.height = height;
 
-        getChildrenComponents()
-                .forEach(guiComponent -> {
-                    guiComponent.height = height;
-                    guiComponent.updateTexturePosition();
-                });
+        getChildrenComponents().forEach(guiComponent -> {
+            guiComponent.setHeight(height);
+            guiComponent.updateTexturePosition();
+        });
 
         updateTexturePosition();
-    }
-
-    public boolean isClicked() {
-        return this.clickType != ClickType.NONE;
-    }
-
-    public ClickType getClickType() {
-        return this.clickType;
-    }
-
-    public void setClickType(ClickType clickType) {
-        this.clickType = clickType;
     }
 
     @Override
@@ -342,6 +338,7 @@ public abstract class GuiComponent implements GuiInterface {
         if (this.textures.size() == 1) {
             this.textures.clear();
             this.textures.add(new GuiTexture(background, this));
+            updateTexturePosition();
         }
     }
 
@@ -371,11 +368,18 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     @Override
-    public void setDisplayed(boolean displayed) {
+    public final void setDisplayed(boolean displayed) {
         if (this.displayed == displayed)
             return;
 
         this.displayed = displayed;
+
+        if (displayed)
+            this.onOpenCallback.onOpen();
+        else {
+            unfocus();
+            this.onCloseCallback.onClose();
+        }
 
         List<GuiComponent> list = GuiComponent.getParentGui(this).getAllComponents().stream()
                 .filter(GuiComponent::isDisplayedByDefault)
@@ -430,6 +434,23 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     @Override
+    public void focus() {
+        this.focused = true;
+        this.onFocusCallback.onFocus();
+    }
+
+    @Override
+    public void unfocus() {
+        this.focused = false;
+        this.onUnfocusCallback.onUnfocus();
+    }
+
+    @Override
+    public boolean isFocused() {
+        return this.focused;
+    }
+
+    @Override
     public void setAlpha(float alpha) {
         if (this.textures.size() > textureIndex) {
             GuiTexture guiTexture = this.textures.get(textureIndex);
@@ -474,6 +495,22 @@ public abstract class GuiComponent implements GuiInterface {
                 ", width=" + width +
                 ", height=" + height +
                 '}';
+    }
+
+    public boolean isUnfocusOnClick() {
+        return this.unfocusOnClick;
+    }
+
+    public void setOnUnfocusCallback(UnfocusCallback onUnfocusCallback) {
+        this.onUnfocusCallback = onUnfocusCallback;
+    }
+
+    public void setUnfocusOnClick(boolean unfocusOnClick) {
+        this.unfocusOnClick = unfocusOnClick;
+    }
+
+    public void setOnFocusCallback(FocusCallback onFocusCallback) {
+        this.onFocusCallback = onFocusCallback;
     }
 
     @Override

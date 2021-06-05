@@ -54,7 +54,8 @@ public enum Words {
     ENGLISH("English"),
     FRENCH("French"),
 
-    // KeyBindings
+    // Controls
+    KEYBOARD_KAYOUT("Keyboard Layout"),
     PRESS_KEY("Press Key"),
     PRESS_TO_ASSIGN("Press To Assign"),
 

@@ -25,17 +25,17 @@ public abstract class ShaderProgram {
     private boolean started;
 
     ShaderProgram(String vertexFile, String fragmentFile) {
-        vertexShaderID = loadShader(ROOT + vertexFile, GL20.GL_VERTEX_SHADER);
-        fragmentShaderID = loadShader(ROOT + fragmentFile, GL20.GL_FRAGMENT_SHADER);
+        this.vertexShaderID = loadShader(ROOT + vertexFile, GL20.GL_VERTEX_SHADER);
+        this.fragmentShaderID = loadShader(ROOT + fragmentFile, GL20.GL_FRAGMENT_SHADER);
 
-        programID = GL20.glCreateProgram();
-        GL20.glAttachShader(programID, vertexShaderID);
-        GL20.glAttachShader(programID, fragmentShaderID);
+        this.programID = GL20.glCreateProgram();
+        GL20.glAttachShader(this.programID, this.vertexShaderID);
+        GL20.glAttachShader(this.programID, this.fragmentShaderID);
 
         bindAttributes();
 
-        GL20.glLinkProgram(programID);
-        GL20.glValidateProgram(programID);
+        GL20.glLinkProgram(this.programID);
+        GL20.glValidateProgram(this.programID);
 
         getAllUniformLocations();
     }
@@ -43,7 +43,7 @@ public abstract class ShaderProgram {
     protected abstract void getAllUniformLocations();
 
     int getUniformLocation(String uniformName) {
-        return GL20.glGetUniformLocation(programID, uniformName);
+        return GL20.glGetUniformLocation(this.programID, uniformName);
     }
 
     void loadFloat(int location, float value) {
@@ -80,7 +80,7 @@ public abstract class ShaderProgram {
     }
 
     public void start() {
-        GL20.glUseProgram(programID);
+        GL20.glUseProgram(this.programID);
         this.started = true;
     }
 
@@ -92,19 +92,19 @@ public abstract class ShaderProgram {
     public void cleanUp() {
         stop();
 
-        GL20.glDetachShader(programID, vertexShaderID);
-        GL20.glDetachShader(programID, fragmentShaderID);
+        GL20.glDetachShader(this.programID, this.vertexShaderID);
+        GL20.glDetachShader(this.programID, this.fragmentShaderID);
 
-        GL20.glDeleteShader(vertexShaderID);
-        GL20.glDeleteShader(fragmentShaderID);
+        GL20.glDeleteShader(this.vertexShaderID);
+        GL20.glDeleteShader(this.fragmentShaderID);
 
-        GL20.glDeleteProgram(programID);
+        GL20.glDeleteProgram(this.programID);
     }
 
     protected abstract void bindAttributes();
 
     protected void bindAttribute(int attribute, String variableName) {
-        GL20.glBindAttribLocation(programID, attribute, variableName);
+        GL20.glBindAttribLocation(this.programID, attribute, variableName);
     }
 
     public boolean isStarted() {

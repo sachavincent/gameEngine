@@ -9,7 +9,6 @@ import static util.math.Vector2f.cross_product;
 import static util.math.Vector2f.dot;
 
 import fontMeshCreator.Text;
-import guis.Gui;
 import guis.GuiInterface;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiRectangle;
@@ -136,7 +135,7 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
             if (!sectorsEqual)
                 this.hoverSectorGui.removeComponent(this.currentGuiHoverText);
 
-            GuiText currentGuiHoverText = Gui.setupText(this.hoverSectorGui,
+            GuiText currentGuiHoverText = new GuiText(this.hoverSectorGui,
                     new Text(sector.getDescription(), .55f, DEFAULT_FONT, Color.LIGHT_GRAY));
             currentGuiHoverText.setDisplayed(false);
             this.hoverSectorGui.addComponent(this.currentGuiHoverText = currentGuiHoverText);

@@ -43,11 +43,13 @@ public class GuiEscapeMenu extends Gui {
         addQuickSaveButton();
         addSettingsButton();
         addQuitButton();
+
+        setDisplayed(false);
     }
 
     private void addResumeButton() {
         Text text = new Text(Words.RESUME, .7f, DEFAULT_FONT, Color.BLACK);
-        GuiRectangleButton resumeButton = new GuiRectangleButton(this, this.buttonBackground, text);
+        GuiRectangleButton resumeButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         resumeButton.enableFilter();
         resumeButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -59,7 +61,7 @@ public class GuiEscapeMenu extends Gui {
 
     private void addSaveAndQuitButton() {
         Text text = new Text(Words.SAVE_AND_QUIT, .7f, DEFAULT_FONT, Color.BLACK);
-        GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
+        GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -70,7 +72,7 @@ public class GuiEscapeMenu extends Gui {
 
     private void addQuickSaveButton() {
         Text text = new Text(Words.QUICK_SAVE, .7f, DEFAULT_FONT, Color.BLACK);
-        GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, text);
+        GuiRectangleButton saveAndQuitButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         saveAndQuitButton.enableFilter();
         saveAndQuitButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -81,13 +83,14 @@ public class GuiEscapeMenu extends Gui {
 
     private void addSettingsButton() {
         GuiSettingsMenu guiSettingsMenu = new GuiSettingsMenu(GuiMainMenu.getInstance());
-        guiSettingsMenu.onBackButtonPress(() -> {
+        guiSettingsMenu.setDisplayed(false);
+        guiSettingsMenu.setOnBackButtonPress(() -> {
             guiSettingsMenu.setDisplayed(false);
             setDisplayed(true);
         });
 
         Text text = new Text(Words.SETTINGS, .7f, DEFAULT_FONT, Color.BLACK);
-        GuiRectangleButton settingsButton = new GuiRectangleButton(this, this.buttonBackground, text);
+        GuiRectangleButton settingsButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         settingsButton.enableFilter();
         settingsButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -100,7 +103,7 @@ public class GuiEscapeMenu extends Gui {
 
     private void addQuitButton() {
         Text text = new Text(Words.QUIT, .7f, DEFAULT_FONT, Color.BLACK);
-        GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, text);
+        GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         quitButton.enableFilter();
         quitButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1)

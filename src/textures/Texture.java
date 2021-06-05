@@ -13,6 +13,7 @@ import static org.lwjgl.opengl.GL41.glTexParameteri;
 
 import guis.presets.Background;
 import java.awt.Color;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
@@ -44,9 +45,8 @@ public abstract class Texture {
                 instantiateWithFile(backString);
         } else if (back instanceof Integer)
             instantiateWithInteger((Integer) back);
-        else
-            throw new IllegalArgumentException("Invalid type: " + background);
-
+//        else
+//            throw new IllegalArgumentException("Invalid type: " + background);
     }
 
     private void instantiateWithHexColor(String hexColor) {
@@ -59,11 +59,12 @@ public abstract class Texture {
     private void instantiateWithColor(Color color) {
         this.width = 8;
         this.height = 8;
-
+        this.textureID = GL41.glGenTextures();
         if (color == null)
             color = Color.WHITE;
 
         this.color = color;
+        GL41.glBindTexture(GL_TEXTURE_2D, textureID);
     }
 
     private void instantiateWithInteger(Integer integer) {
@@ -71,6 +72,10 @@ public abstract class Texture {
     }
 
     private void instantiateWithFile(String fileName) {
+        File file = new File("res/" + fileName);
+        if (!file.exists())
+            fileName = "white.png";
+
         IntBuffer width = BufferUtils.createIntBuffer(1);
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer comp = BufferUtils.createIntBuffer(1);
@@ -137,7 +142,6 @@ public abstract class Texture {
     public int getHeight() {
         return this.height;
     }
-
 
     public void loadMSAATexture() {
         frameBuffer = GL41.glGenFramebuffers();

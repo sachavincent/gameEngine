@@ -29,10 +29,10 @@ public class GuiConstraintHandler {
         for (char s : guiConstraintsManager.getOrder()) {
             switch (s) {
                 case 'W':
-                    this.toHandle.setWidth(handleWidthConstraint(widthConstraint));
+                    this.toHandle.setWidth(handleWidthConstraint(widthConstraint, xConstraint));
                     break;
                 case 'H':
-                    this.toHandle.setHeight(handleHeightConstraint(heightConstraint));
+                    this.toHandle.setHeight(handleHeightConstraint(heightConstraint, yConstraint));
                     break;
                 case 'X':
                     this.toHandle.setX(handleXConstraint(xConstraint));
@@ -45,6 +45,10 @@ public class GuiConstraintHandler {
     }
 
     public float handleWidthConstraint(GuiConstraints widthConstraint) {
+        return handleWidthConstraint(widthConstraint, null);
+    }
+
+    public float handleWidthConstraint(GuiConstraints widthConstraint, GuiConstraints xConstraint) {
         float width = 0;
         if (widthConstraint == null)
             return width;
@@ -57,7 +61,11 @@ public class GuiConstraintHandler {
                 if (relativeTo == null)
                     relativeTo = this.parent;
 
-                width = constraint * relativeTo.getWidth();
+                float xConstraintValue = 0;
+                if (xConstraint != null && (xConstraint.getConstraints() == Constraints.SIDE ||
+                        xConstraint.getConstraints() == Constraints.STICKY))
+                    xConstraintValue = xConstraint.constraint();
+                width = (constraint - xConstraintValue) * relativeTo.getWidth();
                 break;
             case ASPECT:
                 width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.toHandle.getHeight();
@@ -73,6 +81,10 @@ public class GuiConstraintHandler {
     }
 
     public float handleHeightConstraint(GuiConstraints heightConstraint) {
+        return handleHeightConstraint(heightConstraint, null);
+    }
+
+    public float handleHeightConstraint(GuiConstraints heightConstraint, GuiConstraints yConstraint) {
         float height = 0;
         if (heightConstraint == null)
             return height;
@@ -85,7 +97,11 @@ public class GuiConstraintHandler {
                 if (relativeTo == null)
                     relativeTo = this.parent;
 
-                height = constraint * relativeTo.getHeight();
+                float yConstraintValue = 0;
+                if (yConstraint != null && (yConstraint.getConstraints() == Constraints.SIDE ||
+                        yConstraint.getConstraints() == Constraints.STICKY))
+                    yConstraintValue = yConstraint.constraint();
+                height = (constraint - yConstraintValue) * relativeTo.getHeight();
                 break;
             case ASPECT:
                 height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.toHandle.getWidth();
@@ -229,8 +245,7 @@ public class GuiConstraintHandler {
             case SIDE:
                 if (relativeTo == null)
                     relativeTo = this.parent;
-                else
-                    System.out.println();
+
                 SideConstraint sideConstraint = (SideConstraint) xConstraint;
                 distanceType = sideConstraint.getDistanceType();
                 if (distanceType == Constraints.PIXEL)

@@ -14,19 +14,20 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pathfinding.NodeConnection;
+import pathfinding.NodeRoad;
 import pathfinding.NormalRoad;
+import pathfinding.Path;
+import pathfinding.PathFinder;
 import pathfinding.RoadGraph;
-import pathfinding.RoadNode;
-import pathfinding.RouteFinder;
-import pathfinding.RouteFinder.Route;
-import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
+import renderEngine.PathRenderer;
+import scene.Scene;
+import scene.components.PositionComponent;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
 import scene.gameObjects.Market;
-import scene.components.PositionComponent;
-import scene.Scene;
 import terrains.TerrainPosition;
 import util.Utils;
 
@@ -38,6 +39,7 @@ class TerrainTest {
     public static void init() {
         glfwInit();
         DisplayManager.createDisplayForTests();
+        PathRenderer.getInstance();
     }
 
     @BeforeEach
@@ -61,23 +63,23 @@ class TerrainTest {
     void testGetRoadConnectionsToRoadGameObject2() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
         Direction[] directions = scene.getRoadConnections(center);
 
-        assertArrayEquals(new Direction[]{Direction.EAST}, directions);
+        assertArrayEquals(new Direction[]{Direction.WEST}, directions);
     }
 
     @Test
     void testGetRoadConnectionsToRoadGameObject3() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
 
         Direction[] directions = scene.getRoadConnections(center);
 
-        assertArrayEquals(new Direction[]{Direction.WEST}, directions);
+        assertArrayEquals(new Direction[]{Direction.EAST}, directions);
     }
 
     @Test
@@ -121,7 +123,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
-        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
         Direction[] directions = scene.getRoadConnections(center);
 
@@ -132,26 +134,26 @@ class TerrainTest {
     void testGetRoadConnectionsToRoadGameObject8() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
-        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
         Direction[] directions = scene.getRoadConnections(center);
 
-        assertArrayEquals(new Direction[]{Direction.WEST, Direction.EAST}, directions);
+        assertArrayEquals(new Direction[]{Direction.EAST, Direction.WEST}, directions);
     }
 
     @Test
     void testGetRoadConnectionsToRoadGameObject9() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
         Direction[] directions = scene.getRoadConnections(center);
-        assertArrayEquals(new Direction[]{Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH},
+        assertArrayEquals(new Direction[]{Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH},
                 directions);
     }
 
@@ -222,74 +224,74 @@ class TerrainTest {
 //        assertEquals(expected, res);
 //    }
     @Test
-    void testInvertRoute1() {
+    void testInvertPath1() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
 
-        RouteFinder.Route route = new Route();
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
-        route.add(routeRoad);
+        Path path = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
+        path.add(nodeConnection);
 
-        RouteFinder.Route foundRoute = route.invertRoute();
+        Path foundPath = path.invertPath();
 
-        RouteFinder.Route expectedRoute = new Route();
-        expectedRoute.add(routeRoad);
+        Path expectedPath = new Path();
+        expectedPath.add(nodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testInvertRoute2() {
+    void testInvertPath2() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
 
-        RouteFinder.Route route = new Route();
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
-        routeRoad.setEnd(new RoadNode(v2));
-        route.add(routeRoad);
+        Path path = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
+        nodeConnection.setEnd(new NodeRoad(v2));
+        path.add(nodeConnection);
 
-        RouteFinder.Route foundRoute = route.invertRoute();
+        Path foundPath = path.invertPath();
 
-        RouteFinder.Route expectedRoute = new Route();
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad.setEnd(new RoadNode(v1));
-        expectedRoute.add(expectedRouteRoad);
+        Path expectedPath = new Path();
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection.setEnd(new NodeRoad(v1));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testInvertRoute3() {
+    void testInvertPath3() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
         TerrainPosition v4 = new TerrainPosition(53, 50);
 
-        RouteFinder.Route route = new Route();
+        Path path = new Path();
         // Expected individual routes
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
-        routeRoad.setEnd(new RoadNode(v4));
-        routeRoad.addRoad(new NormalRoad(v2));
-        routeRoad.addRoad(new NormalRoad(v3));
-        route.add(routeRoad);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
+        nodeConnection.setEnd(new NodeRoad(v4));
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        path.add(nodeConnection);
 
-        RouteFinder.Route foundRoute = route.invertRoute();
+        Path foundPath = path.invertPath();
 
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad.setEnd(new RoadNode(v1));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection.setEnd(new NodeRoad(v1));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testInvertRoute4() {
+    void testInvertPath4() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -298,40 +300,40 @@ class TerrainTest {
         TerrainPosition v6 = new TerrainPosition(55, 50);
         TerrainPosition v7 = new TerrainPosition(56, 50);
 
-        RouteFinder.Route route = new Route();
+        Path path = new Path();
 
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
-        routeRoad.setEnd(new RoadNode(v4));
-        routeRoad.addRoad(new NormalRoad(v2));
-        routeRoad.addRoad(new NormalRoad(v3));
-        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(v4));
-        routeRoad2.setEnd(new RoadNode(v7));
-        routeRoad2.addRoad(new NormalRoad(v5));
-        routeRoad2.addRoad(new NormalRoad(v6));
-        route.add(routeRoad);
-        route.add(routeRoad2);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
+        nodeConnection.setEnd(new NodeRoad(v4));
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        nodeConnection2.setEnd(new NodeRoad(v7));
+        nodeConnection2.addRoad(new NormalRoad(v5));
+        nodeConnection2.addRoad(new NormalRoad(v6));
+        path.add(nodeConnection);
+        path.add(nodeConnection2);
 
-        RouteFinder.Route foundRoute = route.invertRoute();
+        Path foundPath = path.invertPath();
 
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad.setEnd(new RoadNode(v1));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v7));
-        expectedRouteRoad2.setEnd(new RoadNode(v4));
-        expectedRouteRoad2.addRoad(new NormalRoad(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
-        expectedRoute.add(expectedRouteRoad2);
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection.setEnd(new NodeRoad(v1));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v7));
+        expectedNodeConnection2.setEnd(new NodeRoad(v4));
+        expectedNodeConnection2.addRoad(new NormalRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testInvertRoute5() {
+    void testInvertPath5() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(51, 50);
         TerrainPosition v3 = new TerrainPosition(52, 50);
@@ -343,46 +345,46 @@ class TerrainTest {
         TerrainPosition v9 = new TerrainPosition(58, 50);
         TerrainPosition v10 = new TerrainPosition(59, 50);
 
-        RouteFinder.Route route = new Route();
+        Path path = new Path();
 
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(v1));
-        routeRoad.setEnd(new RoadNode(v4));
-        routeRoad.addRoad(new NormalRoad(v2));
-        routeRoad.addRoad(new NormalRoad(v3));
-        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(v4));
-        routeRoad2.setEnd(new RoadNode(v7));
-        routeRoad2.addRoad(new NormalRoad(v5));
-        routeRoad2.addRoad(new NormalRoad(v6));
-        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(v7));
-        routeRoad3.setEnd(new RoadNode(v10));
-        routeRoad3.addRoad(new NormalRoad(v8));
-        routeRoad3.addRoad(new NormalRoad(v9));
-        route.add(routeRoad);
-        route.add(routeRoad2);
-        route.add(routeRoad3);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
+        nodeConnection.setEnd(new NodeRoad(v4));
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        nodeConnection2.setEnd(new NodeRoad(v7));
+        nodeConnection2.addRoad(new NormalRoad(v5));
+        nodeConnection2.addRoad(new NormalRoad(v6));
+        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(v7));
+        nodeConnection3.setEnd(new NodeRoad(v10));
+        nodeConnection3.addRoad(new NormalRoad(v8));
+        nodeConnection3.addRoad(new NormalRoad(v9));
+        path.add(nodeConnection);
+        path.add(nodeConnection2);
+        path.add(nodeConnection3);
 
-        RouteFinder.Route foundRoute = route.invertRoute();
+        Path foundPath = path.invertPath();
 
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad.setEnd(new RoadNode(v1));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v7));
-        expectedRouteRoad2.setEnd(new RoadNode(v4));
-        expectedRouteRoad2.addRoad(new NormalRoad(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v10));
-        expectedRouteRoad3.setEnd(new RoadNode(v7));
-        expectedRouteRoad3.addRoad(new NormalRoad(v9));
-        expectedRouteRoad3.addRoad(new NormalRoad(v8));
-        expectedRoute.add(expectedRouteRoad3);
-        expectedRoute.add(expectedRouteRoad2);
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection.setEnd(new NodeRoad(v1));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v7));
+        expectedNodeConnection2.setEnd(new NodeRoad(v4));
+        expectedNodeConnection2.addRoad(new NormalRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v10));
+        expectedNodeConnection3.setEnd(new NodeRoad(v7));
+        expectedNodeConnection3.addRoad(new NormalRoad(v9));
+        expectedNodeConnection3.addRoad(new NormalRoad(v8));
+        expectedPath.add(expectedNodeConnection3);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -407,21 +409,21 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, v4);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v4, 0);
 
         // Expected global route
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -448,26 +450,26 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, v5);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v5, 0);
 
         // Expected global route
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
-        expectedRouteRoad2.setEnd(new RoadNode(v5));
-        expectedRouteRoad2.addRoad(new NormalRoad(v4));
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3));
+        expectedNodeConnection2.setEnd(new NodeRoad(v5));
+        expectedNodeConnection2.addRoad(new NormalRoad(v4));
 
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -507,23 +509,23 @@ class TerrainTest {
 
         RoadGraph roadGraph = scene.getRoadGraph();
 
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v5, 0);
 
         // Expected global route
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v5));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v4));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v5));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v4));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -567,32 +569,32 @@ class TerrainTest {
 
         RoadGraph roadGraph = scene.getRoadGraph();
 
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v9, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v9, 0);
 
         // Expected global route
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new RoadNode(v7));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
-        expectedRouteRoad2.addRoad(new NormalRoad(v6));
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v7));
-        expectedRouteRoad3.setEnd(new RoadNode(v9));
-        expectedRouteRoad3.addRoad(new NormalRoad(v8));
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
-        expectedRoute.add(expectedRouteRoad3);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NodeRoad(v7));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
+        expectedNodeConnection2.addRoad(new NormalRoad(v6));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v7));
+        expectedNodeConnection3.setEnd(new NodeRoad(v9));
+        expectedNodeConnection3.addRoad(new NormalRoad(v8));
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection3);
 
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -652,42 +654,42 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v12, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v12, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new RoadNode(v9));
-        expectedRouteRoad2.addRoad(new NormalRoad(v10));
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v9));
-        expectedRouteRoad3.setEnd(new RoadNode(v12));
-        expectedRouteRoad3.addRoad(new NormalRoad(v11));
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
-        expectedRoute.add(expectedRouteRoad3);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NodeRoad(v9));
+        expectedNodeConnection2.addRoad(new NormalRoad(v10));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v9));
+        expectedNodeConnection3.setEnd(new NodeRoad(v12));
+        expectedNodeConnection3.addRoad(new NormalRoad(v11));
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection3);
 
-        expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v6));
-        expectedRouteRoad.addRoad(new NormalRoad(v5));
-        expectedRouteRoad2 = new RouteRoad(new RoadNode(v6));
-        expectedRouteRoad2.setEnd(new RoadNode(v9));
-        expectedRouteRoad2.addRoad(new NormalRoad(v7));
-        expectedRouteRoad2.addRoad(new NormalRoad(v8));
-        expectedRoute2.add(expectedRouteRoad);
-        expectedRoute2.add(expectedRouteRoad2);
-        expectedRoute2.add(expectedRouteRoad3);
+        expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v6));
+        expectedNodeConnection.addRoad(new NormalRoad(v5));
+        expectedNodeConnection2 = new NodeConnection(new NodeRoad(v6));
+        expectedNodeConnection2.setEnd(new NodeRoad(v9));
+        expectedNodeConnection2.addRoad(new NormalRoad(v7));
+        expectedNodeConnection2.addRoad(new NormalRoad(v8));
+        expectedPath2.add(expectedNodeConnection);
+        expectedPath2.add(expectedNodeConnection2);
+        expectedPath2.add(expectedNodeConnection3);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute) || foundRoute.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath) || foundPath.comparePaths(expectedPath2));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -757,43 +759,43 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v13, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v13, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new RoadNode(v9));
-        expectedRouteRoad2.addRoad(new NormalRoad(v10));
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v9));
-        expectedRouteRoad3.setEnd(new RoadNode(v13));
-        expectedRouteRoad3.addRoad(new NormalRoad(v11));
-        expectedRouteRoad3.addRoad(new NormalRoad(v12));
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
-        expectedRoute.add(expectedRouteRoad3);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NodeRoad(v9));
+        expectedNodeConnection2.addRoad(new NormalRoad(v10));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v9));
+        expectedNodeConnection3.setEnd(new NodeRoad(v13));
+        expectedNodeConnection3.addRoad(new NormalRoad(v11));
+        expectedNodeConnection3.addRoad(new NormalRoad(v12));
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection3);
 
-        expectedRouteRoad = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v6));
-        expectedRouteRoad.addRoad(new NormalRoad(v5));
-        expectedRouteRoad2 = new RouteRoad(new RoadNode(v6));
-        expectedRouteRoad2.setEnd(new RoadNode(v9));
-        expectedRouteRoad2.addRoad(new NormalRoad(v7));
-        expectedRouteRoad2.addRoad(new NormalRoad(v8));
-        expectedRoute2.add(expectedRouteRoad);
-        expectedRoute2.add(expectedRouteRoad2);
-        expectedRoute2.add(expectedRouteRoad3);
+        expectedNodeConnection = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v6));
+        expectedNodeConnection.addRoad(new NormalRoad(v5));
+        expectedNodeConnection2 = new NodeConnection(new NodeRoad(v6));
+        expectedNodeConnection2.setEnd(new NodeRoad(v9));
+        expectedNodeConnection2.addRoad(new NormalRoad(v7));
+        expectedNodeConnection2.addRoad(new NormalRoad(v8));
+        expectedPath2.add(expectedNodeConnection);
+        expectedPath2.add(expectedNodeConnection2);
+        expectedPath2.add(expectedNodeConnection3);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute) || foundRoute.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath) || foundPath.comparePaths(expectedPath2));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -826,25 +828,25 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad2.setEnd(new RoadNode(v5));
-        expectedRouteRoad2.addRoad(new NormalRoad(v3));
-        expectedRouteRoad2.addRoad(new NormalRoad(v4));
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection2.setEnd(new NodeRoad(v5));
+        expectedNodeConnection2.addRoad(new NormalRoad(v3));
+        expectedNodeConnection2.addRoad(new NormalRoad(v4));
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -891,34 +893,34 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v6, 0);
-        routeFinder.reset();
+        Path foundPath = pathFinder.findBestPath(v1, v6, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v1, 0);
+        Path foundPath2 = pathFinder.findBestPath(v6, v1, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new RoadNode(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NodeRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
 
-        Route expectedRoute2 = expectedRoute.invertRoute();
+        Path expectedPath2 = expectedPath.invertPath();
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -950,23 +952,23 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new NormalRoad(v5));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v4));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NormalRoad(v5));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v4));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -997,28 +999,28 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RouteFinder routeFinder = new RouteFinder(scene.getRoadGraph());
+        PathFinder pathFinder = new PathFinder(scene.getRoadGraph());
         // Expected global routes
-        Route expectedRoute1 = new Route();
-        Route expectedRoute2;
+        Path expectedPath1 = new Path();
+        Path expectedPath2;
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
-        expectedRouteRoad.setEnd(new RoadNode(v4));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRoute1.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v2));
+        expectedNodeConnection.setEnd(new NodeRoad(v4));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedPath1.add(expectedNodeConnection);
 
-        expectedRoute2 = expectedRoute1.invertRoute();
+        expectedPath2 = expectedPath1.invertPath();
 
-        Route actualRoute1 = routeFinder.findBestRoute(v2, v4, 0);
-        assertTrue(actualRoute1.compareRoutes(expectedRoute1));
-        assertTrue(actualRoute1.compareCost(expectedRoute1));
+        Path actualPath1 = pathFinder.findBestPath(v2, v4, 0);
+        assertTrue(actualPath1.comparePaths(expectedPath1));
+        assertTrue(actualPath1.compareCost(expectedPath1));
 
-        routeFinder.reset();
+        pathFinder.reset();
 
-        Route actualRoute2 = routeFinder.findBestRoute(v4, v2, 0);
-        assertTrue(actualRoute2.compareRoutes(expectedRoute2));
-        assertTrue(actualRoute2.compareCost(expectedRoute2));
+        Path actualPath2 = pathFinder.findBestPath(v4, v2, 0);
+        assertTrue(actualPath2.comparePaths(expectedPath2));
+        assertTrue(actualPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -1056,22 +1058,22 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v3, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v3, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v3));
-        expectedRouteRoad.setEnd(new NormalRoad(v5));
-        expectedRouteRoad.addRoad(new NormalRoad(v4));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v3));
+        expectedNodeConnection.setEnd(new NormalRoad(v5));
+        expectedNodeConnection.addRoad(new NormalRoad(v4));
+        expectedPath.add(expectedNodeConnection);
 
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1107,41 +1109,41 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v2, v6, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v2, v6, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v2, 0);
+        Path foundPath2 = pathFinder.findBestPath(v6, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v2));
-        expectedRouteRoad1.setEnd(new RoadNode(v4));
-        expectedRouteRoad1.addRoad(new NormalRoad(v3));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new NormalRoad(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
-        expectedRoute1.add(expectedRouteRoad1);
-        expectedRoute1.add(expectedRouteRoad2);
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v2));
+        expectedNodeConnection1.setEnd(new NodeRoad(v4));
+        expectedNodeConnection1.addRoad(new NormalRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NormalRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
+        expectedPath1.add(expectedNodeConnection1);
+        expectedPath1.add(expectedNodeConnection2);
 
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new NormalRoad(v6));
-        expectedRouteRoad3.setEnd(new RoadNode(v4));
-        expectedRouteRoad3.addRoad(new NormalRoad(v5));
-        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad4.setEnd(new NormalRoad(v2));
-        expectedRouteRoad4.addRoad(new NormalRoad(v3));
-        expectedRoute2.add(expectedRouteRoad3);
-        expectedRoute2.add(expectedRouteRoad4);
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NormalRoad(v6));
+        expectedNodeConnection3.setEnd(new NodeRoad(v4));
+        expectedNodeConnection3.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection4 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection4.setEnd(new NormalRoad(v2));
+        expectedNodeConnection4.addRoad(new NormalRoad(v3));
+        expectedPath2.add(expectedNodeConnection3);
+        expectedPath2.add(expectedNodeConnection4);
 
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -1166,15 +1168,15 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v4, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v4, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1208,21 +1210,21 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v5, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v5, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v5, v1, 0);
+        Path foundPath2 = pathFinder.findBestPath(v5, v1, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute));
-        assertTrue(foundRoute1.compareCost(expectedRoute));
+        assertTrue(foundPath1.comparePaths(expectedPath));
+        assertTrue(foundPath1.compareCost(expectedPath));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute));
-        assertTrue(foundRoute2.compareCost(expectedRoute));
+        assertTrue(foundPath2.comparePaths(expectedPath));
+        assertTrue(foundPath2.compareCost(expectedPath));
     }
 
     /**
@@ -1256,15 +1258,15 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v6, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v6, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1290,20 +1292,20 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v2));
-        expectedRouteRoad.setEnd(new NormalRoad(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v2));
+        expectedNodeConnection.setEnd(new NormalRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1329,30 +1331,30 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v2, v3, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v2, v3, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v3, v2, 0);
+        Path foundPath2 = pathFinder.findBestPath(v3, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2;
+        Path expectedPath1 = new Path();
+        Path expectedPath2;
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad1.setEnd(new NormalRoad(v3));
-        expectedRoute1.add(expectedRouteRoad1);
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection1.setEnd(new NormalRoad(v3));
+        expectedPath1.add(expectedNodeConnection1);
 
-        expectedRoute2 = expectedRoute1.invertRoute();
+        expectedPath2 = expectedPath1.invertPath();
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -1382,21 +1384,21 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad.setEnd(new RoadNode(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection.setEnd(new NodeRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1432,21 +1434,21 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad.setEnd(new RoadNode(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection.setEnd(new NodeRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1459,7 +1461,6 @@ class TerrainTest {
         TerrainPosition v3 = new TerrainPosition(52, 50);
         TerrainPosition v4 = new TerrainPosition(51, 51);
         TerrainPosition v5 = new TerrainPosition(52, 51);
-
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1474,21 +1475,21 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new RoadNode(v2));
-        expectedRouteRoad.setEnd(new NormalRoad(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NodeRoad(v2));
+        expectedNodeConnection.setEnd(new NormalRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1514,21 +1515,21 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new NormalRoad(v3));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NormalRoad(v3));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1566,22 +1567,22 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1621,22 +1622,22 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v3, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v3, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1674,24 +1675,24 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v1, v5, 0);
+        Path foundPath = pathFinder.findBestPath(v1, v5, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad.setEnd(new NormalRoad(v5));
-        expectedRouteRoad.addRoad(new NormalRoad(v2));
-        expectedRouteRoad.addRoad(new NormalRoad(v3));
-        expectedRouteRoad.addRoad(new NormalRoad(v4));
-        expectedRoute.add(expectedRouteRoad);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection.setEnd(new NormalRoad(v5));
+        expectedNodeConnection.addRoad(new NormalRoad(v2));
+        expectedNodeConnection.addRoad(new NormalRoad(v3));
+        expectedNodeConnection.addRoad(new NormalRoad(v4));
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -1737,47 +1738,47 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v5, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v5, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v6, v10, 0);
+        Path foundPath2 = pathFinder.findBestPath(v6, v10, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad1.setEnd(new RoadNode(v3));
-        expectedRouteRoad1.addRoad(new NormalRoad(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
-        expectedRouteRoad2.setEnd(new NormalRoad(v5));
-        expectedRouteRoad2.addRoad(new NormalRoad(v4));
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection1.setEnd(new NodeRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3));
+        expectedNodeConnection2.setEnd(new NormalRoad(v5));
+        expectedNodeConnection2.addRoad(new NormalRoad(v4));
 
-        expectedRoute1.add(expectedRouteRoad1);
-        expectedRoute1.add(expectedRouteRoad2);
+        expectedPath1.add(expectedNodeConnection1);
+        expectedPath1.add(expectedNodeConnection2);
 
         // v2
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new NormalRoad(v6));
-        expectedRouteRoad3.setEnd(new RoadNode(v8));
-        expectedRouteRoad3.addRoad(new NormalRoad(v7));
-        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v8));
-        expectedRouteRoad4.setEnd(new NormalRoad(v10));
-        expectedRouteRoad4.addRoad(new NormalRoad(v9));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NormalRoad(v6));
+        expectedNodeConnection3.setEnd(new NodeRoad(v8));
+        expectedNodeConnection3.addRoad(new NormalRoad(v7));
+        NodeConnection expectedNodeConnection4 = new NodeConnection(new NodeRoad(v8));
+        expectedNodeConnection4.setEnd(new NormalRoad(v10));
+        expectedNodeConnection4.addRoad(new NormalRoad(v9));
 
-        expectedRoute2.add(expectedRouteRoad3);
-        expectedRoute2.add(expectedRouteRoad4);
+        expectedPath2.add(expectedNodeConnection3);
+        expectedPath2.add(expectedNodeConnection4);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -1814,39 +1815,39 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v3, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v4, v6, 0);
+        Path foundPath2 = pathFinder.findBestPath(v4, v6, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad1.setEnd(new NormalRoad(v3));
-        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection1.setEnd(new NormalRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(v2));
 
-        expectedRoute1.add(expectedRouteRoad1);
+        expectedPath1.add(expectedNodeConnection1);
 
         // v2
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new NormalRoad(v4));
-        expectedRouteRoad2.setEnd(new NormalRoad(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NormalRoad(v4));
+        expectedNodeConnection2.setEnd(new NormalRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
 
-        expectedRoute2.add(expectedRouteRoad2);
+        expectedPath2.add(expectedNodeConnection2);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -1884,65 +1885,65 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v3, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v3, v1, 0);
-        routeFinder.reset();
+        Path foundPath2 = pathFinder.findBestPath(v3, v1, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute3 = routeFinder.findBestRoute(v4, v6, 0);
-        routeFinder.reset();
+        Path foundPath3 = pathFinder.findBestPath(v4, v6, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute4 = routeFinder.findBestRoute(v6, v4, 0);
+        Path foundPath4 = pathFinder.findBestPath(v6, v4, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
-        RouteFinder.Route expectedRoute3 = new Route();
-        RouteFinder.Route expectedRoute4 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
+        Path expectedPath3 = new Path();
+        Path expectedPath4 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad1.setEnd(new NormalRoad(v3));
-        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection1.setEnd(new NormalRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(v2));
 
-        expectedRoute1.add(expectedRouteRoad1);
+        expectedPath1.add(expectedNodeConnection1);
 
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new NormalRoad(v3));
-        expectedRouteRoad2.setEnd(new RoadNode(v1));
-        expectedRouteRoad2.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NormalRoad(v3));
+        expectedNodeConnection2.setEnd(new NodeRoad(v1));
+        expectedNodeConnection2.addRoad(new NormalRoad(v2));
 
-        expectedRoute2.add(expectedRouteRoad2);
+        expectedPath2.add(expectedNodeConnection2);
 
         // v2
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad3.setEnd(new NormalRoad(v6));
-        expectedRouteRoad3.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection3.setEnd(new NormalRoad(v6));
+        expectedNodeConnection3.addRoad(new NormalRoad(v5));
 
-        expectedRoute3.add(expectedRouteRoad3);
+        expectedPath3.add(expectedNodeConnection3);
 
-        RouteRoad expectedRouteRoad4 = new RouteRoad(new NormalRoad(v6));
-        expectedRouteRoad4.setEnd(new RoadNode(v4));
-        expectedRouteRoad4.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection4 = new NodeConnection(new NormalRoad(v6));
+        expectedNodeConnection4.setEnd(new NodeRoad(v4));
+        expectedNodeConnection4.addRoad(new NormalRoad(v5));
 
-        expectedRoute4.add(expectedRouteRoad4);
+        expectedPath4.add(expectedNodeConnection4);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
 
-        assertTrue(foundRoute3.compareRoutes(expectedRoute3));
-        assertTrue(foundRoute3.compareCost(expectedRoute3));
+        assertTrue(foundPath3.comparePaths(expectedPath3));
+        assertTrue(foundPath3.compareCost(expectedPath3));
 
-        assertTrue(foundRoute4.compareRoutes(expectedRoute4));
-        assertTrue(foundRoute4.compareCost(expectedRoute4));
+        assertTrue(foundPath4.comparePaths(expectedPath4));
+        assertTrue(foundPath4.compareCost(expectedPath4));
     }
 
     /**
@@ -1985,40 +1986,40 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v3, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v3, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v4, v6, 0);
+        Path foundPath2 = pathFinder.findBestPath(v4, v6, 0);
 
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new RoadNode(v1));
-        expectedRouteRoad1.setEnd(new RoadNode(v3));
-        expectedRouteRoad1.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NodeRoad(v1));
+        expectedNodeConnection1.setEnd(new NodeRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(v2));
 
-        expectedRoute1.add(expectedRouteRoad1);
+        expectedPath1.add(expectedNodeConnection1);
 
         // v2
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad2.setEnd(new RoadNode(v6));
-        expectedRouteRoad2.addRoad(new NormalRoad(v5));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection2.setEnd(new NodeRoad(v6));
+        expectedNodeConnection2.addRoad(new NormalRoad(v5));
 
-        expectedRoute2.add(expectedRouteRoad2);
+        expectedPath2.add(expectedNodeConnection2);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -2055,60 +2056,60 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v7, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v7, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v7, v1, 0);
+        Path foundPath2 = pathFinder.findBestPath(v7, v1, 0);
 
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1 = new Route();
-        RouteFinder.Route expectedRoute2 = new Route();
+        Path expectedPath1 = new Path();
+        Path expectedPath2 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1 = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad1.setEnd(new RoadNode(v3));
-        expectedRouteRoad1.addRoad(new NormalRoad(v2));
-        RouteRoad expectedRouteRoad2 = new RouteRoad(new RoadNode(v3));
-        expectedRouteRoad2.setEnd(new RoadNode(v4));
-        RouteRoad expectedRouteRoad3 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad3.setEnd(new RoadNode(v5));
-        RouteRoad expectedRouteRoad4 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad4.setEnd(new NormalRoad(v7));
-        expectedRouteRoad4.addRoad(new NormalRoad(v6));
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection1.setEnd(new NodeRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3));
+        expectedNodeConnection2.setEnd(new NodeRoad(v4));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection3.setEnd(new NodeRoad(v5));
+        NodeConnection expectedNodeConnection4 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection4.setEnd(new NormalRoad(v7));
+        expectedNodeConnection4.addRoad(new NormalRoad(v6));
 
-        expectedRoute1.add(expectedRouteRoad1);
-        expectedRoute1.add(expectedRouteRoad2);
-        expectedRoute1.add(expectedRouteRoad3);
-        expectedRoute1.add(expectedRouteRoad4);
+        expectedPath1.add(expectedNodeConnection1);
+        expectedPath1.add(expectedNodeConnection2);
+        expectedPath1.add(expectedNodeConnection3);
+        expectedPath1.add(expectedNodeConnection4);
 
         // v2
-        RouteRoad expectedRouteRoad5 = new RouteRoad(new NormalRoad(v7));
-        expectedRouteRoad5.setEnd(new RoadNode(v5));
-        expectedRouteRoad5.addRoad(new NormalRoad(v6));
-        RouteRoad expectedRouteRoad6 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad6.setEnd(new RoadNode(v4));
-        RouteRoad expectedRouteRoad7 = new RouteRoad(new RoadNode(v4));
-        expectedRouteRoad7.setEnd(new RoadNode(v3));
-        RouteRoad expectedRouteRoad8 = new RouteRoad(new RoadNode(v3));
-        expectedRouteRoad8.setEnd(new NormalRoad(v1));
-        expectedRouteRoad8.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection5 = new NodeConnection(new NormalRoad(v7));
+        expectedNodeConnection5.setEnd(new NodeRoad(v5));
+        expectedNodeConnection5.addRoad(new NormalRoad(v6));
+        NodeConnection expectedNodeConnection6 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection6.setEnd(new NodeRoad(v4));
+        NodeConnection expectedNodeConnection7 = new NodeConnection(new NodeRoad(v4));
+        expectedNodeConnection7.setEnd(new NodeRoad(v3));
+        NodeConnection expectedNodeConnection8 = new NodeConnection(new NodeRoad(v3));
+        expectedNodeConnection8.setEnd(new NormalRoad(v1));
+        expectedNodeConnection8.addRoad(new NormalRoad(v2));
 
-        expectedRoute2.add(expectedRouteRoad5);
-        expectedRoute2.add(expectedRouteRoad6);
-        expectedRoute2.add(expectedRouteRoad7);
-        expectedRoute2.add(expectedRouteRoad8);
+        expectedPath2.add(expectedNodeConnection5);
+        expectedPath2.add(expectedNodeConnection6);
+        expectedPath2.add(expectedNodeConnection7);
+        expectedPath2.add(expectedNodeConnection8);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1));
+        assertTrue(foundPath1.comparePaths(expectedPath1));
+        assertTrue(foundPath1.compareCost(expectedPath1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute2));
-        assertTrue(foundRoute2.compareCost(expectedRoute2));
+        assertTrue(foundPath2.comparePaths(expectedPath2));
+        assertTrue(foundPath2.compareCost(expectedPath2));
     }
 
     /**
@@ -2146,78 +2147,78 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute1 = routeFinder.findBestRoute(v1, v7, 0);
-        routeFinder.reset();
+        Path foundPath1 = pathFinder.findBestPath(v1, v7, 0);
+        pathFinder.reset();
 
-        RouteFinder.Route foundRoute2 = routeFinder.findBestRoute(v7, v1, 0);
+        Path foundPath2 = pathFinder.findBestPath(v7, v1, 0);
 
 
         // Expected global routes
-        RouteFinder.Route expectedRoute1v1 = new Route();
-        RouteFinder.Route expectedRoute2v1 = new Route();
-        RouteFinder.Route expectedRoute1v2 = new Route();
-        RouteFinder.Route expectedRoute2v2 = new Route();
+        Path expectedPath1V1 = new Path();
+        Path expectedPath2V1 = new Path();
+        Path expectedPath1V2 = new Path();
+        Path expectedPath2V2 = new Path();
 
         // Expected individual routes
 
         // v1
-        RouteRoad expectedRouteRoad1v1 = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad1v1.setEnd(new RoadNode(v5));
-        expectedRouteRoad1v1.addRoad(new NormalRoad(v2));
-        expectedRouteRoad1v1.addRoad(new NormalRoad(v3));
-        expectedRouteRoad1v1.addRoad(new NormalRoad(v4));
-        RouteRoad expectedRouteRoad2v1 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad2v1.setEnd(new NormalRoad(v7));
-        expectedRouteRoad2v1.addRoad(new NormalRoad(v6));
+        NodeConnection expectedNodeConnection1V1 = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection1V1.setEnd(new NodeRoad(v5));
+        expectedNodeConnection1V1.addRoad(new NormalRoad(v2));
+        expectedNodeConnection1V1.addRoad(new NormalRoad(v3));
+        expectedNodeConnection1V1.addRoad(new NormalRoad(v4));
+        NodeConnection expectedNodeConnection2V1 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection2V1.setEnd(new NormalRoad(v7));
+        expectedNodeConnection2V1.addRoad(new NormalRoad(v6));
 
-        expectedRoute1v1.add(expectedRouteRoad1v1);
-        expectedRoute1v1.add(expectedRouteRoad2v1);
+        expectedPath1V1.add(expectedNodeConnection1V1);
+        expectedPath1V1.add(expectedNodeConnection2V1);
 
-        RouteRoad expectedRouteRoad3v1 = new RouteRoad(new NormalRoad(v1));
-        expectedRouteRoad3v1.setEnd(new RoadNode(v5));
-        expectedRouteRoad3v1.addRoad(new NormalRoad(v2));
-        expectedRouteRoad3v1.addRoad(new NormalRoad(v3));
-        expectedRouteRoad3v1.addRoad(new NormalRoad(v4));
-        RouteRoad expectedRouteRoad4v1 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad4v1.setEnd(new NormalRoad(v7));
-        expectedRouteRoad4v1.addRoad(new NormalRoad(v6b));
+        NodeConnection expectedNodeConnection3V1 = new NodeConnection(new NormalRoad(v1));
+        expectedNodeConnection3V1.setEnd(new NodeRoad(v5));
+        expectedNodeConnection3V1.addRoad(new NormalRoad(v2));
+        expectedNodeConnection3V1.addRoad(new NormalRoad(v3));
+        expectedNodeConnection3V1.addRoad(new NormalRoad(v4));
+        NodeConnection expectedNodeConnection4V1 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection4V1.setEnd(new NormalRoad(v7));
+        expectedNodeConnection4V1.addRoad(new NormalRoad(v6b));
 
-        expectedRoute2v1.add(expectedRouteRoad3v1);
-        expectedRoute2v1.add(expectedRouteRoad4v1);
+        expectedPath2V1.add(expectedNodeConnection3V1);
+        expectedPath2V1.add(expectedNodeConnection4V1);
 
         // v2
-        RouteRoad expectedRouteRoad1v2 = new RouteRoad(new NormalRoad(v7));
-        expectedRouteRoad1v2.setEnd(new RoadNode(v5));
-        expectedRouteRoad1v2.addRoad(new NormalRoad(v6));
-        RouteRoad expectedRouteRoad2v2 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad2v2.setEnd(new NormalRoad(v1));
-        expectedRouteRoad2v2.addRoad(new NormalRoad(v4));
-        expectedRouteRoad2v2.addRoad(new NormalRoad(v3));
-        expectedRouteRoad2v2.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection1V2 = new NodeConnection(new NormalRoad(v7));
+        expectedNodeConnection1V2.setEnd(new NodeRoad(v5));
+        expectedNodeConnection1V2.addRoad(new NormalRoad(v6));
+        NodeConnection expectedNodeConnection2V2 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection2V2.setEnd(new NormalRoad(v1));
+        expectedNodeConnection2V2.addRoad(new NormalRoad(v4));
+        expectedNodeConnection2V2.addRoad(new NormalRoad(v3));
+        expectedNodeConnection2V2.addRoad(new NormalRoad(v2));
 
-        expectedRoute1v2.add(expectedRouteRoad1v2);
-        expectedRoute1v2.add(expectedRouteRoad2v2);
+        expectedPath1V2.add(expectedNodeConnection1V2);
+        expectedPath1V2.add(expectedNodeConnection2V2);
 
-        RouteRoad expectedRouteRoad3v2 = new RouteRoad(new NormalRoad(v7));
-        expectedRouteRoad3v2.setEnd(new RoadNode(v5));
-        expectedRouteRoad3v2.addRoad(new NormalRoad(v6b));
-        RouteRoad expectedRouteRoad4v2 = new RouteRoad(new RoadNode(v5));
-        expectedRouteRoad4v2.setEnd(new NormalRoad(v1));
-        expectedRouteRoad4v2.addRoad(new NormalRoad(v4));
-        expectedRouteRoad4v2.addRoad(new NormalRoad(v3));
-        expectedRouteRoad4v2.addRoad(new NormalRoad(v2));
+        NodeConnection expectedNodeConnection3V2 = new NodeConnection(new NormalRoad(v7));
+        expectedNodeConnection3V2.setEnd(new NodeRoad(v5));
+        expectedNodeConnection3V2.addRoad(new NormalRoad(v6b));
+        NodeConnection expectedNodeConnection4V2 = new NodeConnection(new NodeRoad(v5));
+        expectedNodeConnection4V2.setEnd(new NormalRoad(v1));
+        expectedNodeConnection4V2.addRoad(new NormalRoad(v4));
+        expectedNodeConnection4V2.addRoad(new NormalRoad(v3));
+        expectedNodeConnection4V2.addRoad(new NormalRoad(v2));
 
-        expectedRoute2v2.add(expectedRouteRoad3v2);
-        expectedRoute2v2.add(expectedRouteRoad4v2);
+        expectedPath2V2.add(expectedNodeConnection3V2);
+        expectedPath2V2.add(expectedNodeConnection4V2);
 
-        assertTrue(foundRoute1.compareRoutes(expectedRoute1v1) || foundRoute1.compareRoutes(expectedRoute2v1));
-        assertTrue(foundRoute1.compareCost(expectedRoute1v1) || foundRoute1.compareCost(expectedRoute2v1));
+        assertTrue(foundPath1.comparePaths(expectedPath1V1) || foundPath1.comparePaths(expectedPath2V1));
+        assertTrue(foundPath1.compareCost(expectedPath1V1) || foundPath1.compareCost(expectedPath2V1));
 
-        assertTrue(foundRoute2.compareRoutes(expectedRoute1v2) || foundRoute2.compareRoutes(expectedRoute2v2));
-        assertTrue(foundRoute2.compareCost(expectedRoute1v2) || foundRoute2.compareCost(expectedRoute2v2));
+        assertTrue(foundPath2.comparePaths(expectedPath1V2) || foundPath2.comparePaths(expectedPath2V2));
+        assertTrue(foundPath2.compareCost(expectedPath1V2) || foundPath2.compareCost(expectedPath2V2));
     }
 
     /**
@@ -2240,23 +2241,23 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v2, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
         NormalRoad start_and_end = new NormalRoad(v2);
-        RouteRoad expectedRouteRoad1 = new RouteRoad(start_and_end, start_and_end);
-        expectedRouteRoad1.addRoad(start_and_end);
+        NodeConnection expectedNodeConnection1 = new NodeConnection(start_and_end, start_and_end);
+        expectedNodeConnection1.addRoad(start_and_end);
 
-        expectedRoute.add(expectedRouteRoad1);
+        expectedPath.add(expectedNodeConnection1);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     /**
@@ -2281,29 +2282,588 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, roads);
 
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         // Found route
-        RouteFinder.Route foundRoute = routeFinder.findBestRoute(v2, v2, 0);
+        Path foundPath = pathFinder.findBestPath(v2, v2, 0);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
-        RoadNode start_and_end = new RoadNode(v2);
-        RouteRoad expectedRouteRoad1 = new RouteRoad(start_and_end, start_and_end);
-        expectedRouteRoad1.addRoad(start_and_end);
+        NodeRoad start_and_end = new NodeRoad(v2);
+        NodeConnection expectedNodeConnection1 = new NodeConnection(start_and_end, start_and_end);
+        expectedNodeConnection1.addRoad(start_and_end);
 
-        expectedRoute.add(expectedRouteRoad1);
+        expectedPath.add(expectedNodeConnection1);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
+    }
+
+    /**
+     * 32. Found in practice
+     */
+    @Test
+    void testPathfinding32() {
+        TerrainPosition v1 = new TerrainPosition(0, 0);
+        TerrainPosition v2 = new TerrainPosition(0, 2);
+        TerrainPosition v3 = new TerrainPosition(5, 0);
+        TerrainPosition v4 = new TerrainPosition(5, 2);
+
+        int[] roadPositions = new int[]{
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                1, 0,
+                2, 0,
+                3, 0,
+                4, 0,
+                v3.getX(), v3.getZ(),
+                6, 0,
+                5, 1,
+                v4.getX(), v4.getZ(),
+                5, 3,
+                4, 2,
+                3, 2,
+                2, 2,
+                1, 2
+        };
+
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+
+        GameObject.newInstances(DirtRoad.class, roads);
+
+        RoadGraph roadGraph = scene.getRoadGraph();
+        PathFinder pathFinder = new PathFinder(roadGraph);
+
+        // Found route
+        Path foundPath = pathFinder.findBestPath(v1, v2, 0);
+
+        // Expected global routes
+        Path expectedPath = new Path();
+
+        // Expected individual routes
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1), new NodeRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(1, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(2, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(3, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(4, 0)));
+        expectedNodeConnection1.addRoad(new NodeRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3), new NodeRoad(v4));
+        expectedNodeConnection2.addRoad(new NormalRoad(new TerrainPosition(5, 1)));
+        expectedNodeConnection2.addRoad(new NodeRoad(v4));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4), new NormalRoad(v2));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(4, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(3, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(2, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(1, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(v2));
+
+        expectedPath.add(expectedNodeConnection1);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection3);
+
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
+    }
+
+    /**
+     * 33. Found in practice with NPC
+     */
+    @Test
+    void testPathfinding33() {
+        /*
+        Placing at TerrainPosition{x=12, z=0}
+Placing at TerrainPosition{x=13, z=0}
+Placing at TerrainPosition{x=14, z=0}
+Placing at TerrainPosition{x=15, z=0}
+Placing at TerrainPosition{x=16, z=0}
+Placing at TerrainPosition{x=17, z=0}
+Placing at TerrainPosition{x=18, z=0}
+Placing at TerrainPosition{x=19, z=0}
+Placing at TerrainPosition{x=20, z=0}
+Placing at TerrainPosition{x=21, z=0}
+Placing at TerrainPosition{x=22, z=0}
+Placing at TerrainPosition{x=23, z=0}
+Placing at TerrainPosition{x=24, z=0}
+Placing at TerrainPosition{x=25, z=0}
+Placing at TerrainPosition{x=26, z=0}
+Placing at TerrainPosition{x=27, z=0}
+Placing at TerrainPosition{x=28, z=0}
+Placing at TerrainPosition{x=29, z=0}
+Placing at TerrainPosition{x=30, z=0}
+Placing at TerrainPosition{x=31, z=0}
+Placing at TerrainPosition{x=32, z=0}
+Placing at TerrainPosition{x=33, z=0}
+Placing at TerrainPosition{x=34, z=0}
+Placing at TerrainPosition{x=35, z=0}
+Placing at TerrainPosition{x=0, z=0}
+Placing at TerrainPosition{x=1, z=0}
+Placing at TerrainPosition{x=2, z=0}
+Placing at TerrainPosition{x=3, z=0}
+Placing at TerrainPosition{x=4, z=0}
+Placing at TerrainPosition{x=5, z=0}
+Placing at TerrainPosition{x=6, z=0}
+Placing at TerrainPosition{x=7, z=0}
+Placing at TerrainPosition{x=8, z=0}
+Placing at TerrainPosition{x=9, z=0}
+Placing at TerrainPosition{x=10, z=0}
+Placing at TerrainPosition{x=11, z=0}
+Placing at TerrainPosition{x=36, z=0}
+Placing at TerrainPosition{x=36, z=1}
+Placing at TerrainPosition{x=36, z=2}
+Placing at TerrainPosition{x=36, z=3}
+Placing at TerrainPosition{x=36, z=4}
+Placing at TerrainPosition{x=36, z=5}
+Placing at TerrainPosition{x=36, z=6}
+Placing at TerrainPosition{x=36, z=7}
+Placing at TerrainPosition{x=36, z=8}
+Placing at TerrainPosition{x=36, z=9}
+Placing at TerrainPosition{x=36, z=10}
+Placing at TerrainPosition{x=36, z=11}
+Placing at TerrainPosition{x=36, z=12}
+Placing at TerrainPosition{x=36, z=13}
+Placing at TerrainPosition{x=36, z=14}
+Placing at TerrainPosition{x=36, z=15}
+Placing at TerrainPosition{x=36, z=16}
+Placing at TerrainPosition{x=37, z=10}
+Placing at TerrainPosition{x=38, z=10}
+Placing at TerrainPosition{x=39, z=10}
+Placing at TerrainPosition{x=40, z=10}
+Placing at TerrainPosition{x=41, z=10}
+Placing at TerrainPosition{x=42, z=10}
+Placing at TerrainPosition{x=43, z=10}
+Placing at TerrainPosition{x=44, z=10}
+Placing at TerrainPosition{x=45, z=10}
+Placing at TerrainPosition{x=46, z=10}
+Placing at TerrainPosition{x=47, z=10}
+Placing at TerrainPosition{x=47, z=17}
+Placing at TerrainPosition{x=47, z=18}
+Placing at TerrainPosition{x=47, z=19}
+Placing at TerrainPosition{x=47, z=20}
+Placing at TerrainPosition{x=47, z=21}
+Placing at TerrainPosition{x=47, z=22}
+Placing at TerrainPosition{x=47, z=11}
+Placing at TerrainPosition{x=47, z=12}
+Placing at TerrainPosition{x=47, z=13}
+Placing at TerrainPosition{x=47, z=14}
+Placing at TerrainPosition{x=47, z=15}
+Placing at TerrainPosition{x=47, z=16}
+Placing at TerrainPosition{x=46, z=16}
+Placing at TerrainPosition{x=45, z=16}
+Placing at TerrainPosition{x=44, z=16}
+Placing at TerrainPosition{x=43, z=16}
+Placing at TerrainPosition{x=42, z=16}
+Placing at TerrainPosition{x=41, z=16}
+Placing at TerrainPosition{x=40, z=16}
+Placing at TerrainPosition{x=39, z=16}
+Placing at TerrainPosition{x=38, z=16}
+Placing at TerrainPosition{x=37, z=16}
+Placing at TerrainPosition{x=37, z=2}
+Placing at TerrainPosition{x=38, z=2}
+Placing at TerrainPosition{x=39, z=2}
+Placing at TerrainPosition{x=40, z=2}
+Placing at TerrainPosition{x=41, z=2}
+Placing at TerrainPosition{x=42, z=2}
+Placing at TerrainPosition{x=43, z=2}
+Placing at TerrainPosition{x=44, z=2}
+Placing at TerrainPosition{x=45, z=2}
+Placing at TerrainPosition{x=46, z=2}
+Placing at TerrainPosition{x=45, z=9}
+Placing at TerrainPosition{x=45, z=8}
+Placing at TerrainPosition{x=45, z=7}
+Placing at TerrainPosition{x=45, z=6}
+Placing at TerrainPosition{x=45, z=5}
+Placing at TerrainPosition{x=45, z=4}
+Placing at TerrainPosition{x=45, z=3}
+Placing at TerrainPosition{x=43, z=6}
+Placing at TerrainPosition{x=43, z=7}
+Placing at TerrainPosition{x=43, z=8}
+Placing at TerrainPosition{x=43, z=9}
+Placing at TerrainPosition{x=43, z=3}
+Placing at TerrainPosition{x=43, z=4}
+Placing at TerrainPosition{x=43, z=5}
+Placing at TerrainPosition{x=42, z=7}
+Placing at TerrainPosition{x=41, z=7}
+Placing at TerrainPosition{x=40, z=7}
+Placing at TerrainPosition{x=39, z=7}
+Placing at TerrainPosition{x=38, z=7}
+Placing at TerrainPosition{x=37, z=7}
+Placing at TerrainPosition{x=37, z=0}
+Placing at TerrainPosition{x=38, z=0}
+Placing at TerrainPosition{x=38, z=1}
+Placing at TerrainPosition{x=37, z=1}
+Placing at TerrainPosition{x=35, z=8}
+Placing at TerrainPosition{x=34, z=8}
+Placing at TerrainPosition{x=33, z=8}
+Placing at TerrainPosition{x=33, z=7}
+Placing at TerrainPosition{x=33, z=6}
+Placing at TerrainPosition{x=33, z=5}
+Placing at TerrainPosition{x=33, z=4}
+Placing at TerrainPosition{x=33, z=3}
+Placing at TerrainPosition{x=33, z=2}
+Placing at TerrainPosition{x=33, z=1}
+Placing at TerrainPosition{x=28, z=16}
+Placing at TerrainPosition{x=27, z=16}
+Placing at TerrainPosition{x=26, z=16}
+Placing at TerrainPosition{x=25, z=16}
+Placing at TerrainPosition{x=24, z=16}
+Placing at TerrainPosition{x=23, z=16}
+Placing at TerrainPosition{x=22, z=16}
+Placing at TerrainPosition{x=21, z=16}
+Placing at TerrainPosition{x=35, z=16}
+Placing at TerrainPosition{x=34, z=16}
+Placing at TerrainPosition{x=33, z=16}
+Placing at TerrainPosition{x=32, z=16}
+Placing at TerrainPosition{x=31, z=16}
+Placing at TerrainPosition{x=30, z=16}
+Placing at TerrainPosition{x=29, z=16}
+Placing at TerrainPosition{x=22, z=2}
+Placing at TerrainPosition{x=22, z=1}
+Placing at TerrainPosition{x=22, z=15}
+Placing at TerrainPosition{x=22, z=14}
+Placing at TerrainPosition{x=22, z=13}
+Placing at TerrainPosition{x=22, z=12}
+Placing at TerrainPosition{x=22, z=11}
+Placing at TerrainPosition{x=22, z=10}
+Placing at TerrainPosition{x=22, z=9}
+Placing at TerrainPosition{x=22, z=8}
+Placing at TerrainPosition{x=22, z=7}
+Placing at TerrainPosition{x=22, z=6}
+Placing at TerrainPosition{x=22, z=5}
+Placing at TerrainPosition{x=22, z=4}
+Placing at TerrainPosition{x=22, z=3}
+Placing at TerrainPosition{x=23, z=5}
+Placing at TerrainPosition{x=24, z=5}
+Placing at TerrainPosition{x=25, z=5}
+Placing at TerrainPosition{x=26, z=5}
+Placing at TerrainPosition{x=23, z=9}
+Placing at TerrainPosition{x=23, z=13}
+Placing at TerrainPosition{x=20, z=12}
+Placing at TerrainPosition{x=16, z=1}
+Placing at TerrainPosition{x=24, z=1}
+Placing at TerrainPosition{x=30, z=1}
+Placing at TerrainPosition{x=40, z=6}
+Placing at TerrainPosition{x=43, z=14}
+Placing at TerrainPosition{x=42, z=15}
+Placing at TerrainPosition{x=42, z=14}
+Placing at TerrainPosition{x=48, z=19}
+Placing at TerrainPosition{x=49, z=19}
+Placing at TerrainPosition{x=50, z=19}
+Placing at TerrainPosition{x=51, z=19}
+Placing at TerrainPosition{x=48, z=16}
+Placing at TerrainPosition{x=52, z=16}
+Placing at TerrainPosition{x=51, z=16}
+Placing at TerrainPosition{x=50, z=16}
+Placing at TerrainPosition{x=49, z=16}
+Insula selected
+Placing at TerrainPosition{x=52, z=23}
+Market selected
+Placing at TerrainPosition{x=11, z=5}
+DirtRoad selected
+Placing at TerrainPosition{x=21, z=17}
+Placing at TerrainPosition{x=21, z=18}
+Placing at TerrainPosition{x=21, z=19}
+Placing at TerrainPosition{x=21, z=20}
+Placing at TerrainPosition{x=21, z=21}
+Placing at TerrainPosition{x=21, z=22}
+Placing at TerrainPosition{x=21, z=23}
+Placing at TerrainPosition{x=21, z=24}
+Placing at TerrainPosition{x=21, z=25}
+Placing at TerrainPosition{x=21, z=26}
+Placing at TerrainPosition{x=21, z=27}
+Placing at TerrainPosition{x=21, z=28}
+Placing at TerrainPosition{x=21, z=29}
+Placing at TerrainPosition{x=21, z=30}
+Placing at TerrainPosition{x=21, z=31}
+Placing at TerrainPosition{x=21, z=32}
+Placing at TerrainPosition{x=21, z=33}
+Placing at TerrainPosition{x=21, z=34}
+Placing at TerrainPosition{x=20, z=34}
+Placing at TerrainPosition{x=19, z=34}
+Placing at TerrainPosition{x=18, z=34}
+Placing at TerrainPosition{x=17, z=34}
+Placing at TerrainPosition{x=16, z=34}
+Placing at TerrainPosition{x=15, z=34}
+Placing at TerrainPosition{x=14, z=34}
+Placing at TerrainPosition{x=13, z=34}
+Placing at TerrainPosition{x=12, z=34}
+Placing at TerrainPosition{x=11, z=34}
+Placing at TerrainPosition{x=10, z=34}
+Placing at TerrainPosition{x=9, z=34}
+Placing at TerrainPosition{x=8, z=34}
+Placing at TerrainPosition{x=7, z=34}
+Placing at TerrainPosition{x=7, z=33}
+Placing at TerrainPosition{x=7, z=32}
+Placing at TerrainPosition{x=7, z=31}
+Placing at TerrainPosition{x=7, z=30}
+Placing at TerrainPosition{x=7, z=29}
+Placing at TerrainPosition{x=7, z=28}
+Placing at TerrainPosition{x=7, z=27}
+Placing at TerrainPosition{x=7, z=26}
+Placing at TerrainPosition{x=7, z=25}
+Placing at TerrainPosition{x=7, z=24}
+Placing at TerrainPosition{x=7, z=23}
+Placing at TerrainPosition{x=7, z=22}
+Placing at TerrainPosition{x=7, z=21}
+Placing at TerrainPosition{x=7, z=20}
+Placing at TerrainPosition{x=7, z=19}
+Placing at TerrainPosition{x=7, z=18}
+Placing at TerrainPosition{x=7, z=17}
+Placing at TerrainPosition{x=7, z=16}
+Placing at TerrainPosition{x=7, z=15}
+Placing at TerrainPosition{x=7, z=14}
+Placing at TerrainPosition{x=7, z=13}
+Placing at TerrainPosition{x=8, z=13}
+Placing at TerrainPosition{x=9, z=13}
+Placing at TerrainPosition{x=10, z=13}
+Placing at TerrainPosition{x=10, z=14}
+Placing at TerrainPosition{x=10, z=15}
+Placing at TerrainPosition{x=10, z=16}
+Placing at TerrainPosition{x=10, z=17}
+Placing at TerrainPosition{x=10, z=18}
+Placing at TerrainPosition{x=10, z=19}
+Placing at TerrainPosition{x=10, z=20}
+Placing at TerrainPosition{x=10, z=21}
+Placing at TerrainPosition{x=10, z=22}
+Placing at TerrainPosition{x=10, z=23}
+Placing at TerrainPosition{x=10, z=24}
+Placing at TerrainPosition{x=10, z=25}
+Placing at TerrainPosition{x=10, z=26}
+Placing at TerrainPosition{x=10, z=27}
+Placing at TerrainPosition{x=10, z=28}
+Placing at TerrainPosition{x=10, z=29}
+Placing at TerrainPosition{x=10, z=30}
+Placing at TerrainPosition{x=10, z=31}
+Placing at TerrainPosition{x=10, z=32}
+Placing at TerrainPosition{x=11, z=32}
+Placing at TerrainPosition{x=12, z=32}
+Placing at TerrainPosition{x=13, z=32}
+Placing at TerrainPosition{x=13, z=18}
+Placing at TerrainPosition{x=13, z=17}
+Placing at TerrainPosition{x=13, z=16}
+Placing at TerrainPosition{x=13, z=15}
+Placing at TerrainPosition{x=13, z=14}
+Placing at TerrainPosition{x=13, z=13}
+Placing at TerrainPosition{x=13, z=12}
+Placing at TerrainPosition{x=13, z=11}
+Placing at TerrainPosition{x=13, z=10}
+Placing at TerrainPosition{x=13, z=31}
+Placing at TerrainPosition{x=13, z=30}
+Placing at TerrainPosition{x=13, z=29}
+Placing at TerrainPosition{x=13, z=28}
+Placing at TerrainPosition{x=13, z=27}
+Placing at TerrainPosition{x=13, z=26}
+Placing at TerrainPosition{x=13, z=25}
+Placing at TerrainPosition{x=13, z=24}
+Placing at TerrainPosition{x=13, z=23}
+Placing at TerrainPosition{x=13, z=22}
+Placing at TerrainPosition{x=13, z=21}
+Placing at TerrainPosition{x=13, z=20}
+Placing at TerrainPosition{x=13, z=19}
+Placing at TerrainPosition{x=12, z=10}
+Placing at TerrainPosition{x=11, z=10}
+Placing at TerrainPosition{x=10, z=10}
+Placing at TerrainPosition{x=9, z=10}
+Placing at TerrainPosition{x=8, z=10}
+Placing at TerrainPosition{x=7, z=10}
+Placing at TerrainPosition{x=6, z=10}
+Placing at TerrainPosition{x=5, z=10}
+Placing at TerrainPosition{x=4, z=10}
+Placing at TerrainPosition{x=4, z=9}
+Placing at TerrainPosition{x=4, z=8}
+Placing at TerrainPosition{x=4, z=7}
+Placing at TerrainPosition{x=4, z=6}
+Placing at TerrainPosition{x=4, z=5}
+Placing at TerrainPosition{x=4, z=4}
+Placing at TerrainPosition{x=4, z=3}
+Placing at TerrainPosition{x=4, z=2}
+Placing at TerrainPosition{x=3, z=2}
+Placing at TerrainPosition{x=2, z=2}
+Placing at TerrainPosition{x=1, z=2}
+Placing at TerrainPosition{x=0, z=2}
+Placing at TerrainPosition{x=9, z=17}
+Placing at TerrainPosition{x=12, z=17}
+Placing at TerrainPosition{x=19, z=12}
+Placing at TerrainPosition{x=18, z=12}
+Placing at TerrainPosition{x=17, z=12}
+Placing at TerrainPosition{x=16, z=12}
+Placing at TerrainPosition{x=15, z=12}
+Placing at TerrainPosition{x=14, z=12}
+Adding person
+Placing at TerrainPosition{x=14, z=10}
+Placing at TerrainPosition{x=15, z=10}
+Placing at TerrainPosition{x=16, z=10}
+Placing at TerrainPosition{x=16, z=9}
+Placing at TerrainPosition{x=16, z=8}
+Placing at TerrainPosition{x=16, z=7}
+Placing at TerrainPosition{x=16, z=6}
+Placing at TerrainPosition{x=16, z=5}
+Placing at TerrainPosition{x=16, z=4}
+Placing at TerrainPosition{x=17, z=4}
+Placing at TerrainPosition{x=18, z=4}
+Placing at TerrainPosition{x=19, z=4}
+Placing at TerrainPosition{x=20, z=4}
+Placing at TerrainPosition{x=20, z=5}
+Placing at TerrainPosition{x=20, z=6}
+Placing at TerrainPosition{x=20, z=7}
+Placing at TerrainPosition{x=20, z=8}
+Placing at TerrainPosition{x=20, z=9}
+Placing at TerrainPosition{x=20, z=10}
+Placing at TerrainPosition{x=19, z=10}
+Placing at TerrainPosition{x=19, z=18}
+Placing at TerrainPosition{x=18, z=18}
+Placing at TerrainPosition{x=17, z=18}
+Placing at TerrainPosition{x=16, z=18}
+Placing at TerrainPosition{x=15, z=18}
+Placing at TerrainPosition{x=14, z=18}
+Placing at TerrainPosition{x=17, z=19}
+Placing at TerrainPosition{x=17, z=20}
+Placing at TerrainPosition{x=17, z=21}
+Placing at TerrainPosition{x=17, z=22}
+Placing at TerrainPosition{x=17, z=23}
+Placing at TerrainPosition{x=17, z=24}
+Placing at TerrainPosition{x=17, z=25}
+Placing at TerrainPosition{x=17, z=26}
+Placing at TerrainPosition{x=17, z=27}
+Placing at TerrainPosition{x=17, z=28}
+Placing at TerrainPosition{x=17, z=29}
+Placing at TerrainPosition{x=17, z=30}
+Placing at TerrainPosition{x=17, z=31}
+Placing at TerrainPosition{x=16, z=31}
+Placing at TerrainPosition{x=16, z=30}
+Placing at TerrainPosition{x=16, z=29}
+Placing at TerrainPosition{x=15, z=29}
+Placing at TerrainPosition{x=15, z=30}
+Placing at TerrainPosition{x=15, z=31}
+Placing at TerrainPosition{x=16, z=28}
+Placing at TerrainPosition{x=15, z=28}
+Placing at TerrainPosition{x=18, z=28}
+Placing at TerrainPosition{x=18, z=29}
+Placing at TerrainPosition{x=18, z=30}
+Placing at TerrainPosition{x=18, z=31}
+Placing at TerrainPosition{x=19, z=31}
+Placing at TerrainPosition{x=19, z=30}
+Placing at TerrainPosition{x=19, z=29}
+Placing at TerrainPosition{x=19, z=28}
+Placing at TerrainPosition{x=6, z=26}
+Placing at TerrainPosition{x=6, z=27}
+Placing at TerrainPosition{x=6, z=28}
+Placing at TerrainPosition{x=6, z=29}
+Placing at TerrainPosition{x=6, z=30}
+Placing at TerrainPosition{x=6, z=31}
+Placing at TerrainPosition{x=6, z=32}
+Placing at TerrainPosition{x=6, z=33}
+Placing at TerrainPosition{x=5, z=33}
+Placing at TerrainPosition{x=5, z=32}
+Placing at TerrainPosition{x=5, z=31}
+Placing at TerrainPosition{x=5, z=30}
+Placing at TerrainPosition{x=5, z=29}
+Placing at TerrainPosition{x=5, z=28}
+Placing at TerrainPosition{x=5, z=27}
+Placing at TerrainPosition{x=5, z=26}
+Placing at TerrainPosition{x=6, z=19}
+Placing at TerrainPosition{x=5, z=19}
+Placing at TerrainPosition{x=4, z=19}
+Placing at TerrainPosition{x=3, z=19}
+Placing at TerrainPosition{x=3, z=18}
+Placing at TerrainPosition{x=3, z=17}
+Placing at TerrainPosition{x=3, z=16}
+Placing at TerrainPosition{x=3, z=15}
+Placing at TerrainPosition{x=3, z=14}
+Placing at TerrainPosition{x=3, z=13}
+Placing at TerrainPosition{x=3, z=12}
+Placing at TerrainPosition{x=3, z=11}
+Placing at TerrainPosition{x=2, z=11}
+Placing at TerrainPosition{x=1, z=11}
+Placing at TerrainPosition{x=0, z=11}
+Adding person
+Placing at TerrainPosition{x=0, z=10}
+Placing at TerrainPosition{x=0, z=9}
+Placing at TerrainPosition{x=0, z=8}
+Placing at TerrainPosition{x=0, z=7}
+Placing at TerrainPosition{x=0, z=6}
+Placing at TerrainPosition{x=0, z=5}
+Placing at TerrainPosition{x=0, z=4}
+Placing at TerrainPosition{x=1, z=4}
+Placing at TerrainPosition{x=2, z=4}
+Placing at TerrainPosition{x=2, z=5}
+Placing at TerrainPosition{x=2, z=6}
+Placing at TerrainPosition{x=2, z=7}
+Placing at TerrainPosition{x=2, z=8}
+Placing at TerrainPosition{x=2, z=9}
+Placing at TerrainPosition{x=2, z=10}
+
+
+
+Destination = 0,2 => not working
+         */
+
+        TerrainPosition v1 = new TerrainPosition(0, 0);
+        TerrainPosition v2 = new TerrainPosition(0, 2);
+        TerrainPosition v3 = new TerrainPosition(5, 0);
+        TerrainPosition v4 = new TerrainPosition(5, 2);
+
+        int[] roadPositions = new int[]{
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                1, 0,
+                2, 0,
+                3, 0,
+                4, 0,
+                v3.getX(), v3.getZ(),
+                6, 0,
+                5, 1,
+                v4.getX(), v4.getZ(),
+                5, 3,
+                4, 2,
+                3, 2,
+                2, 2,
+                1, 2
+        };
+
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+
+        GameObject.newInstances(DirtRoad.class, roads);
+
+        RoadGraph roadGraph = scene.getRoadGraph();
+        PathFinder pathFinder = new PathFinder(roadGraph);
+
+        // Found route
+        Path foundPath = pathFinder.findBestPath(v1, v2, 0);
+
+        // Expected global routes
+        Path expectedPath = new Path();
+
+        // Expected individual routes
+        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1), new NodeRoad(v3));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(1, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(2, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(3, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(4, 0)));
+        expectedNodeConnection1.addRoad(new NodeRoad(v3));
+        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3), new NodeRoad(v4));
+        expectedNodeConnection2.addRoad(new NormalRoad(new TerrainPosition(5, 1)));
+        expectedNodeConnection2.addRoad(new NodeRoad(v4));
+        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4), new NormalRoad(v2));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(4, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(3, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(2, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(1, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(v2));
+
+        expectedPath.add(expectedNodeConnection1);
+        expectedPath.add(expectedNodeConnection2);
+        expectedPath.add(expectedNodeConnection3);
+
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testUnobstrusiveRoute1() {
+    void testUnobstrusivePath1() {
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(60, 50);
@@ -2319,28 +2879,28 @@ class TerrainTest {
                 new TerrainPosition(58, 50),
                 new TerrainPosition(59, 50),
         };
-        Route foundRoute = routeFinder.findUnobstructedRouteV1(v1, v2);
+        Path foundPath = pathFinder.findUnobstructedPathV1(v1, v2);
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
         NormalRoad end = new NormalRoad(v2);
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1), end);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1), end);
 
         for (TerrainPosition pos : positions)
-            expectedRouteRoad.addRoad(new NormalRoad(pos));
+            expectedNodeConnection.addRoad(new NormalRoad(pos));
 
-        expectedRouteRoad.addRoad(end);
-        expectedRoute.add(expectedRouteRoad);
+        expectedNodeConnection.addRoad(end);
+        expectedPath.add(expectedNodeConnection);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
-    void testUnobstrusiveRoute2() {
+    void testUnobstrusivePath2() {
         RoadGraph roadGraph = scene.getRoadGraph();
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+        PathFinder pathFinder = new PathFinder(roadGraph);
 
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(55, 50);
@@ -2364,42 +2924,36 @@ class TerrainTest {
                 new TerrainPosition(55, 59)
         };
 
-        Route foundRoute = routeFinder.findUnobstructedRouteV1(v1, v3);
+        Path foundPath = pathFinder.findUnobstructedPathV1(v1, v3);
 
         // Expected global routes
-        RouteFinder.Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
         // Expected individual routes
         NormalRoad middle = new NormalRoad(v2);
         NormalRoad end = new NormalRoad(v3);
-        RouteRoad expectedRouteRoad = new RouteRoad(new NormalRoad(v1), middle);
-        RouteRoad expectedRouteRoad2 = new RouteRoad(middle, end);
+        NodeConnection expectedNodeConnection = new NodeConnection(new NormalRoad(v1), middle);
+        NodeConnection expectedNodeConnection2 = new NodeConnection(middle, end);
 
         for (TerrainPosition pos : positions)
-            expectedRouteRoad.addRoad(new NormalRoad(pos));
-        expectedRouteRoad.addRoad(middle);
+            expectedNodeConnection.addRoad(new NormalRoad(pos));
+        expectedNodeConnection.addRoad(middle);
 
         for (TerrainPosition pos : positions2)
-            expectedRouteRoad2.addRoad(new NormalRoad(pos));
-        expectedRouteRoad2.addRoad(end);
+            expectedNodeConnection2.addRoad(new NormalRoad(pos));
+        expectedNodeConnection2.addRoad(end);
 
-        expectedRoute.add(expectedRouteRoad);
-        expectedRoute.add(expectedRouteRoad2);
+        expectedPath.add(expectedNodeConnection);
+        expectedPath.add(expectedNodeConnection2);
 
-        assertTrue(foundRoute.compareRoutes(expectedRoute));
-        assertTrue(foundRoute.compareCost(expectedRoute));
+        assertTrue(foundPath.comparePaths(expectedPath));
+        assertTrue(foundPath.compareCost(expectedPath));
     }
 
     @Test
     void testRoadsConnectedToItem() {
         TerrainPosition v1 = new TerrainPosition(50, 50);
         TerrainPosition v2 = new TerrainPosition(50, 60);
-
-//        AbstractInsula abstractInsula = AbstractInsula.getInstance();
-//        abstractInsula.place(v1);
-
-//        AbstractMarket abstractMarket = AbstractMarket.getInstance();
-//        Market market = (Market) abstractMarket.place(v2);
 
         Insula insula = new Insula();
         insula.addComponent(new PositionComponent(v1));
@@ -2429,46 +2983,48 @@ class TerrainTest {
         for (TerrainPosition roadPos : connectedRoads) {
             GameObject.newInstance(DirtRoad.class, roadPos);
             expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
-
-            assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(market), expectedRoads));
         }
+
+        assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(market), expectedRoads));
     }
 
     @Test
     void testRoadsConnectedToItem2() {
         List<GameObject> expectedRoads = new ArrayList<>();
 
+        int x = 35;
+        int z = 50;
+
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(x, z)));
 
         GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
-                new TerrainPosition(31, 48),
-                new TerrainPosition(32, 47),
-                new TerrainPosition(32, 53),
-                new TerrainPosition(32, 54),
-                new TerrainPosition(32, 55),
-                new TerrainPosition(32, 56),
-                new TerrainPosition(34, 54),
-                new TerrainPosition(34, 55),
-                new TerrainPosition(34, 56),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, z - Insula.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z - Insula.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, z),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 2, z)
         });
 
         TerrainPosition[] connectedRoads = new TerrainPosition[]{
-                new TerrainPosition(33, 47),
-                new TerrainPosition(32, 48),
-                new TerrainPosition(32, 49),
-                new TerrainPosition(32, 50),
-                new TerrainPosition(32, 51),
-                new TerrainPosition(32, 52),
-                new TerrainPosition(34, 53),
+                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, z - Insula.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z - Insula.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, z)
         };
 
         for (TerrainPosition roadPos : connectedRoads) {
             GameObject.newInstance(DirtRoad.class, roadPos);
             expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
-
-            assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(insula), expectedRoads));
         }
+        assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(insula), expectedRoads));
     }
 
     @Test
@@ -2484,15 +3040,15 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, positions);
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
                 new NormalRoad(positions[positions.length - 1]));
 
-        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad);
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2525,15 +3081,15 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 84));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 85));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
                 new NormalRoad(positions[positions.length - 1]));
 
-        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad);
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2557,14 +3113,16 @@ class TerrainTest {
         }
         GameObject.newInstances(DirtRoad.class, connectedRoads);
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]), new NormalRoad(new TerrainPosition(50, 75)));
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
+                new NodeRoad(new TerrainPosition(50, 75)));
 
-        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad);
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(50, 75)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2602,44 +3160,43 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, positions);
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(new TerrainPosition(33, 53)),
-                new RoadNode(new TerrainPosition(33, 54)));
-        routeRoad.addRoad(new RoadNode(new TerrainPosition(33, 54)));
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 53)),
+                new NodeRoad(new TerrainPosition(33, 54)));
+        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(33, 54)));
 
-        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(new TerrainPosition(33, 54)),
-                new RoadNode(new TerrainPosition(33, 55)));
-        routeRoad2.addRoad(new RoadNode(new TerrainPosition(33, 55)));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 54)),
+                new NodeRoad(new TerrainPosition(33, 55)));
+        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
 
-        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(new TerrainPosition(33, 55)),
-                new RoadNode(new TerrainPosition(33, 56)));
-        routeRoad3.addRoad(new RoadNode(new TerrainPosition(33, 56)));
+        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 55)),
+                new NodeRoad(new TerrainPosition(33, 56)));
+        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(33, 56)));
 
-        Route expectedRoute2 = new Route();
-        RouteRoad routeRoad21 = new RouteRoad(new RoadNode(new TerrainPosition(34, 53)),
-                new RoadNode(new TerrainPosition(34, 54)));
-        routeRoad21.addRoad(new RoadNode(new TerrainPosition(34, 54)));
+        Path expectedPath2 = new Path();
+        NodeConnection nodeConnection21 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 53)),
+                new NodeRoad(new TerrainPosition(34, 54)));
+        nodeConnection21.addRoad(new NodeRoad(new TerrainPosition(34, 54)));
 
-        RouteRoad routeRoad22 = new RouteRoad(new RoadNode(new TerrainPosition(34, 54)),
-                new RoadNode(new TerrainPosition(34, 55)));
-        routeRoad22.addRoad(new RoadNode(new TerrainPosition(34, 55)));
+        NodeConnection nodeConnection22 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 54)),
+                new NodeRoad(new TerrainPosition(34, 55)));
+        nodeConnection22.addRoad(new NodeRoad(new TerrainPosition(34, 55)));
 
-        RouteRoad routeRoad23 = new RouteRoad(new RoadNode(new TerrainPosition(34, 55)),
+        NodeConnection nodeConnection23 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 55)),
                 new NormalRoad(new TerrainPosition(34, 56)));
-        routeRoad23.addRoad(new NormalRoad(new TerrainPosition(34, 56)));
+        nodeConnection23.addRoad(new NormalRoad(new TerrainPosition(34, 56)));
 
-        expectedRoute.add(routeRoad);
-        expectedRoute.add(routeRoad2);
-        expectedRoute.add(routeRoad3);
+        expectedPath.add(nodeConnection);
+        expectedPath.add(nodeConnection2);
+        expectedPath.add(nodeConnection3);
 
-        expectedRoute2.add(routeRoad21);
-        expectedRoute2.add(routeRoad22);
-        expectedRoute2.add(routeRoad23);
+        expectedPath2.add(nodeConnection21);
+        expectedPath2.add(nodeConnection22);
+        expectedPath2.add(nodeConnection23);
 
-        assertEquals(expectedRoute2, bestRoute);
-        assertTrue(expectedRoute.compareRoutes(bestRoute) || expectedRoute2.compareRoutes(bestRoute));
-        assertTrue(expectedRoute.compareCost(bestRoute) && expectedRoute2.compareCost(bestRoute));
+        assertTrue(expectedPath.comparePaths(bestPath) || expectedPath2.comparePaths(bestPath));
+        assertTrue(expectedPath.compareCost(bestPath) && expectedPath2.compareCost(bestPath));
     }
 
     @Test
@@ -2677,24 +3234,24 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, positions);
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new RoadNode(new TerrainPosition(33, 53)),
-                new RoadNode(new TerrainPosition(33, 54)));
-        routeRoad.addRoad(new RoadNode(new TerrainPosition(33, 54)));
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 53)),
+                new NodeRoad(new TerrainPosition(33, 54)));
+        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(33, 54)));
 
-        RouteRoad routeRoad2 = new RouteRoad(new RoadNode(new TerrainPosition(33, 54)),
-                new RoadNode(new TerrainPosition(33, 55)));
-        routeRoad2.addRoad(new RoadNode(new TerrainPosition(33, 55)));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 54)),
+                new NodeRoad(new TerrainPosition(33, 55)));
+        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
 
-        RouteRoad routeRoad3 = new RouteRoad(new RoadNode(new TerrainPosition(33, 55)),
-                new RoadNode(new TerrainPosition(33, 56)));
-        routeRoad3.addRoad(new RoadNode(new TerrainPosition(33, 56)));
+        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 55)),
+                new NodeRoad(new TerrainPosition(33, 56)));
+        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(33, 56)));
 
-        expectedRoute.add(routeRoad);
-        expectedRoute.add(routeRoad2);
-        expectedRoute.add(routeRoad3);
-        assertEquals(expectedRoute, bestRoute);
+        expectedPath.add(nodeConnection);
+        expectedPath.add(nodeConnection2);
+        expectedPath.add(nodeConnection3);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2711,15 +3268,15 @@ class TerrainTest {
         Insula insula = new Insula();
         insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
                 new NormalRoad(positions[positions.length - 1]));
 
-        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad);
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2736,15 +3293,15 @@ class TerrainTest {
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(positions[0]),
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
                 new NormalRoad(positions[positions.length - 1]));
 
-        Arrays.stream(positions).skip(1).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad);
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2757,21 +3314,21 @@ class TerrainTest {
             positions[i - 55] = new TerrainPosition(50, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 60)));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 57));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 55)), end);
 
-        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad.invertRoute());
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions, 0, 3).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection.invert());
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2784,22 +3341,22 @@ class TerrainTest {
             positions[i - 55] = new TerrainPosition(50, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
-        Route expectedRoute = new Route();
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
 
         NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
 
-        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad.invertRoute());
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection.invert());
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2812,7 +3369,7 @@ class TerrainTest {
             positions[i - 55] = new TerrainPosition(50, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(46, 60)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
@@ -2820,15 +3377,15 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 65));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
-        Route expectedRoute = new Route();
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
 
         NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
 
-        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad.invertRoute());
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection.invert());
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2841,22 +3398,22 @@ class TerrainTest {
             positions[i - 55] = new TerrainPosition(50, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(53, 60)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(54, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
-        Route expectedRoute = new Route();
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
 
         NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        RouteRoad routeRoad = new RouteRoad(new NormalRoad(new TerrainPosition(50, 55)), end);
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
 
-        Arrays.stream(positions, 0, 4).forEach(pos -> routeRoad.addRoad(new NormalRoad(pos)));
-        expectedRoute.add(routeRoad.invertRoute());
-        assertEquals(expectedRoute, bestRoute);
+        Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection.invert());
+        assertEquals(expectedPath, bestPath);
     }
 
     @Test
@@ -2874,7 +3431,7 @@ class TerrainTest {
             positions2[i - 50] = new TerrainPosition(i, 70);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(62, 74)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(63, 75)));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
@@ -2887,31 +3444,232 @@ class TerrainTest {
         positions2 = pos2.toArray(new TerrainPosition[0]);
         GameObject.newInstances(DirtRoad.class, positions2);
 
-        Route bestRoute = RouteFinder.findBestRoute(insula, market, 0);
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
-        Route expectedRoute = new Route();
+        Path expectedPath = new Path();
 
-        RoadNode node1 = new RoadNode(new TerrainPosition(50, 63));
-        RoadNode node2 = new RoadNode(new TerrainPosition(62, 70));
-        RoadNode node3 = new RoadNode(new TerrainPosition(50, 55));
+        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 63));
+        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 70));
+        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 55));
 
-        RouteRoad routeRoad1 = new RouteRoad(new NormalRoad(new TerrainPosition(62, 71)), node2);
-        routeRoad1.addRoad(node2);
-        expectedRoute.add(routeRoad1);
+        NodeConnection nodeConnection1 = new NodeConnection(new NormalRoad(new TerrainPosition(62, 71)), node2);
+        nodeConnection1.addRoad(node2);
+        expectedPath.add(nodeConnection1);
 
-        RouteRoad routeRoad2 = new RouteRoad(node2, node1);
-        Arrays.stream(positions2, 1, 14).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        NodeConnection nodeConnection2 = new NodeConnection(node2, node1);
+        Arrays.stream(positions2, 2, 14).forEach(p -> nodeConnection2.addRoad(new NormalRoad(p)));
         List<TerrainPosition> pos = Arrays.asList(positions);
         Collections.reverse(pos);
-        IntStream.range(0, 6).mapToObj(pos::get).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
-        routeRoad2.addRoad(node1);
-        expectedRoute.add(routeRoad2);
+        IntStream.range(0, 6).mapToObj(pos::get).forEach(p -> nodeConnection2.addRoad(new NormalRoad(p)));
+        nodeConnection2.addRoad(node1);
+        expectedPath.add(nodeConnection2);
 
-        RouteRoad routeRoad3 = new RouteRoad(node3, node1);
+        NodeConnection nodeConnection3 = new NodeConnection(node3, node1);
         Collections.reverse(pos);
-        IntStream.range(0, 8).mapToObj(pos::get).forEach(p -> routeRoad3.addRoad(new NormalRoad(p)));
-        routeRoad3.addRoad(node1);
-        expectedRoute.add(routeRoad3.invertRoute());
-        assertEquals(expectedRoute, bestRoute);
+        IntStream.range(1, 8).mapToObj(pos::get).forEach(p -> nodeConnection3.addRoad(new NormalRoad(p)));
+        nodeConnection3.addRoad(node1);
+        expectedPath.add(nodeConnection3.invert());
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula13() {
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(40, 47)));
+        Insula insula2 = new Insula();
+        insula2.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        for (int x = 0; x < 21; x++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 0));
+
+        for (int x = 20; x < 41; x++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 40));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 41));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 42));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 43));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 54));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(35, 39));
+
+        for (int i = 53; i < 76; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+
+        GameObject.newInstance(Insula.class, new TerrainPosition(32, 37));
+        Insula extraInsula = GameObject.newInstance(Insula.class, new TerrainPosition(39, 37));
+
+        Path bestPath = PathFinder.findBestPath(extraInsula, market, 0);
+        Path expectedPath = new Path();
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula14() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        for (int i = 55; i < 76; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+        for (int i = 32; i < 50; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
+        for (int i = 56; i < 73; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        Path expectedPath = new Path();
+
+        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
+        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
+        IntStream.rangeClosed(59, 72)
+                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
+        expectedPath.add(nodeConnection1.invert());
+
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 75)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
+        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
+        IntStream.rangeClosed(56, 75).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+
+        expectedPath.add(nodeConnection2);
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula15() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        for (int i = 55; i < 76; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+        for (int i = 32; i < 50; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
+        for (int i = 56; i < 73; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+        for (int i = 77; i > 66; i--)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(39, i));
+        for (int i = 40; i < 45; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 67));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 66));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 65));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        Path expectedPath = new Path();
+
+        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
+        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
+        IntStream.rangeClosed(59, 72)
+                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
+        expectedPath.add(nodeConnection1.invert());
+
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 75)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
+        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
+        IntStream.rangeClosed(56, 75).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+
+        expectedPath.add(nodeConnection2);
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula16() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(52, 69));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 72));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(48, 71)),
+                new NormalRoad(new TerrainPosition(48, 75)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 72)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 73)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 74)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 75)));
+        expectedPath.add(nodeConnection);
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula17() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(42, 79));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 72));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(45, 76)),
+                new NormalRoad(new TerrainPosition(45, 76)));
+        expectedPath.add(nodeConnection);
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula18() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(54, 73));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 75));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 75)),
+                new NormalRoad(new TerrainPosition(50, 75)));
+        expectedPath.add(nodeConnection);
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula19() {
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 88));
+        for (int z = 75; z < 86; z++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, z));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(
+                new NormalRoad(new TerrainPosition(45, 85)), new NormalRoad(new TerrainPosition(45, 84)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(45, 84)));
+        expectedPath.add(nodeConnection);
+
+        assertEquals(expectedPath, bestPath);
     }
 }

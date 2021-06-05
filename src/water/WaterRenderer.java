@@ -7,10 +7,10 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.DisplayManager;
-import renderEngine.LightRenderer;
 import renderEngine.Loader;
-import scene.components.SunComponent;
 import renderEngine.shaders.WaterShader;
+import scene.Scene;
+import scene.components.SunComponent;
 import textures.ModelTexture;
 import util.math.Maths;
 import util.math.Matrix4f;
@@ -67,8 +67,7 @@ public class WaterRenderer {
         shader.loadMoveFactor(moveFactor);
         shader.loadPlaneValues();
         shader.loadLight(
-                LightRenderer.getInstance().getGameObjects().stream().filter(gameObject -> gameObject.hasComponent(
-                        SunComponent.class)).findFirst().orElse(null));
+                Scene.getInstance().getGameObjectsForComponent(SunComponent.class, false).stream().findFirst().orElse(null));
 
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);

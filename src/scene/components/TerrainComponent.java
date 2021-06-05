@@ -1,9 +1,5 @@
 package scene.components;
 
-public class TerrainComponent implements Component {
-
-
-    public TerrainComponent() {
-    }
+public class TerrainComponent extends Component {
 
 }

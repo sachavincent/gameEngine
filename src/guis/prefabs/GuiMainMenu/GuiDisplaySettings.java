@@ -8,9 +8,9 @@ import guis.presets.Background;
 import guis.presets.GuiMultiOption;
 import guis.presets.GuiOnOffOption;
 import guis.presets.GuiOnOffOption.OnOff;
-import guis.presets.GuiSlider;
-import guis.presets.GuiSlider.Interval;
-import guis.presets.GuiTextInput;
+import guis.presets.sliders.GuiHorizontalSlider;
+import guis.presets.sliders.GuiSlider;
+import guis.presets.sliders.Interval;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,14 +19,13 @@ import language.Words;
 import renderEngine.DisplayManager;
 import renderEngine.DisplayManager.DisplayMode;
 import renderEngine.DisplayManager.Resolution;
-import util.Utils;
 
 public class GuiDisplaySettings extends GuiTab {
 
     public final static Color LIGHT_GRAY = Color.decode("#BDBDBD");
 
-    public       GuiSlider                  fpsSlider;
-    private      GuiMultiOption<Resolution> resolutionOptions;
+    public  GuiSlider                  fpsSlider;
+    private GuiMultiOption<Resolution> resolutionOptions;
 
     public GuiDisplaySettings(GuiMultiTab parent) {
         super(Background.NO_BACKGROUND, parent, Words.DISPLAY);
@@ -38,7 +37,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setyConstraint(new RelativeConstraint(0, parent.content))
                 .create());
 
-        setLayout(new PatternGlobalConstraint(1, 6, 0));
+        setLayout(new PatternGlobalConstraint(1, 5, 0));
 
         createDisplayOption();
         createDisplayModeOption();
@@ -46,11 +45,11 @@ public class GuiDisplaySettings extends GuiTab {
         createFPSOption();
         createVSyncOption();
 
-        GuiTextInput guiTextInput = new GuiTextInput(this);
-        guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
-        guiTextInput.setOutlineColor(Color.WHITE);
-        guiTextInput.setMaxLength(20);
-        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
+//        GuiTextInput guiTextInput = new GuiTextInput(this);
+//        guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
+//        guiTextInput.setOutlineColor(Color.WHITE);
+//        guiTextInput.setMaxLength(20);
+//        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
     }
 
 
@@ -70,7 +69,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
-                .setxConstraint(new StickyConstraint(Side.RIGHT, guiText, 0f))
+                .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                 .create(), LIGHT_GRAY, new ArrayList<>(DisplayManager.currentScreen.resolutions));
 
         //TODO: Native Option by default "NATIVE"
@@ -93,7 +92,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
-                .setxConstraint(new StickyConstraint(Side.RIGHT, guiText, 0f)).create(), LIGHT_GRAY,
+                .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText)).create(), LIGHT_GRAY,
                 DisplayManager.screens.stream().map(screen -> DisplayManager.screens.indexOf(screen))
                         .map(nb -> Words.MONITOR + " " + (nb + 1)).collect(Collectors.toList()));
 
@@ -124,7 +123,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
-                .setxConstraint(new StickyConstraint(Side.RIGHT, guiText, 0f))
+                .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                 .create(), LIGHT_GRAY, Arrays.asList(DisplayMode.values()));
 
         guiMultiOption.setOptionSelectedCallback(displayMode -> {
@@ -150,7 +149,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
-                .setxConstraint(new StickyConstraint(Side.RIGHT, guiText, 0f))
+                .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                 .create(), LIGHT_GRAY);
 
         guiOnOffOption.setOptionSelectedCallback(res -> {
@@ -170,13 +169,13 @@ public class GuiDisplaySettings extends GuiTab {
                         .create());
 
 
-        fpsSlider = new GuiSlider(
+        fpsSlider = new GuiHorizontalSlider(
                 FPSArea, new Interval(DisplayManager.MAX_FPS, 30, 300, 1), LIGHT_GRAY, Color.BLACK,
                 new GuiConstraintsManager.Builder()
                         .setDefault()
                         .setWidthConstraint(new RelativeConstraint(.5f))
                         .setHeightConstraint(new RelativeConstraint(.2f))
-                        .setxConstraint(new StickyConstraint(Side.RIGHT, guiText, 0f))
+                        .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                         .create());
 
         fpsSlider.showValue(Side.RIGHT);

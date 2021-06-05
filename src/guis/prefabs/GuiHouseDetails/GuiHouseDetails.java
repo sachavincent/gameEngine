@@ -8,7 +8,6 @@ import guis.constraints.*;
 import guis.presets.Background;
 import guis.presets.buttons.ButtonGroup;
 import guis.presets.buttons.GuiAbstractButton;
-import guis.presets.buttons.GuiAbstractButton.ButtonType;
 import guis.presets.buttons.GuiRectangleButton;
 import guis.presets.graphs.GuiDonutGraph;
 import guis.presets.graphs.GuiDonutGraph.Sector;
@@ -17,7 +16,7 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import language.Words;
@@ -28,10 +27,13 @@ import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
 import resources.ResourceType;
-import scene.components.FrequentedPlaceComponent;
-import scene.components.RequireResourcesComponent;
+import scene.components.ResidenceComponent;
 import scene.components.SelectableComponent;
+import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirement;
 import scene.gameObjects.GameObject;
+import util.MousePicker;
+import util.math.Maths;
 
 public class GuiHouseDetails extends Gui {
 
@@ -59,6 +61,7 @@ public class GuiHouseDetails extends Gui {
 
     private State        state;
     private ResourceType resourceType;
+    private Resource     resource;
 
     private final static Background<String> stickyFigureImage = new Background<>("stick_figure.png");
 
@@ -87,7 +90,6 @@ public class GuiHouseDetails extends Gui {
                 .setyConstraint(new SideConstraint(Side.TOP).setDistanceFromSide(0))
                 .create();
 
-
         GuiConstraintsManager rightRectangleConstraints = new GuiConstraintsManager.Builder()
                 .setWidthConstraint(new RelativeConstraint(.39f))
                 .setHeightConstraint(new RelativeConstraint(.4f))
@@ -95,14 +97,15 @@ public class GuiHouseDetails extends Gui {
                 .setyConstraint(new SideConstraint(Side.TOP).setDistanceFromSide(0))
                 .create();
 
-
         this.overallView = new GuiRectangle(this, Background.NO_BACKGROUND, upperRectangleConstraints);
 
         this.peopleTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
                 rightRectangleConstraints);
+        this.peopleTab.setDisplayedByDefault(false);
 
         this.moneyTab = new GuiRectangle(this, new Background<>(new Color(0, 0, 0, 120)),
                 rightRectangleConstraints);
+        this.moneyTab.setDisplayedByDefault(false);
 
         addPeopleButton();
         addMoneyButton();
@@ -113,6 +116,57 @@ public class GuiHouseDetails extends Gui {
         this.categoryView = new CategoryView(this);
 
         addDistributionGraph();
+
+        setOnOpen(() -> {
+            formLoad();
+            update();
+        });
+
+        setOnClose(() -> {
+            if (this.houseObject != null) {
+                GameObject houseObject = this.houseObject;
+                this.houseObject = null; // Prevent infinite loop
+                SelectableComponent selectableComponent = houseObject.getComponent(SelectableComponent.class);
+                if (selectableComponent != null)
+                    selectableComponent.setSelected(false);
+                MousePicker.getInstance().update();
+            }
+        });
+
+        setOnUpdate(() -> {
+            if (this.houseObject == null)
+                return;
+
+            ResidenceComponent residenceComponent = this.houseObject.getComponent(ResidenceComponent.class);
+            if (residenceComponent == null)
+                return;
+
+            int currentPeopleCount = residenceComponent.getCurrentPeopleCount();
+            int maxPeopleCapacity = residenceComponent.getMaxPeopleCapacity();
+
+            Text text = this.peopleButton.getText().getText();
+            text.setTextString(currentPeopleCount + " / " + maxPeopleCapacity);
+            this.peopleButton.getText().setText(text);
+
+            this.peopleDistributionGraph.reset();
+
+            EnumMap<SocialClass, List<Person>> listPeople = residenceComponent.getPersons();
+
+            listPeople.forEach((socialClass, people) -> {
+                int size = people.size();
+                if (size > 0)
+                    this.peopleDistributionGraph
+                            .addSector(new Sector<>(size, socialClass.getColor(), socialClass.getName()));
+            });
+
+            if (currentPeopleCount < maxPeopleCapacity) {
+                this.peopleDistributionGraph.addSector(
+                        new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY,
+                                Words.AVAILABLE_SPACE.getString()));
+            }
+
+            updatePercentage();
+        });
 
         setDisplayed(false);
     }
@@ -142,46 +196,6 @@ public class GuiHouseDetails extends Gui {
     }
 
     /**
-     * updating GUI with new houseItem
-     */
-    public boolean update() {
-        super.update();
-
-        assert this.houseObject != null;
-
-        FrequentedPlaceComponent frequentedPlaceComponent = this.houseObject
-                .getComponent(FrequentedPlaceComponent.class);
-        if (frequentedPlaceComponent == null)
-            return false;
-
-        int currentPeopleCount = frequentedPlaceComponent.getCurrentPeopleCount();
-        int maxPeopleCapacity = frequentedPlaceComponent.getMaxPeopleCapacity();
-
-        Text text = this.peopleButton.getText().getText();
-        text.setTextString(currentPeopleCount + " / " + maxPeopleCapacity);
-        this.peopleButton.getText().setText(text);
-
-        this.peopleDistributionGraph.reset();
-
-        EnumMap<SocialClass, List<Person>> listPeople = frequentedPlaceComponent.getPersons();
-
-        listPeople.forEach((socialClass, people) -> {
-            int size = people.size();
-            if (size > 0)
-                this.peopleDistributionGraph
-                        .addSector(new Sector<>(size, socialClass.getColor(), socialClass.getName()));
-        });
-
-        if (currentPeopleCount < maxPeopleCapacity) {
-            this.peopleDistributionGraph.addSector(
-                    new Sector<>(maxPeopleCapacity - currentPeopleCount, Color.LIGHT_GRAY,
-                            Words.AVAILABLE_SPACE.getString()));
-        }
-
-        return true;
-    }
-
-    /**
      * Called when category selected
      */
     private void setCategorySelected(ResourceType resourceType) {
@@ -189,12 +203,6 @@ public class GuiHouseDetails extends Gui {
             return;
 
         this.resourceType = resourceType;
-
-        RequireResourcesComponent requireResourcesComponent = this.houseObject
-                .getComponent(RequireResourcesComponent.class);
-        Map<Resource, Integer> resourcesNeeded = requireResourcesComponent.getResourcesNeeded();
-//        List<Resource> subCategories = resourcesNeeded.keySet().stream()
-//                .filter(resource -> resource.getResourceType().equals(resourceType)).collect(Collectors.toList());
 
         List<Resource> subCategories = Arrays.stream(Resource.values())
                 .filter(resource -> resource.getResourceType() == ResourceType.FOOD).collect(Collectors.toList());
@@ -208,40 +216,54 @@ public class GuiHouseDetails extends Gui {
         AtomicBoolean selected = new AtomicBoolean();
         ButtonGroup group = new ButtonGroup(subCategories.size());
         subCategories.forEach(resource -> {
-//            if (resourcesNeeded.containsKey(resource)) {
-            GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab,
-                    resource.getBackgroundTexture(),
+            GuiRectangleButton button = new GuiRectangleButton(this.subCategoriesTab, resource.getBackgroundTexture(),
+                    null,
                     (GuiConstraintsManager) null);
             button.enableFilter();
             button.setToggleType(true);
             button.setButtonGroup(group);
             button.setOnMousePress(b -> {
                 if (b == GLFW.GLFW_MOUSE_BUTTON_1) {
-                    if (resourcesNeeded.containsKey(resource)) {
-                        int value = resourcesNeeded.get(resource);
-                        Stock stock = ResourceManager.getResources().get(resource);
-
-                        setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
-                    }
+                    this.resource = resource;
+                    updatePercentage();
                     this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
                 }
             });
 
             if (!selected.get()) {
-                if (resourcesNeeded.containsKey(resource)) {
-                    int value = resourcesNeeded.get(resource);
-                    Stock stock = ResourceManager.getResources().get(resource);
-
-                    setCurrentCategoryPercentage(stock.getAmount() * 100 / value);
-                }
+                this.resource = resource;
+                updatePercentage();
                 selected.set(true);
                 button.setClickType(ClickType.M1);
             }
-//            } else {
-//                GuiRectangle rectangle = new GuiRectangle(subCategoriesTab, resource.getBackgroundTexture(), null);
-//            }
         });
 
+    }
+
+    private void updatePercentage() {
+        if (this.resource == null || this.houseObject == null ||
+                !this.houseObject.hasComponent(RequirementComponent.class))
+            return;
+
+        RequirementComponent requirementComponent = this.houseObject.getComponent(RequirementComponent.class);
+
+        final Set<ResourceRequirement> resourceRequirements = requirementComponent.getTier3Requirements().keySet()
+                .stream()
+                .filter(ResourceRequirement.class::isInstance).map(ResourceRequirement.class::cast)
+                .collect(Collectors.toSet());
+        ResourceRequirement requirement = resourceRequirements.stream()
+                .filter(resourceRequirement -> resourceRequirement.getKey().equals(this.resource)).findFirst()
+                .orElse(null);
+
+        if (requirement != null) {
+            int value = requirement.getValue();
+            int percentage = 0;
+            if (value > 0) {
+                Stock stock = ResourceManager.getResources().get(this.resource);
+                percentage = (int) Maths.clamp(Math.floor(stock.getAmount() * 100f / value), 0, 100);
+            }
+            setCurrentCategoryPercentage(percentage);
+        }
     }
 
     private void addMoneyButton() {
@@ -251,8 +273,7 @@ public class GuiHouseDetails extends Gui {
                 .setxConstraint(new SideConstraint(Side.RIGHT))
                 .setyConstraint(new SideConstraint(Side.TOP))
                 .create();
-
-        this.moneyButton = createButton(ButtonType.RECTANGLE, coinsImage, null, null, constraintsManager);
+        this.moneyButton = new GuiRectangleButton(this, coinsImage, null, constraintsManager);
 
         this.moneyButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1)
@@ -263,13 +284,14 @@ public class GuiHouseDetails extends Gui {
     private void addPeopleButton() {
         Text text = new Text("? / ?", .5f, DEFAULT_FONT, new Color(0, 0, 0));
 
-        this.peopleButton = createButton(ButtonType.RECTANGLE,
-                new Background<>(new Color(0, 0, 0, 50)), text, null, new GuiConstraintsManager.Builder()
+        this.peopleButton = new GuiRectangleButton(this, new Background<>(new Color(0, 0, 0, 50)), null, text,
+                new GuiConstraintsManager.Builder()
                         .setWidthConstraint(new RelativeConstraint(0.18f, this.overallView))
                         .setHeightConstraint(new RelativeConstraint(0.35f, this.overallView))
                         .setxConstraint(new RelativeConstraint(0, this.overallView))
                         .setyConstraint(new RelativeConstraint(0.5f, this.overallView))
                         .create());
+
         this.peopleButton.enableFilter();
         this.peopleButton.setCornerRadius(Gui.CORNER_RADIUS);
 
@@ -440,7 +462,8 @@ public class GuiHouseDetails extends Gui {
 
     private void formLoad() {
         this.state = State.DEFAULT;
-        setCategorySelected(ResourceType.FOOD);
+
+        setCurrentCategoryPercentage(0);
 
         hidePeopleTab();
         hideMoneyTab();
@@ -465,22 +488,6 @@ public class GuiHouseDetails extends Gui {
 
         this.subCategoriesTab.setDisplayed(true);
         showFoodCategory();
-    }
-
-    @Override
-    public void setDisplayed(boolean displayed) {
-        super.setDisplayed(displayed);
-
-        if (displayed) {
-            formLoad();
-            update();
-        } else if (this.houseObject != null) {
-            GameObject houseObject = this.houseObject;
-            this.houseObject = null; // Prevent infinite loop
-            SelectableComponent selectableComponent = houseObject.getComponent(SelectableComponent.class);
-            if (selectableComponent != null)
-                selectableComponent.setSelected(false);
-        }
     }
 
     private void showFoodCategory() {

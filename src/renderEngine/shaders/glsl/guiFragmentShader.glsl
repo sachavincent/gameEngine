@@ -4,6 +4,7 @@
 #define DEFAULT 0
 #define DONUT 1
 #define PROGRESS_ICON 2
+#define CIRCLE 3
 
 #define MAX_LINES 5// Social classes
 
@@ -17,13 +18,15 @@ uniform sampler2D guiTexture;
 
 uniform float guiWidth;
 uniform float guiHeight;
-uniform float radius;
+uniform float cornerRadius;
 
 uniform float alpha;
-
 uniform vec3 color;
-
+uniform vec3 borderColor;
+uniform int outlineWidth;
 uniform int type;
+uniform bool filled;
+uniform bool borderEnabled;
 
 // donut stuff
 uniform float innerCircleRadius;
@@ -45,17 +48,17 @@ float distanceSquared(vec2 p1, vec2 p2) {
 }
 
 float calcRoundedCorners() {
-    if (radius <= 0.0) {
+    if (cornerRadius <= 0.0) {
         return 1.0;
     }
 
     vec2 pixelPos = textureCoords * vec2(guiWidth, guiHeight);
-    vec2 minCorner = vec2(radius, radius);
-    vec2 maxCorner = vec2(guiWidth - radius, guiHeight - radius);
+    vec2 minCorner = vec2(cornerRadius, cornerRadius);
+    vec2 maxCorner = vec2(guiWidth - cornerRadius, guiHeight - cornerRadius);
 
     vec2 cornerPoint = clamp(pixelPos, minCorner, maxCorner);
-    float lowerBound = square(radius - cornerSmooth);
-    float upperBound = square(radius + cornerSmooth);
+    float lowerBound = square(cornerRadius - cornerSmooth);
+    float upperBound = square(cornerRadius + cornerSmooth);
 
     return smoothstep(upperBound, lowerBound, distanceSquared(pixelPos, cornerPoint));
 }
@@ -67,10 +70,8 @@ float cross_product(vec2 v1, vec2 v2) {
 
 void drawDonut() {
     vec2 pos = vec2(textureCoords.x * 2.0 - 1.0, -(textureCoords.y * 2.0 - 1.0));
-    vec2 center = vec2(0, 0);
-    if (sqrt(distanceSquared(center, pos)) < (innerCircleRadius / outerCircleRadius)) { // Don't render inner ring colors
-        // out_Color = vec4(0, 0, 0, 0);
-        // return;
+    vec2 localCenter = vec2(0, 0);
+    if (distance(localCenter, pos) < (innerCircleRadius / outerCircleRadius)) { // Don't render inner ring colors
         discard;
     }
 
@@ -113,19 +114,35 @@ void drawDonut() {
 
     }
 
-    //    out_Color = vec4(1, 0, 1, 1);
     discard;
 }
 
 void drawGui() {
-    // If color = (-1,-1,-1) -> texture else color
-    if (color.x == -1) {
-        out_Color = texture(guiTexture, textureCoords);
+    vec2 pixelPos = textureCoords * vec2(guiWidth, guiHeight);
+    float width = guiWidth - outlineWidth;
+    float height = guiHeight - outlineWidth;
+    if (!filled) {
+        if(!borderEnabled) {
+            discard;
+        }
+        if (pixelPos.y < height && pixelPos.y > outlineWidth
+        && pixelPos.x < width && pixelPos.x > outlineWidth) {
+            discard;
+        }
+        out_Color = vec4(borderColor, 1.0);
     } else {
-        out_Color = vec4(color.xyz, calcRoundedCorners());
-
-        if (out_Color.a > 0) {
-            out_Color.a = alpha;
+        // If color = (-1,-1,-1) -> texture else color
+        if (color.x == -1) {
+            out_Color = texture(guiTexture, textureCoords);
+        } else {
+            out_Color = vec4(color.xyz, calcRoundedCorners());
+            if (out_Color.a > 0) {
+                out_Color.a = alpha;
+            }
+        }
+        if ((pixelPos.y >= height || pixelPos.y <= outlineWidth
+        || pixelPos.x >= width || pixelPos.x <= outlineWidth) && borderEnabled) {
+            out_Color = vec4(borderColor, 1.0);
         }
     }
 }
@@ -169,6 +186,40 @@ void drawProgressIcon() {
     }
 }
 
+void drawCircle() {
+    if (!filled) {
+        if (!borderEnabled) {
+            discard;
+        }
+        vec2 pos = vec2(textureCoords.x * 2.0 - 1.0, -(textureCoords.y * 2.0 - 1.0));
+        vec2 pixelPos = pos * vec2(guiWidth, guiHeight);
+
+        float d = distance(pixelPos, textureCoords);
+        out_Color = vec4(borderColor.rgb, 1.0 - smoothstep(0.0, float(outlineWidth), abs(guiWidth - d)));
+    } else {
+        if (!borderEnabled) {
+            // If color = (-1,-1,-1) -> texture else color
+            if (color.x == -1) {
+                out_Color = texture(guiTexture, textureCoords);
+            } else {
+                out_Color = vec4(color.xyz, 1);
+            }
+        } else {
+            vec2 pos = vec2(textureCoords.x * 2.0 - 1.0, -(textureCoords.y * 2.0 - 1.0));
+            vec2 pixelPos = pos * vec2(guiWidth, guiHeight);
+
+            float d = distance(pixelPos, textureCoords);
+            float t1 = 1.0 - smoothstep(guiWidth - outlineWidth, guiWidth, d);
+            float t2 = 1.0 - smoothstep(guiWidth, guiWidth + outlineWidth, d);
+            out_Color = vec4(mix(borderColor, color, t1), t2);
+
+            if (out_Color.a > 0) {
+                out_Color.a = 1;
+            }
+        }
+    }
+}
+
 void main(void) {
     switch (type) {
         case DEFAULT:
@@ -179,6 +230,9 @@ void main(void) {
         break;
         case PROGRESS_ICON:
         drawProgressIcon();
+        break;
+        case CIRCLE:
+        drawCircle();
         break;
     }
 }

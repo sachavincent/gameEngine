@@ -1,27 +1,19 @@
 package scene.components;
 
-import scene.gameObjects.GameObject;
 import renderEngine.Renderer;
 import scene.Scene;
 
-public class RendererComponent implements Component {
+public class RendererComponent extends Component {
 
     private final Renderer renderer;
 
-    public RendererComponent(GameObject gameObject, Renderer renderer) {
-        this.renderer = renderer;
+    public RendererComponent(Renderer renderer) {
+        super((gameObject, position) -> Scene.getInstance().addRenderableGameObject(renderer, gameObject));
 
-        Scene scene = Scene.getInstance();
-        scene.addRenderableGameObject(this.renderer, gameObject);
+        this.renderer = renderer;
     }
 
     public Renderer getRenderer() {
         return this.renderer;
-    }
-
-    @Override
-    public void removeObject(GameObject gameObject) {
-        Scene scene = Scene.getInstance();
-        scene.removeRenderableGameObject(this.renderer, gameObject);
     }
 }

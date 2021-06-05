@@ -1,30 +1,30 @@
 package guis.presets.checkbox;
 
 import guis.GuiInterface;
+import guis.basics.GuiRectangle;
+import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
+import guis.presets.Background;
 import java.awt.Color;
 
 public class GuiRectangleCheckbox extends GuiAbstractCheckbox {
 
-    public GuiRectangleCheckbox(GuiInterface parent, Color colorBackground, GuiConstraintsManager constraintsManager) {
-        super(parent, colorBackground, constraintsManager);
+    public GuiRectangleCheckbox(GuiInterface parent, Background<?> background, Color borderColor) {
+        super(parent, background, borderColor);
     }
 
-//    @Override
-//    protected void addBackgroundComponent(Color background) {
-//        checkboxLayout = new GuiRectangle(this, new Background<>(background), new RelativeConstraint(1, this),
-//                new RelativeConstraint(1, this), false);
-//    }
-//
-//    public void setOutlineWidth(double width) {
-//        ((GuiRectangle) this.checkboxLayout).setOutlineWidth(width);
-//    }
+    public GuiRectangleCheckbox(GuiInterface parent, Background<?> background, Color borderColor,
+            GuiConstraintsManager constraintsManager) {
+        super(parent, background, borderColor, constraintsManager);
+    }
 
     @Override
-    public String toString() {
-        return "GuiRectangleCheckbox{" +
-//                "checkboxLayout=" + checkboxLayout +
-                ", checkmark=" + checkmark +
-                "} ";
+    public GuiShape createShape(Background<?> baseColor, Color borderColor) {
+        boolean filled = baseColor != null && !baseColor.equals(Background.NO_BACKGROUND);
+        GuiRectangle guiRectangle = new GuiRectangle(this, baseColor, new RelativeConstraint(1),
+                new RelativeConstraint(1), filled);
+        guiRectangle.setBorderColor(borderColor);
+        return guiRectangle;
     }
 }

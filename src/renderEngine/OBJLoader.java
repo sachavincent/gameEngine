@@ -63,7 +63,7 @@ public class OBJLoader {
         return Loader.getInstance().loadInstancesToVAO(vertices, textureCoords, normals, indices, min, max);
     }
 
-    public static OBJGameObject loadOBJGameObject(String name, boolean doesUseDirectionalColor) {
+    public static OBJGameObject loadOBJGameObject(String name, boolean doesUseDirectionalColor, boolean instanced) {
         FileReader fr;
         try {
             fr = new FileReader("res/" + name.toLowerCase() + ".obj");
@@ -81,7 +81,8 @@ public class OBJLoader {
 
         OBJGameObject objGameObject = new OBJGameObject();
         try {
-            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", true);
+            RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", instanced);
+            objGameObject.setBoundingBox(new BoundingBox(rawModel));
 
             objGameObject.setTexture(new TexturedModel(rawModel, new ModelTexture(name.toLowerCase() + ".png", false)));
 //            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));
@@ -322,6 +323,9 @@ public class OBJLoader {
     private static int[] handleIndicesVertex(BufferedReader reader, String line, String nextSegment)
             throws IOException {
         List<Integer> indices = new ArrayList<>();
+        if (line == null)
+            return new int[0];
+
         do {
             if (nextSegment != null && line.equalsIgnoreCase("o " + nextSegment))
                 break;

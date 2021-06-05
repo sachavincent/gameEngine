@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import language.TextConverter;
 import renderEngine.Loader;
 
 public class TextMaster {
@@ -39,10 +38,11 @@ public class TextMaster {
             newTexts.put(key, toKeep);
         });
 
-        if (!newTexts.equals(texts))
-            texts = newTexts;
+        texts = newTexts;
 
+//        GL13.glDisable(GL13.GL_MULTISAMPLE);
         renderer.render(texts);
+//        GL13.glEnable(GL13.GL_MULTISAMPLE);
     }
 
     public void loadText(Text text) {
@@ -54,7 +54,8 @@ public class TextMaster {
             text.setStringChanged(false);
 
             TextMeshData data = font.loadText(text);
-            final int vao = Loader.getInstance().loadToVAO(data.getVertexPositions(), data.getTextureCoords());
+            final int vao = Loader.getInstance()
+                    .loadToVAO(data.getVertexPositions(), data.getTextureCoords(), data.getColors());
             final int vertexCount = data.getVertexCount();
             text.setMeshInfo(vao, vertexCount);
         }

@@ -7,14 +7,15 @@ import language.Words;
 
 public class GuiTab extends Gui {
 
-    private GuiRectangleButton tabMenu;
-
-    private final Words name;
+    private       GuiRectangleButton tabMenu;
+    private       GuiMultiTab        parent;
+    private final Words              name;
 
     public GuiTab(Background<?> background, GuiMultiTab guiMultiTab, Words name) {
         super(background);
 
         this.name = name;
+        this.parent = guiMultiTab;
 
         guiMultiTab.addGuiTab(this);
     }
@@ -29,5 +30,9 @@ public class GuiTab extends Gui {
 
     public void setTabMenu(GuiRectangleButton tabMenu) {
         this.tabMenu = tabMenu;
+    }
+
+    public GuiMultiTab getParent() {
+        return this.parent;
     }
 }

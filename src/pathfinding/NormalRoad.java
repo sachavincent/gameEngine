@@ -10,6 +10,14 @@ public class NormalRoad extends Road {
         super(position, SCORE);
     }
 
+    public NormalRoad(TerrainPosition position, Integer score, Integer hScore) {
+        super(position, score, hScore);
+    }
+
+    public NormalRoad(NormalRoad normalRoad) {
+        this(normalRoad.position, normalRoad.score, normalRoad.hScore);
+    }
+
     @Override
     public String toString() {
         return "NormalRoad{" +

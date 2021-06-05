@@ -9,8 +9,8 @@ import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
 import renderEngine.DisplayManager;
-import scene.gameObjects.GameObject;
 import scene.components.IconComponent;
+import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import util.math.Vector2f;
 
@@ -50,8 +50,7 @@ public class GuiSelectedItem extends Gui {
         if (iconComponent == null)
             return;
         setBackground(iconComponent.getBackground());
-
-//        Terrain.getInstance().setPreviewedItem(abstractItem);
+        objectFromClass.destroy();
         Player.setSelectedGameObject(gameObjectClass);
 
         setDisplayed(true);
@@ -62,19 +61,11 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void removeSelectedItem() {
-//        Terrain.getInstance().setPreviewedItem(null);
         Player.removeSelectedGameObject();
         currentSelectedItem = null;
-//        setBackground(DEFAULT_BACKGROUND);
 
         setDisplayed(false);
     }
-
-//    @Override
-//    public void setDisplayed(boolean displayed) {
-////        this.displayed = displayed;
-//        super.setDisplayed(true);
-//    }
 
     public void updatePosition() {
         Vector2f cursorPos = MouseUtils.getCursorPos();

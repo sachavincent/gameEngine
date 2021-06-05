@@ -13,14 +13,15 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pathfinding.NodeConnection;
+import pathfinding.NodeRoad;
 import pathfinding.NormalRoad;
 import pathfinding.RoadGraph;
-import pathfinding.RoadNode;
-import pathfinding.RouteRoad;
 import renderEngine.DisplayManager;
+import renderEngine.PathRenderer;
+import scene.Scene;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
-import scene.Scene;
 import terrains.TerrainPosition;
 
 public class RoadGraphTest {
@@ -31,6 +32,7 @@ public class RoadGraphTest {
     public static void init() {
         glfwInit();
         DisplayManager.createDisplayForTests();
+        PathRenderer.getInstance();
     }
 
     @BeforeEach
@@ -57,29 +59,29 @@ public class RoadGraphTest {
         GameObject.newInstance(DirtRoad.class, v3);
         GameObject.newInstance(DirtRoad.class, v4);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode end = new RoadNode(v4);
+        NodeRoad end = new NodeRoad(v4);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, end);
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(end);
+        NodeConnection nodeConnection = new NodeConnection(start, end);
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -105,36 +107,36 @@ public class RoadGraphTest {
         GameObject.newInstance(DirtRoad.class, v4);
         GameObject.newInstance(DirtRoad.class, v5);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode middle = new RoadNode(v3);
+        NodeRoad middle = new NodeRoad(v3);
         expectedNodes.add(middle);
-        RoadNode end = new RoadNode(v5);
+        NodeRoad end = new NodeRoad(v5);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, middle);
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(middle);
+        NodeConnection nodeConnection = new NodeConnection(start, middle);
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(middle);
 
-        RouteRoad route2 = new RouteRoad(middle, end);
-        route2.addRoad(new NormalRoad(v4));
-        route2.addRoad(end);
+        NodeConnection nodeConnection2 = new NodeConnection(middle, end);
+        nodeConnection2.addRoad(new NormalRoad(v4));
+        nodeConnection2.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -172,36 +174,36 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode end = new RoadNode(v5);
+        NodeRoad end = new NodeRoad(v5);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, end);
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(new NormalRoad(v4));
-        route.addRoad(end);
+        NodeConnection nodeConnection = new NodeConnection(start, end);
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(new NormalRoad(v4));
+        nodeConnection.addRoad(end);
 
-        RouteRoad route2 = new RouteRoad(start, end);
-        IntStream.range(0, 9).forEach(i -> route2.addRoad(new NormalRoad(roads[i])));
-        route2.addRoad(end);
+        NodeConnection nodeConnection2 = new NodeConnection(start, end);
+        IntStream.range(0, 9).forEach(i -> nodeConnection2.addRoad(new NormalRoad(roads[i])));
+        nodeConnection2.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -243,46 +245,46 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode middle1 = new RoadNode(v4);
+        NodeRoad middle1 = new NodeRoad(v4);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(v7);
+        NodeRoad middle2 = new NodeRoad(v7);
         expectedNodes.add(middle2);
-        RoadNode end = new RoadNode(v9);
+        NodeRoad end = new NodeRoad(v9);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, middle1);
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(middle1);
+        NodeConnection nodeConnection = new NodeConnection(start, middle1);
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(middle1);
 
-        RouteRoad route2 = new RouteRoad(middle1, middle2);
-        route2.addRoad(new NormalRoad(v5));
-        route2.addRoad(new NormalRoad(v6));
-        route2.addRoad(middle2);
+        NodeConnection nodeConnection2 = new NodeConnection(middle1, middle2);
+        nodeConnection2.addRoad(new NormalRoad(v5));
+        nodeConnection2.addRoad(new NormalRoad(v6));
+        nodeConnection2.addRoad(middle2);
 
-        RouteRoad route3 = new RouteRoad(middle2, end);
-        route3.addRoad(new NormalRoad(v8));
-        route3.addRoad(end);
+        NodeConnection nodeConnection3 = new NodeConnection(middle2, end);
+        nodeConnection3.addRoad(new NormalRoad(v8));
+        nodeConnection3.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -341,66 +343,66 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode middle1 = new RoadNode(v4);
+        NodeRoad middle1 = new NodeRoad(v4);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(v6);
+        NodeRoad middle2 = new NodeRoad(v6);
         expectedNodes.add(middle2);
-        RoadNode middle3 = new RoadNode(v9);
+        NodeRoad middle3 = new NodeRoad(v9);
         expectedNodes.add(middle3);
-        RoadNode end = new RoadNode(v12);
+        NodeRoad end = new NodeRoad(v12);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, middle2);
-        route.addRoad(new NormalRoad(v5));
-        route.addRoad(middle2);
+        NodeConnection nodeConnection = new NodeConnection(start, middle2);
+        nodeConnection.addRoad(new NormalRoad(v5));
+        nodeConnection.addRoad(middle2);
 
-        RouteRoad route2 = new RouteRoad(start, middle1);
-        route2.addRoad(new NormalRoad(v2));
-        route2.addRoad(new NormalRoad(v3));
-        route2.addRoad(middle1);
+        NodeConnection nodeConnection2 = new NodeConnection(start, middle1);
+        nodeConnection2.addRoad(new NormalRoad(v2));
+        nodeConnection2.addRoad(new NormalRoad(v3));
+        nodeConnection2.addRoad(middle1);
 
-        RouteRoad route3 = new RouteRoad(middle1, middle3);
-        route3.addRoad(new NormalRoad(v10));
-        route3.addRoad(middle3);
+        NodeConnection nodeConnection3 = new NodeConnection(middle1, middle3);
+        nodeConnection3.addRoad(new NormalRoad(v10));
+        nodeConnection3.addRoad(middle3);
 
-        RouteRoad route4 = new RouteRoad(middle2, middle3);
-        route4.addRoad(new NormalRoad(v7));
-        route4.addRoad(new NormalRoad(v8));
-        route4.addRoad(middle3);
+        NodeConnection nodeConnection4 = new NodeConnection(middle2, middle3);
+        nodeConnection4.addRoad(new NormalRoad(v7));
+        nodeConnection4.addRoad(new NormalRoad(v8));
+        nodeConnection4.addRoad(middle3);
 
-        RouteRoad route5 = new RouteRoad(middle3, end);
-        route5.addRoad(new NormalRoad(v11));
-        route5.addRoad(end);
+        NodeConnection nodeConnection5 = new NodeConnection(middle3, end);
+        nodeConnection5.addRoad(new NormalRoad(v11));
+        nodeConnection5.addRoad(end);
 
-        RouteRoad route6 = new RouteRoad(middle2, end);
-        IntStream.range(0, 8).forEach(i -> route6.addRoad(new NormalRoad(roads[i])));
-        route6.addRoad(end);
+        NodeConnection nodeConnection6 = new NodeConnection(middle2, end);
+        IntStream.range(0, 8).forEach(i -> nodeConnection6.addRoad(new NormalRoad(roads[i])));
+        nodeConnection6.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
-        expectedRoutes.add(route4);
-        expectedRoutes.add(route4.invertRoute());
-        expectedRoutes.add(route5);
-        expectedRoutes.add(route5.invertRoute());
-        expectedRoutes.add(route6);
-        expectedRoutes.add(route6.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
+        expectedPaths.add(nodeConnection4);
+        expectedPaths.add(nodeConnection4.invert());
+        expectedPaths.add(nodeConnection5);
+        expectedPaths.add(nodeConnection5.invert());
+        expectedPaths.add(nodeConnection6);
+        expectedPaths.add(nodeConnection6.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -469,82 +471,82 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v1);
+        NodeRoad start = new NodeRoad(v1);
         expectedNodes.add(start);
-        RoadNode middle1 = new RoadNode(v4);
+        NodeRoad middle1 = new NodeRoad(v4);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(v6);
+        NodeRoad middle2 = new NodeRoad(v6);
         expectedNodes.add(middle2);
-        RoadNode middle3 = new RoadNode(v9);
+        NodeRoad middle3 = new NodeRoad(v9);
         expectedNodes.add(middle3);
-        RoadNode middle4 = new RoadNode(roads[1]);
+        NodeRoad middle4 = new NodeRoad(roads[1]);
         expectedNodes.add(middle4);
-        RoadNode middle5 = new RoadNode(roads[2]);
+        NodeRoad middle5 = new NodeRoad(roads[2]);
         expectedNodes.add(middle5);
-        RoadNode end = new RoadNode(v13);
+        NodeRoad end = new NodeRoad(v13);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, middle2);
-        route.addRoad(new NormalRoad(v5));
-        route.addRoad(middle2);
+        NodeConnection nodeConnection = new NodeConnection(start, middle2);
+        nodeConnection.addRoad(new NormalRoad(v5));
+        nodeConnection.addRoad(middle2);
 
-        RouteRoad route2 = new RouteRoad(start, middle1);
-        route2.addRoad(new NormalRoad(v2));
-        route2.addRoad(new NormalRoad(v3));
-        route2.addRoad(middle1);
+        NodeConnection nodeConnection2 = new NodeConnection(start, middle1);
+        nodeConnection2.addRoad(new NormalRoad(v2));
+        nodeConnection2.addRoad(new NormalRoad(v3));
+        nodeConnection2.addRoad(middle1);
 
-        RouteRoad route3 = new RouteRoad(middle1, middle3);
-        route3.addRoad(new NormalRoad(v10));
-        route3.addRoad(middle3);
+        NodeConnection nodeConnection3 = new NodeConnection(middle1, middle3);
+        nodeConnection3.addRoad(new NormalRoad(v10));
+        nodeConnection3.addRoad(middle3);
 
-        RouteRoad route4 = new RouteRoad(middle2, middle3);
-        route4.addRoad(new NormalRoad(v7));
-        route4.addRoad(new NormalRoad(v8));
-        route4.addRoad(middle3);
+        NodeConnection nodeConnection4 = new NodeConnection(middle2, middle3);
+        nodeConnection4.addRoad(new NormalRoad(v7));
+        nodeConnection4.addRoad(new NormalRoad(v8));
+        nodeConnection4.addRoad(middle3);
 
-        RouteRoad route5 = new RouteRoad(middle3, end);
-        route5.addRoad(new NormalRoad(v11));
-        route5.addRoad(new NormalRoad(v12));
-        route5.addRoad(end);
+        NodeConnection nodeConnection5 = new NodeConnection(middle3, end);
+        nodeConnection5.addRoad(new NormalRoad(v11));
+        nodeConnection5.addRoad(new NormalRoad(v12));
+        nodeConnection5.addRoad(end);
 
-        RouteRoad route6 = new RouteRoad(middle1, middle4);
-        route6.addRoad(new NormalRoad(roads[0]));
-        route6.addRoad(middle4);
+        NodeConnection nodeConnection6 = new NodeConnection(middle1, middle4);
+        nodeConnection6.addRoad(new NormalRoad(roads[0]));
+        nodeConnection6.addRoad(middle4);
 
-        RouteRoad route7 = new RouteRoad(middle4, middle5);
-        route7.addRoad(middle5);
+        NodeConnection nodeConnection7 = new NodeConnection(middle4, middle5);
+        nodeConnection7.addRoad(middle5);
 
-        RouteRoad route8 = new RouteRoad(middle5, end);
-        IntStream.range(3, 8).forEach(i -> route8.addRoad(new NormalRoad(roads[i])));
-        route8.addRoad(end);
+        NodeConnection nodeConnection8 = new NodeConnection(middle5, end);
+        IntStream.range(3, 8).forEach(i -> nodeConnection8.addRoad(new NormalRoad(roads[i])));
+        nodeConnection8.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
-        expectedRoutes.add(route4);
-        expectedRoutes.add(route4.invertRoute());
-        expectedRoutes.add(route5);
-        expectedRoutes.add(route5.invertRoute());
-        expectedRoutes.add(route6);
-        expectedRoutes.add(route6.invertRoute());
-        expectedRoutes.add(route7);
-        expectedRoutes.add(route7.invertRoute());
-        expectedRoutes.add(route8);
-        expectedRoutes.add(route8.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
+        expectedPaths.add(nodeConnection4);
+        expectedPaths.add(nodeConnection4.invert());
+        expectedPaths.add(nodeConnection5);
+        expectedPaths.add(nodeConnection5.invert());
+        expectedPaths.add(nodeConnection6);
+        expectedPaths.add(nodeConnection6.invert());
+        expectedPaths.add(nodeConnection7);
+        expectedPaths.add(nodeConnection7.invert());
+        expectedPaths.add(nodeConnection8);
+        expectedPaths.add(nodeConnection8.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -576,29 +578,29 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode start = new RoadNode(v2);
+        NodeRoad start = new NodeRoad(v2);
         expectedNodes.add(start);
-        RoadNode end = new RoadNode(v5);
+        NodeRoad end = new NodeRoad(v5);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(start, end);
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(new NormalRoad(v4));
-        route.addRoad(end);
+        NodeConnection nodeConnection = new NodeConnection(start, end);
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(new NormalRoad(v4));
+        nodeConnection.addRoad(end);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -644,45 +646,45 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode middle1 = new RoadNode(v4);
+        NodeRoad middle1 = new NodeRoad(v4);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(roads[0]);
+        NodeRoad middle2 = new NodeRoad(roads[0]);
         expectedNodes.add(middle2);
-        RoadNode end = new RoadNode(v6);
+        NodeRoad end = new NodeRoad(v6);
         expectedNodes.add(end);
 
-        RouteRoad route = new RouteRoad(middle1, middle2);
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(new NormalRoad(v1));
-        route.addRoad(new NormalRoad(roads[1]));
-        route.addRoad(middle2);
+        NodeConnection nodeConnection = new NodeConnection(middle1, middle2);
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v1));
+        nodeConnection.addRoad(new NormalRoad(roads[1]));
+        nodeConnection.addRoad(middle2);
 
-        RouteRoad route2 = new RouteRoad(middle1, end);
-        route2.addRoad(new NormalRoad(v5));
-        route2.addRoad(end);
+        NodeConnection nodeConnection2 = new NodeConnection(middle1, end);
+        nodeConnection2.addRoad(new NormalRoad(v5));
+        nodeConnection2.addRoad(end);
 
-        RouteRoad route3 = new RouteRoad(middle2, end);
-        IntStream.range(2, 8).forEach(i -> route3.addRoad(new NormalRoad(roads[i])));
-        route3.addRoad(end);
+        NodeConnection nodeConnection3 = new NodeConnection(middle2, end);
+        IntStream.range(2, 8).forEach(i -> nodeConnection3.addRoad(new NormalRoad(roads[i])));
+        nodeConnection3.addRoad(end);
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -713,16 +715,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -753,19 +755,19 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node = new RoadNode(v4);
+        NodeRoad node = new NodeRoad(v4);
         expectedNodes.add(node);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -802,30 +804,30 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v2);
+        NodeRoad firstNode = new NodeRoad(v2);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v6);
+        NodeRoad lastNode = new NodeRoad(v6);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, lastNode);
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(new NormalRoad(v4));
-        route.addRoad(new NormalRoad(v5));
-        route.addRoad(lastNode);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, lastNode);
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(new NormalRoad(v4));
+        nodeConnection.addRoad(new NormalRoad(v5));
+        nodeConnection.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -860,19 +862,19 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node = new RoadNode(v4);
+        NodeRoad node = new NodeRoad(v4);
         expectedNodes.add(node);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -896,16 +898,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -938,19 +940,19 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node = new RoadNode(v5);
+        NodeRoad node = new NodeRoad(v5);
         expectedNodes.add(node);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -983,21 +985,21 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v2);
+        NodeRoad firstNode = new NodeRoad(v2);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v6);
+        NodeRoad lastNode = new NodeRoad(v6);
         expectedNodes.add(lastNode);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1022,16 +1024,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1056,19 +1058,19 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node = new RoadNode(v2);
+        NodeRoad node = new NodeRoad(v2);
         expectedNodes.add(node);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1097,27 +1099,27 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v2);
+        NodeRoad firstNode = new NodeRoad(v2);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v3);
+        NodeRoad lastNode = new NodeRoad(v3);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, lastNode);
-        route.addRoad(lastNode);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, lastNode);
+        nodeConnection.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1152,43 +1154,43 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v2);
+        NodeRoad firstNode = new NodeRoad(v2);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v3);
+        NodeRoad lastNode = new NodeRoad(v3);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, lastNode);
-        route.addRoad(lastNode);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, lastNode);
+        nodeConnection.addRoad(lastNode);
 
-        RouteRoad route2 = new RouteRoad(firstNode, lastNode);
-        route2.addRoad(new NormalRoad(v7));
-        route2.addRoad(new NormalRoad(v8));
-        route2.addRoad(lastNode);
+        NodeConnection nodeConnection2 = new NodeConnection(firstNode, lastNode);
+        nodeConnection2.addRoad(new NormalRoad(v7));
+        nodeConnection2.addRoad(new NormalRoad(v8));
+        nodeConnection2.addRoad(lastNode);
 
-        RouteRoad route3 = new RouteRoad(firstNode, lastNode);
-        route3.addRoad(new NormalRoad(v5));
-        route3.addRoad(new NormalRoad(v6));
-        route3.addRoad(lastNode);
+        NodeConnection nodeConnection3 = new NodeConnection(firstNode, lastNode);
+        nodeConnection3.addRoad(new NormalRoad(v5));
+        nodeConnection3.addRoad(new NormalRoad(v6));
+        nodeConnection3.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1215,19 +1217,19 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node = new RoadNode(v2);
+        NodeRoad node = new NodeRoad(v2);
         expectedNodes.add(node);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1252,16 +1254,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1298,37 +1300,37 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(roads[0]);
+        NodeRoad firstNode = new NodeRoad(roads[0]);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(roads[1]);
+        NodeRoad lastNode = new NodeRoad(roads[1]);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, lastNode);
-        route.addRoad(new NormalRoad(v1));
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(new NormalRoad(v3));
-        route.addRoad(lastNode);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, lastNode);
+        nodeConnection.addRoad(new NormalRoad(v1));
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(new NormalRoad(v3));
+        nodeConnection.addRoad(lastNode);
 
-        RouteRoad route2 = new RouteRoad(firstNode, lastNode);
-        IntStream.range(4, 11).forEach(i -> route2.addRoad(new NormalRoad(roads[i])));
-        route2.addRoad(lastNode);
+        NodeConnection nodeConnection2 = new NodeConnection(firstNode, lastNode);
+        IntStream.range(4, 11).forEach(i -> nodeConnection2.addRoad(new NormalRoad(roads[i])));
+        nodeConnection2.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1367,53 +1369,53 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(roads[0]);
+        NodeRoad firstNode = new NodeRoad(roads[0]);
         expectedNodes.add(firstNode);
-        RoadNode middle1 = new RoadNode(roads[1]);
+        NodeRoad middle1 = new NodeRoad(roads[1]);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(roads[2]);
+        NodeRoad middle2 = new NodeRoad(roads[2]);
         expectedNodes.add(middle2);
-        RoadNode lastNode = new RoadNode(roads[3]);
+        NodeRoad lastNode = new NodeRoad(roads[3]);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, middle1);
-        route.addRoad(new NormalRoad(roads[4]));
-        route.addRoad(middle1);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, middle1);
+        nodeConnection.addRoad(new NormalRoad(roads[4]));
+        nodeConnection.addRoad(middle1);
 
-        RouteRoad route2 = new RouteRoad(firstNode, middle2);
-        IntStream.range(6, 9).forEach(i -> route2.addRoad(new NormalRoad(roads[i])));
-        route2.addRoad(middle2);
+        NodeConnection nodeConnection2 = new NodeConnection(firstNode, middle2);
+        IntStream.range(6, 9).forEach(i -> nodeConnection2.addRoad(new NormalRoad(roads[i])));
+        nodeConnection2.addRoad(middle2);
 
-        RouteRoad route3 = new RouteRoad(middle1, lastNode);
-        IntStream.range(9, 12).forEach(i -> route3.addRoad(new NormalRoad(roads[i])));
-        route3.addRoad(lastNode);
+        NodeConnection nodeConnection3 = new NodeConnection(middle1, lastNode);
+        IntStream.range(9, 12).forEach(i -> nodeConnection3.addRoad(new NormalRoad(roads[i])));
+        nodeConnection3.addRoad(lastNode);
 
-        RouteRoad route4 = new RouteRoad(middle2, lastNode);
-        route4.addRoad(new NormalRoad(roads[5]));
-        route4.addRoad(lastNode);
+        NodeConnection nodeConnection4 = new NodeConnection(middle2, lastNode);
+        nodeConnection4.addRoad(new NormalRoad(roads[5]));
+        nodeConnection4.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
 
-        expectedRoutes.add(route4);
-        expectedRoutes.add(route4.invertRoute());
+        expectedPaths.add(nodeConnection4);
+        expectedPaths.add(nodeConnection4.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1450,16 +1452,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1504,21 +1506,21 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v3);
+        NodeRoad firstNode = new NodeRoad(v3);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v8);
+        NodeRoad lastNode = new NodeRoad(v8);
         expectedNodes.add(lastNode);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1554,16 +1556,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1600,21 +1602,21 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v1);
+        NodeRoad firstNode = new NodeRoad(v1);
         expectedNodes.add(firstNode);
-        RoadNode lastNode = new RoadNode(v4);
+        NodeRoad lastNode = new NodeRoad(v4);
         expectedNodes.add(lastNode);
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1656,39 +1658,39 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v1);
+        NodeRoad firstNode = new NodeRoad(v1);
         expectedNodes.add(firstNode);
-        RoadNode middle1 = new RoadNode(v3);
+        NodeRoad middle1 = new NodeRoad(v3);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(v4);
+        NodeRoad middle2 = new NodeRoad(v4);
         expectedNodes.add(middle2);
-        RoadNode lastNode = new RoadNode(v6);
+        NodeRoad lastNode = new NodeRoad(v6);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, middle1);
-        route.addRoad(new NormalRoad(v2));
-        route.addRoad(middle1);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, middle1);
+        nodeConnection.addRoad(new NormalRoad(v2));
+        nodeConnection.addRoad(middle1);
 
-        RouteRoad route2 = new RouteRoad(middle2, lastNode);
-        route2.addRoad(new NormalRoad(v5));
-        route2.addRoad(lastNode);
+        NodeConnection nodeConnection2 = new NodeConnection(middle2, lastNode);
+        nodeConnection2.addRoad(new NormalRoad(v5));
+        nodeConnection2.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1724,57 +1726,57 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode firstNode = new RoadNode(v3);
+        NodeRoad firstNode = new NodeRoad(v3);
         expectedNodes.add(firstNode);
-        RoadNode middle1 = new RoadNode(v4);
+        NodeRoad middle1 = new NodeRoad(v4);
         expectedNodes.add(middle1);
-        RoadNode middle2 = new RoadNode(v5);
+        NodeRoad middle2 = new NodeRoad(v5);
         expectedNodes.add(middle2);
-        RoadNode lastNode = new RoadNode(roads[1]);
+        NodeRoad lastNode = new NodeRoad(roads[1]);
         expectedNodes.add(lastNode);
 
-        RouteRoad route = new RouteRoad(firstNode, middle1);
-        route.addRoad(middle1);
+        NodeConnection nodeConnection = new NodeConnection(firstNode, middle1);
+        nodeConnection.addRoad(middle1);
 
-        RouteRoad route2 = new RouteRoad(middle1, middle2);
-        route2.addRoad(middle2);
+        NodeConnection nodeConnection2 = new NodeConnection(middle1, middle2);
+        nodeConnection2.addRoad(middle2);
 
-        RouteRoad route3 = new RouteRoad(middle1, lastNode);
-        route3.addRoad(lastNode);
+        NodeConnection nodeConnection3 = new NodeConnection(middle1, lastNode);
+        nodeConnection3.addRoad(lastNode);
 
-        RouteRoad route4 = new RouteRoad(firstNode, lastNode);
-        route4.addRoad(new NormalRoad(roads[0]));
-        route4.addRoad(lastNode);
+        NodeConnection nodeConnection4 = new NodeConnection(firstNode, lastNode);
+        nodeConnection4.addRoad(new NormalRoad(roads[0]));
+        nodeConnection4.addRoad(lastNode);
 
-        RouteRoad route5 = new RouteRoad(middle2, lastNode);
-        route5.addRoad(new NormalRoad(roads[2]));
-        route5.addRoad(lastNode);
+        NodeConnection nodeConnection5 = new NodeConnection(middle2, lastNode);
+        nodeConnection5.addRoad(new NormalRoad(roads[2]));
+        nodeConnection5.addRoad(lastNode);
 
-        expectedRoutes.add(route);
-        expectedRoutes.add(route.invertRoute());
+        expectedPaths.add(nodeConnection);
+        expectedPaths.add(nodeConnection.invert());
 
-        expectedRoutes.add(route2);
-        expectedRoutes.add(route2.invertRoute());
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
-        expectedRoutes.add(route3);
-        expectedRoutes.add(route3.invertRoute());
+        expectedPaths.add(nodeConnection3);
+        expectedPaths.add(nodeConnection3.invert());
 
-        expectedRoutes.add(route4);
-        expectedRoutes.add(route4.invertRoute());
+        expectedPaths.add(nodeConnection4);
+        expectedPaths.add(nodeConnection4.invert());
 
-        expectedRoutes.add(route5);
-        expectedRoutes.add(route5.invertRoute());
+        expectedPaths.add(nodeConnection5);
+        expectedPaths.add(nodeConnection5.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1811,18 +1813,18 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        expectedNodes.add(new RoadNode(v5));
+        expectedNodes.add(new NodeRoad(v5));
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1844,16 +1846,16 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1877,18 +1879,18 @@ public class RoadGraphTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        expectedNodes.add(new RoadNode(v2));
+        expectedNodes.add(new NodeRoad(v2));
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 
     /**
@@ -1914,37 +1916,37 @@ public class RoadGraphTest {
         positions2 = pos2.toArray(new TerrainPosition[0]);
         GameObject.newInstances(DirtRoad.class, positions2);
 
-        RoadGraph roadGraph = scene.getRoadGraph();
+        RoadGraph roadGraph = scene.getRoadGraphCopy();
 
-        Set<RoadNode> nodes = roadGraph.getNodes();
-        Set<RouteRoad> routes = roadGraph.getRoutes();
+        Set<NodeRoad> nodes = roadGraph.getNodes();
+        Set<NodeConnection> nodeConnections = roadGraph.getNodeConnections();
 
-        Set<RoadNode> expectedNodes = new HashSet<>();
-        Set<RouteRoad> expectedRoutes = new TreeSet<>();
+        Set<NodeRoad> expectedNodes = new HashSet<>();
+        Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        RoadNode node1 = new RoadNode(new TerrainPosition(50, 63));
-        RoadNode node2 = new RoadNode(new TerrainPosition(62, 70));
-        RoadNode node3 = new RoadNode(new TerrainPosition(50, 55));
+        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 63));
+        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 70));
+        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 55));
         expectedNodes.add(node1);
         expectedNodes.add(node2);
         expectedNodes.add(node3);
 
-        RouteRoad routeRoad1 = new RouteRoad(node3, node1);
-        Arrays.stream(positions, 0, 8).forEach(p -> routeRoad1.addRoad(new NormalRoad(p)));
-        routeRoad1.addRoad(node1);
-        expectedRoutes.add(routeRoad1);
-        expectedRoutes.add(routeRoad1.invertRoute());
+        NodeConnection nodeConnection1 = new NodeConnection(node3, node1);
+        Arrays.stream(positions, 0, 8).forEach(p -> nodeConnection1.addRoad(new NormalRoad(p)));
+        nodeConnection1.addRoad(node1);
+        expectedPaths.add(nodeConnection1);
+        expectedPaths.add(nodeConnection1.invert());
 
-        RouteRoad routeRoad2 = new RouteRoad(node2, node1);
-        Arrays.stream(positions2, 1, 14).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
+        NodeConnection nodeConnection2 = new NodeConnection(node2, node1);
+        Arrays.stream(positions2, 1, 14).forEach(p -> nodeConnection2.addRoad(new NormalRoad(p)));
         List<TerrainPosition> pos = Arrays.asList(positions);
         Collections.reverse(pos);
-        Arrays.stream(positions, 0, 6).forEach(p -> routeRoad2.addRoad(new NormalRoad(p)));
-        routeRoad2.addRoad(node1);
-        expectedRoutes.add(routeRoad2);
-        expectedRoutes.add(routeRoad2.invertRoute());
+        Arrays.stream(positions, 0, 6).forEach(p -> nodeConnection2.addRoad(new NormalRoad(p)));
+        nodeConnection2.addRoad(node1);
+        expectedPaths.add(nodeConnection2);
+        expectedPaths.add(nodeConnection2.invert());
 
         assertEquals(expectedNodes, nodes);
-        assertEquals(expectedRoutes, routes);
+        assertEquals(expectedPaths, nodeConnections);
     }
 }

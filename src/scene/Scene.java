@@ -5,26 +5,29 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import models.RawModel;
-import pathfinding.Road;
+import models.TexturedModel;
+import pathfinding.NodeRoad;
 import pathfinding.RoadGraph;
-import pathfinding.RoadNode;
-import pathfinding.RouteFinder.Route;
-import renderEngine.Loader;
+import renderEngine.PathRenderer;
 import renderEngine.Renderer;
-import renderEngine.TerrainRenderer;
 import scene.components.*;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
+import scene.gameObjects.Route;
 import services.BuildingRequirementsService;
 import services.ServiceManager;
 import terrains.TerrainPosition;
-import util.math.Vector2f;
+import textures.ModelTexture;
+import util.Utils;
 import util.math.Vector3f;
 
 public class Scene {
 
-    private final Map<Integer, GameObject> gameObjects          = new HashMap<>();
-    private final Set<GameObject>          previewedGameObjects = new HashSet<>();
+    private final Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = new HashMap<>();
+
+    private final Map<Integer, GameObject> gameObjects = new HashMap<>();
+
+    private final Set<GameObject> previewedGameObjects = new HashSet<>();
 
     private final Map<Renderer, Set<GameObject>> renderableGameObjects = new HashMap<>();
 
@@ -32,9 +35,7 @@ public class Scene {
 
     private final ServiceManager<BuildingRequirementsService> serviceManager = new ServiceManager<>();
 
-    private RoadGraph   roadGraph;
-    private boolean     needUpdatePaths;
-    private List<Route> paths;
+    private RoadGraph roadGraph;
 
     private static Scene instance;
 
@@ -62,15 +63,31 @@ public class Scene {
         }
     }
 
-    public void removeGameObject(GameObject gameObject, Vector3f position) {
-        this.gameObjects.remove(gameObject.getId());
+    /**
+     * Removes GameObject from all lists
+     * including the renderable list
+     *
+     * @param idGameObject id of the GameObject
+     */
+    public void removeGameObject(int idGameObject) {
+        GameObject gameObject = this.gameObjects.remove(idGameObject);
+        if (gameObject == null)
+            return;
 
-        if (position != null && position.isTerrainPosition()) { // Object belongs on Terrain
-            if (gameObject.hasComponent(OffsetsComponent.class)) {
-                OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
-                Arrays.stream(offsetsComponent.getOffsetPositions()).map(pos -> pos.add(position.toTerrainPosition()))
-                        .forEach(pos -> addPosition(pos.getX(), pos.getZ(), 0));
+        if (gameObject.hasComponent(PositionComponent.class)) {
+            Vector3f position = gameObject.getComponent(PositionComponent.class).getPosition();
+            if (position != null && position.isTerrainPosition()) { // Object belongs on Terrain
+                if (gameObject.hasComponent(OffsetsComponent.class)) {
+                    OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
+                    Arrays.stream(offsetsComponent.getOffsetPositions())
+                            .map(pos -> pos.add(position.toTerrainPosition()))
+                            .forEach(pos -> addPosition(pos.getX(), pos.getZ(), 0));
+                }
             }
+        }
+        if (gameObject.hasComponent(RendererComponent.class)) {
+            RendererComponent rendererComponent = gameObject.getComponent(RendererComponent.class);
+            removeRenderableGameObject(rendererComponent.getRenderer(), gameObject);
         }
     }
 
@@ -91,6 +108,9 @@ public class Scene {
     }
 
     public void render() {
+//        System.out.println(
+//                "Il y a " + this.renderableGameObjects.get(NPCRenderer.getInstance()).size() + " PNJ dans la scène");
+
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
             lGameObjects.forEach(GameObject::prepareRender);
             renderer.render();
@@ -106,6 +126,10 @@ public class Scene {
         if (id == -1)
             return null;
 
+        return getGameObjectFromId(id);
+    }
+
+    public GameObject getGameObjectFromId(int id) {
         return this.gameObjects.get(id);
     }
 
@@ -141,6 +165,27 @@ public class Scene {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
+    public Map<Class<? extends Component>, Set<Integer>> getIdGameObjectsForComponents() {
+        return this.idGameObjectsForComponents;
+    }
+
+
+    public Set<Integer> getIdGameObjectsForComponentClass(Class<? extends Component> clazz, boolean includePreviews) {
+        if (!this.idGameObjectsForComponents.containsKey(clazz))
+            return new HashSet<>();
+
+        Set<Integer> ids = this.idGameObjectsForComponents.get(clazz);
+        if (!includePreviews)
+            ids.removeAll(this.previewedGameObjects.stream().map(GameObject::getId).collect(Collectors.toSet()));
+
+        return ids;
+    }
+
+    public Set<GameObject> getGameObjectsForComponent(Class<? extends Component> clazz, boolean includePreviews) {
+        return getIdGameObjectsForComponentClass(clazz, includePreviews).stream()
+                .map(this::getGameObjectFromId).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+
     public boolean isPositionOccupied(TerrainPosition pos) {
         int idFound = getIdFromPosition(pos);
         if (idFound < 0)
@@ -160,52 +205,70 @@ public class Scene {
      * Place previewed items on Terrain
      */
     public void placePreviewedObjects() {
-        this.previewedGameObjects
-                .forEach(gameObject -> {
-                    PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
-                    TerrainPosition previewPosition = previewComponent.getPreviewPosition();
-                    if (previewPosition != null) { // = Was previewed
-                        previewComponent.setPreviewPosition(null);
-                        gameObject.addComponent(new PositionComponent(previewPosition));
-//                        placeGameObjectOnTerrain(gameObject, previewPosition, true);
-                    }
-                });
+        this.previewedGameObjects.forEach(gameObject -> {
+            PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
+            TerrainPosition previewPosition = previewComponent.getPreviewPosition();
+            if (previewPosition != null) { // = Was previewed
+                System.out.println("Placing at " + previewPosition);
+                GameObject.newInstance(gameObject.getClass(), previewPosition);
+                gameObject.destroy();
+            }
+        });
         this.previewedGameObjects.clear();
     }
 
     public int getMaxPeopleCapacity() {
         return this.gameObjects.values().stream()
-                .map(gameObject -> gameObject.getComponent(FrequentedPlaceComponent.class))
-                .filter(Objects::nonNull).mapToInt(FrequentedPlaceComponent::getMaxPeopleCapacity).sum();
+                .map(gameObject -> gameObject.getComponent(ResidenceComponent.class))
+                .filter(Objects::nonNull).mapToInt(ResidenceComponent::getMaxPeopleCapacity).sum();
     }
 
     public Set<GameObject> getRoads() {
-        return this.gameObjects.values().stream().filter(gameObject ->
-                        gameObject.hasComponent(RoadComponent.class)
-                /*&& !isGameObjectPreviewed(gameObject)*/).collect(Collectors.toSet());
+        return new HashSet<>(getGameObjectsForComponent(RoadComponent.class, false));
     }
 
-    public boolean canGameObjectBePlaced(Class<? extends GameObject> gameObjectClass, TerrainPosition pos) {
+    public boolean canGameObjectClassBePlaced(Class<? extends GameObject> gameObjectClass, TerrainPosition pos) {
         if (gameObjectClass == null)
             return false;
 
-        return canGameObjectBePlaced(GameObject.getObjectFromClass(gameObjectClass), pos);
+        GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
+        boolean res = canGameObjectBePlaced(objectFromClass, pos);
+        if (objectFromClass != null)
+            objectFromClass.destroy();
+
+        return res;
     }
 
     private boolean canGameObjectBePlaced(GameObject objectToPlace, TerrainPosition pos) {
-        if (objectToPlace == null || isPositionOccupied(pos))
+        if (objectToPlace == null)
             return false;
 
+        LayerableComponent layerableComponent = objectToPlace.getComponent(LayerableComponent.class);
         OffsetsComponent offsetsComponent = objectToPlace.getComponent(OffsetsComponent.class);
-        if (offsetsComponent == null) // Only one wide
-            return !isPositionOccupied(pos);
-
+        if (offsetsComponent == null) { // Only one wide
+            if (!objectToPlace.hasComponent(LayerableComponent.class))
+                return !isPositionOccupied(pos);
+            GameObject gameObjectAtPosition = getGameObjectAtPosition(pos);
+            if (gameObjectAtPosition == null)
+                return false;
+            return layerableComponent.getLayerableGameObjectsClasses()
+                    .contains(gameObjectAtPosition.getClass()) || !isPositionOccupied(pos);
+        }
 
         List<TerrainPosition> relativePositions = Arrays.asList(offsetsComponent.getOffsetPositions());
         List<TerrainPosition> positions = relativePositions.stream().map(p -> p.add(pos))
                 .collect(Collectors.toList());
 
-        return positions.stream().noneMatch(this::isPositionOccupied);
+        if (!objectToPlace.hasComponent(LayerableComponent.class))
+            return positions.stream().noneMatch(this::isPositionOccupied);
+
+        return positions.stream().noneMatch(position -> {
+            GameObject gameObjectAtPosition = getGameObjectAtPosition(position);
+            if (gameObjectAtPosition != null)
+                return !layerableComponent.getLayerableGameObjectsClasses()
+                        .contains(gameObjectAtPosition.getClass()) && isPositionOccupied(pos);
+            return false;
+        });
     }
 
     /**
@@ -220,7 +283,8 @@ public class Scene {
         OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
         if (offsetsComponent == null) { // Only one wide
             place(gameObject, pos, 0, 0, 0, 0);
-            addPosition(pos.getX(), pos.getZ(), gameObject.getId());
+            if (!gameObject.hasComponent(LayerableComponent.class))
+                addPosition(pos.getX(), pos.getZ(), gameObject.getId());
             this.gameObjects.put(gameObject.getId(), gameObject);
             return true;
         }
@@ -243,7 +307,8 @@ public class Scene {
                         gameObj.getComponent(RepleacableComponent.class).isRepleacable()) // If replaceable
                     gameObj.destroy(); // Then destroy it before placing the new one
             }
-            addPosition(p.getX(), p.getZ(), gameObject.getId());
+            if (!gameObject.hasComponent(LayerableComponent.class))
+                addPosition(p.getX(), p.getZ(), gameObject.getId());
         });
 
         this.gameObjects.put(gameObject.getId(), gameObject);
@@ -260,17 +325,17 @@ public class Scene {
                     new TerrainPosition(pos.getX() + x, pos.getZ() - zNeg - 1));
             if (this.gameObjects.containsKey(id)) {
                 GameObject relativeGameObject = this.gameObjects.get(id);
-                roadConnectionsComponent.connect(Direction.WEST);
+                roadConnectionsComponent.connect(Direction.EAST);
                 if (relativeGameObject.hasComponent(RoadConnectionsComponent.class))
-                    relativeGameObject.getComponent(RoadConnectionsComponent.class).connect(Direction.EAST);
+                    relativeGameObject.getComponent(RoadConnectionsComponent.class).connect(Direction.WEST);
             }
             id = getIdFromPosition(
                     new TerrainPosition(pos.getX() + x, pos.getZ() + zPos + 1));
             if (this.gameObjects.containsKey(id)) {
                 GameObject relativeGameObject = this.gameObjects.get(id);
-                roadConnectionsComponent.connect(Direction.EAST);
+                roadConnectionsComponent.connect(Direction.WEST);
                 if (relativeGameObject.hasComponent(RoadConnectionsComponent.class))
-                    relativeGameObject.getComponent(RoadConnectionsComponent.class).connect(Direction.WEST);
+                    relativeGameObject.getComponent(RoadConnectionsComponent.class).connect(Direction.EAST);
             }
         }
         for (int z = -zNeg; z <= zPos; z++) {
@@ -314,19 +379,19 @@ public class Scene {
     private RoadGraph createRoadGraph() {
         final RoadGraph roadGraph = new RoadGraph();
 
-        Map<RoadNode, Direction[]> nodes = new HashMap<>();
+        Map<NodeRoad, Direction[]> nodes = new HashMap<>();
 
         getRoads().forEach(road -> {
             TerrainPosition pos = road.getComponent(PositionComponent.class).getPosition().toTerrainPosition();
             Direction[] directions = getRoadConnections(pos);
             if (directions.length >= 3)
-                nodes.put(new RoadNode(pos), directions);
+                nodes.put(new NodeRoad(pos), directions);
         });
 
-        for (Entry<RoadNode, Direction[]> node : nodes.entrySet()) {
-            RoadNode roadNode = node.getKey();
-            if (!roadGraph.getNodes().contains(roadNode))
-                roadGraph.searchForNextNode(roadNode.getPosition(), node.getValue(), null);
+        for (Entry<NodeRoad, Direction[]> node : nodes.entrySet()) {
+            NodeRoad nodeRoad = node.getKey();
+            if (!roadGraph.getNodes().contains(nodeRoad))
+                roadGraph.searchForNextNode(nodeRoad.getPosition(), node.getValue(), null);
         }
 
         return roadGraph;
@@ -362,18 +427,55 @@ public class Scene {
         return directions.toArray(new Direction[0]);
     }
 
+    public RoadGraph getRoadGraphCopy() {
+        return this.roadGraph.copy();
+    }
+
     public RoadGraph getRoadGraph() {
         return this.roadGraph;
     }
 
     public void updateRequirements() {
-        BuildingRequirementsService service = new BuildingRequirementsService(true, r -> {
-            this.paths = r;
-            needUpdatePaths = true;
+        BuildingRequirementsService service = new BuildingRequirementsService(true, result -> {
+            PathRenderer pathRenderer = PathRenderer.getInstance();
+            if (result.keySet().equals(pathRenderer.getTempPathsList().keySet())) // No new paths
+                return;
+
+            pathRenderer.setTempPathsList(result);
         });
 
         this.serviceManager.addService(service);
         this.serviceManager.execute();
+    }
+
+    public void updateHighlightedPaths() {
+        if (PathRenderer.getInstance().isUpdateNeeded()) {
+            removePreviousHighlightedPaths();
+            createNewHightlightedPaths();
+
+            PathRenderer.getInstance().setUpdateNeeded(false);
+        }
+    }
+
+    private void removePreviousHighlightedPaths() {
+        Set<GameObject> routes = getGameObjectsOfType(Route.class);
+        routes.forEach(gameObject -> removeGameObject(gameObject.getId()));
+    }
+
+    private void createNewHightlightedPaths() {
+        PathRenderer.getInstance().getTempPathsList().forEach((path, color) -> {
+            RawModel rawModel = path.createRawModel();
+            if (rawModel != null) {
+                TexturedModel model = new TexturedModel(rawModel);
+                model.setModelTexture(new ModelTexture(Utils.encodeColor(color)));
+                Route route = new Route(model);
+            }
+        });
+    }
+
+    public Set<GameObject> getGameObjectsOfType(Class<? extends GameObject> gameObjectClass) {
+        return this.gameObjects.values().stream().filter(item -> item.getClass() == gameObjectClass)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -391,8 +493,9 @@ public class Scene {
                 !gameObject.hasComponent(RoadConnectionsComponent.class))
             return roads;
 
-        TerrainPosition fromPosition = gameObject.getComponent(PositionComponent.class).getPosition()
-                .toTerrainPosition();
+        TerrainPosition fromPosition = gameObject.getComponent(PositionComponent.class)
+                .getPosition().toTerrainPosition();
+
         RoadConnectionsComponent roadConnectionsComponent = gameObject.getComponent(RoadConnectionsComponent.class);
         int[] offsets;
         if (gameObject.hasComponent(OffsetsComponent.class))
@@ -427,75 +530,4 @@ public class Scene {
         this.roadGraph = new RoadGraph();
     }
 
-    public void updateHighlightedPaths() {
-        if (needUpdatePaths) {
-            setHightlightedPaths(paths);
-
-            needUpdatePaths = false;
-        }
-    }
-
-    public void setHightlightedPaths(List<Route> routeList) {
-        List<RawModel> paths = new ArrayList<>();
-        if (!routeList.isEmpty()) {
-//            System.out.println("Highlighted paths: ");
-
-            for (Route routes : routeList) {
-//                System.out.println("\tPath: " + routes);
-//                System.out.println();
-//                System.out.println();
-                Set<Vector2f> positions = new LinkedHashSet<>();
-                routes.forEach(routeRoad -> {
-                    List<Road> roads = new ArrayList<>(routeRoad.getRoute());
-
-                    if (roads.size() == 1) {
-                        TerrainPosition position = roads.get(0).getPosition();
-
-                        GameObject gameObject = getGameObjectAtPosition(position);
-                        if (gameObject.hasComponent(RoadConnectionsComponent.class)) {
-                            RoadConnectionsComponent connections = gameObject
-                                    .getComponent(RoadConnectionsComponent.class);
-                            for (Direction dir : Direction.values()) {
-                                if (connections.isConnected(dir)) {
-                                    TerrainPosition pos = position.add(Direction.toRelativeDistance(dir));
-                                    positions.add(new Vector2f(pos.getX(), pos.getZ()));
-                                    if (positions.size() == 2) // if too many connections then visuals fuck up
-                                        break;
-                                }
-                            }
-                        }
-                    } else
-                        roads.stream().map(Road::getPosition)
-                                .forEach(pos -> positions.add(new Vector2f(pos.getX(), pos.getZ())));
-                });
-
-                if (positions.isEmpty())
-                    return;
-
-                float[] positionsFloat = new float[positions.size() * 3];
-                int i = 0;
-                for (Vector2f pos : positions) {
-                    positionsFloat[i++] = pos.x;
-                    positionsFloat[i++] = .5f;
-                    positionsFloat[i++] = pos.y;
-                }
-                int[] indicesTab = new int[positions.size() * 2 - 2];
-                int j = 0;
-                for (i = 0; i < indicesTab.length; i++) {
-                    indicesTab[i++] = j++;
-                    indicesTab[i] = j;
-                }
-
-                RawModel path = Loader.getInstance()
-                        .loadToVAO(positionsFloat, new float[]{0}, new float[]{0, 1, 0}, indicesTab);
-                paths.add(path);
-            }
-        }
-        TerrainRenderer.getInstance().setPaths(paths);
-    }
-
-    public Set<GameObject> getGameObjectsOfType(Class<? extends GameObject> gameObjectClass) {
-        return this.gameObjects.values().stream().filter(item -> item.getClass() == gameObjectClass)
-                .collect(Collectors.toSet());
-    }
 }

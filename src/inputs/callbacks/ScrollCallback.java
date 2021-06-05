@@ -1,6 +1,7 @@
 package inputs.callbacks;
 
+@FunctionalInterface
 public interface ScrollCallback {
 
-    void onScroll();
+    void onScroll(double xOffset, double yOffset);
 }

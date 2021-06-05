@@ -2,9 +2,9 @@ package scene.components;
 
 import models.TexturedModel;
 
-public class TextureComponent implements Component {
+public class TextureComponent extends Component {
 
-    private final TexturedModel texture;
+    protected TexturedModel texture;
 
     public TextureComponent(TexturedModel texture) {
         this.texture = texture;

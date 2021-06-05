@@ -30,6 +30,7 @@ public class MetaFile {
     private double verticalPerPixelSize;
     private double horizontalPerPixelSize;
     private double spaceWidth;
+    private double tabWidth;
     private int[]  padding;
     private int    paddingWidth;
     private int    paddingHeight;
@@ -57,6 +58,10 @@ public class MetaFile {
 
     public double getSpaceWidth() {
         return spaceWidth;
+    }
+
+    public double getTabWidth() {
+        return this.tabWidth;
     }
 
     public Character getCharacter(int ascii) {
@@ -194,6 +199,10 @@ public class MetaFile {
         int id = getValueOfVariable("id");
         if (id == TextMeshCreator.SPACE_ASCII) {
             this.spaceWidth = (getValueOfVariable("xadvance") - paddingWidth) * horizontalPerPixelSize;
+            this.tabWidth = 8 * this.spaceWidth;
+            return null;
+        }
+        if (id == TextMeshCreator.TAB_ASCII) {
             return null;
         }
         double xTex = ((double) getValueOfVariable("x") + (padding[PAD_LEFT] - DESIRED_PADDING)) / imageSize;

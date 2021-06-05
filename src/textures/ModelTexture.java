@@ -8,21 +8,22 @@ public class ModelTexture extends Texture {
 
     private float shineDamper = 1, reflectivity = 0;
 
-    private boolean transparent;
+    private float   alpha;
     private boolean useFakeLighting;
 
     private boolean directionalColor;
 
     private int numberOfRows = 1;
 
-    public ModelTexture(String pathFile) {
-        super(new Background<>(pathFile));
+    public ModelTexture(String background) {
+        this(background, false);
     }
 
-    public ModelTexture(String pathFile, boolean useFakeLighting) {
-        super(new Background<>(pathFile));
+    public ModelTexture(String background, boolean useFakeLighting) {
+        super(new Background<>(background));
 
         this.useFakeLighting = useFakeLighting;
+        this.alpha = -1;
     }
 
     public boolean doesUseDirectionalColor() {
@@ -50,11 +51,15 @@ public class ModelTexture extends Texture {
     }
 
     public boolean isTransparent() {
-        return this.transparent;
+        return this.alpha < 1f && this.alpha >= 0;
     }
 
-    public void setTransparent(boolean transparent) {
-        this.transparent = transparent;
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+    }
+
+    public float getAlpha() {
+        return this.alpha;
     }
 
     public boolean doesUseFakeLighting() {

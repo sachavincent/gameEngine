@@ -21,16 +21,16 @@ public class ServiceManager<S extends Service<?>> {
     }
 
     public void execute() {
-        thread = new Thread(this::exec);
-        thread.start();
-    }
-
-    private synchronized void exec() {
         if (currentService != null && currentService.isSingleton() && currentService.isRunning()) {
             currentService.setRunning(false);
             currentService = null;
         }
 
+        thread = new Thread(this::exec);
+        thread.start();
+    }
+
+    private synchronized void exec() {
         S service = serviceQueue.poll();
         if (currentService != null)
             while (currentService.isRunning()) {

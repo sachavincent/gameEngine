@@ -10,9 +10,11 @@ public class OBJGameObjects {
 
     private final static RawModel ROAD_MODEL = OBJLoader.loadRoadModel();
 
-    public static final OBJGameObject INSULA = OBJLoader.loadOBJGameObject("Insula", true);
+    public static final OBJGameObject INSULA = OBJLoader.loadOBJGameObject("Insula", true, true);
 
-    public static final OBJGameObject MARKET = OBJLoader.loadOBJGameObject("Market", true);
+    public static final OBJGameObject NPC = OBJLoader.loadOBJGameObject("NPC", false, false);
+
+    public static final OBJGameObject MARKET = OBJLoader.loadOBJGameObject("Market", true, true);
 
     public static final OBJGameObject DIRT_ROAD = loadRoad("Dirt Road");
 

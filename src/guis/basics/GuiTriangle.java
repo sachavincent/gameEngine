@@ -78,8 +78,8 @@ public class GuiTriangle extends GuiShape {
     }
 
     @Override
-    public double getOutlineWidth() {
-        return 0.1d;
+    public int getOutlineWidth() {
+        return 1;
     }
 
     @Override

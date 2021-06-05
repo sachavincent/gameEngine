@@ -1,37 +1,37 @@
 package scene.components;
 
-import scene.gameObjects.GameObject;
 import scene.Scene;
+import scene.components.requirements.RequirementComponent;
 import terrains.TerrainPosition;
 import util.math.Vector3f;
 
-public class PositionComponent implements Component {
+public class PositionComponent extends Component {
 
-    private Vector3f position;
+    protected Vector3f position;
 
     public PositionComponent(TerrainPosition position) {
         this(position.toVector3f());
     }
 
-    public PositionComponent(Vector3f position) {
-        this.position = position;
+    public PositionComponent() {
+        this(new TerrainPosition(-1, -1));
     }
 
-    public PositionComponent() {
-        this(new TerrainPosition(0, 0));
+    public PositionComponent(Vector3f position) {
+        this.position = position;
+
+        this.updateComponentCallback = gameObject -> {
+            if (gameObject.getComponents().containsKey(RequirementComponent.class.getName()))
+                Scene.getInstance().updateRequirements();
+        };
     }
 
     public void setPosition(Vector3f position) {
         this.position = position;
-        Scene.getInstance().updateRequirements();
+        update();
     }
 
     public Vector3f getPosition() {
         return this.position;
-    }
-
-    @Override
-    public void removeObject(GameObject gameObject) {
-        Scene.getInstance().removeGameObject(gameObject, this.position);
     }
 }

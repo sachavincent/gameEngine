@@ -35,9 +35,9 @@ public class GuiMultiOption<T> extends GuiPreset {
         setLayout(new RatioedPatternGlobalConstraint(3, 1, 0, 0, 7f, 30f, 86f, 100f, 7f, 30f));
 
         Background<Color> arrowBackground = new Background<>(arrowsColor);
-        this.previous = new GuiTriangleButton(this, arrowBackground, 270);
+        this.previous = new GuiTriangleButton(this, arrowBackground, null, 270);
         this.guiText = new GuiText(this, new Text(this.selectedOption.toString(), .8f, DEFAULT_FONT, Color.BLACK));
-        this.next = new GuiTriangleButton(this, arrowBackground, 90);
+        this.next = new GuiTriangleButton(this, arrowBackground, null, 90);
 
         this.previous.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {

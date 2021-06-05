@@ -1,19 +1,20 @@
 package services;
 
+import pathfinding.Path;
+import pathfinding.PathFinder;
 import pathfinding.RoadGraph;
-import pathfinding.RouteFinder;
-import pathfinding.RouteFinder.Route;
 import terrains.TerrainPosition;
 
-public class PathfindingService extends Service<Route> {
+public class PathfindingService extends Service<Path> {
 
     private final TerrainPosition from;
     private final TerrainPosition end;
     private final RoadGraph       roadGraph;
     private final int             maxLength;
 
-    public PathfindingService(boolean singleton, RoadGraph roadGraph, TerrainPosition from, TerrainPosition end, int maxLength,
-            OnServiceDone<Route> onServiceDone) {
+    public PathfindingService(boolean singleton, RoadGraph roadGraph, TerrainPosition from, TerrainPosition end,
+            int maxLength,
+            OnServiceDone<Path> onServiceDone) {
         super(singleton, onServiceDone);
 
         this.from = from;
@@ -23,9 +24,9 @@ public class PathfindingService extends Service<Route> {
     }
 
     @Override
-    protected synchronized Route execute() {
-        RouteFinder routeFinder = new RouteFinder(roadGraph);
+    protected synchronized Path execute() {
+        PathFinder pathFinder = new PathFinder(this.roadGraph);
 
-        return routeFinder.findBestRoute(from, end, maxLength);
+        return pathFinder.findBestPath(this.from, this.end, this.maxLength);
     }
 }

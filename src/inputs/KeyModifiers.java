@@ -1,6 +1,11 @@
 package inputs;
 
-import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 public enum KeyModifiers {
     NONE,
@@ -57,32 +62,37 @@ public enum KeyModifiers {
                     return LALT_LSHIFT;
                 if (keyModifier == LCTRL)
                     return LCTRL_LALT;
+                break;
             case LSHIFT:
                 if (keyModifier == LCTRL)
                     return LCTRL_LSHIFT;
                 if (keyModifier == LALT)
                     return LALT_LSHIFT;
+                break;
             case LCTRL:
                 if (keyModifier == LALT)
                     return LCTRL_LALT;
                 if (keyModifier == LSHIFT)
                     return LCTRL_LSHIFT;
-
+                break;
             case RALT:
                 if (keyModifier == RSHIFT)
                     return RALT_RSHIFT;
                 if (keyModifier == RCTRL)
                     return RCTRL_RALT;
+                break;
             case RSHIFT:
                 if (keyModifier == RCTRL)
                     return RCTRL_RSHIFT;
                 if (keyModifier == RALT)
                     return RALT_RSHIFT;
+                break;
             case RCTRL:
                 if (keyModifier == RALT)
                     return RCTRL_RALT;
                 if (keyModifier == RSHIFT)
                     return RCTRL_RSHIFT;
+                break;
         }
         return this;
     }
@@ -97,31 +107,37 @@ public enum KeyModifiers {
                     return LCTRL;
                 else if (keyModifier == LCTRL)
                     return LALT;
+                break;
             case RCTRL_RALT:
                 if (keyModifier == RALT)
                     return RCTRL;
                 else if (keyModifier == RCTRL)
                     return RALT;
+                break;
             case LCTRL_LSHIFT:
                 if (keyModifier == LSHIFT)
                     return LCTRL;
                 else if (keyModifier == LCTRL)
                     return LSHIFT;
+                break;
             case RCTRL_RSHIFT:
                 if (keyModifier == RSHIFT)
                     return RCTRL;
                 else if (keyModifier == RCTRL)
                     return RSHIFT;
+                break;
             case RALT_RSHIFT:
                 if (keyModifier == RSHIFT)
                     return RALT;
                 else if (keyModifier == RALT)
                     return RSHIFT;
+                break;
             case LALT_LSHIFT:
                 if (keyModifier == LSHIFT)
                     return LALT;
                 else if (keyModifier == LALT)
                     return LSHIFT;
+                break;
         }
         return this;
     }

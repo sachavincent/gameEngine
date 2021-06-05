@@ -1,5 +1,5 @@
 package scene.components;
 
-public class SunComponent implements Component {
+public class SunComponent extends Component {
 
 }

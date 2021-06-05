@@ -2,7 +2,7 @@ package scene.components;
 
 import textures.TerrainTexturePack;
 
-public class TexturePackComponent implements Component {
+public class TexturePackComponent extends Component {
 
     private final TerrainTexturePack terrainTexturePack;
 

@@ -3,6 +3,7 @@ package entities;
 import renderEngine.FrustumCullingFilter;
 import terrains.TerrainPosition;
 import util.MousePicker;
+import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class Camera {
@@ -11,7 +12,7 @@ public class Camera {
     private static final int    MAX_ZOOM    = 10;
 
     private final Vector3f position = new Vector3f(1, 20, 1);
-    private       float              pitch    = 20;
+    private       float    pitch    = 20;
     private       int      yaw;
     private       float    roll;
 
@@ -149,8 +150,8 @@ public class Camera {
                 zFactor = (float) (MOVING_STEP * -Math.cos(Math.toRadians(360 - degree)));
                 xFactor = (float) (MOVING_STEP * Math.sin(Math.toRadians(degree)));
                 break;
-            case EAST:
             case WEST:
+            case EAST:
                 xFactor = (float) (MOVING_STEP * Math.sin(Math.toRadians(degree)));
                 zFactor = (float) (MOVING_STEP * -Math.cos(Math.toRadians(degree)));
                 break;
@@ -252,9 +253,9 @@ public class Camera {
     }
 
     public enum Direction {
-        WEST(0),
+        EAST(0),
         NORTH(90),
-        EAST(180),
+        WEST(180),
         SOUTH(270);
 
         int degree;
@@ -269,8 +270,6 @@ public class Camera {
 
         public static Direction getDirectionFromDegree(int degree) {
             return values()[(int) Math.round((((double) (degree < 0 ? degree + 360 : degree) % 360) / 90)) % 4];
-//            return Arrays.stream(values()).filter(direction -> direction.degree == (degree % 360))
-//                    .findFirst().orElse(null);
         }
 
         public static Direction[] any() {
@@ -283,11 +282,11 @@ public class Camera {
 
         public static TerrainPosition toRelativeDistance(Direction direction) {
             switch (direction) {
-                case WEST:
+                case EAST:
                     return new TerrainPosition(0, -1);
                 case NORTH:
                     return new TerrainPosition(1, 0);
-                case EAST:
+                case WEST:
                     return new TerrainPosition(0, 1);
                 case SOUTH:
                     return new TerrainPosition(-1, 0);
@@ -298,11 +297,11 @@ public class Camera {
 
         public static TerrainPosition toRelativeDistance(Direction direction, int multiple) {
             switch (direction) {
-                case WEST:
+                case EAST:
                     return new TerrainPosition(0, -multiple);
                 case NORTH:
                     return new TerrainPosition(multiple, 0);
-                case EAST:
+                case WEST:
                     return new TerrainPosition(0, multiple);
                 case SOUTH:
                     return new TerrainPosition(-multiple, 0);
@@ -310,5 +309,48 @@ public class Camera {
                     return new TerrainPosition(0, 0);
             }
         }
+
+        public static Vector3f toRelativeDistance(Direction direction, double multiple) {
+            switch (direction) {
+                case EAST:
+                    return new Vector3f(0, 0, -multiple);
+                case NORTH:
+                    return new Vector3f(multiple, 0, 0);
+                case WEST:
+                    return new Vector3f(0, 0, multiple);
+                case SOUTH:
+                    return new Vector3f(-multiple, 0, 0);
+                default:
+                    return new Vector3f(0, 0, 0);
+            }
+        }
+
+        public static Direction getDirectionFromVector(Vector2f vector) {
+            if (Math.signum(vector.x) == Math.signum(vector.y) ||
+                    (Math.signum(vector.x) != 0 && Math.signum(vector.y) != 0 &&
+                            Math.signum(vector.x) != Math.signum(vector.y)))
+                return null;
+
+            if (vector.x < 0)
+                return SOUTH;
+            if (vector.x > 0)
+                return NORTH;
+            if (vector.y < 0)
+                return EAST;
+
+            return WEST;
+        }
+
+        public static Direction defaultDirection() {
+            return NORTH;
+        }
+
+//        public static Direction getDirectionFromName(String name) {
+//            for (Direction direction : values())
+//                if (direction.name().equalsIgnoreCase(name))
+//                    return direction;
+//
+//            return defaultDirection();
+//        }
     }
 }

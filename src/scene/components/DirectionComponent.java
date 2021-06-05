@@ -2,9 +2,16 @@ package scene.components;
 
 import entities.Camera.Direction;
 
-public class DirectionComponent implements Component {
+public class DirectionComponent extends Component {
 
     private Direction direction = Direction.NORTH;
+
+    public DirectionComponent() {
+    }
+
+    public DirectionComponent(Direction direction) {
+        this.direction = direction;
+    }
 
     public Direction getDirection() {
         return this.direction;
@@ -12,5 +19,7 @@ public class DirectionComponent implements Component {
 
     public void setDirection(Direction direction) {
         this.direction = direction;
+
+        update();
     }
 }

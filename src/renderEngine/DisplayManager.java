@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
 import de.matthiasmann.twl.utils.PNGDecoder;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -33,8 +34,9 @@ import util.Timer;
 
 public class DisplayManager {
 
-    public static int WIDTH = 2560, HEIGHT = 1440, MAX_FPS = 300;
-    public static float FRAME_CAP = 1f / MAX_FPS;
+    public static int WIDTH = 2560, HEIGHT = 1440, MAX_FPS = 300, FPS = MAX_FPS, TPS = 20;
+    public static       long FRAME_CAP          = 1000000L / MAX_FPS;
+    public static final int  MAX_FRAMES_IGNORED = 5;
 
     public static  float   MIN_LINE_WIDTH;
     public static  float   MAX_LINE_WIDTH;
@@ -52,6 +54,13 @@ public class DisplayManager {
     private static GLFWWindowMaximizeCallback  callback3;
     private static GLFWWindowPosCallback       callback4;
     private static long                        firstWindow;
+
+    public static PrintStream outStream;
+    public static PrintStream errStream;
+
+    public final static boolean IS_DEBUG = java.lang.management.ManagementFactory.
+            getRuntimeMXBean().
+            getInputArguments().toString().indexOf("jdwp") >= 0;
 
     public static void createDisplay() {
         screens = new ArrayList<>();
@@ -152,13 +161,13 @@ public class DisplayManager {
         MIN_LINE_WIDTH = lineWidthRange[0];
         MAX_LINE_WIDTH = lineWidthRange[1];
 
-        System.out.println("min: " + MIN_LINE_WIDTH);
-        System.out.println("max: " + MAX_LINE_WIDTH);
+//        System.out.println("min: " + MIN_LINE_WIDTH);
+//        System.out.println("max: " + MAX_LINE_WIDTH);
     }
 
     public static void setFPS(int fps) {
         MAX_FPS = fps;
-        FRAME_CAP = 1f / MAX_FPS;
+        FRAME_CAP = 1000000L / fps;
     }
 
     private static void loadScreens() {

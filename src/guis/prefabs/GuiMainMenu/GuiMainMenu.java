@@ -60,7 +60,8 @@ public class GuiMainMenu extends Gui {
         createQuitButton();
 
         this.settingsMenu = new GuiSettingsMenu(this);
-        this.settingsMenu.onBackButtonPress(this::back);
+
+        this.settingsMenu.setOnBackButtonPress(this::back);
 
         formLoad();
     }
@@ -74,7 +75,7 @@ public class GuiMainMenu extends Gui {
     private void createNewGameButton() {
         Text text = new Text(Words.NEW_GAME, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton newGameButton = new GuiRectangleButton(this.menuButtonPanel,
-                new Background<>(new Color(109, 109, 109, 100)), text);
+                new Background<>(new Color(109, 109, 109, 100)), Color.BLACK, text);
         newGameButton.enableFilter();
         newGameButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -87,7 +88,7 @@ public class GuiMainMenu extends Gui {
     private void createLoadGameButton() {
         Text text = new Text(Words.LOAD_GAME, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton loadGameButton = new GuiRectangleButton(this.menuButtonPanel,
-                new Background<>(new Color(109, 109, 109, 100)), text);
+                new Background<>(new Color(109, 109, 109, 100)), Color.BLACK, text);
         loadGameButton.enableFilter();
         loadGameButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -100,7 +101,7 @@ public class GuiMainMenu extends Gui {
         textSettings = new Text(Words.SETTINGS, 1.2f, DEFAULT_FONT, Color.BLACK);
 
         GuiRectangleButton settingsButton = new GuiRectangleButton(this.menuButtonPanel,
-                new Background<>(new Color(109, 109, 109, 100)), textSettings);
+                new Background<>(new Color(109, 109, 109, 100)), Color.BLACK, textSettings);
         settingsButton.enableFilter();
         settingsButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
@@ -118,7 +119,7 @@ public class GuiMainMenu extends Gui {
     private void createQuitButton() {
         Text text = new Text(Words.QUIT, 1.2f, DEFAULT_FONT, Color.BLACK);
         GuiRectangleButton quitButton = new GuiRectangleButton(this.menuButtonPanel,
-                new Background<>(new Color(109, 109, 109, 100)), text);
+                new Background<>(new Color(109, 109, 109, 100)), Color.BLACK, text);
         quitButton.enableFilter();
         quitButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1)

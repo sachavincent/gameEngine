@@ -1,85 +1,167 @@
 package guis.presets.checkbox;
 
 import guis.GuiInterface;
-import guis.basics.GuiBasics;
+import guis.basics.GuiShape;
 import guis.constraints.GuiConstraintsManager;
 import guis.presets.Background;
+import guis.presets.GuiAbstractShapePreset;
+import guis.presets.GuiClickablePreset;
 import guis.presets.GuiPreset;
-import inputs.MouseUtils;
+import inputs.ClickType;
+import inputs.callbacks.MousePressCallback;
+import inputs.callbacks.MouseReleaseCallback;
 import java.awt.Color;
 
-public abstract class GuiAbstractCheckbox extends GuiPreset {
+public abstract class GuiAbstractCheckbox extends GuiPreset implements GuiAbstractShapePreset, GuiClickablePreset {
 
-    //    GuiBasics checkboxLayout;
-    GuiBasics checkmark;
+    protected GuiShape borderLayout;
+    protected GuiShape shape;
 
-    GuiAbstractCheckbox(GuiInterface parent, Color color, GuiConstraintsManager constraintsManager) {
-        super(parent, new Background<>(color), constraintsManager);
+    private CheckCallback        onCheckCallback;
+    private UncheckCallback      onUncheckCallback;
+    private MousePressCallback   onMousePressCallback;
+    private MouseReleaseCallback onMouseReleaseCallback;
 
-//        addBackgroundComponent(new Background<>(color));
+    public ClickType clickType;
+
+    private boolean releaseInsideNeeded = true; // If checkbox needs to be released inside of this component
+
+    GuiAbstractCheckbox(GuiInterface parent, Background<?> background, Color borderColor,
+            GuiConstraintsManager constraintsManager) {
+        super(parent, Background.NO_BACKGROUND, constraintsManager);
+
+        this.shape = createShape(background, borderColor);
+
         setupComponents();
+        this.clickType = ClickType.NONE;
     }
 
-//    protected abstract void addBackgroundComponent(Color color);
+    GuiAbstractCheckbox(GuiInterface parent, Background<?> background, Color borderColor) {
+        this(parent, background, borderColor, null);
+    }
 
     private void setupComponents() {
         setListeners();
     }
 
-    public void setCheckmark(GuiBasics checkmark) {
-        if (checkmark.getWidth() > getWidth() ||
-                checkmark.getHeight() > getHeight())
-            throw new IllegalArgumentException("Checkmark out of checkbox bounds.");
-
-        this.checkmark = checkmark;
-    }
-
     private void setListeners() {
-//        setOnRelease(() -> {
-//            //System.out.println("Release");
-//
-//            if (isClicked() && MouseUtils.isCursorInGuiComponent(this) && checkmark != null)
-//                checkmark.setDisplayed(!checkmark.isDisplayed());
-//
-//            setClicked(false);
-//
-//            updateTexturesOnClick();
-//        });
-//
-//        setOnPress(button -> {
-//            System.out.println("Press");
-//
-//            setClicked(true);
-//
-//            updateTexturesOnClick();
-//        });
+        setOnMouseRelease(button -> {
+        });
+
+        setOnMousePress(button -> {
+        });
 
         setOnHover(() -> {
-//            System.out.println("Hover");
         });
 
         setOnLeave(() -> {
-            System.out.println("Leave");
-//            checkboxLayout.updateTexturePosition();
         });
 
         setOnEnter(() -> {
-            System.out.println("Enter");
-//            checkboxLayout.updateTexturePosition();
         });
     }
 
-    private void updateTexturesOnClick() {
-        super.updateTexturePosition();
+    /**
+     * Click + release within component
+     */
+    @Override
+    public void onMousePress(int button) {
+        if (this.onMousePressCallback == null)
+            return;
 
-//        this.checkboxLayout.updateTexturePosition();
-
-        if (this.checkmark != null)
-            this.checkmark.updateTexturePosition();
+        this.onMousePressCallback.onPress(button);
     }
-//
-//    @Override
-//    public void setOnClick(ClickCallback onClickCallback) {
-//        checkboxLayout.setOnClick(onClickCallback);
-//    }
+
+    @Override
+    public boolean isReleaseInsideNeeded() {
+        return this.releaseInsideNeeded;
+    }
+
+    @Override
+    public void setReleaseInsideNeeded(boolean releaseInsideNeeded) {
+        this.releaseInsideNeeded = releaseInsideNeeded;
+    }
+
+    @Override
+    public GuiShape getShape() {
+        return this.shape;
+    }
+
+    @Override
+    public void reset() {
+
+    }
+
+    public GuiShape getBorderLayout() {
+        return this.borderLayout;
+    }
+
+    @Override
+    public boolean isClicked() {
+        return this.clickType != ClickType.NONE;
+    }
+
+    @Override
+    public ClickType getClickType() {
+        return this.clickType;
+    }
+
+    public void setOnCheckCallback(CheckCallback onCheckCallback) {
+        this.onCheckCallback = onCheckCallback;
+    }
+
+    public void setOnUncheckCallback(UncheckCallback onUncheckCallback) {
+        this.onUncheckCallback = onUncheckCallback;
+    }
+
+    @Override
+    public void onMouseRelease(int button) {
+        if (this.onMouseReleaseCallback == null)
+            return;
+
+        this.onMouseReleaseCallback.onRelease(button);
+    }
+
+    @Override
+    public void setOnMouseRelease(MouseReleaseCallback onMouseReleaseCallback) {
+        this.onMouseReleaseCallback = onMouseReleaseCallback;
+    }
+
+    @Override
+    public void setOnMousePress(MousePressCallback onMousePressCallback) {
+        this.onMousePressCallback = button -> {
+            if (button == this.clickType.getButton()) {
+                setClickType(ClickType.NONE);
+
+                if (this.onCheckCallback != null)
+                    this.onUncheckCallback.onUncheck();
+            } else {
+                setClickType(ClickType.getClickTypeFromButton(button));
+
+                if (this.onCheckCallback != null)
+                    this.onCheckCallback.onCheck();
+            }
+
+            updateTexturePosition();
+            onMousePressCallback.onPress(button);
+        };
+    }
+
+    @Override
+    public void setClickType(ClickType clickType) {
+        this.clickType = clickType;
+    }
+
+    @FunctionalInterface
+    public interface CheckCallback {
+
+        void onCheck();
+    }
+
+    @FunctionalInterface
+    public interface UncheckCallback {
+
+        void onUncheck();
+    }
+
 }

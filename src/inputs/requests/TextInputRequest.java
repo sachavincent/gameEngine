@@ -14,7 +14,7 @@ public class TextInputRequest extends Request {
 
     private final KeyCallback callback;
 
-    private static final HandleRequestCallback ON_HANDLE_REQUEST_CALLBACK = (action, pressedKey, r, requests) -> {
+    private static final HandleRequestCallback ON_HANDLE_REQUEST_CALLBACK = (action, pressedKey, scancode, r, requests) -> {
         TextInputRequest request = (TextInputRequest) r;
         KeyModifiers keyModifier = KeyModifiers.getKeyModifierFromInputKey(pressedKey);
         KeyModifiers requestKeyModifier = request.getKeyModifier();
@@ -28,9 +28,9 @@ public class TextInputRequest extends Request {
 
             return false;
         } else { // Key pressed
-            KeyInput keyInput = new KeyInput((char) pressedKey, request.getKeyModifier());
+            KeyInput keyInput = new KeyInput((char) pressedKey, request.getKeyModifier(), scancode);
             if (request.getCallback().onKeyRequest(action, keyInput)) {
-                requests.remove();
+                requests.poll();
             }
         }
 
@@ -38,7 +38,7 @@ public class TextInputRequest extends Request {
     };
 
     public TextInputRequest(KeyCallback callback) {
-        super(ON_HANDLE_REQUEST_CALLBACK);
+        super(RequestType.CHAR, ON_HANDLE_REQUEST_CALLBACK);
 
         this.callback = callback;
         this.keyModifier = KeyModifiers.NONE;

@@ -16,9 +16,13 @@ public class GuiShader extends ShaderProgram {
     private int location_transformationMatrix;
     private int location_guiWidth;
     private int location_guiHeight;
-    private int location_radius;
+    private int location_cornerRadius;
     private int location_alpha;
     private int location_color;
+    private int location_filled;
+    private int location_borderColor;
+    private int location_borderEnabled;
+    private int location_outlineWidth;
 
     // donut chart stuff
     private int   location_type;
@@ -38,10 +42,14 @@ public class GuiShader extends ShaderProgram {
         this.location_transformationMatrix = super.getUniformLocation("transformationMatrix");
         this.location_guiWidth = super.getUniformLocation("guiWidth");
         this.location_guiHeight = super.getUniformLocation("guiHeight");
-        this.location_radius = super.getUniformLocation("radius");
+        this.location_cornerRadius = super.getUniformLocation("cornerRadius");
         this.location_alpha = super.getUniformLocation("alpha");
         this.location_color = super.getUniformLocation("color");
+        this.location_borderColor = super.getUniformLocation("borderColor");
+        this.location_borderEnabled = super.getUniformLocation("borderEnabled");
+        this.location_outlineWidth = super.getUniformLocation("outlineWidth");
         this.location_type = super.getUniformLocation("type");
+        this.location_filled = super.getUniformLocation("filled");
         this.location_innerCircleRadius = super.getUniformLocation("innerCircleRadius");
         this.location_outerCircleRadius = super.getUniformLocation("outerCircleRadius");
         this.location_percentage = super.getUniformLocation("percentage");
@@ -69,8 +77,8 @@ public class GuiShader extends ShaderProgram {
         super.loadFloat(this.location_alpha, alpha);
     }
 
-    public void loadRadius(float radius) {
-        super.loadFloat(this.location_radius, radius);
+    public void loadCornerRadius(float cornerRadius) {
+        super.loadFloat(this.location_cornerRadius, cornerRadius);
     }
 
     public void loadWidth(float width) {
@@ -79,6 +87,19 @@ public class GuiShader extends ShaderProgram {
 
     public void loadHeight(float height) {
         super.loadFloat(this.location_guiHeight, height * DisplayManager.HEIGHT);
+    }
+
+    public void loadFilled(boolean filled) {
+        super.loadBoolean(this.location_filled, filled);
+    }
+
+    public void loadBorderEnabled(boolean borderEnabled) {
+        super.loadBoolean(this.location_borderEnabled, borderEnabled);
+    }
+
+    public void loadBorderColor(Color color) {
+        super.loadVector(this.location_borderColor, color == null ? new Vector3f(-1, -1, -1) :
+                new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f));
     }
 
     public void loadColor(Color color) {
@@ -100,6 +121,10 @@ public class GuiShader extends ShaderProgram {
 
     public void loadPercentage(float percentage) {
         super.loadFloat(this.location_percentage, percentage);
+    }
+
+    public void loadOutlineWidth(int width) {
+        super.loadInt(this.location_outlineWidth, width);
     }
 
     public void loadDonutLines(List<Vector2f> points) {

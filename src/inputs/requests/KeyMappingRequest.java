@@ -15,7 +15,7 @@ public class KeyMappingRequest extends Request {
 
     private final KeyCallback callback;
 
-    private static final HandleRequestCallback ON_HANDLE_REQUEST_CALLBACK = (action, pressedKey, r, requests) -> {
+    private static final HandleRequestCallback ON_HANDLE_REQUEST_CALLBACK = (action, pressedKey, scancode, r, requests) -> {
         if (action == GLFW_REPEAT) // Ignores repeat
             return false;
 
@@ -32,9 +32,9 @@ public class KeyMappingRequest extends Request {
 
             return false;
         } else { // Key pressed
-            KeyInput keyInput = new KeyInput((char) pressedKey, request.getKeyModifier());
+            KeyInput keyInput = new KeyInput((char) pressedKey, request.getKeyModifier(), scancode);
             if (request.getCallback().onKeyRequest(action, keyInput)) {
-                requests.remove();
+                requests.poll();
             }
         }
 
@@ -42,7 +42,7 @@ public class KeyMappingRequest extends Request {
     };
 
     public KeyMappingRequest(KeyCallback callback) {
-        super(ON_HANDLE_REQUEST_CALLBACK);
+        super(RequestType.KEY, ON_HANDLE_REQUEST_CALLBACK);
 
         this.callback = callback;
         this.keyModifier = KeyModifiers.NONE;

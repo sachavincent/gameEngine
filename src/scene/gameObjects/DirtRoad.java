@@ -2,8 +2,9 @@ package scene.gameObjects;
 
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
-import renderEngine.HouseRenderer;
+import renderEngine.BuildingRenderer;
 import scene.components.*;
+import util.math.Vector3f;
 
 public class DirtRoad extends GameObject {
 
@@ -14,7 +15,8 @@ public class DirtRoad extends GameObject {
         addComponent(new TextureComponent(OBJGameObjects.DIRT_ROAD.getTexture()));
         addComponent(new PreviewComponent(OBJGameObjects.DIRT_ROAD.getPreviewTexture()));
         addComponent(new RoadConnectionsComponent());
+        addComponent(new OffsetComponent(new Vector3f(.5f, 0, .5f)));
 
-        addComponent(new RendererComponent(this, HouseRenderer.getInstance()));
+        addComponent(new RendererComponent(BuildingRenderer.getInstance()));
     }
 }

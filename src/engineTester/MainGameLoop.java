@@ -7,9 +7,7 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static renderEngine.DisplayManager.getWindow;
 
-import engineTester.Game.GameState;
-import entities.Camera;
-import fontMeshCreator.FontType;
+import guis.prefabs.GuiDebug;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.prefabs.GuiItemSelection;
@@ -17,10 +15,8 @@ import guis.prefabs.GuiMainMenu.GuiMainMenu;
 import guis.prefabs.GuiSelectedItem;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import items.OBJGameObjects;
+import java.util.Deque;
 import org.lwjgl.opengl.GL;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
@@ -29,39 +25,33 @@ import renderEngine.FrustumCullingFilter;
 import renderEngine.GuiRenderer;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
+import renderEngine.PathRenderer;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
-import scene.gameObjects.DirtRoad;
-import scene.gameObjects.GameObject;
-import scene.gameObjects.Insula;
 import scene.gameObjects.Light;
-import scene.gameObjects.Market;
+import scene.gameObjects.NPC;
+import scene.gameObjects.OBJGameObject;
 import scene.gameObjects.Terrain;
-import terrains.TerrainPosition;
-import textures.FontTexture;
 import util.KeybindingsManager;
 import util.SettingsManager;
-import util.Timer;
+import util.TimeSystem;
+import util.Utils;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import water.WaterFrameBuffers;
-import water.WaterRenderer;
-import water.WaterTile;
 
 public class MainGameLoop {
 
     public static void main(String[] args) {
 //        Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
-        boolean isDebug = java.lang.management.ManagementFactory.
-                getRuntimeMXBean().
-                getInputArguments().toString().indexOf("jdwp") >= 0;
         glfwInit();
 //        if (!isDebug) {
         DisplayManager.createDisplay();
         SettingsManager.loadSettings();
         KeybindingsManager.loadKeyBindings();
+        GuiDebug.getInstance();
 //        } else {
 //            DisplayManager.createDisplayForTests();
 //        }
@@ -111,75 +101,36 @@ public class MainGameLoop {
 
         Loader loader = Loader.getInstance();
 
-        FontTexture roboto = new FontTexture("roboto.png");
-
-        FontType font = new FontType(roboto.getTextureID(), new File("res/roboto.fnt"));
-
-
         MasterRenderer renderer = MasterRenderer.getInstance();
-        Camera camera = Camera.getInstance();
+        PathRenderer.getInstance();
 
         WaterFrameBuffers buffers = new WaterFrameBuffers();
         WaterShader waterShader = new WaterShader();
-        WaterRenderer waterRenderer = new WaterRenderer(loader, waterShader, renderer.getProjectionMatrix(),
-                buffers);
-        List<WaterTile> waters = new ArrayList<>();
-        WaterTile water = new WaterTile(75, -75, 0);
-//        waters.add(water);
+
+        Terrain terrain = new Terrain();
+        terrain.addComponent(new PositionComponent(new Vector3f(0, 0, 0)));
 
         GuiEscapeMenu.getInstance();
         GuiItemSelection.getInstance();
 
-        Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
-
         PostProcessing.init();
+
+        OBJGameObject insulaOBJ = OBJGameObjects.INSULA; // Loading models (must be done before loop)
+        NPC npc = new NPC();
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         GuiSelectedItem.getInstance();
         GuiMainMenu.getInstance().setDisplayed(true);
         TextMaster textMaster = TextMaster.getInstance();
 
-//        AbstractMarket.getInstance().place(new TerrainPosition(50, 50));
-//
-//        TerrainPosition[] positions = new TerrainPosition[15];
-//        TerrainPosition[] positions2 = new TerrainPosition[14];
-//        for (int i = 55; i < 70; i++)
-//            positions[i - 55] = new TerrainPosition(50, i);
-//        for (int i = 50; i < 64; i++)
-//            positions2[i - 50] = new TerrainPosition(i, 70);
+        {
+        }
 
-//        AbstractInsula.getInstance().place(new TerrainPosition(62, 74));
-//        AbstractDirtRoadItem.getInstance().place(positions);
-//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 55));
-//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(49, 55));
-//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(51, 63));
-//        AbstractDirtRoadItem.getInstance().place(new TerrainPosition(62, 71));
-
-//        List<TerrainPosition> pos = Arrays.asList(positions2);
-//        Collections.reverse(pos);
-//        positions2 = pos.toArray(new TerrainPosition[0]);
-//        AbstractDirtRoadItem.getInstance().place(positions2);
         Scene.getInstance();
-//        DirtRoad dirtRoad = new DirtRoad();
         Light sun = new Light(new Vector3f(75, 50, 75), new Vector3f(1, 1, 1));
         new Light(new Vector3f(-75, 50, -75), new Vector3f(1, 1, 1));
         new Light(new Vector3f(75, 50, -75), new Vector3f(1, 1, 1));
         new Light(new Vector3f(-75, 50, 75), new Vector3f(1, 1, 1));
-
-//        insula.addComponent(new PositionComponent(new TerrainPosition(62, 74)));
-        Terrain terrain = new Terrain();
-        terrain.addComponent(new PositionComponent(new Vector3f(0, 0, 0)));
-
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
-        Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
-
-        TerrainPosition[] positions = new TerrainPosition[23];
-        for (int i = 53; i < 76; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
-
-        GameObject.newInstances(DirtRoad.class, positions);
 
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
@@ -187,64 +138,75 @@ public class MainGameLoop {
         KeyboardUtils.setupListeners();
         Game.getInstance().updateGuis();
 
-        double time = Timer.getTime();
-        double unprocessed = 0;
-        int frames = 0;
-        double frameTime = 0;
-        double time2;
-        double diff;
-        boolean canRender;
+        Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
+
         Vector4f clipPlane = new Vector4f(0, -1, 0, 1000000);
         MasterRenderer.setClipPlane(clipPlane);
+
+        long lastTime = System.nanoTime();
+        long unprocessed = 0;
+        int nbFrames = 0;
+        long now;
+        long diff;
+        int nbTicks = 0;
+        int nbFramesIgnored = 0;
+        double ns = 1000000000d / TimeSystem.TICK_RATE;
+        long startTime = System.currentTimeMillis();
+
+
         while (!glfwWindowShouldClose(getWindow())) {
-            canRender = false;
-            time2 = Timer.getTime();
-            diff = time2 - time;
+            TimeSystem.updateTimer();
+            now = System.nanoTime();
+            diff = now - lastTime;
             unprocessed += diff;
-            frameTime += diff;
-            time = time2;
-
-            while (unprocessed >= DisplayManager.FRAME_CAP && !glfwWindowShouldClose(getWindow())) {
+            lastTime = now;
+            while (unprocessed >= DisplayManager.FRAME_CAP)
                 unprocessed -= DisplayManager.FRAME_CAP;
-                canRender = true;
 
-//                if (glfwGetKey(DisplayManager.getWindow(), GLFW_KEY_ESCAPE) == GL_TRUE)
-//                    DisplayManager.closeDisplay();
-
-
-                if (frameTime >= 1.0) {
-                    frameTime = 0;
-//                    System.out.println("frames: " + frames);
-                    GuiHouseDetails.getInstance().setCurrentCategoryPercentage(new Random().nextInt(100));
-                    frames = 0;
-                }
-//                glfwPollEvents();
+            for (int i = 0; i < Math.min(10, TimeSystem.getElapsedTicks()); i++) {
+                long start = System.nanoTime();
+                Deque<Double> msptList = GuiDebug.getInstance().msptList;
+                Game.getInstance().processLogic();
+                if (msptList.size() > 9)
+                    msptList.removeFirst();
+                msptList.add(Utils.formatDoubleToNDecimals(((double) System.nanoTime() - start) / 1000000d, 2));
+                nbTicks++;
             }
 
-            if (canRender) {
-                glfwPollEvents();
+            double timeForNextUpdate = now + ns;
+            long nanoTime = System.nanoTime();
+            boolean draw = nanoTime < timeForNextUpdate || nbFramesIgnored > DisplayManager.MAX_FRAMES_IGNORED;
+//            boolean draw = true;
+            if (draw) {
+                Game.getInstance().processRendering(fbo);
+                nbFrames++;
+                nbFramesIgnored = 0;
+            } else
+                nbFramesIgnored++;
 
-                if (Game.getInstance().getGameState() == GameState.STARTED) {
-                    camera.move();
+            if (System.currentTimeMillis() - startTime > 1000) {
+//                Random r = new Random();
+//                char c1 = (char) (r.nextInt(26) + 'a');
+//                char c2 = (char) (r.nextInt(26) + 'a');
+//                char c3 = (char) (r.nextInt(26) + 'a');
+//                GuiDebug.getInstance().consoleLogs.getText()
+//                        .addTextString(c1 + "\n\n" + c2 + "\n\n" + c3 + "\n\n", Color.WHITE);
+//                System.out.println("t");
+                startTime += 1000;
 
-                    MasterRenderer.renderScene();
-                    Scene.getInstance().render();
-
-                    Scene.getInstance().updateHighlightedPaths();
-                } else {
-                    fbo.bindFrameBuffer();
-                    MasterRenderer.renderScene();
-                    Scene.getInstance().render();
-
-                    fbo.unbindFrameBuffer();
-                    PostProcessing.doPostProcessing(fbo.getColourTexture());
-                }
-                GuiRenderer.render();
-                textMaster.render();
-
+                DisplayManager.FPS = nbFrames;
+                nbFrames = 0;
+                Deque<Integer> tpsList = GuiDebug.getInstance().tpsList;
+                if (tpsList.size() > 9)
+                    tpsList.removeFirst();
+                tpsList.add(nbTicks);
+                DisplayManager.TPS = nbTicks;
+                nbTicks = 0;
+                GuiDebug.getInstance().updateInfoGui();
+            }
+            if (draw)
                 glfwSwapBuffers(DisplayManager.getWindow());
-                frames++;
-            }
+            glfwPollEvents();
         }
 
         SettingsManager.saveSettings();

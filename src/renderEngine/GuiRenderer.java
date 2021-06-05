@@ -8,7 +8,6 @@ import engineTester.Game;
 import guis.GuiInterface;
 import guis.GuiTexture;
 import guis.basics.GuiShape;
-import guis.basics.GuiText;
 import guis.presets.Background;
 import guis.presets.GuiTextInput;
 import guis.presets.graphs.GuiDonutGraph;
@@ -21,7 +20,6 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL33;
-import org.lwjgl.opengl.GL42;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.GuiShader;
 import util.math.Maths;
@@ -32,6 +30,7 @@ public class GuiRenderer {
     public final static int DEFAULT       = 0;
     public final static int DONUT         = 1;
     public final static int PROGRESS_ICON = 2;
+    public final static int CIRCLE        = 3;
 
     public final static RawModel filledQuad     = Loader.getInstance().loadToVAO(POSITIONS_FILLED, 2);
     public final static RawModel unfilledQuad   = Loader.getInstance().loadToVAO(POSITIONS_UNFILLED, 2);
@@ -52,7 +51,7 @@ public class GuiRenderer {
         GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
-        GL11.glDisable(GL42.GL_MULTISAMPLE);
+//        GL11.glDisable(GL42.GL_MULTISAMPLE);
 
         TextMaster.getInstance().removeText();
 
@@ -60,7 +59,6 @@ public class GuiRenderer {
         Game.getInstance().getDisplayedGuis()
                 .forEach(gui -> {
                     gui.render();
-
                     gui.getAllComponents()
                             .stream().filter(guiComponent -> guiComponent.isDisplayed() /*||
                             gui.getComponentsHideTransitions().get(guiComponent).stream()
@@ -90,8 +88,8 @@ public class GuiRenderer {
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL42.GL_MULTISAMPLE);
-        GL11.glEnable(GL11.GL_POLYGON_SMOOTH);
+//        GL11.glEnable(GL42.GL_MULTISAMPLE);
+//        GL11.glEnable(GL11.GL_POLYGON_SMOOTH);
 
         GL20.glDisableVertexAttribArray(0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
@@ -109,59 +107,68 @@ public class GuiRenderer {
         glDisable(GL_BLEND);
 
         GL33.glLineWidth(3);
-
-        loadTexture(guiInterface.getDebugOutline(), 0);
+        loadTexture(guiInterface.getDebugOutline());
+        shader.loadType(0);
+        shader.loadCornerRadius(0);
+//        shader.loadOutlineWidth(0);
+//        shader.loadBorderColor(Color.WHITE);
+        shader.loadFilled(false);
+        shader.loadBorderColor(guiInterface.getDebugOutline().getColor());
+        shader.loadBorderEnabled(true);
 
         GL33.glDrawArrays(GL_LINE_LOOP, 0, unfilledQuad.getVertexCount());
-        if (guiInterface instanceof GuiText) {
-            GuiText guiText = (GuiText) guiInterface;
-            if (guiText.getText() != null && guiText.getText().getPosition() != null) {
-                Vector2f position = new Vector2f(guiText.getText().getPosition());
-                position.y = (float) (position.y * -2 + 1 - guiText.getText().getTextHeight() / 2);
-                position.x = (float) (position.x * 2 - 1 + guiText.getLine().getLineLength());
 
-                GuiTexture guiTexture = new GuiTexture(new Background<>(Color.decode("#512DA8")), position,
-                        new Vector2f(guiText.getLine().getLineLength(), guiText.getText().getTextHeight() / 2));
+        GL33.glLineWidth(2);
 
-                loadTexture(guiTexture, 0);
-            }
+        glEnable(GL_BLEND);
+    }
+//
+//    public static void renderUnfilledShape(GuiShape guiShape, int renderingMode, float cornerRadius) {
+//        glDisable(GL_BLEND);
+//
+//        GL33.glLineWidth((float) guiShape.getOutlineWidth());
+//
+//        loadTexture(guiShape.getTexture(), cornerRadius, 0, Color.BLACK);
+//
+//        GL33.glDrawArrays(renderingMode, 0, guiShape.getTemplate().getVertexCount());
+//
+//        GL33.glLineWidth(2);
+//
+//        glEnable(GL_BLEND);
+//    }
+
+    public static void loadGui(GuiInterface guiInterface) {
+        assert guiInterface != null;
+
+        GuiTexture guiTexture = guiInterface.getTexture();
+        loadTexture(guiTexture);
+        shader.loadType(guiInterface.getType());
+        shader.loadCornerRadius(guiInterface.getCornerRadius());
+        int outlineWidth = 0;
+        boolean filled = true;
+        Color borderColor = Color.BLACK;
+        boolean borderEnabled = false;
+        if (guiInterface instanceof GuiShape) {
+            outlineWidth = ((GuiShape) guiInterface).getOutlineWidth();
+            borderColor = ((GuiShape) guiInterface).getBorderColor();
+            filled = ((GuiShape) guiInterface).isFilled();
+            borderEnabled = ((GuiShape) guiInterface).isBorderEnabled();
         }
 
-        GL33.glLineWidth(2);
-
-        glEnable(GL_BLEND);
+        shader.loadOutlineWidth(outlineWidth);
+        shader.loadBorderColor(borderColor);
+        shader.loadFilled(filled);
+        shader.loadBorderEnabled(borderEnabled);
     }
 
-    public static void renderUnfilledShape(GuiShape guiShape, int renderingMode, float cornerRadius) {
-        glDisable(GL_BLEND);
-
-        GL33.glLineWidth((float) guiShape.getOutlineWidth());
-
-        loadTexture(guiShape.getTexture(), cornerRadius);
-
-        GL33.glDrawArrays(renderingMode, 0, guiShape.getTemplate().getVertexCount());
-
-        GL33.glLineWidth(2);
-
-        glEnable(GL_BLEND);
-    }
-
-    public static void loadTexture(GuiTexture guiTexture, float cornerRadius) {
-        loadTexture(guiTexture, cornerRadius, DEFAULT);
-    }
-
-    public static void loadTexture(GuiTexture guiTexture, float cornerRadius, int type) {
-        assert guiTexture != null;
-
+    private static void loadTexture(GuiTexture guiTexture) {
         bindTexture(guiTexture);
 
         shader.loadTransformation(Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
-        shader.loadType(type);
         shader.loadWidth(guiTexture.getScale().x);
         shader.loadHeight(guiTexture.getScale().y);
         shader.loadAlpha(guiTexture.getAlpha());
         shader.loadColor(guiTexture.getColor());
-        shader.loadRadius(cornerRadius);
     }
 
     public static void loadPercentage(float percentage) {

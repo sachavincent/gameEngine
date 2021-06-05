@@ -4,7 +4,7 @@ import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.HouseRenderer;
+import renderEngine.BuildingRenderer;
 import scene.components.*;
 
 public class Market extends GameObject {
@@ -16,23 +16,24 @@ public class Market extends GameObject {
 
     public Market() {
         addComponent(new IconComponent(GameObjectPreviews.MARKET));
-        addComponent(new DirectionComponent());
+        DirectionComponent directionComponent = new DirectionComponent();
+        addComponent(directionComponent);
         addComponent(new TextureComponent(OBJGameObjects.MARKET.getTexture()));
         addComponent(new PreviewComponent(OBJGameObjects.MARKET.getPreviewTexture()));
-        addComponent(new OffsetsComponent(Z_POSITIVE_OFFSET, X_POSITIVE_OFFSET, Z_NEGATIVE_OFFSET, X_NEGATIVE_OFFSET));
+        addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
         addComponent(new RoadConnectionsComponent());
 
-        FrequentedPlaceComponent frequentedPlaceComponent = new FrequentedPlaceComponent(10);
-        addComponent(frequentedPlaceComponent);
+//        FrequentedPlaceComponent frequentedPlaceComponent = new FrequentedPlaceComponent(10);
+//        addComponent(frequentedPlaceComponent);
 
-        addComponent(new BoundingBoxComponent(OBJGameObjects.MARKET.getBoundingBox()));
+        addComponent(new BoundingBoxComponent(OBJGameObjects.MARKET.getBoundingBox(), directionComponent));
         addComponent(new SelectableComponent(button -> {
-            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 GuiHouseDetails.getInstance().setHouseObject(this);
                 GuiHouseDetails.getInstance().setDisplayed(true);
             }
         }));
-        addComponent(new RendererComponent(this, HouseRenderer.getInstance()));
+        addComponent(new RendererComponent(BuildingRenderer.getInstance()));
     }
 
 

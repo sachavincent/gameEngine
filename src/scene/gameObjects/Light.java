@@ -18,6 +18,6 @@ public class Light extends GameObject {
         addComponent(new ColorComponent(color));
         addComponent(new AttenuationComponent(attenuation));
 
-        addComponent(new RendererComponent(this, LightRenderer.getInstance()));
+        addComponent(new RendererComponent(LightRenderer.getInstance()));
     }
 }

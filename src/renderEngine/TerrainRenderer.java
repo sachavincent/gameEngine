@@ -4,19 +4,17 @@ import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
-import java.util.ArrayList;
-import java.util.List;
 import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import scene.gameObjects.GameObject;
+import renderEngine.shaders.TerrainShader;
 import scene.components.PositionComponent;
 import scene.components.TextureComponent;
 import scene.components.TexturePackComponent;
-import renderEngine.shaders.TerrainShader;
+import scene.gameObjects.GameObject;
 import textures.TerrainTexturePack;
 import util.math.Maths;
 import util.math.Matrix4f;
@@ -25,8 +23,6 @@ import util.math.Vector3f;
 public class TerrainRenderer extends Renderer {
 
     private static TerrainRenderer instance;
-
-    private List<RawModel> paths = new ArrayList<>();
 
     public static TerrainRenderer getInstance() {
         return instance == null ? (instance = new TerrainRenderer()) : instance;
@@ -43,38 +39,18 @@ public class TerrainRenderer extends Renderer {
         this.shader.stop();
     }
 
-    public void setPaths(List<RawModel> paths) {
-        this.paths = paths;
-    }
-
     @Override
     public void render() {
-        GameObject terrain = this.gameObjects.stream().findFirst().orElse(null);
-        if (terrain != null) {
+        this.gameObjects.forEach(terrain -> {
             RawModel rawModel = prepareTerrain(terrain);
             if (rawModel != null) {
-                Vector3f vector3f = terrain.getComponent(PositionComponent.class).getPosition();
-                loadModelMatrix(vector3f);
+                Vector3f position = terrain.getComponent(PositionComponent.class).getPosition();
+                loadModelMatrix(position);
                 GL11.glLineWidth(2);
                 GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
                 unbindTexturedModel();
             }
-
-            GL11.glLineWidth(5);
-            ((TerrainShader) this.shader).loadUniformColor(true);
-            for (RawModel path : this.paths) {
-                GL30.glBindVertexArray(path.getVaoID());
-                GL20.glEnableVertexAttribArray(0);
-                GL20.glEnableVertexAttribArray(1);
-                GL20.glEnableVertexAttribArray(2);
-                bindTextures(terrain);
-
-                GL11.glDrawElements(GL11.GL_LINES, path.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-                unbindTexturedModel();
-            }
-
-            ((TerrainShader) this.shader).loadUniformColor(false);
-        }
+        });
 
         this.gameObjects.clear();
         this.shader.stop();

@@ -3,7 +3,7 @@ package scene.components;
 import models.TexturedModel;
 import terrains.TerrainPosition;
 
-public class PreviewComponent implements Component {
+public class PreviewComponent extends Component {
 
     private final TexturedModel previewTexture;
 

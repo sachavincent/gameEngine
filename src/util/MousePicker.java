@@ -3,15 +3,22 @@ package util;
 
 import entities.Camera;
 import inputs.MouseUtils;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import models.BoundingBox;
 import renderEngine.DisplayManager;
 import renderEngine.MasterRenderer;
-import scene.*;
+import scene.Scene;
 import scene.components.BoundingBoxComponent;
+import scene.components.OffsetComponent;
 import scene.components.PositionComponent;
 import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
+import scene.gameObjects.Terrain;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Plane3D;
@@ -55,30 +62,18 @@ public class MousePicker {
         return currentRay;
     }
 
-    public Vector3f update() {
+    public void update() {
         viewMatrix = Maths.createViewMatrix();
 
         currentRay = calculateMouseRay();
         currentRay = (Vector3f) currentRay.normalise();
 
-        this.gameObject = Scene.getInstance().getGameObjects().stream().filter(gameObject -> {
-            BoundingBoxComponent boundingBoxComponent = gameObject.getComponent(BoundingBoxComponent.class);
-            if (boundingBoxComponent == null)
-                return false;
-            PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
-            if (positionComponent == null)
-                return false;
-            BoundingBox boundingBox = boundingBoxComponent.getBoundingBox();
-            this.intersectionPoint = boundingBox.getPlanes().stream()
-                    .map(plane3D -> {
-                        Vector3f position = positionComponent.getPosition();
-                        plane3D = plane3D.add(position);
-                        return intersectionWithPlane(plane3D, false);
-                    }).filter(Objects::nonNull).findFirst().orElse(null);
-
-            return this.intersectionPoint != null;
-        }).findFirst().orElse(null);
-
+        Map<GameObject, Vector3f> map = new HashMap<>();
+        Entry<GameObject, Vector3f> intersectionWithGameObject = getIntersectionWithGameObject(
+                Scene.getInstance().getGameObjectsOfType(Terrain.class).stream().findFirst().orElse(null));
+        if (intersectionWithGameObject != null)
+            map.put(intersectionWithGameObject.getKey(), intersectionWithGameObject.getValue());
+        calculateIntersectionPoint(map);
 //        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, Terrain.SIZE),
 //                new Vector3f(Terrain.SIZE, 0, Terrain.SIZE), new Vector3f(Terrain.SIZE, 0, 0));
 //        System.out.println("TerrainPoint: " + intersectionWithPlane(terrainPlane, false));
@@ -92,8 +87,57 @@ public class MousePicker {
 //            System.out.println(currentTerrainPoint);
 //        } else
 //            currentTerrainPoint = null;
+    }
 
-        return this.intersectionPoint;
+    public void updateIntersectionOnClick() {
+        final Map<GameObject, Vector3f> gameObjectIntersections = new HashMap<>();
+        // Distance intersection <-> camera
+        Scene.getInstance().getGameObjects().forEach(gameObject -> {
+            Entry<GameObject, Vector3f> intersection = getIntersectionWithGameObject(gameObject);
+            if (intersection != null)
+                gameObjectIntersections.put(intersection.getKey(), intersection.getValue());
+        });
+
+        calculateIntersectionPoint(gameObjectIntersections);
+    }
+
+    private void calculateIntersectionPoint(Map<GameObject, Vector3f> gameObjectIntersections) {
+        Entry<GameObject, Vector3f> gameObjectDoubleEntry = gameObjectIntersections.entrySet().stream()
+                .filter(Objects::nonNull)
+                .min(Comparator.comparingDouble(o -> o.getValue().distance(Camera.getInstance().getPosition())))
+                .orElse(null);
+        if (gameObjectDoubleEntry != null) {
+            this.gameObject = gameObjectDoubleEntry.getKey();
+            this.intersectionPoint = gameObjectDoubleEntry.getValue();
+        }
+    }
+
+    private Entry<GameObject, Vector3f> getIntersectionWithGameObject(GameObject gameObject) {
+        if (gameObject == null)
+            return null;
+        BoundingBoxComponent boundingBoxComponent = gameObject.getComponent(BoundingBoxComponent.class);
+        if (boundingBoxComponent == null)
+            return null;
+        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
+        if (positionComponent == null)
+            return null;
+        Vector3f position = positionComponent.getPosition();
+        OffsetComponent offsetComponent = gameObject.getComponent(OffsetComponent.class);
+        if (offsetComponent != null)
+            position = position.add(offsetComponent.getOffset());
+
+        BoundingBox boundingBox = boundingBoxComponent.getBoundingBox();
+        Vector3f finalPosition = position;
+        Vector3f intersectionPoint = boundingBox.getPlanes().stream()
+                .map(plane3D -> {
+                    plane3D = plane3D.add(finalPosition);
+                    return intersectionWithPlane(plane3D, false);
+                }).filter(Objects::nonNull).findFirst().orElse(null);
+        if (intersectionPoint == null)
+            return null;
+
+        // Distance intersection <-> camera
+        return new SimpleEntry<>(gameObject, intersectionPoint);
     }
 
     public Vector3f intersectionWithPlane(Plane3D plane, boolean print) {

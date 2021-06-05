@@ -12,33 +12,37 @@ public class StickyConstraint extends GuiConstraints {
 
     private final Constraints distanceType; // Distance can be given in pixels or relative to parent
 
-    private StickyConstraint(Side side, GuiInterface relativeTo, float distance, Constraints type) {
+    private StickyConstraint(Side side, float distanceFromSide, Constraints type, GuiInterface relativeTo) {
         super(ConstraintsType.POSITION, Constraints.STICKY);
 
         this.relativeTo = relativeTo;
         this.side = side;
-        this.constraint = distance;
+        this.constraint = distanceFromSide;
         this.distanceType = type;
-    }
-
-    public StickyConstraint(Side side, GuiInterface relativeTo) {
-        this(side, relativeTo, DISTANCE_FROM_SIDE);
-    }
-
-    public StickyConstraint(Side side, GuiInterface relativeTo, float distance) {
-        this(side, relativeTo, distance, Constraints.RELATIVE);
-    }
-
-    public StickyConstraint(Side side, float distance) {
-        this(side, null, distance);
     }
 
     public StickyConstraint(Side side) {
         this(side, null);
     }
 
-    public StickyConstraint(Side side, GuiInterface relativeTo, int distance) {
-        this(side, relativeTo, distance, Constraints.PIXEL);
+    public StickyConstraint(Side side, GuiInterface relativeTo) {
+        this(side, DISTANCE_FROM_SIDE, Constraints.RELATIVE, relativeTo);
+    }
+
+    public StickyConstraint(Side side, float distanceFromSide) {
+        this(side, distanceFromSide, Constraints.RELATIVE, null);
+    }
+
+    public StickyConstraint(Side side, float distanceFromSide, GuiInterface relativeTo) {
+        this(side, distanceFromSide, Constraints.RELATIVE, relativeTo);
+    }
+
+    public StickyConstraint(Side side, int distanceFromSide) {
+        this(side, distanceFromSide, Constraints.PIXEL, null);
+    }
+
+    public StickyConstraint(Side side, int distanceFromSide, GuiInterface relativeTo) {
+        this(side, distanceFromSide, Constraints.PIXEL, relativeTo);
     }
 
     public Side getSide() {

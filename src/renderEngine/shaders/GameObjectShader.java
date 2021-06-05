@@ -1,11 +1,12 @@
 package renderEngine.shaders;
 
+import java.awt.Color;
 import java.util.Iterator;
 import java.util.Set;
 import scene.components.AttenuationComponent;
 import scene.components.ColorComponent;
-import scene.gameObjects.GameObject;
 import scene.components.PositionComponent;
+import scene.gameObjects.GameObject;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -34,6 +35,8 @@ public class GameObjectShader extends ShaderProgram {
     private int   location_plane;
     private int   location_directionalColor;
     private int   location_isInstanced;
+    private int   location_alpha;
+    private int   location_color;
 
     public GameObjectShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -61,6 +64,8 @@ public class GameObjectShader extends ShaderProgram {
         this.location_plane = super.getUniformLocation("plane");
         this.location_directionalColor = super.getUniformLocation("directionalColor");
         this.location_isInstanced = super.getUniformLocation("isInstanced");
+        this.location_alpha = super.getUniformLocation("alpha");
+        this.location_color = super.getUniformLocation("color");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
@@ -77,8 +82,17 @@ public class GameObjectShader extends ShaderProgram {
         super.loadVector(location_plane, plane);
     }
 
+    public void loadAlpha(float alpha) {
+        super.loadFloat(location_alpha, alpha);
+    }
+
     public void loadDirectionalColor(boolean directionalColor) {
         super.loadBoolean(location_directionalColor, directionalColor);
+    }
+
+    public void loadColor(Color color) {
+        super.loadVector(this.location_color, color == null ? new Vector3f(-1, -1, -1) :
+                new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f));
     }
 
     public void loadNumberOfRows(int numberofRows) {
@@ -113,7 +127,8 @@ public class GameObjectShader extends ShaderProgram {
     public void loadIsInstanced(boolean isInstanced) {
         super.loadBoolean(location_isInstanced, isInstanced);
     }
-    
+
+
     public void loadLights(Set<GameObject> lights) {
         Iterator<GameObject> iterator = lights.iterator();
         int i = 0;

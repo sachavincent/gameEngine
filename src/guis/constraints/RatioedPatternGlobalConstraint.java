@@ -47,8 +47,20 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
 
 //        float itemWidth = (1 - distance * (maxHorizontalElements + 1)) / maxHorizontalElements;
 //        float itemHeight = (1 - distance * (maxVerticalElements + 1)) / maxVerticalElements;
-        float xPercentage = (float) arguments[this.nbElements * 2 + 4] / 100;
-        float yPercentage = (float) arguments[this.nbElements * 2 + 5] / 100;
+        float arg1Float;
+        float arg2Float;
+        Object arg1 = arguments[this.nbElements * 2 + 4];
+        Object arg2 = arguments[this.nbElements * 2 + 5];
+        if (arg1 instanceof Integer)
+            arg1Float = (int) arg1;
+        else
+            arg1Float = (float) arg1;
+        if (arg2 instanceof Integer)
+            arg2Float = (int) arg2;
+        else
+            arg2Float = (float) arg2;
+        float xPercentage = arg1Float / 100;
+        float yPercentage = arg2Float / 100;
 
         float itemSizeWidth = getItemSize(maxHorizontalElements, distanceX, xPercentage < 0 ? 1 : xPercentage);
         float itemSizeHeight = getItemSize(maxVerticalElements, distanceY, yPercentage < 0 ? 1 : yPercentage);
@@ -112,7 +124,12 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
                 int index = (this.nbElements + i) * 2 + 4;
                 if (arguments.length <= index)
                     break;
-                float p = (float) arguments[index] / 100;
+                Object arg = arguments[index];
+                float p;
+                if (arg instanceof Integer)
+                    p = (int) arg / 100f;
+                else
+                    p = (float) arg / 100f;
                 percentage += p;
                 i++;
             }
@@ -133,7 +150,12 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
                 int index = (this.nbElements + i) * 2 + 5;
                 if (arguments.length <= index)
                     break;
-                float p = (float) arguments[index] / 100;
+                Object arg = arguments[index];
+                float p;
+                if (arg instanceof Integer)
+                    p = (int) arg / 100f;
+                else
+                    p = (float) arg / 100f;
                 percentage += p;
                 i++;
             }
@@ -175,7 +197,7 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
     }
 
     private float getItemSize(int maxItems, double distance, double percentagePer) {
-        double totalDistance = distance * (maxItems + 1);
+        double totalDistance = distance * (maxItems - 1);
         return (float) ((1 - totalDistance) * percentagePer);
     }
 }

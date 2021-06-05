@@ -2,7 +2,10 @@ package scene.components;
 
 import inputs.callbacks.MousePressCallback;
 
-public class SelectableComponent implements Component {
+/**
+ * Requires BoundingBoxComponent to work
+ */
+public class SelectableComponent extends Component {
 
     private boolean selected;
 

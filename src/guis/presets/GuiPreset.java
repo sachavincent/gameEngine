@@ -1,6 +1,5 @@
 package guis.presets;
 
-import static renderEngine.GuiRenderer.DEFAULT;
 import static renderEngine.GuiRenderer.filledQuad;
 
 import guis.GuiComponent;
@@ -13,8 +12,6 @@ import org.lwjgl.opengl.GL30;
 import renderEngine.GuiRenderer;
 
 public abstract class GuiPreset extends GuiComponent {
-
-    protected int type = DEFAULT;
 
     protected GuiPreset(GuiInterface parent, GuiConstraintsManager constraintsManager) {
         this(parent, Background.NO_BACKGROUND, constraintsManager);
@@ -30,7 +27,6 @@ public abstract class GuiPreset extends GuiComponent {
         super(parent, background);
     }
 
-
     @Override
     public RawModel getTemplate() {
         return filledQuad;
@@ -41,7 +37,7 @@ public abstract class GuiPreset extends GuiComponent {
         GL30.glBindVertexArray(getTemplate().getVaoID());
         GL20.glEnableVertexAttribArray(0);
 
-        GuiRenderer.loadTexture(getTexture(), cornerRadius, type);
+        GuiRenderer.loadGui(this);
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, getTemplate().getVertexCount());
     }
 }

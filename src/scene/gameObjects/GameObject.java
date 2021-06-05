@@ -1,16 +1,19 @@
 package scene.gameObjects;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import scene.Scene;
 import scene.components.Component;
 import scene.components.PositionComponent;
 import scene.components.RendererComponent;
-import scene.components.RoadComponent;
 import terrains.TerrainPosition;
 
 public abstract class GameObject {
+
+    private final static Set<Class<? extends GameObject>> UNIQUE_GAMEOBJECTS = new HashSet<>();
 
     private static int ID;
 
@@ -25,6 +28,8 @@ public abstract class GameObject {
 
         this.components = new HashMap<>();
         this.scene = Scene.getInstance();
+
+        UNIQUE_GAMEOBJECTS.add(this.getClass());
     }
 
     public int getId() {
@@ -32,17 +37,20 @@ public abstract class GameObject {
     }
 
     public final void addComponent(Component component) {
+        component.setId(this.id);
         removeComponent(component.getClass());
 
         this.components.put(component.getClass().getName(), component);
 
         if (component instanceof PositionComponent) {
             Scene.getInstance().addGameObject(this);
-            if (this.components.containsKey(RoadComponent.class.getName()))
-                Scene.getInstance().getRoadGraph()
-                        .addRoad(((PositionComponent) component).getPosition().toTerrainPosition());
-            Scene.getInstance().updateRequirements();
+            this.components.values().stream().map(Component::getAddComponentCallback).filter(Objects::nonNull)
+                    .forEach(callback -> callback.onAddComponent(this, ((PositionComponent) component).getPosition()));
         }
+    }
+
+    public Map<String, Component> getComponents() {
+        return this.components;
     }
 
     public final <T extends Component> T getComponent(Class<T> componentClass) {
@@ -54,7 +62,7 @@ public abstract class GameObject {
         Component removedComponent = this.components.remove(componentClass.getName());
 
         if (removedComponent instanceof PositionComponent) {
-            Scene.getInstance().removeGameObject(this, ((PositionComponent) removedComponent).getPosition());
+            Scene.getInstance().removeGameObject(this.id);
         }
     }
 
@@ -72,23 +80,31 @@ public abstract class GameObject {
             renderer.getRenderer().prepareRender(this);
     }
 
-
-    public static GameObject getObjectFromClass(Class<? extends GameObject> objectClass) {
+    public static <X extends GameObject> X getObjectFromClass(Class<X> objectClass) {
         try {
             return objectClass.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
-            System.out.println(objectClass.getName());
+            System.err.println("Error while creating object: " + objectClass.getName());
         }
         return null;
     }
 
     public final void destroy() {
-        this.components.forEach((s, component) -> component.removeObject(this));
+        Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = Scene.getInstance()
+                .getIdGameObjectsForComponents();
+        for (Component component : getComponents().values()) {
+            Set<Integer> integers = idGameObjectsForComponents.get(component.getClass());
+            integers.remove(this.id);
+        }
+        Scene.getInstance().removeGameObject(this.id);
+
+        if (hasComponent(RendererComponent.class))
+            Scene.getInstance().removeRenderableGameObject(getComponent(RendererComponent.class).getRenderer(), this);
     }
 
-    public static GameObject newInstance(Class<? extends GameObject> objectClass, TerrainPosition position) {
-        GameObject gameObject = getObjectFromClass(objectClass);
+    public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position) {
+        X gameObject = getObjectFromClass(objectClass);
         gameObject.addComponent(new PositionComponent(position));
 
         return gameObject;
@@ -121,5 +137,12 @@ public abstract class GameObject {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public static Class<? extends GameObject> getClassFromName(String gameObjectName) {
+        return UNIQUE_GAMEOBJECTS.stream().filter(clazz -> {
+            String simpleName = clazz.getSimpleName();
+            return simpleName.equalsIgnoreCase(gameObjectName);
+        }).findFirst().orElse(null);
     }
 }

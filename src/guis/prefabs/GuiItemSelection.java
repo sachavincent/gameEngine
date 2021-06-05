@@ -5,7 +5,6 @@ import fontMeshCreator.Text;
 import guis.Gui;
 import guis.constraints.*;
 import guis.presets.Background;
-import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
 import items.GameObjectPreviews;
@@ -48,46 +47,55 @@ public class GuiItemSelection extends Gui {
 
         setConstraints(menuConstraints);
 
-
         setLayout(new PatternGlobalConstraint(5, 3, .02f));
 
-        GuiAbstractButton dirtRoadButton = addButton(Words.DIRT_ROAD, GameObjectPreviews.DIRT_ROAD);
-        dirtRoadButton.setOnMousePress(button -> {
-            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                System.out.println("DirtRoad selected");
+        createDirtRoadButton();
+        createInsulaButton();
+        createMarketButton();
 
-                MouseUtils.setRoadState();
-                selectOrUnselect(DirtRoad.class);
-            }
-        });
-        GuiAbstractButton insulaButton = addButton(Words.INSULA, GameObjectPreviews.INSULA);
-        insulaButton.setOnMousePress(button -> {
-            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                System.out.println("Insula selected");
+        setDisplayed(false);
+    }
 
-                MouseUtils.setBuildingState();
-                selectOrUnselect(Insula.class);
-            }
-        });
-        GuiAbstractButton marketButton = addButton(Words.MARKET, GameObjectPreviews.MARKET);
+    private void createMarketButton() {
+        Text text = new Text(Words.MARKET, .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton marketButton = new GuiRectangleButton(this, GameObjectPreviews.MARKET, null, null, text);
         marketButton.setOnMousePress(button -> {
-            if(button == GLFW.GLFW_MOUSE_BUTTON_1) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("Market selected");
 
                 MouseUtils.setBuildingState();
                 selectOrUnselect(Market.class);
             }
         });
-
-        setDisplayed(false);
     }
 
-    public GuiAbstractButton addButton(Words name, Background<?> background) {
-        Text text = new Text(name, .55f, DEFAULT_FONT, Color.DARK_GRAY);
-        GuiRectangleButton button = new GuiRectangleButton(this, background, null, text);
-        button.enableFilter();
+    private void createInsulaButton() {
+        Text text = new Text(Words.INSULA, .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton insulaButton = new GuiRectangleButton(this, GameObjectPreviews.INSULA, null, null, text);
+        insulaButton.enableFilter();
+        insulaButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("Insula selected");
 
-        return button;
+                MouseUtils.setBuildingState();
+                selectOrUnselect(Insula.class);
+            }
+        });
+    }
+
+    private void createDirtRoadButton() {
+        Text text = new Text(Words.DIRT_ROAD, .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton dirtRoadBtn = new GuiRectangleButton(this, GameObjectPreviews.DIRT_ROAD, null, null, text);
+        dirtRoadBtn.enableFilter();
+
+        dirtRoadBtn.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("DirtRoad selected");
+
+                MouseUtils.setRoadState();
+                selectOrUnselect(DirtRoad.class);
+            }
+        });
     }
 
     private void selectOrUnselect(Class<? extends GameObject> gameObjectClass) {

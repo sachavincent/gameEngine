@@ -1,11 +1,11 @@
 package scene.components;
 
-public class RepleacableComponent implements Component {
+public class RepleacableComponent extends Component {
 
     private final boolean repleacable;
 
     public RepleacableComponent() {
-        this.repleacable = true;
+        this(true);
     }
 
     public RepleacableComponent(boolean repleacable) {

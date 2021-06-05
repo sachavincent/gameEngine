@@ -31,8 +31,9 @@ public class GuiTexture extends Texture {
         else if (background.getBackground() instanceof Color)
             this.alpha = ((Color) background.getBackground()).getAlpha() / 255f;
         else if (background.getBackground() instanceof Integer) {
-        } else
-            throw new IllegalArgumentException("Type invalide");
+        }
+//        else
+//            throw new IllegalArgumentException("Type invalide");
 
         this.finalAlpha = this.alpha;
     }

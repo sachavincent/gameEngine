@@ -2,6 +2,9 @@ package guis;
 
 import guis.constraints.GuiGlobalConstraints;
 import guis.transitions.Transition;
+import inputs.callbacks.CloseCallback;
+import inputs.callbacks.OpenCallback;
+import inputs.callbacks.UpdateCallback;
 
 public interface GuiInterface {
 
@@ -46,4 +49,20 @@ public interface GuiInterface {
     default boolean update() {
         return true;
     }
+
+    void setOnUpdate(UpdateCallback callback);
+
+    void setOnClose(CloseCallback callback);
+
+    void setOnOpen(OpenCallback callback);
+
+    void focus();
+
+    void unfocus();
+
+    boolean isFocused();
+
+    float getCornerRadius();
+
+    int getType();
 }

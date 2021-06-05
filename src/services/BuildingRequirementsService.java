@@ -1,72 +1,75 @@
 package services;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import pathfinding.RouteFinder;
-import pathfinding.RouteFinder.Route;
-import scene.gameObjects.GameObject;
-import scene.components.RequireBuildingComponent;
-import scene.components.RoadConnectionsComponent;
+import java.awt.Color;
+import java.util.Comparator;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import pathfinding.Path;
+import pathfinding.PathFinder;
 import scene.Scene;
+import scene.components.RoadConnectionsComponent;
+import scene.components.requirements.BuildingRequirement;
+import scene.components.requirements.RequirementComponent;
+import scene.gameObjects.GameObject;
 
-public class BuildingRequirementsService extends Service<List<Route>> {
+public class BuildingRequirementsService extends Service<Map<Path, Color>> {
 
     private final Set<GameObject> gameObjects;
 
-    public BuildingRequirementsService(boolean singleton, OnServiceDone<List<Route>> onServiceDone) {
+    public BuildingRequirementsService(boolean singleton, OnServiceDone<Map<Path, Color>> onServiceDone) {
         super(singleton, onServiceDone);
 
-//        this.buildings = Terrain.getInstance().getBuildings().stream()
-//                .filter(RequireBuilding.class::isInstance)
-//                .filter(buildingItem -> !((RequireBuilding) buildingItem).doesMeetAllRequirements())
-//                .collect(Collectors.toSet());
-        this.gameObjects = Scene.getInstance().getGameObjects().stream().filter(gameObject -> gameObject.hasComponent(
-                RequireBuildingComponent.class)).collect(Collectors.toSet());
+        this.gameObjects = Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false);
     }
 
     @Override
-    protected synchronized List<Route> execute() {
-        List<Route> paths = new ArrayList<>();
+    protected synchronized Map<Path, Color> execute() {
+        Map<Path, Color> paths = new HashMap<>();
         try {
-            for (GameObject gameObject : gameObjects) {
-                if (!running)
+            for (GameObject gameObject : this.gameObjects) {
+                Color color = new Color((int) (Math.random() * 0x1000000));
+                if (!this.running)
                     return paths;
 
-                Set<Route> foundRoutes = new TreeSet<>(Comparator.comparingInt(Route::getCost));
+                Set<Path> foundPaths = new TreeSet<>(Comparator.comparingInt(Path::getCost));
                 boolean hasRoadConnections = gameObject.hasComponent(RoadConnectionsComponent.class);
                 if (!hasRoadConnections)
                     continue;
 
                 RoadConnectionsComponent component = gameObject.getComponent(RoadConnectionsComponent.class);
-                RequireBuildingComponent requireComponent = gameObject.getComponent(RequireBuildingComponent.class);
+//                RequireBuildingComponent requireComponent = gameObject.getComponent(RequireBuildingComponent.class);
+                RequirementComponent requireComponent = gameObject.getComponent(RequirementComponent.class);
                 if (component.isConnected()) {
-                    Map<Class<? extends GameObject>, Integer> requirements = requireComponent.getRequirements();
-                    for (Entry<Class<? extends GameObject>, Integer> entry : requirements.entrySet()) {
-                        Class<? extends GameObject> objectClass = entry.getKey();
-                        if (!running)
+                    Set<BuildingRequirement> buildingRequirements = requireComponent
+                            .getRequirementsOfType(BuildingRequirement.class);
+                    for (BuildingRequirement buildingRequirement : buildingRequirements) {
+                        requireComponent.clearRequirement(buildingRequirement);
+                    }
+                    for (BuildingRequirement buildingRequirement : buildingRequirements) {
+                        Class<? extends GameObject> objectClass = buildingRequirement.getKey();
+                        if (!this.running)
                             return paths;
 
-                        Route route = RouteFinder.findRoute(gameObject, objectClass, entry.getValue());
-                        if (!route.isEmpty()) {
-                            foundRoutes.add(route);
-
-                            requireComponent.meetRequirement(objectClass, route);
-//                                try {
-//                                    sleep(200);
-//                                } catch (InterruptedException e) {
-//                                    e.printStackTrace();
-//                                }
+                        Path path = PathFinder.findPath(gameObject, objectClass, buildingRequirement.getValue(), true);
+                        if (!path.isEmpty()) {
+                            foundPaths.add(path);
+                            buildingRequirement.setPath(path);
+                            requireComponent.meetRequirement(buildingRequirement);
                         }
                     }
                 }
-//                    System.out.println(bestRoute);
-                if (!foundRoutes.isEmpty()) { // Route found
-                    paths.addAll(foundRoutes);
+                if (!foundPaths.isEmpty()) { // Path found
+                    for (Path path : foundPaths) {
+                        path.savePathCoordinates();
+                        paths.put(path, color);
+                    }
                 }
             }
         } catch (ConcurrentModificationException e) {
-            running = false;
+            this.running = false;
 
             return paths;
         }

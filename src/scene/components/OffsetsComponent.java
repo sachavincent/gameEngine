@@ -4,16 +4,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import terrains.TerrainPosition;
 
-public class OffsetsComponent implements Component {
+public class OffsetsComponent extends Component {
 
-    // WEST NORTH EAST SOUTH
-    protected int[] offsets = new int[4];
+    // EAST NORTH WEST SOUTH
+    protected int[] offsets;
 
-    public OffsetsComponent(int zPositiveOffset, int xPositiveOffset, int zNegativeOffset, int xNegativeOffset) {
-        this.offsets[0] = zPositiveOffset;
-        this.offsets[1] = xPositiveOffset;
-        this.offsets[2] = zNegativeOffset;
-        this.offsets[3] = xNegativeOffset;
+    public OffsetsComponent(int zNegativeOffset, int xPositiveOffset, int zPositiveOffset,
+            int xNegativeOffset) {
+        this(new int[]{zNegativeOffset, xPositiveOffset, zPositiveOffset, xNegativeOffset});
     }
 
     public OffsetsComponent(int[] offsets) {
@@ -21,7 +19,7 @@ public class OffsetsComponent implements Component {
     }
 
     public OffsetsComponent() {
-        this.offsets = new int[]{0, 0, 0, 0};
+        this(new int[]{0, 0, 0, 0});
     }
 
     public int[] getOffsets() {
@@ -29,7 +27,7 @@ public class OffsetsComponent implements Component {
     }
 
     public int getzPositiveOffset() {
-        return this.offsets[0];
+        return this.offsets[2];
     }
 
     public int getxPositiveOffset() {
@@ -37,7 +35,7 @@ public class OffsetsComponent implements Component {
     }
 
     public int getzNegativeOffset() {
-        return this.offsets[2];
+        return this.offsets[0];
     }
 
     public int getxNegativeOffset() {

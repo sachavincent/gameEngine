@@ -1,8 +1,8 @@
 package renderEngine;
 
-import scene.gameObjects.GameObject;
 import org.lwjgl.opengl.GL11;
 import renderEngine.shaders.StaticShader;
+import scene.gameObjects.GameObject;
 import skybox.SkyboxRenderer;
 import util.math.Matrix4f;
 import util.math.Vector4f;
@@ -81,7 +81,7 @@ public class MasterRenderer extends Renderer {
     public void cleanUp() {
         shader.cleanUp();
         TerrainRenderer.getInstance().getShader().cleanUp();
-        HouseRenderer.getInstance().getShader().cleanUp();
+        BuildingRenderer.getInstance().getShader().cleanUp();
     }
 
     private void prepare() {

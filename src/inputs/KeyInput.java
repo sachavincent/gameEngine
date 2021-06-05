@@ -6,22 +6,33 @@ import util.KeybindingsManager.KeyboardLayout;
 
 public class KeyInput implements Map.Entry<Character, KeyModifiers> {
 
-    private char         key;
+    private final int  scancode; // Can be useful to differentiate numbers from numpad and keyboard
+    private final char key;
+
     private KeyModifiers keyModifiers;
 
     public KeyInput(char key, KeyModifiers keyModifiers) {
         this.key = key;
         this.keyModifiers = keyModifiers;
+        this.scancode = 0;
+    }
+
+    public KeyInput(char key, KeyModifiers keyModifiers, int scancode) {
+        this.key = key;
+        this.keyModifiers = keyModifiers;
+        this.scancode = scancode;
     }
 
     public KeyInput(char key) {
         this.key = key;
         this.keyModifiers = KeyModifiers.NONE;
+        this.scancode = 0;
     }
 
     private KeyInput(KeyInput keyInput) {
         this.key = keyInput.key;
         this.keyModifiers = keyInput.keyModifiers;
+        this.scancode = 0;
     }
 
     @Override
@@ -34,8 +45,8 @@ public class KeyInput implements Map.Entry<Character, KeyModifiers> {
         return this.keyModifiers;
     }
 
-    public void setKey(char key) {
-        this.key = key;
+    public int getScancode() {
+        return this.scancode;
     }
 
     @Override
@@ -62,14 +73,14 @@ public class KeyInput implements Map.Entry<Character, KeyModifiers> {
 
     public KeyInput toLocalKeyboardLayout() {
         KeyInput keyInput = new KeyInput(this);
-        keyInput.key = KeyboardLayout.getKeyToCurrentLayout(this.key);
+        keyInput = KeyboardLayout.getKeyToCurrentLayout(keyInput);
 
         return keyInput;
     }
 
     public KeyInput toDefaultKeyboardLayout() {
         KeyInput keyInput = new KeyInput(this);
-        keyInput.key = KeyboardLayout.getKeyToDefaultLayout(this.key);
+        keyInput = KeyboardLayout.getKeyToDefaultLayout(keyInput);
 
         return keyInput;
     }

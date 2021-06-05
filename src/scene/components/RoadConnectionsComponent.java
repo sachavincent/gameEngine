@@ -1,25 +1,29 @@
 package scene.components;
 
 import entities.Camera.Direction;
+import scene.Scene;
 
-public class RoadConnectionsComponent implements Component {
+public class RoadConnectionsComponent extends Component {
 
-    // WEST NORTH EAST SOUTH
+    // EAST NORTH WEST SOUTH
     private final boolean[] accessPoints = new boolean[]{true, true, true, true};
     private final boolean[] connections  = new boolean[]{false, false, false, false};
 
     public RoadConnectionsComponent(boolean west, boolean north, boolean east, boolean south) {
-        this.accessPoints[0] = west;
-        this.accessPoints[1] = north;
-        this.accessPoints[2] = east;
-        this.accessPoints[3] = south;
+        this(new boolean[]{west, north, east, south});
     }
 
     public RoadConnectionsComponent(boolean[] accessPoints) {
-        this(accessPoints[0], accessPoints[1], accessPoints[2], accessPoints[3]);
+        super((gameObject, position) -> Scene.getInstance().updateRequirements());
+
+        this.accessPoints[0] = accessPoints[0];
+        this.accessPoints[1] = accessPoints[1];
+        this.accessPoints[2] = accessPoints[2];
+        this.accessPoints[3] = accessPoints[3];
     }
 
     public RoadConnectionsComponent() {
+        this(new boolean[]{true, true, true, true});
     }
 
     public boolean isConnected(Direction direction) {

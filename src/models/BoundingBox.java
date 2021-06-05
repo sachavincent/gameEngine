@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import renderEngine.Loader;
 import textures.ModelTexture;
 import util.math.Plane3D;
@@ -12,13 +13,22 @@ import util.math.Vector3f;
 
 public class BoundingBox extends TexturedModel {
 
-    private final Set<Plane3D> planes = new LinkedHashSet<>();
+    private final Set<Plane3D> planes;
+
+    public BoundingBox(BoundingBox boundingBox) {
+        super(boundingBox.rawModel, boundingBox.modelTexture);
+        this.planes = boundingBox.planes.stream().map(Plane3D::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 
     public BoundingBox(RawModel rawModel) {
         super(rawModel);
+        this.planes = new LinkedHashSet<>();
     }
 
     public BoundingBox(List<Vector3f> vertices, int[] indices, String name) {
+        this.planes = new LinkedHashSet<>();
+
         if (indices.length % 3 != 0)
             throw new IllegalArgumentException("Wrong indices for " + name);
         try {
@@ -40,7 +50,7 @@ public class BoundingBox extends TexturedModel {
                         continue;
 
                     if ((plane = Plane3D.planeFromTriangles(triangle, sndTriange)) != null) {
-                        planes.add(plane);
+                        this.planes.add(plane);
                         foundTriangle = sndTriange;
 
                         break;
@@ -81,6 +91,7 @@ public class BoundingBox extends TexturedModel {
     public void addPlane(Plane3D plane3D) {
         this.planes.add(plane3D);
     }
+
     public Set<Plane3D> getPlanes() {
         return this.planes;
     }

@@ -16,19 +16,24 @@ import guis.Gui;
 import guis.GuiComponent;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiTriangle;
+import guis.prefabs.GuiDebug;
 import guis.prefabs.GuiSelectedItem;
-import guis.presets.buttons.GuiAbstractButton;
+import guis.presets.GuiAbstractShapePreset;
+import guis.presets.GuiClickablePreset;
+import guis.presets.GuiPreset;
+import guis.presets.GuiTextInput;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
+import pathfinding.Path;
+import pathfinding.PathFinder;
 import pathfinding.Road;
-import pathfinding.RouteFinder;
-import pathfinding.RouteFinder.Route;
 import renderEngine.DisplayManager;
 import renderEngine.FrustumCullingFilter;
 import scene.Scene;
@@ -63,8 +68,8 @@ public class MouseUtils {
 
     private static final Scene scene = Scene.getInstance();
 
-    private static final List<GuiComponent>      ENTERED_GUI_COMPONENTS = new ArrayList<>();
-    private static       List<GuiAbstractButton> buttons;
+    public static final List<GuiComponent>       ENTERED_GUI_COMPONENTS = new ArrayList<>();
+    private static      List<GuiClickablePreset> clickables;
 
     public static Vector2f getCursorPos() {
         long windowID = DisplayManager.getWindow();
@@ -184,19 +189,27 @@ public class MouseUtils {
 
     public static void setupListeners() {
         long window = getWindow();
-        buttons = new ArrayList<>(Game.getInstance().getAllGuis()).stream().map(gui -> gui.getAllComponents().stream()
-                .filter(GuiAbstractButton.class::isInstance)
-                .map(GuiAbstractButton.class::cast).collect(Collectors.toList())).flatMap(
-                Collection::stream).collect(Collectors.toList());
+        clickables = new ArrayList<>(Game.getInstance().getAllGuis()).stream()
+                .map(gui -> gui.getAllComponents().stream()
+                        .filter(GuiClickablePreset.class::isInstance)
+                        .filter(GuiAbstractShapePreset.class::isInstance)
+                        .map(GuiClickablePreset.class::cast).collect(Collectors.toList())).flatMap(
+                        Collection::stream).collect(Collectors.toList());
 
         callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
+            boolean inDebugGui =
+                    MouseUtils.isCursorInGui(GuiDebug.getInstance()) && GuiDebug.getInstance().isDisplayed();
             boolean inGui = Game.getInstance().getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
-            final List<GuiAbstractButton> clickableButtons = new ArrayList<>(Game.getInstance().getDisplayedGuis())
+            final List<GuiClickablePreset> clickableComponents = new ArrayList<>(
+                    inDebugGui ? Collections.singletonList(GuiDebug.getInstance())
+                            : Game.getInstance().getDisplayedGuis())
                     .stream().map(gui -> gui.getAllComponents().stream()
                             .filter(GuiComponent::isDisplayed)
-                            .filter(GuiAbstractButton.class::isInstance)
-                            .map(GuiAbstractButton.class::cast)
-                            .filter(guiButton -> isCursorInGuiComponent(guiButton.getButtonShape()))
+                            .filter(GuiClickablePreset.class::isInstance)
+                            .filter(GuiAbstractShapePreset.class::isInstance)
+                            .map(GuiClickablePreset.class::cast)
+                            .filter(component -> isCursorInGuiComponent(
+                                    ((GuiAbstractShapePreset) component).getShape()))
                             .collect(Collectors.toList())).flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
@@ -208,22 +221,25 @@ public class MouseUtils {
                     switch (action) {
                         case GLFW_PRESS:
                             if (inGui)
-                                clickableButtons.forEach(guiButton -> guiButton.onPress(GLFW_MOUSE_BUTTON_1));
+                                clickableComponents.forEach(component -> component.onMousePress(GLFW_MOUSE_BUTTON_1));
 
-                            Game.getInstance().getGuiTextInputs().forEach(guiTextInput -> {
+                            Game.getInstance().getGuiTextInputs().stream()
+                                    .filter(GuiComponent::isFocused)
+                                    .filter(GuiTextInput::isUnfocusOnClick).forEach(guiTextInput -> {
                                 if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
                                     guiTextInput.unfocus();
                             });
                             break;
                         case GLFW_RELEASE:
-                            buttons.stream().filter(b -> b.getClickType() == ClickType.M1).forEach(guiButton -> {
-                                if (!guiButton.isReleaseInsideNeeded()
-                                        || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
-                                        guiButton.isDisplayed() &&
-                                        isCursorInGuiComponent(guiButton.getButtonShape())))
-                                    guiButton.onRelease(GLFW_MOUSE_BUTTON_1);
-                                else
-                                    guiButton.resetFilter();
+                            clickables.stream().filter(c -> c.getClickType() == ClickType.M1).forEach(component -> {
+                                if (!component.isReleaseInsideNeeded()
+                                        || (GuiComponent.getParentGui((GuiPreset) component).isDisplayed() &&
+                                        ((GuiPreset) component).isDisplayed() &&
+                                        isCursorInGuiComponent(((GuiAbstractShapePreset) component).getShape())))
+                                    component.onMouseRelease(GLFW_MOUSE_BUTTON_1);
+                                else {
+                                    component.reset();
+                                }
                             });
                             break;
                         default:
@@ -238,20 +254,20 @@ public class MouseUtils {
                                 onM2Pressed();
 
                             if (inGui)
-                                clickableButtons.forEach(guiButton -> guiButton.onPress(GLFW_MOUSE_BUTTON_2));
+                                clickableComponents.forEach(guiButton -> guiButton.onMousePress(GLFW_MOUSE_BUTTON_2));
                             break;
                         case GLFW_RELEASE:
                             if (Game.getInstance().getGameState() == GameState.STARTED)
                                 onM2Released();
 
-                            buttons.stream().filter(b -> b.getClickType() == ClickType.M2).forEach(guiButton -> {
-                                if (!guiButton.isReleaseInsideNeeded()
-                                        || (GuiComponent.getParentGui(guiButton).isDisplayed() &&
-                                        guiButton.isDisplayed() &&
-                                        isCursorInGuiComponent(guiButton.getButtonShape())))
-                                    guiButton.onRelease(GLFW_MOUSE_BUTTON_2);
+                            clickables.stream().filter(c -> c.getClickType() == ClickType.M2).forEach(component -> {
+                                if (!component.isReleaseInsideNeeded()
+                                        || (GuiComponent.getParentGui((GuiPreset) component).isDisplayed() &&
+                                        ((GuiPreset) component).isDisplayed() &&
+                                        isCursorInGuiComponent(((GuiAbstractShapePreset) component).getShape())))
+                                    component.onMouseRelease(GLFW_MOUSE_BUTTON_2);
                                 else
-                                    guiButton.resetFilter();
+                                    component.reset();
                             });
                             break;
                         default:
@@ -270,6 +286,8 @@ public class MouseUtils {
         });
 
         callback2 = GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
+            Game.getInstance().getDisplayedGuis().forEach(
+                    gui -> gui.getAllComponents().forEach(guiComponent -> guiComponent.onScroll(xoffset, yoffset)));
             if (Game.getInstance().getGameState() == GameState.STARTED) {
                 if (yoffset > 0)
                     Camera.getInstance().moveCloser();
@@ -283,10 +301,12 @@ public class MouseUtils {
         callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> onMouseMove(new Vector2f(xPos, yPos)));
     }
 
-    private static void onMouseMove(Vector2f pos) {
+    public static void onMouseMove(Vector2f pos) {
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
 
-        List<Gui> enteredGuis = Game.getInstance().getDisplayedGuis().stream()
+        Game game = Game.getInstance();
+
+        List<Gui> enteredGuis = game.getDisplayedGuis().stream()
                 .filter(MouseUtils::isCursorInGui).collect(Collectors.toList());
 
         boolean inGui = !enteredGuis.isEmpty();
@@ -298,7 +318,7 @@ public class MouseUtils {
                     ENTERED_GUI_COMPONENTS.remove(guiComponent);
                 });
 
-        boolean gameStarted = Game.getInstance().getGameState() == GameState.STARTED;
+        boolean gameStarted = game.getGameState() == GameState.STARTED;
 
         if (!inGui && gameStarted)
             MousePicker.getInstance().update();
@@ -344,6 +364,8 @@ public class MouseUtils {
     }
 
     private static void updateGuis(List<Gui> enteredGuis) {
+        enteredGuis = enteredGuis.contains(GuiDebug.getInstance()) ? Collections.singletonList(GuiDebug.getInstance())
+                : enteredGuis;
         List<GuiComponent> toUpdate = enteredGuis.stream()
                 .map(Gui::getAllComponents).flatMap(Collection::stream)
                 .filter(GuiComponent::isDisplayed)
@@ -366,7 +388,7 @@ public class MouseUtils {
             return;
 
         Vector2f p = new Vector2f(point.getX(), point.getZ());
-
+        p = p.add(new Vector2f(-.5f, -.5f));
         TerrainPosition terrainPoint = p.toTerrainPosition();
 //        System.out.println(terrainPoint);
         onTerrainHover(terrainPoint);
@@ -398,7 +420,7 @@ public class MouseUtils {
 
     private static void onM1OnTerrain(int action) {
         MousePicker picker = MousePicker.getInstance();
-
+        picker.updateIntersectionOnClick();
         GameObject gameObject = picker.getGameObject();
         if (gameObject == null)
             return;
@@ -515,11 +537,10 @@ public class MouseUtils {
         boolean onTerrain = terrainComponent != null;
 
         if (onTerrain) {
-            Vector2f currTerrainPoint = new Vector2f(point.getX(), point.getZ());
-
+            Vector2f currTerrainPoint = new Vector2f(point.getX() - 0.5f,
+                    point.getZ() - 0.5f); // -0.5 to account for road offset
             TerrainPosition currentTerrainPoint = currTerrainPoint.toTerrainPosition();
             GameObject gameObjectAtPosition = scene.getGameObjectAtPosition(currentTerrainPoint);
-
             boolean placeable = gameObjectAtPosition == null;
             if (!placeable) {
                 RepleacableComponent repleacableComponent = gameObjectAtPosition
@@ -540,19 +561,10 @@ public class MouseUtils {
                     case ROAD:
                         state = State.PRESSED_WITH_ROAD;
 
-//                        terrain.resetPreviewItems();
-//                        scene.resetPreviewedPositions();
                         lastTerrainPos = startTerrainPos = currentTerrainPoint;
-//                        terrain.addPreviewItem(currentTerrainPoint);
-//                        scene.addToPreview(currentTerrainPoint);
                         break;
                     case BUILDING:
                         state = State.PRESSED_WITH_BUILDING;
-
-//                        terrain.resetPreviewItems();
-//                        scene.resetPreviewedPositions();
-//                        terrain.addPreviewItem(currentTerrainPoint);
-//                        scene.addToPreview(currentTerrainPoint);
                         break;
                     case DESTRUCTION:
                         //TODO
@@ -579,20 +591,14 @@ public class MouseUtils {
             case PRESSED_WITH_ROAD:
                 state = State.ROAD;
 
-//                terrain.placePreviewItems();
                 scene.placePreviewedObjects();
-//                terrain.resetPreviewItems();
-                scene.resetPreviewedPositions();
                 startTerrainPos = null;
                 lastTerrainPos = null;
                 break;
             case PRESSED_WITH_BUILDING:
                 state = State.BUILDING;
 
-//                terrain.placePreviewItems();
                 scene.placePreviewedObjects();
-//                terrain.resetPreviewItems();
-                scene.resetPreviewedPositions();
 
                 startTerrainPos = null;
                 lastTerrainPos = null;
@@ -637,7 +643,6 @@ public class MouseUtils {
                 state = State.DEFAULT;
 
                 GuiSelectedItem.getInstance().removeSelectedItem();
-//                Terrain.getInstance().resetPreviewItems();
                 scene.resetPreviewedPositions();
                 break;
             default:
@@ -647,7 +652,6 @@ public class MouseUtils {
 
     public static void onTerrainHover(TerrainPosition terrainPoint) {
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
-//        AbstractItem selectedItem = terrain.getPreviewedItem();
         Class<? extends GameObject> selectedGameObjectClass = Player.getSelectedGameObject();
 
         switch (state) {
@@ -659,7 +663,7 @@ public class MouseUtils {
             case BUILDING: // Previews only this building
             case PRESSED_WITH_BUILDING:
                 scene.resetPreviewedPositions();
-                if (scene.canGameObjectBePlaced(selectedGameObjectClass, terrainPoint)) {
+                if (scene.canGameObjectClassBePlaced(selectedGameObjectClass, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         selectedItemGui.setDisplayed(false);
 
@@ -671,21 +675,16 @@ public class MouseUtils {
 
                 break;
             case PRESSED_WITH_ROAD:
-//                if (terrain.canItemBePlaced(selectedItem, terrainPoint)) {
-                if (scene.canGameObjectBePlaced(selectedGameObjectClass, terrainPoint)) {
+                if (scene.canGameObjectClassBePlaced(selectedGameObjectClass, terrainPoint)) {
                     if (selectedItemGui.isDisplayed())
                         selectedItemGui.setDisplayed(false);
 
-//                    terrain.resetPreviewItems();
                     scene.resetPreviewedPositions();
                     lastTerrainPos = terrainPoint;
-                    RouteFinder routeFinder = new RouteFinder(scene.getRoadGraph());
-                    Route unobstructedRouteV1 = routeFinder
-                            .findUnobstructedRouteV1(startTerrainPos, lastTerrainPos);
-//                    unobstructedRouteV1.getAllRoads().stream().map(Road::getPosition).forEach(terrain::addPreviewItem);
-                    unobstructedRouteV1.getAllRoads().stream().map(Road::getPosition).forEach(scene::addToPreview);
+                    PathFinder pathFinder = new PathFinder(scene.getRoadGraphCopy());
+                    Path path = pathFinder.findStraightClearPath(startTerrainPos, lastTerrainPos);
+                    path.getAllRoads().stream().map(Road::getPosition).forEach(scene::addToPreview);
                 } else {
-//                    terrain.resetPreviewItems();
                     scene.resetPreviewedPositions();
                     selectedItemGui.updatePosition();
                     selectedItemGui.setDisplayed(true);

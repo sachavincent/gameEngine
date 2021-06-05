@@ -1,24 +1,17 @@
 package fontMeshCreator;
 
-/**
- * Simple data structure class holding information about a certain glyph in the
- * font texture atlas. All sizes are for a font-size of 1.
- * 
- * @author Karl
- *
- */
 public class Character {
 
-	private int id;
-	private double xTextureCoord;
-	private double yTextureCoord;
-	private double xMaxTextureCoord;
-	private double yMaxTextureCoord;
-	private double xOffset;
-	private double yOffset;
-	private double sizeX;
-	private double sizeY;
-	private double xAdvance;
+	private final int id;
+	private final double xTextureCoord;
+	private final double yTextureCoord;
+	private final double xMaxTextureCoord;
+	private final double yMaxTextureCoord;
+	private final double xOffset;
+	private final double yOffset;
+	private final double sizeX;
+	private final double sizeY;
+	private final double xAdvance;
 
 	/**
 	 * @param id
@@ -104,7 +97,7 @@ public class Character {
 	@Override
 	public String toString() {
 		return "Character{" +
-				"id=" + id +
+				"id=" + (char) id +
 				", xTextureCoord=" + xTextureCoord +
 				", yTextureCoord=" + yTextureCoord +
 				", xMaxTextureCoord=" + xMaxTextureCoord +

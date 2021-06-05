@@ -61,8 +61,8 @@ public class PatternGlobalConstraint extends GuiGlobalConstraints {
         else
             y = this.parent.getY();
 
-        this.guiConstraintsManager.setxConstraint(new RelativeConstraint(x, this.parent));
-        this.guiConstraintsManager.setyConstraint(new RelativeConstraint(y, this.parent));
+        this.guiConstraintsManager.setxConstraint(new RelativeConstraint((x + 1) / 2));
+        this.guiConstraintsManager.setyConstraint(new RelativeConstraint((y + 1) / 2));
 
         this.nbElements++;
 

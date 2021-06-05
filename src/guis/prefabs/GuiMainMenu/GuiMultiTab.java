@@ -40,13 +40,22 @@ public class GuiMultiTab extends Gui {
 
         this.backArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
         Background<String> back = new Background<>("back_arrow.png");
-        this.guiBack = new GuiRectangleButton(this.backArea, back, (GuiConstraintsManager) null);
+        this.guiBack = new GuiRectangleButton(this.backArea, back, null, (GuiConstraintsManager) null);
 
         this.tabArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
         this.tabArea.setLayout(new PatternGlobalConstraint(1, 1, .02f, .02f));
 
         this.content = new GuiRectangle(this, Background.NO_BACKGROUND);
         this.selectedTabNum = -1;
+
+        setOnOpen(() -> {
+            this.selectedTabNum = -1;
+            displayTab(0);
+        });
+
+        setOnClose(() -> {
+            hideTab(this.selectedTabNum);
+        });
     }
 
     public void addGuiTab(GuiTab guiTab) {
@@ -56,15 +65,15 @@ public class GuiMultiTab extends Gui {
         this.tabArea.setLayout(new PatternGlobalConstraint(this.tabs.size() + 1, 1, .02f, .02f));
         Text text = new Text(guiTab.getName(), .8f, DEFAULT_FONT, Color.BLACK);
         text.setUpperCase(true);
-        GuiRectangleButton rectangleButton = new GuiRectangleButton(this.tabArea, Background.NO_BACKGROUND, text);
+        GuiRectangleButton rectangleButton = new GuiRectangleButton(this.tabArea, Background.NO_BACKGROUND, null, text);
         final int num = this.tabs.size();
         rectangleButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 displayTab(num);
             }
         });
-        guiTab.setTabMenu(rectangleButton);
 
+        guiTab.setTabMenu(rectangleButton);
         this.tabs.add(guiTab);
     }
 
@@ -105,19 +114,7 @@ public class GuiMultiTab extends Gui {
         return this.selectedTabNum;
     }
 
-    @Override
-    public void setDisplayed(boolean displayed) {
-        super.setDisplayed(displayed);
-
-        if (displayed) {
-            this.selectedTabNum = -1;
-            displayTab(0);
-        } else {
-            hideTab(this.selectedTabNum);
-        }
-    }
-
-    public void onBackButtonPress(BackCallback backCallback) {
+    public void setOnBackButtonPress(BackCallback backCallback) {
         if (this.guiBack != null)
             this.guiBack.setOnMousePress(button -> {
                 if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
