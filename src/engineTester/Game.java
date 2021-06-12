@@ -56,7 +56,6 @@ public class Game {
         return instance == null ? (instance = new Game()) : instance;
     }
 
-
     public boolean addPerson() {
         Map<Integer, Integer> eligibleHouses = getEligibleHousesSettlement();
 
@@ -273,11 +272,8 @@ public class Game {
      * Called every in-game Tick
      */
     public void processLogic() {
-        TimeSystem.elapsedTicks--;
-
         if (this.gameState == GameState.STARTED) {
             TimeSystem.nextTick();
-
             EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
 
             Scene.getInstance()

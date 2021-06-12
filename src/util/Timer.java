@@ -16,9 +16,9 @@ public class Timer {
 
     public final static List<TimerTask> MISC_TASKS = new ArrayList<>();
 
-    public static double getTime() {
-        return (double) System.nanoTime() / (double) 1000000000L;
-    }
+//    public static double getTime() {
+//        return (double) System.nanoTime() / (double) 1000000000L;
+//    }
 
     public static TimerTask scheduleTransition(Transition transition, GuiInterface guiInterface) {
         TimerTask task = new TimerTask() {

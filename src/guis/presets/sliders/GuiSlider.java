@@ -40,6 +40,8 @@ public abstract class GuiSlider extends GuiPreset {
     protected ValueChangedCallback onValueChangedCallback;
     protected CursorMoveCallback   onCursorMoveCallback;
 
+    protected String valueAsMax, valueAsMin;
+
     // most extreme value aligns it to the edge of the base
     protected boolean alignCursorWithBase;
 
@@ -61,6 +63,8 @@ public abstract class GuiSlider extends GuiPreset {
         this.sliderCursor.setCornerRadius(0);
         this.slidingEnabled = true;
         this.alignCursorWithBase = true;
+        this.valueAsMax = "";
+        this.valueAsMin = "";
         startCursorSetup();
     }
 
@@ -174,16 +178,27 @@ public abstract class GuiSlider extends GuiPreset {
         this.value = this.interval.min + this.position * (this.interval.max - this.interval.min);
 
         if (this.valueText != null)
-            this.valueText.getText().setTextString(String.valueOf((int) this.value));
+            this.valueText.getText().setTextString(getValueDisplay());
 
         if (this.onValueChangedCallback != null)
-            this.onValueChangedCallback.onValueChanged(this.value);
+            this.onValueChangedCallback.onValueChanged(getValueDisplay());
     }
 
     public abstract void setValue(float value);
 
     public float getValue() {
         return this.value;
+    }
+
+    public String getValueDisplay() {
+        String value = String.valueOf((int) (this.value));
+
+        if (this.value == this.interval.max)
+            return this.valueAsMax.isEmpty() ? value : this.valueAsMax;
+        if (this.value == this.interval.min)
+            return this.valueAsMin.isEmpty() ? value : this.valueAsMin;
+
+        return value;
     }
 
     public void setOnValueChanged(ValueChangedCallback valueChangedCallback) {
@@ -201,7 +216,7 @@ public abstract class GuiSlider extends GuiPreset {
     }
 
     public void showValue(Side side) {
-        Text text = new Text(Integer.toString((int) this.value), .7f, DEFAULT_FONT, Color.BLACK);
+        Text text = new Text(getValueDisplay(), .7f, DEFAULT_FONT, Color.BLACK);
 
         this.valueText = new GuiText(this, text, new GuiConstraintsManager.Builder()
                 .setDefault()
@@ -219,10 +234,28 @@ public abstract class GuiSlider extends GuiPreset {
         this.interval = interval;
     }
 
+    /**
+     * Used if different text is to be displayed instead of the max value chosen
+     *
+     * @param maxValue +infinite for example
+     */
+    public void displayAsMax(String maxValue) {
+        this.valueAsMax = maxValue;
+    }
+
+    /**
+     * Used if different text is to be displayed instead of the min value chosen
+     *
+     * @param minValue -infinite for example
+     */
+    public void displayAsMin(String minValue) {
+        this.valueAsMin = minValue;
+    }
+
     @FunctionalInterface
     public interface ValueChangedCallback {
 
-        void onValueChanged(float value);
+        void onValueChanged(String value);
     }
 
     @FunctionalInterface

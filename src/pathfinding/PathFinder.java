@@ -169,9 +169,6 @@ public class PathFinder {
 
         final PathFinder pathFinder = new PathFinder(scene.getRoadGraph());
 
-        Set<Path> foundPaths = new TreeSet<>(
-                Comparator.comparingInt(o -> o.stream().mapToInt(NodeConnection::getgScore).sum()));
-
         List<TerrainPosition> fromRoads = scene.getRoadsConnectedToGameObject(fromGameObject)
                 .stream()
                 .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
@@ -181,17 +178,26 @@ public class PathFinder {
                 .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
                 .collect(Collectors.toList());
 
-        for (TerrainPosition fromRoad : fromRoads) {
-            for (TerrainPosition toRoad : toRoads) {
-                Path path = pathFinder.findBestPath(fromRoad, toRoad, maxPathLength);
-                if (!path.isEmpty())
-                    foundPaths.add(path);
+        Path resPath = new Path();
+        boolean optimization = NormalRoad.SCORE == 1 && NodeRoad.SCORE == 1;
+        for (TerrainPosition fromRoadPos : fromRoads) {
+            for (TerrainPosition destRoadPos : toRoads) {
+                int minDistancePossible = manhattanDistance(fromRoadPos, destRoadPos);
+                if (optimization && minDistancePossible > resPath.getCost()) // No need to check for path
+                    continue;
+
+                Path path = pathFinder.findBestPath(fromRoadPos, destRoadPos, maxPathLength);
+                if (optimization && path.getCost() == minDistancePossible) // Only works if 1 road = 1 point!
+                    return path;
+
+                if (path.getCost() < resPath.getCost())
+                    resPath = path;
 
                 pathFinder.reset();
             }
         }
 
-        return foundPaths.stream().findFirst().orElse(new Path());
+        return resPath;
     }
 
     public Road getRoad(TerrainPosition roadPosition) {

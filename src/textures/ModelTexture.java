@@ -8,10 +8,10 @@ public class ModelTexture extends Texture {
 
     private float shineDamper = 1, reflectivity = 0;
 
+    private int normalMap;
+
     private float   alpha;
     private boolean useFakeLighting;
-
-    private boolean directionalColor;
 
     private int numberOfRows = 1;
 
@@ -26,12 +26,12 @@ public class ModelTexture extends Texture {
         this.alpha = -1;
     }
 
-    public boolean doesUseDirectionalColor() {
-        return this.directionalColor;
+    public int getNormalMap() {
+        return normalMap;
     }
 
-    public void setDirectionalColor(boolean directionalColor) {
-        this.directionalColor = directionalColor;
+    public void setNormalMap(String normalMapName) {
+        this.normalMap = instantiateWithFile(normalMapName, true);
     }
 
     public float getShineDamper() {

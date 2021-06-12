@@ -2,12 +2,15 @@ package util;
 
 public class TimeSystem {
 
-    public static final int    TICK_RATE = 20;
-    public static       int    elapsedTicks;
-    private static      long   lastUpdateTime;
-    public static       double timeSinceLastTick;
+    public static final  int   TICK_RATE = 20;
+    private final static float STEP      = 1000.0f / TICK_RATE;
 
-    private static int timeInTicks;
+    public static int   elapsedTicks;
+    public static float nbTicksSinceLastUpdate;
+
+    private static long  lastUpdateTime;
+    private static int   timeInTicks;
+    private static float partialTicks;
 
     private final int nbTicks;
 
@@ -23,19 +26,28 @@ public class TimeSystem {
         return elapsedTicks;
     }
 
+    public static void resetTimer() {
+        lastUpdateTime = getTimeMillis();
+        elapsedTicks = 0;
+        nbTicksSinceLastUpdate = 0;
+        partialTicks = 0;
+    }
+
+    public static long getTimeMillis() {
+        return System.nanoTime() / 1000000L;
+    }
+
     public static int getCurrentTime() {
         return timeInTicks;
     }
 
     public static void updateTimer() {
-        long now = System.nanoTime();
-        if (lastUpdateTime == 0L)
-            lastUpdateTime = now;
-
-        timeSinceLastTick += (now - lastUpdateTime) / (1000000000d / TICK_RATE);
-        elapsedTicks += (int) timeSinceLastTick;
+        long now = getTimeMillis();
+        nbTicksSinceLastUpdate = (float) (now - lastUpdateTime) / STEP;
         lastUpdateTime = now;
-        timeSinceLastTick -= elapsedTicks;
+        partialTicks += nbTicksSinceLastUpdate;
+        elapsedTicks = (int) partialTicks;
+        partialTicks -= (float) elapsedTicks;
     }
 
     public static void nextTick() {

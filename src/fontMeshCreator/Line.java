@@ -12,8 +12,6 @@ public class Line {
 
     private double currentLineLength = 0;
 
-    private int nbSpacesBeforeLine;
-
     /**
      * Creates an empty line.
      *
@@ -46,18 +44,22 @@ public class Line {
         }
     }
 
+    protected void addTailingSpaces(int nbSpaces) {
+        this.currentLineLength += nbSpaces * this.spaceSize;
+    }
+
     /**
      * @return The max length of the line.
      */
     protected double getMaxLength() {
-        return maxLength;
+        return this.maxLength;
     }
 
     /**
      * @return The current screen-space length of the line.
      */
     public double getLineLength() {
-        return currentLineLength + (doesStartWithSpaces() ? this.nbSpacesBeforeLine * this.spaceSize : 0);
+        return this.currentLineLength;
     }
 
     public double getSpaceSize() {
@@ -68,32 +70,20 @@ public class Line {
      * @return The list of words in the line.
      */
     protected List<Word> getWords() {
-        return words;
+        return this.words;
     }
 
     public int getNbWords() {
         return this.words.size();
     }
 
-    public boolean doesStartWithSpaces() {
-        return this.nbSpacesBeforeLine > 0;
-    }
-
-    public int getNbSpacesBeforeLine() {
-        return this.nbSpacesBeforeLine;
-    }
-
-    public void setNbSpacesBeforeLine(int nbSpacesBeforeLine) {
-        this.nbSpacesBeforeLine = nbSpacesBeforeLine;
-    }
-
     @Override
     public String toString() {
         return "Line{" +
-                "maxLength=" + maxLength +
-                ", spaceSize=" + spaceSize +
-                ", words=" + words +
-                ", currentLineLength=" + currentLineLength +
+                "maxLength=" + this.maxLength +
+                ", spaceSize=" + this.spaceSize +
+                ", words=" + this.words +
+                ", currentLineLength=" + this.currentLineLength +
                 '}';
     }
 }

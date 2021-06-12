@@ -62,7 +62,7 @@ public class WaterRenderer {
         shader.start();
         shader.loadViewMatrix();
 
-        moveFactor += WAVE_SPEED * DisplayManager.MAX_FPS;
+        moveFactor += WAVE_SPEED * DisplayManager.FRAMERATE_LIMIT;
         moveFactor %= 1;
         shader.loadMoveFactor(moveFactor);
         shader.loadPlaneValues();

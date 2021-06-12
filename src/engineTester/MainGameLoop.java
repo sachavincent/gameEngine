@@ -16,7 +16,9 @@ import guis.prefabs.GuiSelectedItem;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
 import items.OBJGameObjects;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.lwjgl.opengl.GL;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
@@ -30,10 +32,8 @@ import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
-import scene.gameObjects.Light;
-import scene.gameObjects.NPC;
-import scene.gameObjects.OBJGameObject;
-import scene.gameObjects.Terrain;
+import scene.gameObjects.*;
+import terrains.TerrainPosition;
 import util.KeybindingsManager;
 import util.SettingsManager;
 import util.TimeSystem;
@@ -110,9 +110,9 @@ public class MainGameLoop {
         Terrain terrain = new Terrain();
         terrain.addComponent(new PositionComponent(new Vector3f(0, 0, 0)));
 
+        Game.getInstance();
         GuiEscapeMenu.getInstance();
         GuiItemSelection.getInstance();
-
         PostProcessing.init();
 
         OBJGameObject insulaOBJ = OBJGameObjects.INSULA; // Loading models (must be done before loop)
@@ -120,17 +120,52 @@ public class MainGameLoop {
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         GuiSelectedItem.getInstance();
+        GuiDebug.getInstance();
         GuiMainMenu.getInstance().setDisplayed(true);
         TextMaster textMaster = TextMaster.getInstance();
 
         {
+            Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 81));
+            Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 89));
+            for (int z = 75; z < 87; z++)
+                GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, z));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
+//            Utils.getPositionsFromConsoleLogs("test.log").forEach((clazz, positions) -> {
+//                GameObject.newInstances(clazz, positions);
+//            });
+//            TerrainPosition v1 = new TerrainPosition(27, 13);
+//            TerrainPosition v2 = new TerrainPosition(22, 20);
+//
+//            int[] roadPositions = new int[]{
+//                    v1.getX(), v1.getZ(),
+//                    v2.getX(), v2.getZ(),
+//                    22,19,
+//                    22,18,
+//                    22,17,
+//                    22,16,
+//                    23,16,
+//                    24,16,
+//                    25,16,
+//                    22,15,
+//                    23,15,
+//                    24,15,
+//                    27,14,
+//                    27,15,
+//                    27,16,
+//                    26,16,
+//            };
+//
+//            TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+//
+//            GameObject.newInstances(DirtRoad.class, roads);
         }
 
         Scene.getInstance();
-        Light sun = new Light(new Vector3f(75, 50, 75), new Vector3f(1, 1, 1));
-        new Light(new Vector3f(-75, 50, -75), new Vector3f(1, 1, 1));
-        new Light(new Vector3f(75, 50, -75), new Vector3f(1, 1, 1));
-        new Light(new Vector3f(-75, 50, 75), new Vector3f(1, 1, 1));
+        new Light(new Vector3f(-250, 150, -250), new Vector3f(2.2f, 2.2f, 2.2f));
+        new Light(new Vector3f(250, 150, 250), new Vector3f(2.2f, 2.2f, 2.2f));
+        new Light(new Vector3f(-250, 150, 250), new Vector3f(2.2f, 2.2f, 2.2f));
+        new Light(new Vector3f(250, 150, -250), new Vector3f(2.2f, 2.2f, 2.2f));
 
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
@@ -143,70 +178,59 @@ public class MainGameLoop {
         Vector4f clipPlane = new Vector4f(0, -1, 0, 1000000);
         MasterRenderer.setClipPlane(clipPlane);
 
-        long lastTime = System.nanoTime();
-        long unprocessed = 0;
+        long lastUpdate = System.nanoTime();
         int nbFrames = 0;
-        long now;
-        long diff;
+        TimeSystem.resetTimer();
         int nbTicks = 0;
-        int nbFramesIgnored = 0;
-        double ns = 1000000000d / TimeSystem.TICK_RATE;
-        long startTime = System.currentTimeMillis();
+        long startTime = TimeSystem.getTimeMillis();
 
-
+        List<Integer> tpsList = new ArrayList<>();
         while (!glfwWindowShouldClose(getWindow())) {
-            TimeSystem.updateTimer();
-            now = System.nanoTime();
-            diff = now - lastTime;
-            unprocessed += diff;
-            lastTime = now;
-            while (unprocessed >= DisplayManager.FRAME_CAP)
-                unprocessed -= DisplayManager.FRAME_CAP;
+            if (DisplayManager.isFramerateLimited()) {
+                while (System.nanoTime() < lastUpdate + DisplayManager.getFramerateLimitNS()) {
+                    try {
+                        Thread.sleep(0);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            lastUpdate = System.nanoTime();
 
-            for (int i = 0; i < Math.min(10, TimeSystem.getElapsedTicks()); i++) {
+            TimeSystem.updateTimer();
+
+            int elapsedTicks = TimeSystem.getElapsedTicks();
+            for (int i = 0; i < Math.min(10, elapsedTicks); i++) {
                 long start = System.nanoTime();
-                Deque<Double> msptList = GuiDebug.getInstance().msptList;
                 Game.getInstance().processLogic();
-                if (msptList.size() > 9)
-                    msptList.removeFirst();
-                msptList.add(Utils.formatDoubleToNDecimals(((double) System.nanoTime() - start) / 1000000d, 2));
+                DisplayManager.MSPT = Utils.formatDoubleToNDecimals((double) (System.nanoTime() - start) / 1000000d, 2);
                 nbTicks++;
             }
 
-            double timeForNextUpdate = now + ns;
-            long nanoTime = System.nanoTime();
-            boolean draw = nanoTime < timeForNextUpdate || nbFramesIgnored > DisplayManager.MAX_FRAMES_IGNORED;
-//            boolean draw = true;
-            if (draw) {
-                Game.getInstance().processRendering(fbo);
-                nbFrames++;
-                nbFramesIgnored = 0;
-            } else
-                nbFramesIgnored++;
+            Game.getInstance().processRendering(fbo);
+            nbFrames++;
 
-            if (System.currentTimeMillis() - startTime > 1000) {
-//                Random r = new Random();
-//                char c1 = (char) (r.nextInt(26) + 'a');
-//                char c2 = (char) (r.nextInt(26) + 'a');
-//                char c3 = (char) (r.nextInt(26) + 'a');
-//                GuiDebug.getInstance().consoleLogs.getText()
-//                        .addTextString(c1 + "\n\n" + c2 + "\n\n" + c3 + "\n\n", Color.WHITE);
-//                System.out.println("t");
+
+            glfwPollEvents();
+            glfwSwapBuffers(DisplayManager.getWindow());
+            glfwPollEvents();
+
+            while (TimeSystem.getTimeMillis() >= startTime + 1000L) {
                 startTime += 1000;
 
                 DisplayManager.FPS = nbFrames;
+
+                tpsList.add(0, nbTicks);
+                if (tpsList.size() > 5) {
+                    tpsList.remove(tpsList.size() - 1);
+                    List<Integer> copy = new ArrayList<>(tpsList);
+                    Collections.sort(copy);
+                    DisplayManager.TPS = copy.get(2);
+                }
                 nbFrames = 0;
-                Deque<Integer> tpsList = GuiDebug.getInstance().tpsList;
-                if (tpsList.size() > 9)
-                    tpsList.removeFirst();
-                tpsList.add(nbTicks);
-                DisplayManager.TPS = nbTicks;
                 nbTicks = 0;
                 GuiDebug.getInstance().updateInfoGui();
             }
-            if (draw)
-                glfwSwapBuffers(DisplayManager.getWindow());
-            glfwPollEvents();
         }
 
         SettingsManager.saveSettings();

@@ -7,4 +7,8 @@ import util.math.Vector3f;
 public interface AddComponentCallback {
 
     void onAddComponent(GameObject gameObject, Vector3f position);
+
+    default boolean isForEach() {
+        return true;
+    }
 }

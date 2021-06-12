@@ -226,4 +226,10 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     public TerrainPosition toTerrainPosition() {
         return new TerrainPosition((int) Math.rint(x), (int) Math.rint(z));
     }
+
+    public TerrainPosition toTerrainPositionForPlacing() {
+        Vector2f point = new Vector2f(x, z);
+        point = point.add(new Vector2f(-.5f, -.5f));
+        return point.toTerrainPosition();
+    }
 }

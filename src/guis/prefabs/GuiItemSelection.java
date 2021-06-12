@@ -63,8 +63,7 @@ public class GuiItemSelection extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("Market selected");
 
-                MouseUtils.setBuildingState();
-                selectOrUnselect(Market.class);
+                selectOrUnselect(Market.class, MouseUtils::SelectBuilding);
             }
         });
     }
@@ -77,8 +76,8 @@ public class GuiItemSelection extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("Insula selected");
 
-                MouseUtils.setBuildingState();
-                selectOrUnselect(Insula.class);
+
+                selectOrUnselect(Insula.class, MouseUtils::SelectBuilding);
             }
         });
     }
@@ -92,30 +91,35 @@ public class GuiItemSelection extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("DirtRoad selected");
 
-                MouseUtils.setRoadState();
-                selectOrUnselect(DirtRoad.class);
+                selectOrUnselect(DirtRoad.class, MouseUtils::SelectRoad);
             }
         });
     }
 
-    private void selectOrUnselect(Class<? extends GameObject> gameObjectClass) {
+    private void selectOrUnselect(Class<? extends GameObject> gameObjectClass, IfSelectedCallback ifSelectedCallback) {
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
         Class<? extends GameObject> selectedItemClass = selectedItemGui.getSelectedItem();
 
         boolean select = selectedItemClass == null || selectedItemClass != gameObjectClass;
 
         if (select) {
+            ifSelectedCallback.onSelection();
             selectedItemGui.updatePosition();
             selectedItemGui.setSelectedItem(gameObjectClass);
         } else {
             selectedItemGui.removeSelectedItem();
 
-            MouseUtils.setDefaultState();
+            MouseUtils.Deselect();
         }
     }
 
-
     public static GuiItemSelection getItemSelectionGui() {
         return instance;
+    }
+
+    @FunctionalInterface
+    interface IfSelectedCallback {
+
+        void onSelection();
     }
 }

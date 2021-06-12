@@ -1,5 +1,9 @@
 package guis.prefabs.GuiMainMenu;
 
+import static renderEngine.DisplayManager.FRAMERATE_INFINITE;
+import static renderEngine.DisplayManager.MAX_FRAMERATE;
+import static renderEngine.DisplayManager.MIN_FRAMERATE;
+
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
@@ -44,12 +48,6 @@ public class GuiDisplaySettings extends GuiTab {
         createResolutionOption();
         createFPSOption();
         createVSyncOption();
-
-//        GuiTextInput guiTextInput = new GuiTextInput(this);
-//        guiTextInput.setOutlineConstraints(new RelativeConstraint(1), new RelativeConstraint(.4f));
-//        guiTextInput.setOutlineColor(Color.WHITE);
-//        guiTextInput.setMaxLength(20);
-//        guiTextInput.setSelectedBackgroundColor(Utils.setAlphaColor(Color.decode("#1976D2"), 100));
     }
 
 
@@ -145,7 +143,7 @@ public class GuiDisplaySettings extends GuiTab {
 
 
         GuiOnOffOption guiOnOffOption = new GuiOnOffOption(vsyncArea, Background.NO_BACKGROUND,
-                OnOff.getType(DisplayManager.vSync), new GuiConstraintsManager.Builder()
+                OnOff.getType(DisplayManager.VSYNC_ENABLED), new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
@@ -169,16 +167,24 @@ public class GuiDisplaySettings extends GuiTab {
                         .create());
 
 
-        fpsSlider = new GuiHorizontalSlider(
-                FPSArea, new Interval(DisplayManager.MAX_FPS, 30, 300, 1), LIGHT_GRAY, Color.BLACK,
+        this.fpsSlider = new GuiHorizontalSlider(FPSArea, new Interval(DisplayManager.FRAMERATE_LIMIT, MIN_FRAMERATE, MAX_FRAMERATE, 1),
+                LIGHT_GRAY, Color.BLACK,
                 new GuiConstraintsManager.Builder()
                         .setDefault()
                         .setWidthConstraint(new RelativeConstraint(.5f))
                         .setHeightConstraint(new RelativeConstraint(.2f))
                         .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                         .create());
+        this.fpsSlider.displayAsMax(FRAMERATE_INFINITE);
+        this.fpsSlider.showValue(Side.RIGHT);
+        this.fpsSlider.setOnValueChanged(value -> {
+            int maxFps;
+            if (value.equals(FRAMERATE_INFINITE))
+                maxFps = Integer.MAX_VALUE;
+            else
+                maxFps = Integer.parseInt(value);
 
-        fpsSlider.showValue(Side.RIGHT);
-        fpsSlider.setOnValueChanged(value -> DisplayManager.setFPS((int) value));
+            DisplayManager.setFPS(maxFps);
+        });
     }
 }

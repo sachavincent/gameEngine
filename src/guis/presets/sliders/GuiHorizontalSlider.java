@@ -43,7 +43,7 @@ public class GuiHorizontalSlider extends GuiSlider {
         this.sliderCursor.setX(this.position);
 
         if (this.onValueChangedCallback != null)
-            this.onValueChangedCallback.onValueChanged(this.value);
+            this.onValueChangedCallback.onValueChanged(getValueDisplay());
     }
 
     @Override

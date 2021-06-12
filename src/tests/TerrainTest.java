@@ -45,7 +45,7 @@ class TerrainTest {
     @BeforeEach
     public void resetGameObjects() {
         scene.resetObjects();
-        scene.updateRequirements();
+        scene.updateBuildingRequirements();
         scene.resetRoadGraph();
     }
 
@@ -2951,34 +2951,35 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testRoadsConnectedToItem() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(50, 60);
-
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(v1));
-        Market market = new Market();
-        market.addComponent(new PositionComponent(v2));
-
-        TerrainPosition[] positions = new TerrainPosition[]{
-                new TerrainPosition(50, 53),
-                new TerrainPosition(50, 54),
-                new TerrainPosition(45, 55),
-                new TerrainPosition(55, 55),
-                new TerrainPosition(45, 65),
-                new TerrainPosition(55, 65),
-        };
-        GameObject.newInstances(DirtRoad.class, positions);
-
-        TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
-        for (int i = 0; i < connectedRoads.length / 4; i++) {
-            connectedRoads[i * 4] = new TerrainPosition(i + 46, 55);
-            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 46, 65);
-            connectedRoads[i * 4 + 2] = new TerrainPosition(45, i + 56);
-            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 56);
-        }
-
+    void testRoadsConnectedToBuilding() {
         List<GameObject> expectedRoads = new ArrayList<>();
+
+        int x = 50;
+        int z = 50;
+
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(x, z));
+
+        GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, z - Market.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z - Market.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, z),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 2, z)
+        });
+
+        TerrainPosition[] connectedRoads = new TerrainPosition[]{
+                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, z - Market.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z - Market.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, z)
+        };
 
         for (TerrainPosition roadPos : connectedRoads) {
             GameObject.newInstance(DirtRoad.class, roadPos);
@@ -2989,14 +2990,13 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testRoadsConnectedToItem2() {
+    void testRoadsConnectedToBuilding2() {
         List<GameObject> expectedRoads = new ArrayList<>();
 
         int x = 35;
         int z = 50;
 
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(x, z)));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(x, z));
 
         GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
                 new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, z - Insula.Z_NEGATIVE_OFFSET - 1),
@@ -3034,8 +3034,8 @@ Destination = 0,2 => not working
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
-        TerrainPosition[] positions = new TerrainPosition[23];
-        for (int i = 53; i < 76; i++)
+        TerrainPosition[] positions = new TerrainPosition[22];
+        for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -3058,19 +3058,18 @@ Destination = 0,2 => not working
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
-        TerrainPosition[] positions = new TerrainPosition[29];
+        TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
-        positions[22] = new TerrainPosition(51, 74);
-        positions[23] = new TerrainPosition(52, 74);
-        positions[24] = new TerrainPosition(53, 74);
-        positions[25] = new TerrainPosition(54, 74);
-        positions[26] = new TerrainPosition(55, 74);
-        positions[27] = new TerrainPosition(55, 75);
-        positions[28] = new TerrainPosition(55, 76);
-
         GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 76));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 77));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 78));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 79));
@@ -3099,28 +3098,28 @@ Destination = 0,2 => not working
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
-        TerrainPosition[] positions = new TerrainPosition[22];
-        for (int i = 53; i < 75; i++)
+        TerrainPosition[] positions = new TerrainPosition[21];
+        for (int i = 53; i < 74; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
-        TerrainPosition[] connectedRoads = new TerrainPosition[9 * 4];
+        TerrainPosition[] connectedRoads = new TerrainPosition[10 * 4];
         for (int i = 0; i < connectedRoads.length / 4; i++) {
-            connectedRoads[i * 4] = new TerrainPosition(i + 46, 75);
-            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 46, 85);
-            connectedRoads[i * 4 + 2] = new TerrainPosition(45, i + 76);
-            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 76);
+            connectedRoads[i * 4] = new TerrainPosition(i + 44, 74);
+            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 44, 85);
+            connectedRoads[i * 4 + 2] = new TerrainPosition(44, i + 74);
+            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 74);
         }
         GameObject.newInstances(DirtRoad.class, connectedRoads);
 
         Path bestPath = PathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
-                new NodeRoad(new TerrainPosition(50, 75)));
+        NodeRoad nodeRoad = new NodeRoad(new TerrainPosition(50, 74));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]), nodeRoad);
 
         Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
-        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(50, 75)));
+        nodeConnection.addRoad(nodeRoad);
         expectedPath.add(nodeConnection);
         assertEquals(expectedPath, bestPath);
     }
@@ -3144,18 +3143,15 @@ Destination = 0,2 => not working
                 new TerrainPosition(32, 53),
                 new TerrainPosition(32, 54),
                 new TerrainPosition(32, 55),
-                new TerrainPosition(32, 56),
                 new TerrainPosition(34, 53),
                 new TerrainPosition(34, 54),
                 new TerrainPosition(34, 55),
-                new TerrainPosition(34, 56),
                 new TerrainPosition(35, 53),
                 new TerrainPosition(36, 53),
                 new TerrainPosition(37, 53),
                 new TerrainPosition(33, 54),
                 new TerrainPosition(33, 55),
-                new TerrainPosition(33, 53),
-                new TerrainPosition(33, 56),
+                new TerrainPosition(33, 53)
         };
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -3170,10 +3166,6 @@ Destination = 0,2 => not working
                 new NodeRoad(new TerrainPosition(33, 55)));
         nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
 
-        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 55)),
-                new NodeRoad(new TerrainPosition(33, 56)));
-        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(33, 56)));
-
         Path expectedPath2 = new Path();
         NodeConnection nodeConnection21 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 53)),
                 new NodeRoad(new TerrainPosition(34, 54)));
@@ -3183,17 +3175,11 @@ Destination = 0,2 => not working
                 new NodeRoad(new TerrainPosition(34, 55)));
         nodeConnection22.addRoad(new NodeRoad(new TerrainPosition(34, 55)));
 
-        NodeConnection nodeConnection23 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 55)),
-                new NormalRoad(new TerrainPosition(34, 56)));
-        nodeConnection23.addRoad(new NormalRoad(new TerrainPosition(34, 56)));
-
         expectedPath.add(nodeConnection);
         expectedPath.add(nodeConnection2);
-        expectedPath.add(nodeConnection3);
 
         expectedPath2.add(nodeConnection21);
         expectedPath2.add(nodeConnection22);
-        expectedPath2.add(nodeConnection23);
 
         assertTrue(expectedPath.comparePaths(bestPath) || expectedPath2.comparePaths(bestPath));
         assertTrue(expectedPath.compareCost(bestPath) && expectedPath2.compareCost(bestPath));
@@ -3218,18 +3204,15 @@ Destination = 0,2 => not working
                 new TerrainPosition(32, 53),
                 new TerrainPosition(32, 54),
                 new TerrainPosition(32, 55),
-                new TerrainPosition(32, 56),
                 new TerrainPosition(34, 53),
                 new TerrainPosition(34, 54),
                 new TerrainPosition(34, 55),
-                new TerrainPosition(34, 56),
                 new TerrainPosition(35, 53),
                 new TerrainPosition(36, 53),
                 new TerrainPosition(37, 53),
                 new TerrainPosition(33, 54),
                 new TerrainPosition(33, 55),
                 new TerrainPosition(33, 53),
-                new TerrainPosition(33, 56),
         };
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -3244,13 +3227,8 @@ Destination = 0,2 => not working
                 new NodeRoad(new TerrainPosition(33, 55)));
         nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
 
-        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 55)),
-                new NodeRoad(new TerrainPosition(33, 56)));
-        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(33, 56)));
-
         expectedPath.add(nodeConnection);
         expectedPath.add(nodeConnection2);
-        expectedPath.add(nodeConnection3);
         assertEquals(expectedPath, bestPath);
     }
 
@@ -3259,8 +3237,8 @@ Destination = 0,2 => not working
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
-        TerrainPosition[] positions = new TerrainPosition[23];
-        for (int i = 53; i < 76; i++)
+        TerrainPosition[] positions = new TerrainPosition[22];
+        for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -3284,8 +3262,8 @@ Destination = 0,2 => not working
         Insula insula = new Insula();
         insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
-        TerrainPosition[] positions = new TerrainPosition[23];
-        for (int i = 53; i < 76; i++)
+        TerrainPosition[] positions = new TerrainPosition[22];
+        for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -3508,7 +3486,7 @@ Destination = 0,2 => not working
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
 
-        for (int i = 55; i < 76; i++)
+        for (int i = 55; i < 75; i++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
         for (int i = 32; i < 50; i++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
@@ -3526,11 +3504,11 @@ Destination = 0,2 => not working
                 .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
         expectedPath.add(nodeConnection1.invert());
 
-        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 75)));
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
         IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
-        IntStream.rangeClosed(56, 75).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
 
         expectedPath.add(nodeConnection2);
 
@@ -3542,7 +3520,7 @@ Destination = 0,2 => not working
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
 
-        for (int i = 55; i < 76; i++)
+        for (int i = 55; i < 75; i++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
         for (int i = 32; i < 50; i++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
@@ -3566,11 +3544,11 @@ Destination = 0,2 => not working
                 .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
         expectedPath.add(nodeConnection1.invert());
 
-        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 75)));
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
         IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
-        IntStream.rangeClosed(56, 75).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
 
         expectedPath.add(nodeConnection2);
 
@@ -3587,7 +3565,6 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
@@ -3599,11 +3576,11 @@ Destination = 0,2 => not working
 
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(48, 71)),
-                new NormalRoad(new TerrainPosition(48, 75)));
+                new NormalRoad(new TerrainPosition(48, 74)));
         nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 72)));
         nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 73)));
         nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 74)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 75)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 74)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3611,15 +3588,15 @@ Destination = 0,2 => not working
 
     @Test
     void testPathfindingMarketToInsula17() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(42, 79));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(41, 79));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
 
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 76));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 74));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
@@ -3629,8 +3606,8 @@ Destination = 0,2 => not working
 
         Path bestPath = PathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(45, 76)),
-                new NormalRoad(new TerrainPosition(45, 76)));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(44, 76)),
+                new NormalRoad(new TerrainPosition(44, 76)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3639,7 +3616,7 @@ Destination = 0,2 => not working
     @Test
     void testPathfindingMarketToInsula18() {
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(54, 73));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 81));
 
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 74));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 75));
@@ -3656,9 +3633,9 @@ Destination = 0,2 => not working
 
     @Test
     void testPathfindingMarketToInsula19() {
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 88));
-        for (int z = 75; z < 86; z++)
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 81));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 89));
+        for (int z = 75; z < 87; z++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, z));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
@@ -3666,10 +3643,49 @@ Destination = 0,2 => not working
         Path bestPath = PathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(
-                new NormalRoad(new TerrainPosition(45, 85)), new NormalRoad(new TerrainPosition(45, 84)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(45, 84)));
+                new NormalRoad(new TerrainPosition(45, 86)), new NormalRoad(new TerrainPosition(45, 85)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(45, 85)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
+    }
+
+
+    @Test
+    void testPathfindingMarketToInsula20() {
+        TerrainPosition v1 = new TerrainPosition(27, 13);
+        TerrainPosition v2 = new TerrainPosition(22, 20);
+
+        int[] roadPositions = new int[]{
+                v1.getX(), v1.getZ(),
+                v2.getX(), v2.getZ(),
+                22, 19,
+                22, 18,
+                22, 17,
+                22, 16,
+                23, 16,
+                24, 16,
+                25, 16,
+                22, 15,
+                23, 15,
+                24, 15,
+                27, 14,
+                27, 15,
+                27, 16,
+                26, 16,
+        };
+
+        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
+
+        GameObject.newInstances(DirtRoad.class, roads);
+
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(26, 8));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(23, 24));
+
+        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        System.out.println(bestPath);
+        Path expectedPath = new Path();
+
+//        assertEquals(expectedPath, bestPath);
     }
 }

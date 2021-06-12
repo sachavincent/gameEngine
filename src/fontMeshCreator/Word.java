@@ -9,18 +9,21 @@ public class Word {
     private final List<Character> characters = new ArrayList<>();
     private final double          fontSize;
     private final Color           color;
+    private final double          spaceWidth;
 
-    private double  width;
-    private boolean startsWithTab;
+    private double width;
+    private int    nbSpaces;
 
     /**
      * Create a new empty word.
      *
      * @param fontSize - the font size of the text which this word is in.
+     * @param spaceWidth - the width of one space
      * @param color - the color in which the text is displayed
      */
-    protected Word(double fontSize, Color color) {
+    protected Word(double fontSize, double spaceWidth, Color color) {
         this.fontSize = fontSize;
+        this.spaceWidth = spaceWidth;
         this.color = color;
     }
 
@@ -36,19 +39,18 @@ public class Word {
         }
     }
 
-    protected void addTabulation(double width) {
-        this.width += width * this.fontSize;
-        this.startsWithTab = true;
+    /**
+     * Spaces before a word is not considered part of the word, but they are necessary to find the right coordinates
+     *
+     * @param nbSpaces amount of spaces before the word
+     */
+    protected void addSpacesBeforeWord(double nbSpaces) {
+        this.width += nbSpaces * this.spaceWidth * this.fontSize;
+        this.nbSpaces += nbSpaces;
     }
 
-    /**
-     * if true, word is starts with a tabulation (8 * space width)
-     * else, it starts with 1 space
-     *
-     * @return this.startsWithTab
-     */
-    public boolean doesStartWithTab() {
-        return this.startsWithTab;
+    public int getNbSpaces() {
+        return this.nbSpaces;
     }
 
     /**

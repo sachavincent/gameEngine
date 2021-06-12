@@ -11,6 +11,7 @@ import pathfinding.RoadGraph;
 import renderEngine.PathRenderer;
 import renderEngine.Renderer;
 import scene.components.*;
+import scene.components.requirements.RequirementComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import scene.gameObjects.Route;
@@ -108,9 +109,6 @@ public class Scene {
     }
 
     public void render() {
-//        System.out.println(
-//                "Il y a " + this.renderableGameObjects.get(NPCRenderer.getInstance()).size() + " PNJ dans la scène");
-
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
             lGameObjects.forEach(GameObject::prepareRender);
             renderer.render();
@@ -205,15 +203,20 @@ public class Scene {
      * Place previewed items on Terrain
      */
     public void placePreviewedObjects() {
-        this.previewedGameObjects.forEach(gameObject -> {
+        GameObject obj = null;
+        TerrainPosition pos = null;
+        for (GameObject gameObject : this.previewedGameObjects) {
             PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
             TerrainPosition previewPosition = previewComponent.getPreviewPosition();
             if (previewPosition != null) { // = Was previewed
                 System.out.println("Placing at " + previewPosition);
-                GameObject.newInstance(gameObject.getClass(), previewPosition);
+                obj = GameObject.newInstance(gameObject.getClass(), previewPosition, true);
+                pos = previewPosition;
                 gameObject.destroy();
             }
-        });
+        }
+        if (obj != null)
+            obj.onUniqueAddGameObject(pos.toVector3f());
         this.previewedGameObjects.clear();
     }
 
@@ -435,8 +438,25 @@ public class Scene {
         return this.roadGraph;
     }
 
-    public void updateRequirements() {
-        BuildingRequirementsService service = new BuildingRequirementsService(true, result -> {
+    public void addBuildingRequirement(GameObject gameObject) {
+        //TODO: If new road is not connected to anything, stop
+        BuildingRequirementsService service = new BuildingRequirementsService(true, Set.of(gameObject), result -> {
+            PathRenderer pathRenderer = PathRenderer.getInstance();
+            if (result.keySet().isEmpty()) // No new paths
+                return;
+
+            pathRenderer.addToTempPathsList(result);
+        });
+
+        this.serviceManager.addService(service);
+        this.serviceManager.execute();
+    }
+
+    public void updateBuildingRequirements() {
+        //TODO: If new road is not connected to anything, stop
+        BuildingRequirementsService service = new BuildingRequirementsService(true,
+                Scene.getInstance().getGameObjectsForComponent(
+                        RequirementComponent.class, false), result -> {
             PathRenderer pathRenderer = PathRenderer.getInstance();
             if (result.keySet().equals(pathRenderer.getTempPathsList().keySet())) // No new paths
                 return;
@@ -483,7 +503,11 @@ public class Scene {
      */
     public void resetObjects() {
         this.gameObjects.clear();
+        GameObject.reset();
+        this.idGameObjectsForComponents.clear();
+        this.renderableGameObjects.clear();
         this.previewedGameObjects.clear();
+        this.serviceManager.clear();
         this.positions = new int[500][500];
     }
 

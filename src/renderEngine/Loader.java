@@ -38,21 +38,22 @@ public class Loader {
     private Loader() {
     }
 
-    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices,
-            Vector3f min, Vector3f max) {
+    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, float[] tangents,
+            int[] indices, Vector3f min, Vector3f max) {
         int vaoID = createVAO();
         int vboID = bindIndicesBuffer(indices);
 
         storeDataInAttributeList(0, 3, positions);
         storeDataInAttributeList(1, 2, textureCoords);
         storeDataInAttributeList(2, 3, normals);
+        storeDataInAttributeList(3, 3, tangents);
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, min, max, false);
+        return new RawModel(vaoID, vboID, indices.length, min, max, true, false);
     }
 
     public RawModel loadInstancesToVAO(float[] positions, float[] textureCoords, float[] normals,
-            int[] indices, Vector3f min, Vector3f max) {
+            float[] tangents, int[] indices, Vector3f min, Vector3f max) {
         int vaoID = createVAO();
         bindIndicesBuffer(indices);
 
@@ -62,19 +63,21 @@ public class Loader {
         storeDataInAttributeList(1, 2, textureCoords);
         glEnableVertexAttribArray(2);
         storeDataInAttributeList(2, 3, normals);
+        glEnableVertexAttribArray(3);
+        storeDataInAttributeList(3, 3, tangents);
 
         int vboID = GL15.glGenBuffers();
         vbos.add(vboID);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboID);
 
         for (int i = 0; i < 4; i++) {
-            GL20.glVertexAttribPointer(i + 3, 4, GL_FLOAT, false, 64, i * 16);
-            GL41.glVertexAttribDivisor(i + 3, 1);
-            glEnableVertexAttribArray(i + 3);
+            GL20.glVertexAttribPointer(i + 4, 4, GL_FLOAT, false, 64, i * 16);
+            GL41.glVertexAttribDivisor(i + 4, 1);
+            glEnableVertexAttribArray(i + 4);
         }
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, min, max, true);
+        return new RawModel(vaoID, vboID, indices.length, min, max, true, true);
     }
 
     public RawModel loadInstancesToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
@@ -99,7 +102,7 @@ public class Loader {
         }
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, true);
+        return new RawModel(vaoID, vboID, indices.length, false, true);
     }
 
     public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
@@ -111,7 +114,21 @@ public class Loader {
         storeDataInAttributeList(2, 3, normals);
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, false);
+        return new RawModel(vaoID, vboID, indices.length, false, false);
+    }
+
+    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, float[] tangents,
+            int[] indices) {
+        int vaoID = createVAO();
+        int vboID = bindIndicesBuffer(indices);
+
+        storeDataInAttributeList(0, 3, positions);
+        storeDataInAttributeList(1, 2, textureCoords);
+        storeDataInAttributeList(2, 3, normals);
+        storeDataInAttributeList(3, 3, tangents);
+        unbindVAO();
+
+        return new RawModel(vaoID, vboID, indices.length, true, false);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions) {
@@ -121,7 +138,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
     }
 
     public RawModel loadToVAO(int[] positions, int dimensions) {
@@ -131,7 +148,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions, int attributeNumber) {
@@ -141,7 +158,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
     }
 
     public int loadToVAO(float[] positions, float[] textureCoords, float[] colors) {
@@ -216,7 +233,6 @@ public class Loader {
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
         GL20.glVertexAttribPointer(attributeNumber, coordinateSize, GL_FLOAT, false, 0, 0);
     }
-
 
     private void storeDataInAttributeList(int attributeNumber, int coordinateSize, int[] data) {
         int vboID = GL15.glGenBuffers();

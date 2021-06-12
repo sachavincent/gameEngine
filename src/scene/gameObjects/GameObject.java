@@ -1,15 +1,19 @@
 package scene.gameObjects;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import scene.Scene;
 import scene.components.Component;
 import scene.components.PositionComponent;
 import scene.components.RendererComponent;
+import scene.components.callbacks.AddComponentCallback;
 import terrains.TerrainPosition;
+import util.math.Vector3f;
 
 public abstract class GameObject {
 
@@ -23,6 +27,8 @@ public abstract class GameObject {
 
     private final Scene scene;
 
+    private boolean ignoreAddCallback;
+
     public GameObject() {
         this.id = ++ID;
 
@@ -30,6 +36,11 @@ public abstract class GameObject {
         this.scene = Scene.getInstance();
 
         UNIQUE_GAMEOBJECTS.add(this.getClass());
+    }
+
+    public static void reset() {
+        ID = 0;
+        UNIQUE_GAMEOBJECTS.clear();
     }
 
     public int getId() {
@@ -44,9 +55,21 @@ public abstract class GameObject {
 
         if (component instanceof PositionComponent) {
             Scene.getInstance().addGameObject(this);
-            this.components.values().stream().map(Component::getAddComponentCallback).filter(Objects::nonNull)
-                    .forEach(callback -> callback.onAddComponent(this, ((PositionComponent) component).getPosition()));
+            Stream<AddComponentCallback> addComponentCallbackStream = this.components.values().stream()
+                    .map(Component::getAddComponentCallback).filter(Objects::nonNull);
+            if (isIgnoreAddCallback())
+                addComponentCallbackStream = addComponentCallbackStream
+                        .filter(AddComponentCallback::isForEach);
+
+            addComponentCallbackStream.forEach(callback -> callback
+                    .onAddComponent(this, ((PositionComponent) component).getPosition()));
         }
+    }
+
+    public void onUniqueAddGameObject(Vector3f position) {
+        this.components.values().stream().map(Component::getAddComponentCallback).filter(Objects::nonNull)
+                .filter(addComponentCallback -> !addComponentCallback.isForEach())
+                .forEach(callback -> callback.onAddComponent(this, position));
     }
 
     public Map<String, Component> getComponents() {
@@ -104,19 +127,28 @@ public abstract class GameObject {
     }
 
     public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position) {
+        return newInstance(objectClass, position, false);
+    }
+
+    public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position,
+            boolean ignoreAddCallback) {
         X gameObject = getObjectFromClass(objectClass);
+        gameObject.setIgnoreAddCallback(ignoreAddCallback);
         gameObject.addComponent(new PositionComponent(position));
 
         return gameObject;
     }
 
-    public static GameObject[] newInstances(Class<? extends GameObject> objectClass, TerrainPosition[] positions) {
-        if (positions == null)
-            return new GameObject[0];
 
-        GameObject[] gameObjects = new GameObject[positions.length];
+    public static <X extends GameObject> X[] newInstances(Class<X> objectClass, TerrainPosition[] positions) {
+        if (positions == null)
+            return (X[]) Array.newInstance(objectClass, 0);
+
+        X[] gameObjects = (X[]) Array.newInstance(objectClass, positions.length);
         for (int i = 0; i < positions.length; i++) {
-            GameObject gameObject = getObjectFromClass(objectClass);
+            if (positions[i] == null)
+                continue;
+            X gameObject = getObjectFromClass(objectClass);
             gameObject.addComponent(new PositionComponent(positions[i]));
 
             gameObjects[i] = gameObject;
@@ -137,6 +169,14 @@ public abstract class GameObject {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isIgnoreAddCallback() {
+        return this.ignoreAddCallback;
+    }
+
+    public void setIgnoreAddCallback(boolean ignoreAddCallback) {
+        this.ignoreAddCallback = ignoreAddCallback;
     }
 
     public static Class<? extends GameObject> getClassFromName(String gameObjectName) {

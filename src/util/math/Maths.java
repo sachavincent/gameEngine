@@ -9,6 +9,9 @@ public class Maths {
     public static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
     }
+    public static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
     public static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
@@ -64,7 +67,7 @@ public class Maths {
         Camera camera = Camera.getInstance();
         Matrix4f.rotate((float) Math.toRadians(camera.getPitch()), new Vector3f(1, 0, 0), matrix, matrix);
         Matrix4f.rotate((float) Math.toRadians(camera.getYaw()), new Vector3f(0, 1, 0), matrix, matrix);
-        Matrix4f.rotate((float) Math.toRadians(camera.getRoll()), new Vector3f(0, 0, 1), matrix, matrix);
+//        Matrix4f.rotate((float) Math.toRadians(camera.getRoll()), new Vector3f(0, 0, 1), matrix, matrix);
 
         Vector3f cameraPos = camera.getPosition();
         Vector3f negativeCameraPos = new Vector3f(-cameraPos.x, -cameraPos.y, -cameraPos.z);

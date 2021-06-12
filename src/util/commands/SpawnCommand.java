@@ -57,9 +57,7 @@ public class SpawnCommand extends Command {
 
         boolean showBool;
 
-        if (show == null)
-            showBool = false;
-        else if (!show.equalsIgnoreCase("true") && !show.equalsIgnoreCase("false"))
+        if (show != null && !show.equalsIgnoreCase("true") && !show.equalsIgnoreCase("false"))
             return 7;
 
         showBool = Boolean.parseBoolean(show);

@@ -40,7 +40,7 @@ public class NPCTest {
     @BeforeEach
     public void resetGameObjects() {
         scene.resetObjects();
-        scene.updateRequirements();
+        scene.updateBuildingRequirements();
         scene.resetRoadGraph();
 
         NPC = new NPC();

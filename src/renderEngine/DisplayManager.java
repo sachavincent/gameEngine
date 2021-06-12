@@ -31,17 +31,18 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 import util.Timer;
+import util.math.Maths;
 
 public class DisplayManager {
 
-    public static int WIDTH = 2560, HEIGHT = 1440, MAX_FPS = 300, FPS = MAX_FPS, TPS = 20;
-    public static       long FRAME_CAP          = 1000000L / MAX_FPS;
-    public static final int  MAX_FRAMES_IGNORED = 5;
-
+    public static int WIDTH = 2560, HEIGHT = 1440, FRAMERATE_LIMIT = 300, FPS = FRAMERATE_LIMIT, TPS = 20;
+    public static  double  MSPT;
+    private static double  FRAMERATE_LIMIT_NS = 1000000000 / (double) FRAMERATE_LIMIT;
+    private static boolean LIMIT_FRAMERATE;
     public static  float   MIN_LINE_WIDTH;
     public static  float   MAX_LINE_WIDTH;
     private static long    window;
-    public static  boolean vSync;
+    public static  boolean VSYNC_ENABLED;
 
     public static List<Screen> screens;
     public static Screen       currentScreen;
@@ -57,6 +58,11 @@ public class DisplayManager {
 
     public static PrintStream outStream;
     public static PrintStream errStream;
+
+    public final static int    MIN_FRAMERATE      = 30;
+    public final static int    MAX_FRAMERATE      = 300;
+    public final static String FRAMERATE_INFINITE = "Inf.";
+    ;
 
     public final static boolean IS_DEBUG = java.lang.management.ManagementFactory.
             getRuntimeMXBean().
@@ -94,7 +100,6 @@ public class DisplayManager {
         glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
         glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
         glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
-
 
         window = glfwCreateWindow(mode.width(), mode.height(), "OpenGL Tests", 0, 0);
 
@@ -166,8 +171,23 @@ public class DisplayManager {
     }
 
     public static void setFPS(int fps) {
-        MAX_FPS = fps;
-        FRAME_CAP = 1000000L / fps;
+        LIMIT_FRAMERATE = fps < Integer.MAX_VALUE;
+
+        FRAMERATE_LIMIT = fps;
+        FRAMERATE_LIMIT_NS = 1000000000 / (double) fps;
+    }
+
+    public static void setFPS(String fps) {
+        if (fps.equalsIgnoreCase(FRAMERATE_INFINITE))
+            setFPS(Integer.MAX_VALUE);
+        else {
+            try {
+                int fpsValue = Integer.parseInt(fps);
+                setFPS(Maths.clamp(fpsValue, MIN_FRAMERATE, MAX_FRAMERATE));
+            } catch (NumberFormatException e) {
+
+            }
+        }
     }
 
     private static void loadScreens() {
@@ -251,8 +271,6 @@ public class DisplayManager {
     public static void setDisplayMode(DisplayMode type) {
         displayMode = type;
 
-//        System.out.println("setWindowMode=" + type.name() + " for screen n°" + indexCurrentScreen);
-
         if (window == 0)
             setWindow();
 
@@ -305,9 +323,10 @@ public class DisplayManager {
         indexCurrentScreen = index;
     }
 
-    public static void setVsync(boolean v) {
-        vSync = v;
-        glfwSwapInterval(v ? 1 : 0);
+    public static void setVsync(boolean vSync) {
+        LIMIT_FRAMERATE = !vSync;
+        VSYNC_ENABLED = vSync;
+        glfwSwapInterval(vSync ? 1 : 0);
     }
 
     public static void setWindowSize(Resolution resolution) {
@@ -320,6 +339,13 @@ public class DisplayManager {
             glfwSetWindowSize(window, currentScreen.resolution.width, currentScreen.resolution.height - 50);
     }
 
+    public static boolean isFramerateLimited() {
+        return LIMIT_FRAMERATE;
+    }
+
+    public static double getFramerateLimitNS() {
+        return FRAMERATE_LIMIT_NS;
+    }
 
     public static class Resolution implements Comparable<Resolution> {
 

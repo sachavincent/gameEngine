@@ -42,7 +42,7 @@ public abstract class Texture {
             if (backString.startsWith("#"))
                 instantiateWithHexColor(backString);
             else
-                instantiateWithFile(backString);
+                instantiateWithFile(backString, false);
         } else if (back instanceof Integer)
             instantiateWithInteger((Integer) back);
 //        else
@@ -71,39 +71,41 @@ public abstract class Texture {
         this.textureID = integer;
     }
 
-    private void instantiateWithFile(String fileName) {
+    protected int instantiateWithFile(String fileName, boolean normalMap) {
         File file = new File("res/" + fileName);
         if (!file.exists())
             fileName = "white.png";
-
-        IntBuffer width = BufferUtils.createIntBuffer(1);
-        IntBuffer height = BufferUtils.createIntBuffer(1);
-        IntBuffer comp = BufferUtils.createIntBuffer(1);
-        ByteBuffer byteBuffer = STBImage.stbi_load("res/" + fileName, width, height, comp, 4);
+        int textureID = 0;
+        IntBuffer widthBuffer = BufferUtils.createIntBuffer(1);
+        IntBuffer heightBuffer = BufferUtils.createIntBuffer(1);
+        IntBuffer compBuffer = BufferUtils.createIntBuffer(1);
+        ByteBuffer byteBuffer = STBImage.stbi_load("res/" + fileName, widthBuffer, heightBuffer, compBuffer, 4);
 
         if (byteBuffer == null) {
-            width.clear();
-            height.clear();
-            comp.clear();
+            widthBuffer.clear();
+            heightBuffer.clear();
+            compBuffer.clear();
 
-            return;
+            return 0;
         }
-
-        this.width = width.get();
-        this.height = height.get();
-
+        int width = widthBuffer.get();
+        int height = heightBuffer.get();
+        if (!normalMap) {
+            this.width = width;
+            this.height = height;
+        }
         if (false) {
             loadMSAATexture();
         } else {
-            this.textureID = GL41.glGenTextures();
-            this.keepAspectRatio = true;
-
+            textureID = GL41.glGenTextures();
+            if (!normalMap) {
+                this.textureID = textureID;
+                this.keepAspectRatio = true;
+            }
             GL41.glBindTexture(GL_TEXTURE_2D, textureID);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MIN_FILTER, GL41.GL_NEAREST);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MAG_FILTER, GL41.GL_NEAREST);
-            GL41.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA,
-                    GL41.GL_UNSIGNED_BYTE, byteBuffer);
-
+            GL41.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL41.GL_UNSIGNED_BYTE, byteBuffer);
             GL41.glGenerateMipmap(GL_TEXTURE_2D);
             glTexParameteri(GL_TEXTURE_2D, GL41.GL_TEXTURE_MIN_FILTER, GL41.GL_LINEAR_MIPMAP_LINEAR);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_LOD_BIAS, 0f);
@@ -113,14 +115,17 @@ public abstract class Texture {
                         .min(4f, GL41.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
                 GL41.glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
             } else {
+                System.out.println("no anisotropic");
                 // TODO
             }
         }
-        width.clear();
-        height.clear();
-        comp.clear();
+        widthBuffer.clear();
+        heightBuffer.clear();
+        compBuffer.clear();
 
         STBImage.stbi_image_free(byteBuffer);
+
+        return textureID;
     }
 
     public boolean dokeepAspectRatio() {

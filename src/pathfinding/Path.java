@@ -32,6 +32,20 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
         return super.add(nodeConnection);
     }
 
+    public Path addAtStart(NodeConnection nodeConnection) {
+        Path path = new Path(this);
+
+        if (nodeConnection == null)
+            return path;
+
+        List<NodeConnection> tmp = new ArrayList<>(path);
+        Collections.reverse(tmp);
+        tmp.add(nodeConnection);
+        Collections.reverse(tmp);
+
+        return new Path(tmp);
+    }
+
     public boolean compareCost(Path path) {
         return path.getCost() == getCost();
     }
@@ -57,8 +71,8 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
         if (this.isEmpty())
             return Integer.MAX_VALUE;
 
-        return this.stream().mapToInt(nodeConnection ->
-                nodeConnection.getRoads().stream().mapToInt(Road::getScore).sum()).sum();
+        return this.stream()
+                .mapToInt(nodeConnection -> nodeConnection.getRoads().stream().mapToInt(Road::getScore).sum()).sum();
     }
 
     public List<Road> getAllRoads() {
@@ -72,16 +86,7 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
         Set<Road> roads = new LinkedHashSet<>();
         this.stream().map(NodeConnection::getRoads).forEach(roads::addAll);
 
-        return Collections.unmodifiableList(new ArrayList<>(roads));
-    }
-
-    public Path addAtStart(NodeConnection nodeConnection) {
-        List<NodeConnection> tmp = new ArrayList<>(new Path(this));
-        Collections.reverse(tmp);
-        tmp.add(nodeConnection);
-        Collections.reverse(tmp);
-
-        return new Path(tmp);
+        return List.copyOf(roads);
     }
 
     public Path invertPath() {

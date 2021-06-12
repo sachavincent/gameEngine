@@ -1,5 +1,7 @@
 package util;
 
+import static renderEngine.DisplayManager.FRAMERATE_INFINITE;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -108,15 +110,20 @@ public class SettingsManager {
         final static Option<Integer> DISPLAY = new Option<>("display", DisplayMode.defaultMode().ordinal(),
                 DisplayManager::setScreen, () -> DisplayManager.indexCurrentScreen);
 
-        final static Option<Integer> FPS_CAP = new Option<>("fpscap",
-                300, DisplayManager::setFPS, () -> DisplayManager.MAX_FPS);
+        final static Option<String> FPS_CAP = new Option<>("fpscap",
+                "60", DisplayManager::setFPS, () -> {
+            if (DisplayManager.FRAMERATE_LIMIT == Integer.MAX_VALUE)
+                return FRAMERATE_INFINITE;
+
+            return String.valueOf(DisplayManager.FRAMERATE_LIMIT);
+        });
 
         final static Option<Integer> FULLSCREEN = new Option<>("display_mode", DisplayMode.FULLSCREEN.ordinal(),
                 value -> DisplayManager.setDisplayMode(DisplayMode.values()[value]),
                 () -> DisplayManager.displayMode.ordinal());
 
         final static Option<Boolean> VSYNC = new Option<>("vsync", true, DisplayManager::setVsync,
-                () -> DisplayManager.vSync);
+                () -> DisplayManager.VSYNC_ENABLED);
 
         final static Option<String> RESOLUTION = new Option<>("resolution", "1920x1080", value -> {
             String[] dim = value.split("x");

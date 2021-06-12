@@ -16,10 +16,8 @@ import inputs.Key;
 import java.awt.Color;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 import renderEngine.DisplayManager;
 import util.Utils;
@@ -28,9 +26,7 @@ import util.commands.CommandManager;
 
 public class GuiDebug extends Gui {
 
-    private final static Background<String> CHECK    = new Background<>("check.png");
-    public               Deque<Integer>     tpsList  = new ArrayDeque<>();
-    public               Deque<Double>      msptList = new ArrayDeque<>();
+    private final static Background<String> CHECK = new Background<>("check.png");
 
     private static GuiDebug instance;
 
@@ -101,12 +97,9 @@ public class GuiDebug extends Gui {
 
         List<Color> colors = new ArrayList<>() {{
             add(Color.WHITE);
-            add(Color.WHITE);
             add(Color.RED);
             add(Color.WHITE);
-            add(Color.WHITE);
             add(Color.RED);
-            add(Color.WHITE);
             add(Color.WHITE);
         }};
 
@@ -191,7 +184,7 @@ public class GuiDebug extends Gui {
         commandInputGui.setUnfocusOnClick(false);
         commandInputGui.setOnUnfocusCallback(() -> setDisplayed(false));
         commandInputGui.setOnClose(commandInputGui::clearText);
-        commandInputGui.setOnOpen(commandInputGui::clearText);
+//        commandInputGui.setOnOpen(commandInputGui::clearText);
         commandInputGui.setOnSend(text -> {
             if (CommandManager.isTextCommand(text)) {
                 String[] tokens = CommandManager.parseCommand(text);
@@ -227,14 +220,13 @@ public class GuiDebug extends Gui {
     }
 
     public void updateInfoGui() {
-        double avgTPS = Utils
-                .formatDoubleToNDecimals(this.tpsList.stream().mapToInt(value -> value).average().orElse(0), 2);
-        double avgMSPT = Utils
-                .formatDoubleToNDecimals(this.msptList.stream().mapToDouble(value -> value).average().orElse(0), 2);
+        if (!isDisplayed())
+            return;
         this.infosGui.getText().setTextString(
-                "Average TPS: " + avgTPS + "\r\nAverage MSPT: " + avgMSPT + "\r\nFPS: " + DisplayManager.FPS);
+                "TPS: " + DisplayManager.TPS + "\r\n" + "MSPT: " + DisplayManager.MSPT + "\r\nFPS: " +
+                        DisplayManager.FPS);
         List<Color> colors = this.infosGui.getText().getColors();
-        colors.set(2, Utils.getColorForTPS(avgTPS));
-        colors.set(5, Utils.getColorForMSPT(avgMSPT));
+        colors.set(1, Utils.getColorForTPS(DisplayManager.TPS));
+        colors.set(3, Utils.getColorForMSPT(DisplayManager.MSPT));
     }
 }

@@ -2,7 +2,6 @@ package inputs.requests;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
 
 import inputs.KeyInput;
 import inputs.KeyModifiers;
@@ -16,9 +15,6 @@ public class KeyMappingRequest extends Request {
     private final KeyCallback callback;
 
     private static final HandleRequestCallback ON_HANDLE_REQUEST_CALLBACK = (action, pressedKey, scancode, r, requests) -> {
-        if (action == GLFW_REPEAT) // Ignores repeat
-            return false;
-
         KeyMappingRequest request = (KeyMappingRequest) r;
         KeyModifiers keyModifier = KeyModifiers.getKeyModifierFromInputKey(pressedKey);
         KeyModifiers requestKeyModifier = request.getKeyModifier();

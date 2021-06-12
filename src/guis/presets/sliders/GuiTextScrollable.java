@@ -46,7 +46,7 @@ public class GuiTextScrollable extends GuiText {
         this.scrollBar.setCursorHeight(new RelativeConstraint(1));
         this.scrollBar.disableSliding();
         this.scrollBar.setOnValueChanged(value -> {
-            this.text.setyOffset(-(int) (value));
+            this.text.setyOffset(-Integer.parseInt(value));
         });
         setOnScroll((xOffset, yOffset) -> {
             if (this.scrollBar.isSlidingEnabled())

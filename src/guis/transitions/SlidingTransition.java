@@ -107,20 +107,20 @@ public class SlidingTransition extends Transition {
 
         switch (direction) {
 //            case RIGHT:
-//                gui.setX(Float.min(gui.getFinalX(), gui.getX() + DISTANCE / (length / 1000f) / MAX_FPS));
+//                gui.setX(Float.min(gui.getFinalX(), gui.getX() + DISTANCE / (length / 1000f) / FRAMERATE_LIMIT));
 //
 //                return gui.getX() == gui.getFinalX(); // Animation terminée
 //            case LEFT:
-//                gui.setX(Float.max(gui.getFinalX(), gui.getX() - DISTANCE / (length / 1000f) / MAX_FPS));
+//                gui.setX(Float.max(gui.getFinalX(), gui.getX() - DISTANCE / (length / 1000f) / FRAMERATE_LIMIT));
 //
 //                return gui.getX() == gui.getFinalX(); // Animation terminée
 //            case BOTTOM:
-//                gui.setY(Float.max(gui.getFinalY(), gui.getY() - DISTANCE / (length / 1000f) / MAX_FPS));
+//                gui.setY(Float.max(gui.getFinalY(), gui.getY() - DISTANCE / (length / 1000f) / FRAMERATE_LIMIT));
 //
 //                gui.setY(gui.getFinalY());
 //                return gui.getY() == gui.getFinalY(); // Animation terminée
 //            case TOP:
-//                gui.setY(Float.min(gui.getFinalY(), gui.getY() + DISTANCE / (length / 1000f) / MAX_FPS));
+//                gui.setY(Float.min(gui.getFinalY(), gui.getY() + DISTANCE / (length / 1000f) / FRAMERATE_LIMIT));
 //
 //                return gui.getY() == gui.getFinalY(); // Animation terminée
         }

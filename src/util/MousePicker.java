@@ -1,6 +1,5 @@
 package util;
 
-
 import entities.Camera;
 import inputs.MouseUtils;
 import java.util.AbstractMap.SimpleEntry;
@@ -30,10 +29,8 @@ public class MousePicker {
 
     private Vector3f currentRay = new Vector3f();
 
-    private       Matrix4f viewMatrix;
-    private final Camera   camera;
+    private Matrix4f viewMatrix;
 
-    //    private final Terrain  terrain;
     private Vector3f intersectionPoint;
 
     private static MousePicker instance;
@@ -41,9 +38,7 @@ public class MousePicker {
     private GameObject gameObject;
 
     private MousePicker() {
-        this.camera = Camera.getInstance();
         this.viewMatrix = Maths.createViewMatrix();
-//        this.terrain = Terrain.getInstance();
     }
 
     public static MousePicker getInstance() {
@@ -63,10 +58,13 @@ public class MousePicker {
     }
 
     public void update() {
-        viewMatrix = Maths.createViewMatrix();
+        this.viewMatrix = Maths.createViewMatrix();
 
-        currentRay = calculateMouseRay();
-        currentRay = (Vector3f) currentRay.normalise();
+        this.currentRay = calculateMouseRay();
+        this.currentRay = (Vector3f) this.currentRay.normalise();
+
+        this.gameObject = null;
+        this.intersectionPoint = null;
 
         Map<GameObject, Vector3f> map = new HashMap<>();
         Entry<GameObject, Vector3f> intersectionWithGameObject = getIntersectionWithGameObject(
@@ -141,17 +139,17 @@ public class MousePicker {
     }
 
     public Vector3f intersectionWithPlane(Plane3D plane, boolean print) {
-        Vector3f origin = camera.getPosition();
+        Vector3f origin = Camera.getInstance().getPosition();
 
         Vector3f normalPlane = plane.getNormal();
-        float dot_dn = Vector3f.dot(currentRay, normalPlane);
+        float dot_dn = Vector3f.dot(this.currentRay, normalPlane);
         if (dot_dn == 0)
             return null;
 
         Vector3f pointPlane = plane.getPointA();
         float t = -(Vector3f.dot(Vector3f.sub(origin, pointPlane, null), normalPlane)) / dot_dn;
 
-        Vector3f P = Vector3f.add((Vector3f) currentRay.scale(t), origin, null);
+        Vector3f P = Vector3f.add((Vector3f) this.currentRay.scale(t), origin, null);
         P.format();
 
         if (plane.isPointOnPlane(P)) {
@@ -179,7 +177,7 @@ public class MousePicker {
     }
 
     private Vector3f toWorldCoords(Vector4f eyeCoords) {
-        Matrix4f invertedView = Matrix4f.invert(viewMatrix, null);
+        Matrix4f invertedView = Matrix4f.invert(this.viewMatrix, null);
         Vector4f rayWorld = Matrix4f.transform(invertedView, eyeCoords, null);
         Vector3f mouseRay = new Vector3f(rayWorld.x, rayWorld.y, rayWorld.z);
         mouseRay.normalise();

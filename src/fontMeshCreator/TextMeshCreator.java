@@ -35,24 +35,28 @@ public class TextMeshCreator {
         if (chars.length == 0)
             return lines;
 
-        Line currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
-        Word currentWord = new Word(text.getFontSize(), text.getColor(1));
+        Line currentLine = new Line(this.metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
+        Word currentWord = new Word(text.getFontSize(), this.metaData.getSpaceWidth(), text.getColor(1));
         int nbWords = 1;
+        int tailingSpaces = 0;
         for (char c : chars) {
             Color color = text.getColor(nbWords);
             if (c == '\n') { // \r\n or \n
                 currentLine.attemptToAddWord(currentWord);
                 lines.add(currentLine);
-                currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
-                currentWord = new Word(text.getFontSize(), color);
+                if (lines.size() == text.getMaxLines())
+                    break;
+                currentLine = new Line(this.metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
+                tailingSpaces = 0;
+                currentWord = new Word(text.getFontSize(), this.metaData.getSpaceWidth(), color);
                 continue;
             }
-            if ((int) c == SPACE_ASCII || (int) c == TAB_ASCII) {
-                if ((int) c == TAB_ASCII)
-                    currentWord.addTabulation(this.metaData.getTabWidth());
+            if ((int) c == SPACE_ASCII || c == '\t') {
                 if (currentWord.getCharacters().isEmpty()) {
-                    if (currentLine.getNbWords() == 0)
-                        currentLine.setNbSpacesBeforeLine(currentLine.getNbSpacesBeforeLine() + 1);
+                    if (c == '\t')
+                        currentWord.addSpacesBeforeWord(8);
+                    else
+                        currentWord.addSpacesBeforeWord(1);
                     continue;
                 }
                 boolean added = currentLine.attemptToAddWord(currentWord);
@@ -61,30 +65,39 @@ public class TextMeshCreator {
                     currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
                     currentLine.attemptToAddWord(currentWord);
                 }
-                currentWord = new Word(text.getFontSize(), color);
+                currentWord = new Word(text.getFontSize(), this.metaData.getSpaceWidth(), color);
+                tailingSpaces = 0;
+                if (c == '\t')
+                    currentWord.addSpacesBeforeWord(7);
                 continue;
             }
             if (String.valueOf(c).matches(".")) {
+                currentLine.addTailingSpaces(tailingSpaces);
+                tailingSpaces = 0;
                 if (currentWord.getCharacters().isEmpty())
                     nbWords++;
                 Character character = this.metaData.getCharacter(c);
                 currentWord.addCharacter(character);
             }
         }
-        completeStructure(lines, currentLine, currentWord, text);
+        completeStructure(lines, currentLine, currentWord, text, tailingSpaces);
         return lines;
     }
 
 
-    private void completeStructure(List<Line> lines, Line currentLine, Word currentWord, Text text) {
-        if (currentLine.getWords().isEmpty() && currentWord.getCharacters().isEmpty())
+    private void completeStructure(List<Line> lines, Line currentLine, Word currentWord, Text text, int tailingSpaces) {
+        if (currentLine.getWords().isEmpty() && currentWord.getCharacters().isEmpty() && tailingSpaces == 0)
             return;
 
-        boolean added = currentLine.attemptToAddWord(currentWord);
-        if (!added) {
-            lines.add(currentLine);
-            currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
-            currentLine.attemptToAddWord(currentWord);
+        if (tailingSpaces > 0)
+            currentLine.addTailingSpaces(tailingSpaces);
+        else {
+            boolean added = currentLine.attemptToAddWord(currentWord);
+            if (!added) {
+                lines.add(currentLine);
+                currentLine = new Line(metaData.getSpaceWidth(), text.getFontSize(), text.getMaxLineLength());
+                currentLine.attemptToAddWord(currentWord);
+            }
         }
         lines.add(currentLine);
     }
@@ -96,17 +109,13 @@ public class TextMeshCreator {
         List<Float> textureCoords = new ArrayList<>();
         List<Float> colors = new ArrayList<>();
         for (Line line : lines) {
-            if (line.doesStartWithSpaces())
-                xCursor = line.getNbSpacesBeforeLine() * line.getSpaceSize();
-            else
-                xCursor = 0;
+            xCursor = 0;
 
             if (text.isCenteredHorizontally())
                 xCursor += (line.getMaxLength() - line.getLineLength()) / 2;
 
             for (Word word : line.getWords()) {
-                if (word.doesStartWithTab())
-                    xCursor += this.metaData.getTabWidth() * text.getFontSize();
+                xCursor += this.metaData.getSpaceWidth() * text.getFontSize() * word.getNbSpaces();
                 for (Character letter : word.getCharacters()) {
                     addVerticesForCharacter(xCursor, yCursor, letter, text.getFontSize(), vertices);
                     addTexCoords(textureCoords, letter.getxTextureCoord(), letter.getyTextureCoord(),

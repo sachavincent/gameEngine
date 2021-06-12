@@ -22,7 +22,7 @@ public class PositionComponent extends Component {
 
         this.updateComponentCallback = gameObject -> {
             if (gameObject.getComponents().containsKey(RequirementComponent.class.getName()))
-                Scene.getInstance().updateRequirements();
+                Scene.getInstance().updateBuildingRequirements();
         };
     }
 

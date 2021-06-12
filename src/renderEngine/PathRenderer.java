@@ -22,6 +22,7 @@ import scene.components.TextureComponent;
 import scene.gameObjects.GameObject;
 import textures.ModelTexture;
 import util.math.Maths;
+import util.math.Matrix4f;
 import util.math.Vector2f;
 
 public class PathRenderer extends Renderer {
@@ -52,6 +53,11 @@ public class PathRenderer extends Renderer {
         this.updateNeeded = true;
     }
 
+    public void addToTempPathsList(Map<Path, Color> tempPathsList) {
+        this.tempPathsList.putAll(tempPathsList);
+        this.updateNeeded = true;
+    }
+
     public boolean isUpdateNeeded() {
         return this.updateNeeded;
     }
@@ -79,10 +85,11 @@ public class PathRenderer extends Renderer {
     public void prepareRender(GameObject gameObject) {
         if (!this.shader.isStarted()) {
             this.shader.start();
+            Matrix4f viewMatrix = Maths.createViewMatrix();
             ((GameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((GameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects());
-            ((GameObjectShader) this.shader).loadViewMatrix();
+            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects(), viewMatrix);
+            ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
             ((GameObjectShader) this.shader)
                     .loadTransformationMatrix(Maths.createTransformationMatrix(new Vector2f(0, 0), new Vector2f(1, 1)));
             ((GameObjectShader) this.shader).loadOffset(0, 0);
@@ -104,7 +111,6 @@ public class PathRenderer extends Renderer {
         ((GameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
 
         ((GameObjectShader) this.shader).loadFakeLightingVariable(texture.doesUseFakeLighting());
-        ((GameObjectShader) this.shader).loadDirectionalColor(texture.doesUseDirectionalColor());
         ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
         ((GameObjectShader) this.shader).loadIsInstanced(false);
         ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());

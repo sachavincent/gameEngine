@@ -1,7 +1,7 @@
 package scene.components;
 
 import entities.Camera.Direction;
-import scene.Scene;
+import scene.components.callbacks.AddComponentCallback;
 
 public class RoadConnectionsComponent extends Component {
 
@@ -9,12 +9,13 @@ public class RoadConnectionsComponent extends Component {
     private final boolean[] accessPoints = new boolean[]{true, true, true, true};
     private final boolean[] connections  = new boolean[]{false, false, false, false};
 
-    public RoadConnectionsComponent(boolean west, boolean north, boolean east, boolean south) {
-        this(new boolean[]{west, north, east, south});
+    public RoadConnectionsComponent(boolean west, boolean north, boolean east, boolean south,
+            AddComponentCallback addComponentCallback) {
+        this(new boolean[]{west, north, east, south}, addComponentCallback);
     }
 
-    public RoadConnectionsComponent(boolean[] accessPoints) {
-        super((gameObject, position) -> Scene.getInstance().updateRequirements());
+    public RoadConnectionsComponent(boolean[] accessPoints, AddComponentCallback addComponentCallback) {
+        super(addComponentCallback);
 
         this.accessPoints[0] = accessPoints[0];
         this.accessPoints[1] = accessPoints[1];
@@ -22,8 +23,8 @@ public class RoadConnectionsComponent extends Component {
         this.accessPoints[3] = accessPoints[3];
     }
 
-    public RoadConnectionsComponent() {
-        this(new boolean[]{true, true, true, true});
+    public RoadConnectionsComponent(AddComponentCallback addComponentCallback) {
+        this(new boolean[]{true, true, true, true},addComponentCallback);
     }
 
     public boolean isConnected(Direction direction) {

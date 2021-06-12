@@ -14,11 +14,14 @@ import people.Person;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
+import scene.Scene;
 import scene.components.*;
+import scene.components.callbacks.AddComponentCallback;
 import scene.components.requirements.BuildingRequirement;
 import scene.components.requirements.Requirement;
 import scene.components.requirements.RequirementComponent;
 import scene.components.requirements.ResourceRequirement;
+import util.math.Vector3f;
 
 public class Insula extends GameObject {
 
@@ -37,11 +40,17 @@ public class Insula extends GameObject {
         addComponent(new PreviewComponent(OBJGameObjects.INSULA.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
 
-        addComponent(new RoadConnectionsComponent());
+        addComponent(new RoadConnectionsComponent(new AddComponentCallback() {
+            @Override
+            public void onAddComponent(GameObject gameObject, Vector3f position) {
+                Scene.getInstance().addBuildingRequirement(gameObject);
+            }
 
-
-//        addComponent(new RequireResourcesComponent(resourcesNeeded));
-//        addComponent(new RequireBuildingComponent(Map.of(Market.class, 0)));
+            @Override
+            public boolean isForEach() {
+                return false;
+            }
+        }));
 
         BuildingRequirement marketRequirement = new BuildingRequirement(Market.class, 0, value -> {
             GuiHouseDetails.getInstance().update();

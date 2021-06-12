@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,12 +17,62 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Insula;
+import scene.gameObjects.Market;
 import terrains.TerrainPosition;
 
 public class Utils {
 
     public static void main(String[] args) {
-        cleanOBJFile("insula.obj");
+        cleanOBJFile("market.obj");
+    }
+
+    public static Map<Class<? extends GameObject>, TerrainPosition[]> getPositionsFromConsoleLogs(String fileName) {
+        Map<Class<? extends GameObject>, TerrainPosition[]> map = new HashMap<>();
+        try (BufferedReader bufferedReader = new BufferedReader(
+                new FileReader("assets/" + fileName))) {
+            String line;
+            Class<? extends GameObject> clazz = null;
+            List<TerrainPosition> positions = new ArrayList<>();
+
+            whileloop:
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.contains("selected")) {
+                    if (clazz != null)
+                        map.put(clazz, positions.toArray(new TerrainPosition[0]));
+                    String objName = line.split(" ")[0];
+                    switch (objName) {
+                        case "DirtRoad":
+                            clazz = DirtRoad.class;
+                            positions = new ArrayList<>();
+                            break;
+                        case "Market":
+                            clazz = Market.class;
+                            positions = new ArrayList<>();
+                            break;
+                        case "Insula":
+                            clazz = Insula.class;
+                            positions = new ArrayList<>();
+                            break;
+                        default:
+                            continue whileloop;
+                    }
+                } else if (line.contains("Placing")) {
+                    String[] coords = line.split("\\{")[1].split("}")[0].split(", ");
+                    String x = coords[0].split("=")[1];
+                    String z = coords[1].split("=")[1];
+                    positions.add(new TerrainPosition(Integer.parseInt(x), Integer.parseInt(z)));
+                } else {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return map;
     }
 
     public static void cleanOBJFile(String fileName) {

@@ -9,7 +9,6 @@ public class OBJGameObject {
     private TexturedModel previewTexture;
 
     private BoundingBox   boundingBox;
-    private TexturedModel selectionBox;
 
     public TexturedModel getTexture() {
         return this.texture;
@@ -33,13 +32,5 @@ public class OBJGameObject {
 
     public void setBoundingBox(BoundingBox boundingBox) {
         this.boundingBox = boundingBox;
-    }
-
-    public TexturedModel getSelectionBox() {
-        return this.selectionBox;
-    }
-
-    public void setSelectionBox(TexturedModel selectionBox) {
-        this.selectionBox = selectionBox;
     }
 }

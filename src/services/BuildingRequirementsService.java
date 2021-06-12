@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import pathfinding.Path;
 import pathfinding.PathFinder;
-import scene.Scene;
 import scene.components.RoadConnectionsComponent;
 import scene.components.requirements.BuildingRequirement;
 import scene.components.requirements.RequirementComponent;
@@ -19,10 +18,10 @@ public class BuildingRequirementsService extends Service<Map<Path, Color>> {
 
     private final Set<GameObject> gameObjects;
 
-    public BuildingRequirementsService(boolean singleton, OnServiceDone<Map<Path, Color>> onServiceDone) {
+    public BuildingRequirementsService(boolean singleton, Set<GameObject> gameObjects, OnServiceDone<Map<Path, Color>> onServiceDone) {
         super(singleton, onServiceDone);
 
-        this.gameObjects = Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false);
+        this.gameObjects = gameObjects;
     }
 
     @Override

@@ -3,6 +3,7 @@ package guis.presets;
 import static guis.Gui.DEFAULT_FONT;
 import static org.lwjgl.glfw.GLFW.*;
 
+import fontMeshCreator.Line;
 import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.basics.GuiRectangle;
@@ -23,13 +24,17 @@ import java.awt.Color;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.lwjgl.glfw.GLFW;
+import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
 public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
+
+    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
     private final GuiRectangleButton outline;
     private final GuiRectangle       cursor;
@@ -38,8 +43,6 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
 
     private long lastBlinkTime;
     private int  cursorPosition;
-
-    private int maxLength = Integer.MAX_VALUE;
 
     private final float minCursorXPosition;
     private       float textSize;
@@ -62,6 +65,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
 
     private SendTextCallback onSendTextCallback = text -> {
     };
+    private double           spaceWidth;
 
     public GuiTextInput(GuiInterface parent, GuiConstraintsManager constraintsManager) {
         this(parent, Background.NO_BACKGROUND, constraintsManager);
@@ -100,9 +104,11 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
                         .setHeightConstraint(new RelativeConstraint(.65f))
                         .setxConstraint(new SideConstraint(Side.LEFT, this.outline)).create());
         Text text = new Text("", .8f, DEFAULT_FONT, Color.BLACK);
+        this.spaceWidth = text.getFont().getLoader().getMetaData().getSpaceWidth() * 2 * text.getFontSize();
+        text.setMaxLines(1);
+        text.setMaxLineLength(this.outline.getWidth());
         this.guiText = new GuiText(this.outline, text);
-
-        this.minCursorXPosition = this.outline.getX() - this.outline.getWidth() + SideConstraint.DISTANCE_FROM_SIDE;
+        this.minCursorXPosition = (float) (this.outline.getX() - this.outline.getWidth() + this.spaceWidth * 2);
         this.guiText.getText().setCenteredHorizontally(false);
         this.guiText.setOnUpdate(() -> this.guiText.getText().setPosition(
                 new Vector2f(this.minCursorXPosition, (this.guiText.getText().getPosition().y - 0.5) * 2)));
@@ -139,14 +145,6 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
         this.outline.getShape().setBorderColor(color);
     }
 
-    public void setMaxLength(int maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    public int getMaxLength() {
-        return this.maxLength;
-    }
-
     /**
      * Handles shortcuts
      */
@@ -166,6 +164,8 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
                 updateDelCursorAndText(GLFW_KEY_BACKSPACE);
             } else if (key == GLFW_KEY_DELETE) {
                 updateDelCursorAndText(GLFW_KEY_DELETE);
+            } else if (key == GLFW_KEY_TAB) {
+                updateAddCursorAndText('\t');
             } else if (key == GLFW_KEY_LEFT) {
                 if (this.textSelected)
                     unselectText();
@@ -188,17 +188,41 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
 
                 this.cursorPosition = content.length();
                 this.cursor.setX(this.minCursorXPosition + this.textSize);
+            } else if (action == GLFW_PRESS && (key == GLFW_KEY_X || key == GLFW_KEY_C) && KeyboardUtils.isControl &&
+                    this.textSelected) {
+                glfwSetClipboardString(DisplayManager.getWindow(), content);
+                if (key == GLFW_KEY_X) {
+                    unselectText();
+                    clearText();
+                }
+            } else if (key == GLFW_KEY_V && KeyboardUtils.isControl) {
+                if (this.textSelected) {
+                    unselectText();
+                    clearText();
+                }
+                String clipBoardContent = glfwGetClipboardString(DisplayManager.getWindow());
+                if (clipBoardContent != null) {
+                    long nbLines = clipBoardContent.codePoints().filter(value -> value == 13).count();
+                    if (text.getMaxLines() > nbLines) {
+                        for (int c : clipBoardContent.chars().toArray()) {
+                            if (!updateAddCursorAndText((char) c))
+                                break;
+                        }
+                    }
+                }
             } else if (action == GLFW_PRESS && key == GLFW_KEY_Q && KeyboardUtils.isControl) {
                 if (!content.isEmpty())
                     selectText();
                 return false;
             }
-        } //TODO: ADD TABULATIONS (auto completion & 8 * spaces)
+        } //TODO: ADD TABULATIONS (auto completion)
         return false;
     }
 
     private boolean onSend() {
         this.onSendTextCallback.onSend(this.guiText.getText().getTextString());
+        unselectText();
+        clearText();
         return false;
     }
 
@@ -273,15 +297,11 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
      * and adds character to string
      *
      * @param charToAdd new character
+     * @return false if not enough room
      */
-    private void updateAddCursorAndText(char charToAdd) {
+    private boolean updateAddCursorAndText(char charToAdd) {
         Text text = this.guiText.getText();
         String content = text.getTextString();
-
-        if (!this.textSelected && content.length() >= this.maxLength)
-            return;
-
-        double newCharacterWidth = text.getCharacterWidth(charToAdd);
 
         if (this.textSelected) {
             clearText();
@@ -289,7 +309,15 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
             unselectText();
         }
 
-        if (content.length() < this.maxLength) {
+        List<Line> lines = text.getLines();
+        double lineLength = 0;
+        if (!lines.isEmpty())
+            lineLength = lines.get(0).getLineLength();
+
+
+        double newCharacterWidth = text.getCharacterWidth(charToAdd);
+
+        if (lineLength + newCharacterWidth + this.spaceWidth <= text.getMaxLineLength()) {
             if (this.cursorPosition > 0)
                 text.setTextString(
                         content.substring(0, this.cursorPosition) + charToAdd + content.substring(this.cursorPosition));
@@ -299,8 +327,11 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
             this.cursor.setX((float) (this.cursor.getX() + newCharacterWidth));
 
             this.cursorPosition++;
-        }
-        this.textSize += newCharacterWidth;
+            this.textSize += newCharacterWidth;
+        } else
+            return false;
+
+        return true;
     }
 
     public void clearText() {
@@ -404,12 +435,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
             this.clickType = ClickType.M1;
 
             this.cursor.setDisplayed(true);
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    createRequests();
-                }
-            }, 100);
+            this.service.schedule(this::createRequests, 100, TimeUnit.MILLISECONDS);
         }
 
         if (this.textSelected)

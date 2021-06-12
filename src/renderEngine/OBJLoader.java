@@ -1,17 +1,15 @@
 package renderEngine;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import models.BoundingBox;
 import models.RawModel;
 import models.TexturedModel;
+import objConverter.VertexNM;
 import scene.gameObjects.OBJGameObject;
 import textures.ModelTexture;
 import util.math.Vector2f;
@@ -19,168 +17,45 @@ import util.math.Vector3f;
 
 public class OBJLoader {
 
-    public static RawModel loadObjModel(String fileName) {
-        FileReader fr;
-        try {
-            fr = new FileReader("res/" + fileName + ".obj");
-        } catch (FileNotFoundException e) {
-            System.err.println("Couldn't load obj file!");
-            e.printStackTrace();
-
-            return null;
-        }
-
-        RawModel rawModel = null;
-        BufferedReader reader = new BufferedReader(fr);
-
-        try {
-            rawModel = handleIndicesTexturesNormalsVertex(reader, null, false);
-
-        } catch (IOException | IllegalArgumentException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                fr.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        return rawModel;
-    }
-
     public static RawModel loadRoadModel() {
         float[] vertices = new float[]{-1, 0, 1, 1, 0, 1, -1, 0, -1, 1, 0, -1};
         float[] textureCoords = new float[]{0, 0, 1, 0, 0, 1, 1, 1};
         float[] normals = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
+        float[] tangents = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
         int[] indices = new int[]{1, 2, 0, 1, 3, 2};
         Vector3f min = new Vector3f(-1, 0, -1);
         Vector3f max = new Vector3f(1, 0, 1);
 
-        return Loader.getInstance().loadInstancesToVAO(vertices, textureCoords, normals, indices, min, max);
+        return Loader.getInstance().loadToVAO(vertices, textureCoords, normals, tangents, indices, min, max);
     }
 
-    public static OBJGameObject loadOBJGameObject(String name, boolean doesUseDirectionalColor, boolean instanced) {
-        FileReader fr;
-        try {
-            fr = new FileReader("res/" + name.toLowerCase() + ".obj");
-        } catch (FileNotFoundException e) {
-            System.err.println("Couldn't load obj file!");
-            e.printStackTrace();
-
-            return null;
-        }
-
-        BufferedReader reader = new BufferedReader(fr);
-        String line;
-
-        List<Vector3f> vertices = new ArrayList<>();
-
+    public static OBJGameObject loadOBJGameObject(String name, boolean instanced) {
         OBJGameObject objGameObject = new OBJGameObject();
-        try {
+
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader("res/" + name.toLowerCase() + ".obj"))) {
+            String line;
+
+            List<Vector3f> vertices = new ArrayList<>();
+
             RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", instanced);
-            objGameObject.setBoundingBox(new BoundingBox(rawModel));
 
-            objGameObject.setTexture(new TexturedModel(rawModel, new ModelTexture(name.toLowerCase() + ".png", false)));
-//            item.setTexture(new TexturedModel(rawModel, new ModelTexture("white.png", true)));
+            ModelTexture modelTexture = new ModelTexture(name.toLowerCase() + ".png", false);
+            modelTexture.setNormalMap(name + "Normal.png");
+            objGameObject.setTexture(new TexturedModel(rawModel, modelTexture));
             objGameObject.setPreviewTexture(objGameObject.getTexture());
-            objGameObject.getTexture().getModelTexture().setDirectionalColor(doesUseDirectionalColor);
-//
+
             line = handleVertices(reader, vertices);
-            final float[] textureArray = new float[vertices.size() * 2];
-            final float[] normalsArray = new float[vertices.size() * 3];
-
-            final int[] indicesArray = handleIndicesVertex(reader, line, "SelectionBox");
-
+            final int[] indicesArray = handleIndicesVertex(reader, line);
 
             BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, name.toLowerCase());
 
             objGameObject.setBoundingBox(boundingBox);
-
-            Map<float[], float[]> verticesMapResult = floatArrayToFloatList(vertices, true);
-
-//            verticesMapResult.forEach((key, minMaxArray) -> item.setBoundingBox(new TexturedModel(
-//                    Loader.getInstance().loadToVAO(key, textureArray, normalsArray,
-//                            indicesArray, new Vector3f(minMaxArray[0], minMaxArray[1], minMaxArray[2]),
-//                            new Vector3f(minMaxArray[3], minMaxArray[4], minMaxArray[5])))));
-            vertices.clear();
-
-            line = handleVertices(reader, vertices);
-            final float[] textureArray2 = new float[vertices.size() * 2];
-            final float[] normalsArray2 = new float[vertices.size() * 3];
-
-            final int[] indicesArray2 = handleIndicesVertex(reader, line, null);
-
-            verticesMapResult = floatArrayToFloatList(vertices, false);
-            verticesMapResult.forEach((key, minMaxArray) -> objGameObject.setSelectionBox(new TexturedModel(
-                    Loader.getInstance().loadToVAO(key, textureArray2, normalsArray2, indicesArray2))));
-
         } catch (IOException e) {
             System.err.println("Oops");
             e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                fr.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         return objGameObject;
-    }
-
-    private static Map<float[], float[]> floatArrayToFloatList(List<Vector3f> vertices, boolean minMax) {
-        int vertexPointer = 0;
-        float[] verticesArray = new float[vertices.size() * 3];
-        float[] minMaxArray = new float[minMax ? 6 : 0];
-
-        float minX = Integer.MAX_VALUE;
-        float minY = Integer.MAX_VALUE;
-        float minZ = Integer.MAX_VALUE;
-        float maxX = 0;
-        float maxY = 0;
-        float maxZ = 0;
-
-        for (Vector3f vertex : vertices) {
-            if (minMax) {
-                if (vertex.x < minX)
-                    minX = vertex.x;
-                else if (vertex.x > maxX)
-                    maxX = vertex.x;
-
-                if (vertex.y < minY)
-                    minY = vertex.y;
-                else if (vertex.y > maxY)
-                    maxY = vertex.y;
-
-                if (vertex.z < minZ)
-                    minZ = vertex.z;
-                else if (vertex.z > maxZ)
-                    maxZ = vertex.z;
-            }
-            verticesArray[vertexPointer++] = vertex.x;
-            verticesArray[vertexPointer++] = vertex.y;
-            verticesArray[vertexPointer++] = vertex.z;
-        }
-
-        Map<float[], float[]> map = new HashMap<>();
-        if (minMax) {
-            vertexPointer = 0;
-
-            minMaxArray[vertexPointer++] = minX;
-            minMaxArray[vertexPointer++] = minY;
-            minMaxArray[vertexPointer++] = minZ;
-            minMaxArray[vertexPointer++] = maxX;
-            minMaxArray[vertexPointer++] = maxY;
-            minMaxArray[vertexPointer] = maxZ;
-        }
-
-        map.put(verticesArray, minMaxArray);
-
-        return map;
     }
 
     private static String handleVertices(BufferedReader reader, List<Vector3f> vertices) throws IOException {
@@ -201,13 +76,10 @@ public class OBJLoader {
 
     private static RawModel handleIndicesTexturesNormalsVertex(BufferedReader reader, String nextSegment,
             boolean instancedModel) throws IOException, IllegalArgumentException {
-        List<Vector3f> vertices = new ArrayList<>();
+        List<VertexNM> vertices = new ArrayList<>();
         List<Vector2f> textures = new ArrayList<>();
         List<Vector3f> normals = new ArrayList<>();
         List<Integer> indices = new ArrayList<>();
-
-        float[] normalsArray = null;
-        float[] textureArray = null;
 
         String line;
 
@@ -216,9 +88,6 @@ public class OBJLoader {
                 continue;
 
             if (line.startsWith("f ")) {
-                textureArray = new float[vertices.size() * 2];
-                normalsArray = new float[vertices.size() * 3];
-
                 break;
             }
 
@@ -228,15 +97,12 @@ public class OBJLoader {
                 float arg2 = Float.parseFloat(currentLine[1].equalsIgnoreCase("nan") ? "0" : currentLine[2]);
                 if (line.startsWith("v ")) {
                     float arg3 = Float.parseFloat(currentLine[3]);
-                    Vector3f vertex = new Vector3f(arg1, arg2, arg3);
-                    vertices.add(vertex);
+                    vertices.add(new VertexNM(vertices.size(), new Vector3f(arg1, arg2, arg3)));
                 } else if (line.startsWith("vt ")) {
-                    Vector2f texture = new Vector2f(arg1, arg2);
-                    textures.add(texture);
+                    textures.add(new Vector2f(arg1, arg2));
                 } else if (line.startsWith("vn ")) {
                     float arg3 = Float.parseFloat(currentLine[3]);
-                    Vector3f normal = new Vector3f(arg1, arg2, arg3);
-                    normals.add(normal);
+                    normals.add(new Vector3f(arg1, arg2, arg3));
                 }
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 System.err.println("Error while loading OBJ File : (line=" + line + ")");
@@ -257,9 +123,10 @@ public class OBJLoader {
                 String[] vertex1 = currentLine[1].split("/");
                 String[] vertex2 = currentLine[2].split("/");
                 String[] vertex3 = currentLine[3].split("/");
-                processVertex(vertex1, indices, textures, normals, textureArray, normalsArray);
-                processVertex(vertex2, indices, textures, normals, textureArray, normalsArray);
-                processVertex(vertex3, indices, textures, normals, textureArray, normalsArray);
+                VertexNM v0 = processVertex(vertex1, vertices, indices);
+                VertexNM v1 = processVertex(vertex2, vertices, indices);
+                VertexNM v2 = processVertex(vertex3, vertices, indices);
+                calculateTangents(v0, v1, v2, textures);
             } catch (ArrayIndexOutOfBoundsException e) {
                 e.printStackTrace();
                 System.out.println(Arrays.toString(currentLine));
@@ -268,68 +135,37 @@ public class OBJLoader {
             line = reader.readLine();
         }
 
-        int[] indicesArray;
+        removeUnusedVertices(vertices);
         float[] verticesArray = new float[vertices.size() * 3];
+        float[] texturesArray = new float[vertices.size() * 2];
+        float[] normalsArray = new float[vertices.size() * 3];
+        float[] tangentsArray = new float[vertices.size() * 3];
+        Vector3f[] minMax = new Vector3f[2];
+        float furthest = convertDataToArrays(vertices, textures, normals, verticesArray,
+                texturesArray, normalsArray, tangentsArray, minMax);
+        int[] indicesArray = indices.stream().mapToInt(i -> i).toArray();
 
-        int vertexPointer = 0;
-
-        float minX = Integer.MAX_VALUE;
-        float minY = Integer.MAX_VALUE;
-        float minZ = Integer.MAX_VALUE;
-        float maxX = 0;
-        float maxY = 0;
-        float maxZ = 0;
-
-        for (Vector3f vertex : vertices) {
-            if (vertex.x < minX)
-                minX = vertex.x;
-            else if (vertex.x > maxX)
-                maxX = vertex.x;
-
-            if (vertex.y < minY)
-                minY = vertex.y;
-            else if (vertex.y > maxY)
-                maxY = vertex.y;
-
-            if (vertex.z < minZ)
-                minZ = vertex.z;
-            else if (vertex.z > maxZ)
-                maxZ = vertex.z;
-
-            verticesArray[vertexPointer++] = vertex.x;
-            verticesArray[vertexPointer++] = vertex.y;
-            verticesArray[vertexPointer++] = vertex.z;
-        }
-
-        indicesArray = indices.stream().mapToInt(i -> i).toArray();
-
-        if (textureArray == null || normalsArray == null || indicesArray == null)
-            throw new IllegalArgumentException("Incorrect OBJ file format");
         RawModel rawModel;
         if (instancedModel)
             rawModel = Loader.getInstance()
-                    .loadInstancesToVAO(verticesArray, textureArray, normalsArray, indicesArray,
-                            new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
+                    .loadInstancesToVAO(verticesArray, texturesArray, normalsArray, tangentsArray, indicesArray,
+                            minMax[0], minMax[1]);
         else
             rawModel = Loader.getInstance()
-                    .loadToVAO(verticesArray, textureArray, normalsArray, indicesArray,
-                            new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
+                    .loadToVAO(verticesArray, texturesArray, normalsArray, tangentsArray, indicesArray, minMax[0],
+                            minMax[1]);
         if (rawModel == null)
             throw new IllegalArgumentException("Model null");
 
         return rawModel;
     }
 
-    private static int[] handleIndicesVertex(BufferedReader reader, String line, String nextSegment)
-            throws IOException {
+    private static int[] handleIndicesVertex(BufferedReader reader, String line) throws IOException {
         List<Integer> indices = new ArrayList<>();
         if (line == null)
             return new int[0];
 
         do {
-            if (nextSegment != null && line.equalsIgnoreCase("o " + nextSegment))
-                break;
-
             if (!line.startsWith("f ")) {
                 line = reader.readLine();
                 continue;
@@ -347,24 +183,123 @@ public class OBJLoader {
         return indices.stream().mapToInt(i -> i).toArray();
     }
 
-    private static void processVertex(String[] vertexData, List<Integer> indices, List<Vector2f> textures,
-            List<Vector3f> normals, float[] textureArray, float[] normalsArray) {
+    private static void calculateTangents(VertexNM v0, VertexNM v1, VertexNM v2,
+            List<Vector2f> textures) {
+        Vector3f delatPos1 = Vector3f.sub(v1.getPosition(), v0.getPosition(), null);
+        Vector3f delatPos2 = Vector3f.sub(v2.getPosition(), v0.getPosition(), null);
+        Vector2f uv0 = textures.get(v0.getTextureIndex());
+        Vector2f uv1 = textures.get(v1.getTextureIndex());
+        Vector2f uv2 = textures.get(v2.getTextureIndex());
+        Vector2f deltaUv1 = Vector2f.sub(uv1, uv0, null);
+        Vector2f deltaUv2 = Vector2f.sub(uv2, uv0, null);
 
-        try {
-            int currentVertexPointer = Integer.parseInt(vertexData[0]) - 1;
-            indices.add(currentVertexPointer);
+        float r = 1.0f / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
+        delatPos1.scale(deltaUv2.y);
+        delatPos2.scale(deltaUv1.y);
+        Vector3f tangent = Vector3f.sub(delatPos1, delatPos2, null);
+        tangent.scale(r);
+        v0.addTangent(tangent);
+        v1.addTangent(tangent);
+        v2.addTangent(tangent);
+    }
 
-            Vector2f currentTex = textures.get(Integer.parseInt(vertexData[1]) - 1);
-            textureArray[currentVertexPointer * 2] = currentTex.x;
-            textureArray[currentVertexPointer * 2 + 1] = 1 - currentTex.y;
-
-            Vector3f currentNorm = normals.get(Integer.parseInt(vertexData[2]) - 1);
-            normalsArray[currentVertexPointer * 3] = currentNorm.x;
-            normalsArray[currentVertexPointer * 3 + 1] = currentNorm.y;
-            normalsArray[currentVertexPointer * 3 + 2] = currentNorm.z;
-        } catch (IndexOutOfBoundsException e) {
-            System.err.println("Error during vertex processing");
-            e.printStackTrace();
+    private static VertexNM processVertex(String[] vertex, List<VertexNM> vertices, List<Integer> indices) {
+        int index = Integer.parseInt(vertex[0]) - 1;
+        VertexNM currentVertex = vertices.get(index);
+        int textureIndex = Integer.parseInt(vertex[1]) - 1;
+        int normalIndex = Integer.parseInt(vertex[2]) - 1;
+        if (!currentVertex.isSet()) {
+            currentVertex.setTextureIndex(textureIndex);
+            currentVertex.setNormalIndex(normalIndex);
+            indices.add(index);
+            return currentVertex;
+        } else {
+            return dealWithAlreadyProcessedVertex(currentVertex, textureIndex, normalIndex, indices, vertices);
         }
+    }
+
+    private static VertexNM dealWithAlreadyProcessedVertex(VertexNM previousVertex, int newTextureIndex,
+            int newNormalIndex, List<Integer> indices, List<VertexNM> vertices) {
+        if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
+            indices.add(previousVertex.getIndex());
+            return previousVertex;
+        } else {
+            VertexNM anotherVertex = previousVertex.getDuplicateVertex();
+            if (anotherVertex != null) {
+                return dealWithAlreadyProcessedVertex(anotherVertex, newTextureIndex, newNormalIndex, indices,
+                        vertices);
+            } else {
+                VertexNM duplicateVertex = new VertexNM(vertices.size(), previousVertex.getPosition());
+                duplicateVertex.setTextureIndex(newTextureIndex);
+                duplicateVertex.setNormalIndex(newNormalIndex);
+                previousVertex.setDuplicateVertex(duplicateVertex);
+                vertices.add(duplicateVertex);
+                indices.add(duplicateVertex.getIndex());
+                return duplicateVertex;
+            }
+
+        }
+    }
+
+    private static void removeUnusedVertices(List<VertexNM> vertices) {
+        for (VertexNM vertex : vertices) {
+            vertex.averageTangents();
+            if (!vertex.isSet()) {
+                vertex.setTextureIndex(0);
+                vertex.setNormalIndex(0);
+            }
+        }
+    }
+
+    private static float convertDataToArrays(List<VertexNM> vertices, List<Vector2f> textures, List<Vector3f> normals,
+            float[] verticesArray, float[] texturesArray, float[] normalsArray, float[] tangentsArray,
+            Vector3f[] minMax) {
+        float furthestPoint = 0;
+        float minX = Integer.MAX_VALUE;
+        float minY = Integer.MAX_VALUE;
+        float minZ = Integer.MAX_VALUE;
+        float maxX = 0;
+        float maxY = 0;
+        float maxZ = 0;
+        for (int i = 0; i < vertices.size(); i++) {
+            VertexNM currentVertex = vertices.get(i);
+            if (currentVertex.getLength() > furthestPoint) {
+                furthestPoint = currentVertex.getLength();
+            }
+            Vector3f position = currentVertex.getPosition();
+            Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
+            Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
+            Vector3f tangent = currentVertex.getAverageTangent();
+            verticesArray[i * 3] = position.x;
+            verticesArray[i * 3 + 1] = position.y;
+            verticesArray[i * 3 + 2] = position.z;
+            texturesArray[i * 2] = textureCoord.x;
+            texturesArray[i * 2 + 1] = 1 - textureCoord.y;
+            normalsArray[i * 3] = normalVector.x;
+            normalsArray[i * 3 + 1] = normalVector.y;
+            normalsArray[i * 3 + 2] = normalVector.z;
+            tangentsArray[i * 3] = tangent.x;
+            tangentsArray[i * 3 + 1] = tangent.y;
+            tangentsArray[i * 3 + 2] = tangent.z;
+
+            if (position.x < minX)
+                minX = position.x;
+            else if (position.x > maxX)
+                maxX = position.x;
+
+            if (position.y < minY)
+                minY = position.y;
+            else if (position.y > maxY)
+                maxY = position.y;
+
+            if (position.z < minZ)
+                minZ = position.z;
+            else if (position.z > maxZ)
+                maxZ = position.z;
+        }
+        minMax[0] = new Vector3f(minX, minY, minZ);
+        minMax[1] = new Vector3f(maxX, maxY, maxZ);
+
+        return furthestPoint;
     }
 }

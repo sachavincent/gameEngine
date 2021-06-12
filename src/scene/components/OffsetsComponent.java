@@ -9,8 +9,7 @@ public class OffsetsComponent extends Component {
     // EAST NORTH WEST SOUTH
     protected int[] offsets;
 
-    public OffsetsComponent(int zNegativeOffset, int xPositiveOffset, int zPositiveOffset,
-            int xNegativeOffset) {
+    public OffsetsComponent(int zNegativeOffset, int xPositiveOffset, int zPositiveOffset, int xNegativeOffset) {
         this(new int[]{zNegativeOffset, xPositiveOffset, zPositiveOffset, xNegativeOffset});
     }
 

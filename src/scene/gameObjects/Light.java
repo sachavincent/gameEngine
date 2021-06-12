@@ -14,10 +14,10 @@ public class Light extends GameObject {
     }
 
     public Light(Vector3f position, Vector3f color, Vector3f attenuation) {
+        addComponent(new RendererComponent(LightRenderer.getInstance()));
+
         addComponent(new PositionComponent(position));
         addComponent(new ColorComponent(color));
         addComponent(new AttenuationComponent(attenuation));
-
-        addComponent(new RendererComponent(LightRenderer.getInstance()));
     }
 }

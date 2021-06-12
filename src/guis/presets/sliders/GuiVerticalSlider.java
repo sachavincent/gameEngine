@@ -44,7 +44,7 @@ public class GuiVerticalSlider extends GuiSlider {
         this.sliderCursor.setY(this.position);
 
         if (this.onValueChangedCallback != null)
-            this.onValueChangedCallback.onValueChanged(this.value);
+            this.onValueChangedCallback.onValueChanged(getValueDisplay());
     }
 
     @Override

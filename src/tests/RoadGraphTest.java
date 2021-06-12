@@ -38,7 +38,7 @@ public class RoadGraphTest {
     @BeforeEach
     public void resetGameObjects() {
         scene.resetObjects();
-        scene.updateRequirements();
+        scene.updateBuildingRequirements();
         scene.resetRoadGraph();
     }
 

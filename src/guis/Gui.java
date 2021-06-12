@@ -317,7 +317,7 @@ public class Gui implements GuiInterface {
         enteredGuiComponents.forEach(GuiComponent::onLeave);
         enteredGuiComponents.clear();
         if (!(this instanceof GuiSelectedItem))
-            MouseUtils.onMouseMove(MouseUtils.getCursorPos());
+            MouseUtils.OnMouseMove(MouseUtils.getCursorPos());
 
         getAllComponents().stream()
                 .filter(guiComponent -> guiComponent.isDisplayed() == displayed)

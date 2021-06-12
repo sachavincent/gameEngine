@@ -51,6 +51,7 @@ public class BuildingRenderer extends Renderer {
 
         this.shader.start();
         ((GameObjectShader) this.shader).loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
+        ((GameObjectShader) this.shader).connectTextureUnits();
         this.shader.stop();
     }
 
@@ -103,10 +104,12 @@ public class BuildingRenderer extends Renderer {
         if (!this.shader.isStarted()) {
             glEnable(GL_BLEND);
             this.shader.start();
+
+            Matrix4f viewMatrix = Maths.createViewMatrix();
             ((GameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((GameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects());
-            ((GameObjectShader) this.shader).loadViewMatrix();
+            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects(), viewMatrix);
+            ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
         }
 
         TerrainPosition position = null;
@@ -149,7 +152,7 @@ public class BuildingRenderer extends Renderer {
             if (this.displayBoundingBoxes && gameObject.hasComponent(BoundingBoxComponent.class))
                 handleTexture(this.entities, pos, direction, scale,
                         gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox());
-            else
+            else if (!this.displayBoundingBoxes)
                 handleTexture(this.entities, pos, direction, scale, texture);
         }
     }
@@ -159,14 +162,17 @@ public class BuildingRenderer extends Renderer {
             throw new IllegalArgumentException("TexturedModel null");
 
         RawModel model = texturedModel.getRawModel();
+        boolean areTangentsOn = model.areTangentsOn();
 
         GL30.glBindVertexArray(model.getVaoID());
 
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
         GL20.glEnableVertexAttribArray(2);
-        if (isInstanced)
+        if (areTangentsOn)
             GL20.glEnableVertexAttribArray(3);
+        if (isInstanced)
+            GL20.glEnableVertexAttribArray(4);
 
         ModelTexture texture = texturedModel.getModelTexture();
 
@@ -176,14 +182,16 @@ public class BuildingRenderer extends Renderer {
                 MasterRenderer.disableCulling();
 
             ((GameObjectShader) this.shader).loadFakeLightingVariable(texture.doesUseFakeLighting());
-            ((GameObjectShader) this.shader).loadDirectionalColor(texture.doesUseDirectionalColor());
             ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
             ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
+            ((GameObjectShader) this.shader).loadAreTangentsOn(areTangentsOn);
             ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());
             ((GameObjectShader) this.shader).loadColor(texture.getColor());
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
+            GL13.glActiveTexture(GL13.GL_TEXTURE1);
+            GL13.glBindTexture(GL_TEXTURE_2D, texture.getNormalMap());
 
             if (texture.isTransparent())
                 MasterRenderer.enableCulling(); // Reenable culling
@@ -199,6 +207,7 @@ public class BuildingRenderer extends Renderer {
         GL20.glDisableVertexAttribArray(1);
         GL20.glDisableVertexAttribArray(2);
         GL20.glDisableVertexAttribArray(3);
+        GL20.glDisableVertexAttribArray(4);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
     }

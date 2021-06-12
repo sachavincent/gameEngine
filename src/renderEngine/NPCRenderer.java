@@ -102,10 +102,11 @@ public class NPCRenderer extends Renderer {
         if (!this.shader.isStarted()) {
             glEnable(GL_BLEND);
             this.shader.start();
+            Matrix4f viewMatrix = Maths.createViewMatrix();
             ((GameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((GameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects());
-            ((GameObjectShader) this.shader).loadViewMatrix();
+            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects(), viewMatrix);
+            ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
         }
 
         PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
@@ -172,7 +173,6 @@ public class NPCRenderer extends Renderer {
                 MasterRenderer.disableCulling();
 
             ((GameObjectShader) this.shader).loadFakeLightingVariable(texture.doesUseFakeLighting());
-            ((GameObjectShader) this.shader).loadDirectionalColor(texture.doesUseDirectionalColor());
             ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
             ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
             ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());

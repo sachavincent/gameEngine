@@ -66,29 +66,29 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         if (o == null || getClass() != o.getClass())
             return false;
         TerrainPosition that = (TerrainPosition) o;
-        return x == that.x && z == that.z;
+        return this.x == that.x && this.z == that.z;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, z);
+        return Objects.hash(this.x, this.z);
     }
 
     @Override
     public int compareTo(TerrainPosition o) {
-        int i = Integer.compare(x, o.x);
+        int i = Integer.compare(this.x, o.x);
         if (i != 0)
             return i;
 
-        return Integer.compare(z, o.z);
+        return Integer.compare(this.z, o.z);
     }
 
     @Override
     public String toString() {
-        return "TerrainPosition{" + "x=" + x + ", z=" + z + '}';
+        return "TerrainPosition{" + "x=" + this.x + ", z=" + this.z + '}';
     }
 
     public Vector3f toVector3f() {
-        return new Vector3f(x, 0.05f, z);
+        return new Vector3f(this.x, 0.05f, this.z);
     }
 }

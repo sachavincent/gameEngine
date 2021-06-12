@@ -35,6 +35,7 @@ public class Text {
     private boolean upperCase;
 
     private List<Line>  lines;
+    private int         maxLines = Integer.MAX_VALUE;
     private List<Color> colors;
 
     private Vector2f topLeftCorner;
@@ -277,7 +278,7 @@ public class Text {
     /**
      * @return The maximum length of a line of this text.
      */
-    protected float getMaxLineLength() {
+    public float getMaxLineLength() {
         return this.maxLineLength;
     }
 
@@ -415,5 +416,13 @@ public class Text {
         this.yOffset = yOffset;
 
         this.stringChanged = true;
+    }
+
+    public int getMaxLines() {
+        return this.maxLines;
+    }
+
+    public void setMaxLines(int maxLines) {
+        this.maxLines = maxLines;
     }
 }
