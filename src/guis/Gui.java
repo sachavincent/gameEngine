@@ -6,7 +6,7 @@ import engineTester.Game;
 import fontMeshCreator.FontType;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.GuiGlobalConstraints;
+import guis.constraints.layout.GuiLayout;
 import guis.prefabs.GuiSelectedItem;
 import guis.presets.Background;
 import guis.transitions.Transition;
@@ -53,7 +53,7 @@ public class Gui implements GuiInterface {
 
     private boolean displayDebugOutline = true;
 
-    private GuiGlobalConstraints layout;
+    private GuiLayout layout;
 
     public Gui(Background<?> background) {
         setBackground(background);
@@ -373,7 +373,7 @@ public class Gui implements GuiInterface {
         return this.background.getAlpha();
     }
 
-    public void setLayout(GuiGlobalConstraints guiConstraints) {
+    public void setLayout(GuiLayout guiConstraints) {
         guiConstraints.setParent(this);
 
         this.layout = guiConstraints;

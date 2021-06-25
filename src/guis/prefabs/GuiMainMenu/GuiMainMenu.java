@@ -5,7 +5,13 @@ import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.basics.GuiRectangle;
-import guis.constraints.*;
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraints;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
@@ -52,7 +58,7 @@ public class GuiMainMenu extends Gui {
                 .setxConstraint(new CenterConstraint())
                 .setyConstraint(new CenterConstraint())
                 .create());
-        this.menuButtonPanel.setLayout(new PatternGlobalConstraint(1, 4, 0, 0.07f));
+        this.menuButtonPanel.setLayout(new PatternLayout(1, 4, 0, 0.07f));
 
         createNewGameButton();
         createLoadGameButton();

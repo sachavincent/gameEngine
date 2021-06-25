@@ -7,7 +7,13 @@ import static renderEngine.DisplayManager.MIN_FRAMERATE;
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
-import guis.constraints.*;
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.StickyConstraint;
+import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiMultiOption;
 import guis.presets.GuiOnOffOption;
@@ -41,7 +47,7 @@ public class GuiDisplaySettings extends GuiTab {
                 .setyConstraint(new RelativeConstraint(0, parent.content))
                 .create());
 
-        setLayout(new PatternGlobalConstraint(1, 5, 0));
+        setLayout(new PatternLayout(1, 5, 0));
 
         createDisplayOption();
         createDisplayModeOption();

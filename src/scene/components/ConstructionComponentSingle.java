@@ -1,18 +1,19 @@
 package scene.components;
 
+import entities.Model;
 import java.util.Collections;
 import java.util.List;
 import models.TexturedModel;
 import util.TimeSystem;
 
-public class ConstructionComponent extends TextureComponent {
+public class ConstructionComponentSingle extends SingleModelComponent {
 
     protected List<ConstructionTier> constructionTiers;
 
     protected int currentTier;
 
-    public ConstructionComponent(List<ConstructionTier> constructionTiers) {
-        super(constructionTiers.isEmpty() ? null : constructionTiers.get(0).model);
+    public ConstructionComponentSingle(List<ConstructionTier> constructionTiers) {
+        super(constructionTiers.isEmpty() ? null : new Model(constructionTiers.get(0).model));
 
         this.constructionTiers = constructionTiers;
     }
@@ -24,7 +25,7 @@ public class ConstructionComponent extends TextureComponent {
     public void setCurrentTier(int currentTier) {
         this.currentTier = currentTier;
         if (currentTier < this.constructionTiers.size())
-            this.texture = this.constructionTiers.get(currentTier).model;
+            setModel(new Model(this.constructionTiers.get(currentTier).model));
     }
 
     public ConstructionTier getCurrentConstructionTier() {

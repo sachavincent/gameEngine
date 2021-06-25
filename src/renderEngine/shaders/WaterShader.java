@@ -5,7 +5,6 @@ import renderEngine.MasterRenderer;
 import scene.components.ColorComponent;
 import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
-import util.math.Maths;
 import util.math.Matrix4f;
 
 public class WaterShader extends ShaderProgram {
@@ -86,7 +85,7 @@ public class WaterShader extends ShaderProgram {
     }
 
     public void loadViewMatrix() {
-        Matrix4f viewMatrix = Maths.createViewMatrix();
+        Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
         loadMatrix(location_viewMatrix, viewMatrix);
         super.loadVector(location_cameraPosition, Camera.getInstance().getPosition());
     }

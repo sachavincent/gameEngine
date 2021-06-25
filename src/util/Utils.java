@@ -22,11 +22,12 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
 import scene.gameObjects.Market;
 import terrains.TerrainPosition;
+import util.math.Maths;
 
 public class Utils {
 
     public static void main(String[] args) {
-        cleanOBJFile("market.obj");
+        cleanOBJFile(".obj");
     }
 
     public static Map<Class<? extends GameObject>, TerrainPosition[]> getPositionsFromConsoleLogs(String fileName) {
@@ -305,6 +306,32 @@ public class Utils {
     }
 
 
+    /**
+     * Healthy  amount : > 50% of maxAmount => GREEN
+     * OK       amount : > 30% of maxAmount => YELLOW
+     * BAD      amount : > 10% of maxAmount => RED
+     * MEDIOCRE amount : < 10% of maxAmount => DARK RED
+     *
+     * @param amount current amount for the given resource
+     * @param maxAmount max amount possible
+     * @return resulting Color
+     * if maxAmount = Integer.MAX_VALUE, return WHITE
+     */
+    public static Color getColorForResource(double amount, int maxAmount) {
+        if (maxAmount == Integer.MAX_VALUE)
+            return Color.WHITE;
+
+        if (amount > 0.5 * maxAmount)
+            return Color.decode("#4CAF50");
+        if (amount > 0.3 * maxAmount)
+            return Color.decode("#FFA726");
+        if (amount > 0.1 * maxAmount)
+            return Color.decode("#F44336");
+
+        return Color.decode("#D50000");
+    }
+
+
     public static <T> T pickRandomWeightedMap(Map<T, Integer> map) {
         AtomicInteger totalWeight = new AtomicInteger();
         List<T> randomList = new ArrayList<>();
@@ -322,5 +349,16 @@ public class Utils {
                 break;
         }
         return (T) map.keySet().toArray()[idx];
+    }
+
+    public static boolean isPowerOfTwo(int number) {
+        return number > 0 && ((number & (number - 1)) == 0);
+    }
+
+    public static int findPositionOf1(int n) {
+        if (!isPowerOfTwo(n))
+            return 0;
+
+        return Maths.log(n, 2) + 1;
     }
 }

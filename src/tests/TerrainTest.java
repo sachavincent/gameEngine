@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.glfw.GLFW.glfwInit;
+import static pathfinding.RoadGraph.FILTER;
 
 import entities.Camera.Direction;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ class TerrainTest {
     void testGetRoadConnectionsToRoadGameObject() {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 50));
 
-        Direction[] directions = scene.getRoadConnections(new TerrainPosition(50, 50));
+        Direction[] directions = scene.getConnectedDirections(new TerrainPosition(50, 50), FILTER);
 
         assertArrayEquals(new Direction[0], directions);
     }
@@ -63,23 +64,23 @@ class TerrainTest {
     void testGetRoadConnectionsToRoadGameObject2() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
-        assertArrayEquals(new Direction[]{Direction.WEST}, directions);
+        assertArrayEquals(new Direction[]{Direction.EAST}, directions);
     }
 
     @Test
     void testGetRoadConnectionsToRoadGameObject3() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
-        assertArrayEquals(new Direction[]{Direction.EAST}, directions);
+        assertArrayEquals(new Direction[]{Direction.WEST}, directions);
     }
 
     @Test
@@ -88,7 +89,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
         assertArrayEquals(new Direction[]{Direction.SOUTH}, directions);
     }
@@ -99,7 +100,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
         assertArrayEquals(new Direction[]{Direction.NORTH}, directions);
     }
@@ -112,7 +113,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
         assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
@@ -123,9 +124,9 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
-        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
         assertArrayEquals(new Direction[]{Direction.NORTH, Direction.SOUTH}, directions);
     }
@@ -134,26 +135,26 @@ class TerrainTest {
     void testGetRoadConnectionsToRoadGameObject8() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
-        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
+        GameObject.newInstance(Insula.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
-        Direction[] directions = scene.getRoadConnections(center);
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
 
-        assertArrayEquals(new Direction[]{Direction.EAST, Direction.WEST}, directions);
+        assertArrayEquals(new Direction[]{Direction.WEST, Direction.EAST}, directions);
     }
 
     @Test
     void testGetRoadConnectionsToRoadGameObject9() {
         TerrainPosition center = new TerrainPosition(50, 50);
         GameObject.newInstance(DirtRoad.class, center);
-        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
+        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
-        Direction[] directions = scene.getRoadConnections(center);
-        assertArrayEquals(new Direction[]{Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH},
+        Direction[] directions = scene.getConnectedDirections(center, FILTER);
+        assertArrayEquals(new Direction[]{Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH},
                 directions);
     }
 
@@ -2367,499 +2368,6 @@ class TerrainTest {
         assertTrue(foundPath.compareCost(expectedPath));
     }
 
-    /**
-     * 33. Found in practice with NPC
-     */
-    @Test
-    void testPathfinding33() {
-        /*
-        Placing at TerrainPosition{x=12, z=0}
-Placing at TerrainPosition{x=13, z=0}
-Placing at TerrainPosition{x=14, z=0}
-Placing at TerrainPosition{x=15, z=0}
-Placing at TerrainPosition{x=16, z=0}
-Placing at TerrainPosition{x=17, z=0}
-Placing at TerrainPosition{x=18, z=0}
-Placing at TerrainPosition{x=19, z=0}
-Placing at TerrainPosition{x=20, z=0}
-Placing at TerrainPosition{x=21, z=0}
-Placing at TerrainPosition{x=22, z=0}
-Placing at TerrainPosition{x=23, z=0}
-Placing at TerrainPosition{x=24, z=0}
-Placing at TerrainPosition{x=25, z=0}
-Placing at TerrainPosition{x=26, z=0}
-Placing at TerrainPosition{x=27, z=0}
-Placing at TerrainPosition{x=28, z=0}
-Placing at TerrainPosition{x=29, z=0}
-Placing at TerrainPosition{x=30, z=0}
-Placing at TerrainPosition{x=31, z=0}
-Placing at TerrainPosition{x=32, z=0}
-Placing at TerrainPosition{x=33, z=0}
-Placing at TerrainPosition{x=34, z=0}
-Placing at TerrainPosition{x=35, z=0}
-Placing at TerrainPosition{x=0, z=0}
-Placing at TerrainPosition{x=1, z=0}
-Placing at TerrainPosition{x=2, z=0}
-Placing at TerrainPosition{x=3, z=0}
-Placing at TerrainPosition{x=4, z=0}
-Placing at TerrainPosition{x=5, z=0}
-Placing at TerrainPosition{x=6, z=0}
-Placing at TerrainPosition{x=7, z=0}
-Placing at TerrainPosition{x=8, z=0}
-Placing at TerrainPosition{x=9, z=0}
-Placing at TerrainPosition{x=10, z=0}
-Placing at TerrainPosition{x=11, z=0}
-Placing at TerrainPosition{x=36, z=0}
-Placing at TerrainPosition{x=36, z=1}
-Placing at TerrainPosition{x=36, z=2}
-Placing at TerrainPosition{x=36, z=3}
-Placing at TerrainPosition{x=36, z=4}
-Placing at TerrainPosition{x=36, z=5}
-Placing at TerrainPosition{x=36, z=6}
-Placing at TerrainPosition{x=36, z=7}
-Placing at TerrainPosition{x=36, z=8}
-Placing at TerrainPosition{x=36, z=9}
-Placing at TerrainPosition{x=36, z=10}
-Placing at TerrainPosition{x=36, z=11}
-Placing at TerrainPosition{x=36, z=12}
-Placing at TerrainPosition{x=36, z=13}
-Placing at TerrainPosition{x=36, z=14}
-Placing at TerrainPosition{x=36, z=15}
-Placing at TerrainPosition{x=36, z=16}
-Placing at TerrainPosition{x=37, z=10}
-Placing at TerrainPosition{x=38, z=10}
-Placing at TerrainPosition{x=39, z=10}
-Placing at TerrainPosition{x=40, z=10}
-Placing at TerrainPosition{x=41, z=10}
-Placing at TerrainPosition{x=42, z=10}
-Placing at TerrainPosition{x=43, z=10}
-Placing at TerrainPosition{x=44, z=10}
-Placing at TerrainPosition{x=45, z=10}
-Placing at TerrainPosition{x=46, z=10}
-Placing at TerrainPosition{x=47, z=10}
-Placing at TerrainPosition{x=47, z=17}
-Placing at TerrainPosition{x=47, z=18}
-Placing at TerrainPosition{x=47, z=19}
-Placing at TerrainPosition{x=47, z=20}
-Placing at TerrainPosition{x=47, z=21}
-Placing at TerrainPosition{x=47, z=22}
-Placing at TerrainPosition{x=47, z=11}
-Placing at TerrainPosition{x=47, z=12}
-Placing at TerrainPosition{x=47, z=13}
-Placing at TerrainPosition{x=47, z=14}
-Placing at TerrainPosition{x=47, z=15}
-Placing at TerrainPosition{x=47, z=16}
-Placing at TerrainPosition{x=46, z=16}
-Placing at TerrainPosition{x=45, z=16}
-Placing at TerrainPosition{x=44, z=16}
-Placing at TerrainPosition{x=43, z=16}
-Placing at TerrainPosition{x=42, z=16}
-Placing at TerrainPosition{x=41, z=16}
-Placing at TerrainPosition{x=40, z=16}
-Placing at TerrainPosition{x=39, z=16}
-Placing at TerrainPosition{x=38, z=16}
-Placing at TerrainPosition{x=37, z=16}
-Placing at TerrainPosition{x=37, z=2}
-Placing at TerrainPosition{x=38, z=2}
-Placing at TerrainPosition{x=39, z=2}
-Placing at TerrainPosition{x=40, z=2}
-Placing at TerrainPosition{x=41, z=2}
-Placing at TerrainPosition{x=42, z=2}
-Placing at TerrainPosition{x=43, z=2}
-Placing at TerrainPosition{x=44, z=2}
-Placing at TerrainPosition{x=45, z=2}
-Placing at TerrainPosition{x=46, z=2}
-Placing at TerrainPosition{x=45, z=9}
-Placing at TerrainPosition{x=45, z=8}
-Placing at TerrainPosition{x=45, z=7}
-Placing at TerrainPosition{x=45, z=6}
-Placing at TerrainPosition{x=45, z=5}
-Placing at TerrainPosition{x=45, z=4}
-Placing at TerrainPosition{x=45, z=3}
-Placing at TerrainPosition{x=43, z=6}
-Placing at TerrainPosition{x=43, z=7}
-Placing at TerrainPosition{x=43, z=8}
-Placing at TerrainPosition{x=43, z=9}
-Placing at TerrainPosition{x=43, z=3}
-Placing at TerrainPosition{x=43, z=4}
-Placing at TerrainPosition{x=43, z=5}
-Placing at TerrainPosition{x=42, z=7}
-Placing at TerrainPosition{x=41, z=7}
-Placing at TerrainPosition{x=40, z=7}
-Placing at TerrainPosition{x=39, z=7}
-Placing at TerrainPosition{x=38, z=7}
-Placing at TerrainPosition{x=37, z=7}
-Placing at TerrainPosition{x=37, z=0}
-Placing at TerrainPosition{x=38, z=0}
-Placing at TerrainPosition{x=38, z=1}
-Placing at TerrainPosition{x=37, z=1}
-Placing at TerrainPosition{x=35, z=8}
-Placing at TerrainPosition{x=34, z=8}
-Placing at TerrainPosition{x=33, z=8}
-Placing at TerrainPosition{x=33, z=7}
-Placing at TerrainPosition{x=33, z=6}
-Placing at TerrainPosition{x=33, z=5}
-Placing at TerrainPosition{x=33, z=4}
-Placing at TerrainPosition{x=33, z=3}
-Placing at TerrainPosition{x=33, z=2}
-Placing at TerrainPosition{x=33, z=1}
-Placing at TerrainPosition{x=28, z=16}
-Placing at TerrainPosition{x=27, z=16}
-Placing at TerrainPosition{x=26, z=16}
-Placing at TerrainPosition{x=25, z=16}
-Placing at TerrainPosition{x=24, z=16}
-Placing at TerrainPosition{x=23, z=16}
-Placing at TerrainPosition{x=22, z=16}
-Placing at TerrainPosition{x=21, z=16}
-Placing at TerrainPosition{x=35, z=16}
-Placing at TerrainPosition{x=34, z=16}
-Placing at TerrainPosition{x=33, z=16}
-Placing at TerrainPosition{x=32, z=16}
-Placing at TerrainPosition{x=31, z=16}
-Placing at TerrainPosition{x=30, z=16}
-Placing at TerrainPosition{x=29, z=16}
-Placing at TerrainPosition{x=22, z=2}
-Placing at TerrainPosition{x=22, z=1}
-Placing at TerrainPosition{x=22, z=15}
-Placing at TerrainPosition{x=22, z=14}
-Placing at TerrainPosition{x=22, z=13}
-Placing at TerrainPosition{x=22, z=12}
-Placing at TerrainPosition{x=22, z=11}
-Placing at TerrainPosition{x=22, z=10}
-Placing at TerrainPosition{x=22, z=9}
-Placing at TerrainPosition{x=22, z=8}
-Placing at TerrainPosition{x=22, z=7}
-Placing at TerrainPosition{x=22, z=6}
-Placing at TerrainPosition{x=22, z=5}
-Placing at TerrainPosition{x=22, z=4}
-Placing at TerrainPosition{x=22, z=3}
-Placing at TerrainPosition{x=23, z=5}
-Placing at TerrainPosition{x=24, z=5}
-Placing at TerrainPosition{x=25, z=5}
-Placing at TerrainPosition{x=26, z=5}
-Placing at TerrainPosition{x=23, z=9}
-Placing at TerrainPosition{x=23, z=13}
-Placing at TerrainPosition{x=20, z=12}
-Placing at TerrainPosition{x=16, z=1}
-Placing at TerrainPosition{x=24, z=1}
-Placing at TerrainPosition{x=30, z=1}
-Placing at TerrainPosition{x=40, z=6}
-Placing at TerrainPosition{x=43, z=14}
-Placing at TerrainPosition{x=42, z=15}
-Placing at TerrainPosition{x=42, z=14}
-Placing at TerrainPosition{x=48, z=19}
-Placing at TerrainPosition{x=49, z=19}
-Placing at TerrainPosition{x=50, z=19}
-Placing at TerrainPosition{x=51, z=19}
-Placing at TerrainPosition{x=48, z=16}
-Placing at TerrainPosition{x=52, z=16}
-Placing at TerrainPosition{x=51, z=16}
-Placing at TerrainPosition{x=50, z=16}
-Placing at TerrainPosition{x=49, z=16}
-Insula selected
-Placing at TerrainPosition{x=52, z=23}
-Market selected
-Placing at TerrainPosition{x=11, z=5}
-DirtRoad selected
-Placing at TerrainPosition{x=21, z=17}
-Placing at TerrainPosition{x=21, z=18}
-Placing at TerrainPosition{x=21, z=19}
-Placing at TerrainPosition{x=21, z=20}
-Placing at TerrainPosition{x=21, z=21}
-Placing at TerrainPosition{x=21, z=22}
-Placing at TerrainPosition{x=21, z=23}
-Placing at TerrainPosition{x=21, z=24}
-Placing at TerrainPosition{x=21, z=25}
-Placing at TerrainPosition{x=21, z=26}
-Placing at TerrainPosition{x=21, z=27}
-Placing at TerrainPosition{x=21, z=28}
-Placing at TerrainPosition{x=21, z=29}
-Placing at TerrainPosition{x=21, z=30}
-Placing at TerrainPosition{x=21, z=31}
-Placing at TerrainPosition{x=21, z=32}
-Placing at TerrainPosition{x=21, z=33}
-Placing at TerrainPosition{x=21, z=34}
-Placing at TerrainPosition{x=20, z=34}
-Placing at TerrainPosition{x=19, z=34}
-Placing at TerrainPosition{x=18, z=34}
-Placing at TerrainPosition{x=17, z=34}
-Placing at TerrainPosition{x=16, z=34}
-Placing at TerrainPosition{x=15, z=34}
-Placing at TerrainPosition{x=14, z=34}
-Placing at TerrainPosition{x=13, z=34}
-Placing at TerrainPosition{x=12, z=34}
-Placing at TerrainPosition{x=11, z=34}
-Placing at TerrainPosition{x=10, z=34}
-Placing at TerrainPosition{x=9, z=34}
-Placing at TerrainPosition{x=8, z=34}
-Placing at TerrainPosition{x=7, z=34}
-Placing at TerrainPosition{x=7, z=33}
-Placing at TerrainPosition{x=7, z=32}
-Placing at TerrainPosition{x=7, z=31}
-Placing at TerrainPosition{x=7, z=30}
-Placing at TerrainPosition{x=7, z=29}
-Placing at TerrainPosition{x=7, z=28}
-Placing at TerrainPosition{x=7, z=27}
-Placing at TerrainPosition{x=7, z=26}
-Placing at TerrainPosition{x=7, z=25}
-Placing at TerrainPosition{x=7, z=24}
-Placing at TerrainPosition{x=7, z=23}
-Placing at TerrainPosition{x=7, z=22}
-Placing at TerrainPosition{x=7, z=21}
-Placing at TerrainPosition{x=7, z=20}
-Placing at TerrainPosition{x=7, z=19}
-Placing at TerrainPosition{x=7, z=18}
-Placing at TerrainPosition{x=7, z=17}
-Placing at TerrainPosition{x=7, z=16}
-Placing at TerrainPosition{x=7, z=15}
-Placing at TerrainPosition{x=7, z=14}
-Placing at TerrainPosition{x=7, z=13}
-Placing at TerrainPosition{x=8, z=13}
-Placing at TerrainPosition{x=9, z=13}
-Placing at TerrainPosition{x=10, z=13}
-Placing at TerrainPosition{x=10, z=14}
-Placing at TerrainPosition{x=10, z=15}
-Placing at TerrainPosition{x=10, z=16}
-Placing at TerrainPosition{x=10, z=17}
-Placing at TerrainPosition{x=10, z=18}
-Placing at TerrainPosition{x=10, z=19}
-Placing at TerrainPosition{x=10, z=20}
-Placing at TerrainPosition{x=10, z=21}
-Placing at TerrainPosition{x=10, z=22}
-Placing at TerrainPosition{x=10, z=23}
-Placing at TerrainPosition{x=10, z=24}
-Placing at TerrainPosition{x=10, z=25}
-Placing at TerrainPosition{x=10, z=26}
-Placing at TerrainPosition{x=10, z=27}
-Placing at TerrainPosition{x=10, z=28}
-Placing at TerrainPosition{x=10, z=29}
-Placing at TerrainPosition{x=10, z=30}
-Placing at TerrainPosition{x=10, z=31}
-Placing at TerrainPosition{x=10, z=32}
-Placing at TerrainPosition{x=11, z=32}
-Placing at TerrainPosition{x=12, z=32}
-Placing at TerrainPosition{x=13, z=32}
-Placing at TerrainPosition{x=13, z=18}
-Placing at TerrainPosition{x=13, z=17}
-Placing at TerrainPosition{x=13, z=16}
-Placing at TerrainPosition{x=13, z=15}
-Placing at TerrainPosition{x=13, z=14}
-Placing at TerrainPosition{x=13, z=13}
-Placing at TerrainPosition{x=13, z=12}
-Placing at TerrainPosition{x=13, z=11}
-Placing at TerrainPosition{x=13, z=10}
-Placing at TerrainPosition{x=13, z=31}
-Placing at TerrainPosition{x=13, z=30}
-Placing at TerrainPosition{x=13, z=29}
-Placing at TerrainPosition{x=13, z=28}
-Placing at TerrainPosition{x=13, z=27}
-Placing at TerrainPosition{x=13, z=26}
-Placing at TerrainPosition{x=13, z=25}
-Placing at TerrainPosition{x=13, z=24}
-Placing at TerrainPosition{x=13, z=23}
-Placing at TerrainPosition{x=13, z=22}
-Placing at TerrainPosition{x=13, z=21}
-Placing at TerrainPosition{x=13, z=20}
-Placing at TerrainPosition{x=13, z=19}
-Placing at TerrainPosition{x=12, z=10}
-Placing at TerrainPosition{x=11, z=10}
-Placing at TerrainPosition{x=10, z=10}
-Placing at TerrainPosition{x=9, z=10}
-Placing at TerrainPosition{x=8, z=10}
-Placing at TerrainPosition{x=7, z=10}
-Placing at TerrainPosition{x=6, z=10}
-Placing at TerrainPosition{x=5, z=10}
-Placing at TerrainPosition{x=4, z=10}
-Placing at TerrainPosition{x=4, z=9}
-Placing at TerrainPosition{x=4, z=8}
-Placing at TerrainPosition{x=4, z=7}
-Placing at TerrainPosition{x=4, z=6}
-Placing at TerrainPosition{x=4, z=5}
-Placing at TerrainPosition{x=4, z=4}
-Placing at TerrainPosition{x=4, z=3}
-Placing at TerrainPosition{x=4, z=2}
-Placing at TerrainPosition{x=3, z=2}
-Placing at TerrainPosition{x=2, z=2}
-Placing at TerrainPosition{x=1, z=2}
-Placing at TerrainPosition{x=0, z=2}
-Placing at TerrainPosition{x=9, z=17}
-Placing at TerrainPosition{x=12, z=17}
-Placing at TerrainPosition{x=19, z=12}
-Placing at TerrainPosition{x=18, z=12}
-Placing at TerrainPosition{x=17, z=12}
-Placing at TerrainPosition{x=16, z=12}
-Placing at TerrainPosition{x=15, z=12}
-Placing at TerrainPosition{x=14, z=12}
-Adding person
-Placing at TerrainPosition{x=14, z=10}
-Placing at TerrainPosition{x=15, z=10}
-Placing at TerrainPosition{x=16, z=10}
-Placing at TerrainPosition{x=16, z=9}
-Placing at TerrainPosition{x=16, z=8}
-Placing at TerrainPosition{x=16, z=7}
-Placing at TerrainPosition{x=16, z=6}
-Placing at TerrainPosition{x=16, z=5}
-Placing at TerrainPosition{x=16, z=4}
-Placing at TerrainPosition{x=17, z=4}
-Placing at TerrainPosition{x=18, z=4}
-Placing at TerrainPosition{x=19, z=4}
-Placing at TerrainPosition{x=20, z=4}
-Placing at TerrainPosition{x=20, z=5}
-Placing at TerrainPosition{x=20, z=6}
-Placing at TerrainPosition{x=20, z=7}
-Placing at TerrainPosition{x=20, z=8}
-Placing at TerrainPosition{x=20, z=9}
-Placing at TerrainPosition{x=20, z=10}
-Placing at TerrainPosition{x=19, z=10}
-Placing at TerrainPosition{x=19, z=18}
-Placing at TerrainPosition{x=18, z=18}
-Placing at TerrainPosition{x=17, z=18}
-Placing at TerrainPosition{x=16, z=18}
-Placing at TerrainPosition{x=15, z=18}
-Placing at TerrainPosition{x=14, z=18}
-Placing at TerrainPosition{x=17, z=19}
-Placing at TerrainPosition{x=17, z=20}
-Placing at TerrainPosition{x=17, z=21}
-Placing at TerrainPosition{x=17, z=22}
-Placing at TerrainPosition{x=17, z=23}
-Placing at TerrainPosition{x=17, z=24}
-Placing at TerrainPosition{x=17, z=25}
-Placing at TerrainPosition{x=17, z=26}
-Placing at TerrainPosition{x=17, z=27}
-Placing at TerrainPosition{x=17, z=28}
-Placing at TerrainPosition{x=17, z=29}
-Placing at TerrainPosition{x=17, z=30}
-Placing at TerrainPosition{x=17, z=31}
-Placing at TerrainPosition{x=16, z=31}
-Placing at TerrainPosition{x=16, z=30}
-Placing at TerrainPosition{x=16, z=29}
-Placing at TerrainPosition{x=15, z=29}
-Placing at TerrainPosition{x=15, z=30}
-Placing at TerrainPosition{x=15, z=31}
-Placing at TerrainPosition{x=16, z=28}
-Placing at TerrainPosition{x=15, z=28}
-Placing at TerrainPosition{x=18, z=28}
-Placing at TerrainPosition{x=18, z=29}
-Placing at TerrainPosition{x=18, z=30}
-Placing at TerrainPosition{x=18, z=31}
-Placing at TerrainPosition{x=19, z=31}
-Placing at TerrainPosition{x=19, z=30}
-Placing at TerrainPosition{x=19, z=29}
-Placing at TerrainPosition{x=19, z=28}
-Placing at TerrainPosition{x=6, z=26}
-Placing at TerrainPosition{x=6, z=27}
-Placing at TerrainPosition{x=6, z=28}
-Placing at TerrainPosition{x=6, z=29}
-Placing at TerrainPosition{x=6, z=30}
-Placing at TerrainPosition{x=6, z=31}
-Placing at TerrainPosition{x=6, z=32}
-Placing at TerrainPosition{x=6, z=33}
-Placing at TerrainPosition{x=5, z=33}
-Placing at TerrainPosition{x=5, z=32}
-Placing at TerrainPosition{x=5, z=31}
-Placing at TerrainPosition{x=5, z=30}
-Placing at TerrainPosition{x=5, z=29}
-Placing at TerrainPosition{x=5, z=28}
-Placing at TerrainPosition{x=5, z=27}
-Placing at TerrainPosition{x=5, z=26}
-Placing at TerrainPosition{x=6, z=19}
-Placing at TerrainPosition{x=5, z=19}
-Placing at TerrainPosition{x=4, z=19}
-Placing at TerrainPosition{x=3, z=19}
-Placing at TerrainPosition{x=3, z=18}
-Placing at TerrainPosition{x=3, z=17}
-Placing at TerrainPosition{x=3, z=16}
-Placing at TerrainPosition{x=3, z=15}
-Placing at TerrainPosition{x=3, z=14}
-Placing at TerrainPosition{x=3, z=13}
-Placing at TerrainPosition{x=3, z=12}
-Placing at TerrainPosition{x=3, z=11}
-Placing at TerrainPosition{x=2, z=11}
-Placing at TerrainPosition{x=1, z=11}
-Placing at TerrainPosition{x=0, z=11}
-Adding person
-Placing at TerrainPosition{x=0, z=10}
-Placing at TerrainPosition{x=0, z=9}
-Placing at TerrainPosition{x=0, z=8}
-Placing at TerrainPosition{x=0, z=7}
-Placing at TerrainPosition{x=0, z=6}
-Placing at TerrainPosition{x=0, z=5}
-Placing at TerrainPosition{x=0, z=4}
-Placing at TerrainPosition{x=1, z=4}
-Placing at TerrainPosition{x=2, z=4}
-Placing at TerrainPosition{x=2, z=5}
-Placing at TerrainPosition{x=2, z=6}
-Placing at TerrainPosition{x=2, z=7}
-Placing at TerrainPosition{x=2, z=8}
-Placing at TerrainPosition{x=2, z=9}
-Placing at TerrainPosition{x=2, z=10}
-
-
-
-Destination = 0,2 => not working
-         */
-
-        TerrainPosition v1 = new TerrainPosition(0, 0);
-        TerrainPosition v2 = new TerrainPosition(0, 2);
-        TerrainPosition v3 = new TerrainPosition(5, 0);
-        TerrainPosition v4 = new TerrainPosition(5, 2);
-
-        int[] roadPositions = new int[]{
-                v1.getX(), v1.getZ(),
-                v2.getX(), v2.getZ(),
-                1, 0,
-                2, 0,
-                3, 0,
-                4, 0,
-                v3.getX(), v3.getZ(),
-                6, 0,
-                5, 1,
-                v4.getX(), v4.getZ(),
-                5, 3,
-                4, 2,
-                3, 2,
-                2, 2,
-                1, 2
-        };
-
-        TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
-
-        GameObject.newInstances(DirtRoad.class, roads);
-
-        RoadGraph roadGraph = scene.getRoadGraph();
-        PathFinder pathFinder = new PathFinder(roadGraph);
-
-        // Found route
-        Path foundPath = pathFinder.findBestPath(v1, v2, 0);
-
-        // Expected global routes
-        Path expectedPath = new Path();
-
-        // Expected individual routes
-        NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1), new NodeRoad(v3));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(1, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(2, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(3, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(4, 0)));
-        expectedNodeConnection1.addRoad(new NodeRoad(v3));
-        NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3), new NodeRoad(v4));
-        expectedNodeConnection2.addRoad(new NormalRoad(new TerrainPosition(5, 1)));
-        expectedNodeConnection2.addRoad(new NodeRoad(v4));
-        NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4), new NormalRoad(v2));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(4, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(3, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(2, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(1, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(v2));
-
-        expectedPath.add(expectedNodeConnection1);
-        expectedPath.add(expectedNodeConnection2);
-        expectedPath.add(expectedNodeConnection3);
-
-        assertTrue(foundPath.comparePaths(expectedPath));
-        assertTrue(foundPath.compareCost(expectedPath));
-    }
-
     @Test
     void testUnobstrusivePath1() {
         RoadGraph roadGraph = scene.getRoadGraph();
@@ -2986,7 +2494,7 @@ Destination = 0,2 => not working
             expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
         }
 
-        assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(market), expectedRoads));
+        assertTrue(Utils.listContentEquals(scene.getNeighbors(market, FILTER), expectedRoads));
     }
 
     @Test
@@ -3024,7 +2532,7 @@ Destination = 0,2 => not working
             GameObject.newInstance(DirtRoad.class, roadPos);
             expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
         }
-        assertTrue(Utils.listContentEquals(scene.getRoadsConnectedToGameObject(insula), expectedRoads));
+        assertTrue(Utils.listContentEquals(scene.getNeighbors(insula, FILTER), expectedRoads));
     }
 
     @Test
@@ -3039,8 +2547,8 @@ Destination = 0,2 => not working
             positions[i - 53] = new TerrainPosition(50, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
-
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
@@ -3080,7 +2588,8 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 84));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 85));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
@@ -3112,7 +2621,8 @@ Destination = 0,2 => not working
         }
         GameObject.newInstances(DirtRoad.class, connectedRoads);
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
         NodeRoad nodeRoad = new NodeRoad(new TerrainPosition(50, 74));
@@ -3156,7 +2666,8 @@ Destination = 0,2 => not working
 
         GameObject.newInstances(DirtRoad.class, positions);
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 53)),
                 new NodeRoad(new TerrainPosition(33, 54)));
@@ -3175,65 +2686,32 @@ Destination = 0,2 => not working
                 new NodeRoad(new TerrainPosition(34, 55)));
         nodeConnection22.addRoad(new NodeRoad(new TerrainPosition(34, 55)));
 
+        Path expectedPath3 = new Path();
+        NodeConnection nodeConnection31 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 53)),
+                new NodeRoad(new TerrainPosition(32, 54)));
+        nodeConnection31.addRoad(new NodeRoad(new TerrainPosition(32, 54)));
+
+        NodeConnection nodeConnection32 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 54)),
+                new NormalRoad(new TerrainPosition(32, 55)));
+        nodeConnection32.addRoad(new NormalRoad(new TerrainPosition(32, 55)));
+
         expectedPath.add(nodeConnection);
         expectedPath.add(nodeConnection2);
 
         expectedPath2.add(nodeConnection21);
         expectedPath2.add(nodeConnection22);
 
-        assertTrue(expectedPath.comparePaths(bestPath) || expectedPath2.comparePaths(bestPath));
-        assertTrue(expectedPath.compareCost(bestPath) && expectedPath2.compareCost(bestPath));
+        expectedPath3.add(nodeConnection31);
+        expectedPath3.add(nodeConnection32);
+
+        assertTrue(expectedPath.comparePaths(bestPath) || expectedPath2.comparePaths(bestPath) ||
+                expectedPath3.comparePaths(bestPath));
+        assertTrue(expectedPath.compareCost(bestPath) && expectedPath2.compareCost(bestPath) &&
+                expectedPath3.compareCost(bestPath));
     }
 
     @Test
     void testPathfindingMarketToInsula5() {
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
-        Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(36, 61)));
-
-        TerrainPosition[] positions = new TerrainPosition[]{
-                new TerrainPosition(33, 47),
-                new TerrainPosition(31, 48),
-                new TerrainPosition(32, 47),
-                new TerrainPosition(32, 48),
-                new TerrainPosition(32, 49),
-                new TerrainPosition(32, 50),
-                new TerrainPosition(32, 51),
-                new TerrainPosition(32, 52),
-                new TerrainPosition(32, 53),
-                new TerrainPosition(32, 54),
-                new TerrainPosition(32, 55),
-                new TerrainPosition(34, 53),
-                new TerrainPosition(34, 54),
-                new TerrainPosition(34, 55),
-                new TerrainPosition(35, 53),
-                new TerrainPosition(36, 53),
-                new TerrainPosition(37, 53),
-                new TerrainPosition(33, 54),
-                new TerrainPosition(33, 55),
-                new TerrainPosition(33, 53),
-        };
-
-        GameObject.newInstances(DirtRoad.class, positions);
-
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
-        Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 53)),
-                new NodeRoad(new TerrainPosition(33, 54)));
-        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(33, 54)));
-
-        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 54)),
-                new NodeRoad(new TerrainPosition(33, 55)));
-        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
-
-        expectedPath.add(nodeConnection);
-        expectedPath.add(nodeConnection2);
-        assertEquals(expectedPath, bestPath);
-    }
-
-    @Test
-    void testPathfindingMarketToInsula6() {
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
 
@@ -3246,7 +2724,34 @@ Destination = 0,2 => not working
         Insula insula = new Insula();
         insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
+
+        Path expectedPath = new Path();
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
+                new NormalRoad(positions[positions.length - 1]));
+
+        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection);
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula6() {
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+
+        TerrainPosition[] positions = new TerrainPosition[22];
+        for (int i = 53; i < 75; i++)
+            positions[i - 53] = new TerrainPosition(50, i);
+
+        GameObject.newInstances(DirtRoad.class, positions);
+
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
@@ -3259,31 +2764,6 @@ Destination = 0,2 => not working
 
     @Test
     void testPathfindingMarketToInsula7() {
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
-
-        TerrainPosition[] positions = new TerrainPosition[22];
-        for (int i = 53; i < 75; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
-
-        GameObject.newInstances(DirtRoad.class, positions);
-
-        Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
-
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
-
-        Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]),
-                new NormalRoad(positions[positions.length - 1]));
-
-        Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
-        expectedPath.add(nodeConnection);
-        assertEquals(expectedPath, bestPath);
-    }
-
-    @Test
-    void testPathfindingMarketToInsula8() {
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
 
@@ -3297,7 +2777,8 @@ Destination = 0,2 => not working
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
 
@@ -3305,6 +2786,35 @@ Destination = 0,2 => not working
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 55)), end);
 
         Arrays.stream(positions, 0, 3).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
+        expectedPath.add(nodeConnection.invert());
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula8() {
+        Market market = new Market();
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+
+        TerrainPosition[] positions = new TerrainPosition[15];
+        for (int i = 55; i < 70; i++)
+            positions[i - 55] = new TerrainPosition(50, i);
+
+        Insula insula = new Insula();
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
+
+        GameObject.newInstances(DirtRoad.class, positions);
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
+        Path expectedPath = new Path();
+
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
+
+        Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
         expectedPath.add(nodeConnection.invert());
         assertEquals(expectedPath, bestPath);
     }
@@ -3325,8 +2835,10 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 65));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
         NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
@@ -3347,15 +2859,15 @@ Destination = 0,2 => not working
             positions[i - 55] = new TerrainPosition(50, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(54, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 65));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
         NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
@@ -3368,34 +2880,6 @@ Destination = 0,2 => not working
 
     @Test
     void testPathfindingMarketToInsula11() {
-        Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
-
-        TerrainPosition[] positions = new TerrainPosition[15];
-        for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
-
-        Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(54, 61)));
-
-        GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
-
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
-        Path expectedPath = new Path();
-
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
-
-        Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
-        expectedPath.add(nodeConnection.invert());
-        assertEquals(expectedPath, bestPath);
-    }
-
-    @Test
-    void testPathfindingMarketToInsula12() {
         Market market = new Market();
         market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
         Market market2 = new Market();
@@ -3422,7 +2906,9 @@ Destination = 0,2 => not working
         positions2 = pos2.toArray(new TerrainPosition[0]);
         GameObject.newInstances(DirtRoad.class, positions2);
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
 
@@ -3451,7 +2937,7 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testPathfindingMarketToInsula13() {
+    void testPathfindingMarketToInsula12() {
         Insula insula = new Insula();
         insula.addComponent(new PositionComponent(new TerrainPosition(40, 47)));
         Insula insula2 = new Insula();
@@ -3475,8 +2961,46 @@ Destination = 0,2 => not working
         GameObject.newInstance(Insula.class, new TerrainPosition(32, 37));
         Insula extraInsula = GameObject.newInstance(Insula.class, new TerrainPosition(39, 37));
 
-        Path bestPath = PathFinder.findBestPath(extraInsula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(extraInsula, market, 0);
         Path expectedPath = new Path();
+
+        assertEquals(expectedPath, bestPath);
+    }
+
+    @Test
+    void testPathfindingMarketToInsula13() {
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+
+        for (int i = 55; i < 75; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+        for (int i = 32; i < 50; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
+        for (int i = 56; i < 73; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
+
+        Path expectedPath = new Path();
+
+        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
+        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
+        IntStream.rangeClosed(59, 72)
+                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
+        expectedPath.add(nodeConnection1.invert());
+
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
+        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
+        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+
+        expectedPath.add(nodeConnection2);
 
         assertEquals(expectedPath, bestPath);
     }
@@ -3493,8 +3017,16 @@ Destination = 0,2 => not working
         for (int i = 56; i < 73; i++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+        for (int i = 77; i > 66; i--)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(39, i));
+        for (int i = 40; i < 45; i++)
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 67));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 66));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 65));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
 
@@ -3517,46 +3049,6 @@ Destination = 0,2 => not working
 
     @Test
     void testPathfindingMarketToInsula15() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
-
-        for (int i = 55; i < 75; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
-        for (int i = 32; i < 50; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
-        for (int i = 56; i < 73; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
-        for (int i = 77; i > 66; i--)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(39, i));
-        for (int i = 40; i < 45; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 67));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 66));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 65));
-
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
-
-        Path expectedPath = new Path();
-
-        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
-        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
-        IntStream.rangeClosed(59, 72)
-                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
-        expectedPath.add(nodeConnection1.invert());
-
-        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
-        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
-        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
-
-        expectedPath.add(nodeConnection2);
-
-        assertEquals(expectedPath, bestPath);
-    }
-
-    @Test
-    void testPathfindingMarketToInsula16() {
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(52, 69));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
 
@@ -3572,7 +3064,9 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(48, 71)),
@@ -3587,7 +3081,7 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testPathfindingMarketToInsula17() {
+    void testPathfindingMarketToInsula16() {
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(41, 79));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
 
@@ -3604,7 +3098,9 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(44, 76)),
                 new NormalRoad(new TerrainPosition(44, 76)));
@@ -3614,7 +3110,7 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testPathfindingMarketToInsula18() {
+    void testPathfindingMarketToInsula17() {
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(54, 73));
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 81));
 
@@ -3622,7 +3118,9 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 75));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 75)),
                 new NormalRoad(new TerrainPosition(50, 75)));
@@ -3632,7 +3130,7 @@ Destination = 0,2 => not working
     }
 
     @Test
-    void testPathfindingMarketToInsula19() {
+    void testPathfindingMarketToInsula18() {
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 81));
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 89));
         for (int z = 75; z < 87; z++)
@@ -3640,7 +3138,9 @@ Destination = 0,2 => not working
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(
                 new NormalRoad(new TerrainPosition(45, 86)), new NormalRoad(new TerrainPosition(45, 85)));
@@ -3652,7 +3152,7 @@ Destination = 0,2 => not working
 
 
     @Test
-    void testPathfindingMarketToInsula20() {
+    void testPathfindingMarketToInsula19() {
         TerrainPosition v1 = new TerrainPosition(27, 13);
         TerrainPosition v2 = new TerrainPosition(22, 20);
 
@@ -3682,10 +3182,37 @@ Destination = 0,2 => not working
         Market market = GameObject.newInstance(Market.class, new TerrainPosition(26, 8));
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(23, 24));
 
-        Path bestPath = PathFinder.findBestPath(insula, market, 0);
+
+        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        Path bestPath = pathFinder.findBestPath(insula, market, 0);
         System.out.println(bestPath);
         Path expectedPath = new Path();
+        NodeConnection nodeConnection1 = new NodeConnection(
+                new NormalRoad(new TerrainPosition(27, 13)), new NodeRoad(new TerrainPosition(24, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 14)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 15)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(26, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(25, 16)));
+        nodeConnection1.addRoad(new NodeRoad(new TerrainPosition(24, 16)));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(24, 16)),
+                new NodeRoad(new TerrainPosition(23, 16)));
+        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(23, 16)));
+        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(23, 16)),
+                new NodeRoad(new TerrainPosition(22, 16)));
+        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(22, 16)));
+        NodeConnection nodeConnection4 = new NodeConnection(new NodeRoad(new TerrainPosition(22, 16)),
+                new NormalRoad(new TerrainPosition(22, 20)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 17)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 18)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 19)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 20)));
 
-//        assertEquals(expectedPath, bestPath);
+        expectedPath.add(nodeConnection1);
+        expectedPath.add(nodeConnection2);
+        expectedPath.add(nodeConnection3);
+        expectedPath.add(nodeConnection4);
+        expectedPath = expectedPath.invertPath();
+        assertEquals(expectedPath, bestPath);
     }
 }

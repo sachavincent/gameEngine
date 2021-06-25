@@ -9,13 +9,15 @@ layout (location=4) in mat4 globalTransformationMatrix;
 out vec2 pass_textureCoords;
 out vec3 toLightVector[10];
 out vec3 toCameraVector;
+out vec3 surfaceNormal;
 out float visibility;
 
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 lightPositionEyeSpace[10];
-uniform float useFakeLighting;
+uniform vec3 lightPosition[10];
+uniform bool useFakeLighting;
+uniform bool useNormalMap;
 uniform bool isInstanced;
 uniform bool areTangentsOn;
 
@@ -29,48 +31,55 @@ const float gradient = 5.0;
 
 void main(void) {
     vec4 worldPosition;
-
-    //    if (useFakeLighting > 0.5) {
-    //        actualNormal = vec3(0.0, 1.0, 0.0);
-    //    }
     mat4 modelViewMatrix;
+    vec3 actualNormal = normal;
+    if (useFakeLighting) {
+        surfaceNormal = vec3(0.0, 1.0, 0.0);
+    }
     if (isInstanced) {
         worldPosition = globalTransformationMatrix * vec4(position, 1.0);
         modelViewMatrix = viewMatrix * globalTransformationMatrix;
+        surfaceNormal = (globalTransformationMatrix * vec4(actualNormal, 0.0)).xyz;
     } else {
         worldPosition = transformationMatrix * vec4(position, 1.0);
         modelViewMatrix = viewMatrix * transformationMatrix;
+        surfaceNormal = (transformationMatrix * vec4(actualNormal, 0.0)).xyz;
     }
-    vec3 surfaceNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
 
+    if (useNormalMap) {
+        surfaceNormal = (modelViewMatrix * vec4(actualNormal, 0.0)).xyz;
+    }
     gl_ClipDistance[0] = dot(worldPosition, plane);
 
-    vec4 positionRelativeToCam = modelViewMatrix * vec4(position, 1.0);
-
+    vec4 positionRelativeToCam;
+    if (useNormalMap) {
+        positionRelativeToCam = modelViewMatrix * vec4(position, 1.0);
+    } else {
+        positionRelativeToCam = viewMatrix * worldPosition;
+    }
     gl_Position = projectionMatrix * positionRelativeToCam;
 
     pass_textureCoords = (textureCoords / numberOfRows) + offset;
 
-    mat3 toTangentSpace;
-    if (areTangentsOn) {
+    if (useNormalMap) {
         vec3 norm = normalize(surfaceNormal);
         vec3 tang = normalize((modelViewMatrix * vec4(tangent, 0.0)).xyz);
         vec3 bitang = normalize(cross(norm, tang));
-        toTangentSpace = mat3(
+        mat3 toTangentSpace = mat3(
         tang.x, bitang.x, norm.x,
         tang.y, bitang.y, norm.y,
         tang.z, bitang.z, norm.z);
+
+        for (int i = 0; i < 10; i++){
+            toLightVector[i] = toTangentSpace * (lightPosition[i] - positionRelativeToCam.xyz);
+        }
+        toCameraVector = toTangentSpace * (-positionRelativeToCam.xyz);
     } else {
-        toTangentSpace = mat3(
-        1, 1, 1,
-        1, 1, 1,
-        1, 1, 1);
+        for (int i = 0; i < 10; i++) {
+            toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+        }
+        toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
     }
-    for (int i = 0; i < 10; i++){
-        toLightVector[i] = toTangentSpace * (lightPositionEyeSpace[i] - positionRelativeToCam.xyz);
-    }
-    toCameraVector = toTangentSpace * (-positionRelativeToCam.xyz);
-    //    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
     //    float distance = length(positionRelativeToCam.xyz);
     //    visibility = exp(-pow((distance * density), gradient));

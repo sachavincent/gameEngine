@@ -4,45 +4,33 @@ public abstract class Service<ResultType> extends Thread {
 
     private volatile OnServiceDone<ResultType> onServiceDone;
 
-    protected volatile boolean running;
-    private volatile   boolean singleton;
+    protected volatile ServiceManager<?> serviceManager;
 
-    public Service(boolean singleton, OnServiceDone<ResultType> onServiceDone) {
-        this.singleton = singleton;
-        this.running = false;
-
+    public Service(OnServiceDone<ResultType> onServiceDone) {
         setOnServiceDone(onServiceDone);
     }
 
     @Override
     public void run() {
-        running = true;
-
-        onServiceDone.done(execute());
-
-        running = false;
+        System.err.println("Starting service n°" + getId());
+        ResultType res = execute();
+        if (res != null) {
+            System.err.println("Service success n°" + getId());
+            this.onServiceDone.done(res);
+        }
     }
 
     protected abstract ResultType execute();
-
-    public synchronized void setRunning(boolean running) {
-        this.running = running;
-    }
 
     public synchronized void setOnServiceDone(OnServiceDone<ResultType> onServiceDone) {
         this.onServiceDone = onServiceDone;
     }
 
-    public synchronized boolean isRunning() {
-        return this.running;
+    public void setServiceManager(ServiceManager<?> serviceManager) {
+        this.serviceManager = serviceManager;
     }
 
-    public synchronized void setSingleton(boolean singleton) {
-        this.singleton = singleton;
-    }
-
-    public synchronized boolean isSingleton() {
-        return this.singleton;
+    public ServiceManager<?> getServiceManager() {
+        return this.serviceManager;
     }
 }
-

@@ -1,5 +1,7 @@
 package scene.components;
 
+import renderEngine.BuildingRenderer;
+import renderEngine.Renderer;
 import scene.Scene;
 import scene.components.requirements.RequirementComponent;
 import terrains.TerrainPosition;
@@ -20,10 +22,15 @@ public class PositionComponent extends Component {
     public PositionComponent(Vector3f position) {
         this.position = position;
 
-        this.updateComponentCallback = gameObject -> {
-            if (gameObject.getComponents().containsKey(RequirementComponent.class.getName()))
+        setOnUpdateComponentCallback(gameObject -> {
+            if (gameObject.hasComponent(RequirementComponent.class))
                 Scene.getInstance().updateBuildingRequirements();
-        };
+
+            Renderer renderer = gameObject.getComponent(RendererComponent.class).getRenderer();
+            if (renderer instanceof BuildingRenderer) {
+                ((BuildingRenderer) renderer).removeGameObject(gameObject);
+            }
+        });
     }
 
     public void setPosition(Vector3f position) {

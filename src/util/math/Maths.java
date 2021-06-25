@@ -1,7 +1,8 @@
 package util.math;
 
 import entities.Camera;
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import terrains.TerrainPosition;
 
 public class Maths {
@@ -9,6 +10,7 @@ public class Maths {
     public static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
     }
+
     public static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
@@ -34,7 +36,7 @@ public class Maths {
         return l1 * p1.y + l2 * p2.y + l3 * p3.y;
     }
 
-    public static Matrix4f createTransformationMatrix(Vector3f translation, float rx, float ry, float rz, float scale) {
+    public static Matrix4f createTransformationMatrix(Vector3f translation, Vector3f rotation, float scale) {
         if (translation == null)
             return null;
 
@@ -43,9 +45,9 @@ public class Maths {
 
         Matrix4f.translate(translation, matrix, matrix);
 
-        Matrix4f.rotate((float) Math.toRadians(rx), new Vector3f(1, 0, 0), matrix, matrix);
-        Matrix4f.rotate((float) Math.toRadians(ry), new Vector3f(0, 1, 0), matrix, matrix);
-        Matrix4f.rotate((float) Math.toRadians(rz), new Vector3f(0, 0, 1), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.x), new Vector3f(1, 0, 0), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.y), new Vector3f(0, 1, 0), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.z), new Vector3f(0, 0, 1), matrix, matrix);
 
         Matrix4f.scale(new Vector3f(scale, scale, scale), matrix, matrix);
 
@@ -60,11 +62,10 @@ public class Maths {
         return matrix;
     }
 
-    public static Matrix4f createViewMatrix() {
+    public static Matrix4f createViewMatrix(Camera camera) {
         Matrix4f matrix = new Matrix4f();
         matrix.setIdentity();
 
-        Camera camera = Camera.getInstance();
         Matrix4f.rotate((float) Math.toRadians(camera.getPitch()), new Vector3f(1, 0, 0), matrix, matrix);
         Matrix4f.rotate((float) Math.toRadians(camera.getYaw()), new Vector3f(0, 1, 0), matrix, matrix);
 //        Matrix4f.rotate((float) Math.toRadians(camera.getRoll()), new Vector3f(0, 0, 1), matrix, matrix);
@@ -89,26 +90,8 @@ public class Maths {
                 (point.z >= z && point.z <= (z + depth));
     }
 
-    public static float roundFloat(float value, int nbDecimals) {
-        if (Float.isNaN(value))
-            return -1;
-
-        if (nbDecimals <= 0)
-            return value;
-
-        StringBuilder pattern = new StringBuilder("###.");
-        for (int i = 0; i < nbDecimals; i++)
-            pattern.append("#");
-
-        try {
-            DecimalFormat df = new DecimalFormat(pattern.toString());
-
-            return Float.parseFloat(df.format(value).replace(",", "."));
-        } catch (NumberFormatException | NullPointerException e) {
-            e.printStackTrace();
-        }
-
-        return value;
+    public static double roundDown(double value, int nbDecimals) {
+        return new BigDecimal(value).setScale(nbDecimals, RoundingMode.HALF_DOWN).doubleValue();
     }
 
     public static boolean closestRectangle(
@@ -127,7 +110,7 @@ public class Maths {
         return closestDistanceRec1 < closestDistanceRec2;
     }
 
-    public static <T> T[] shiftArray(T[] array) {
+    public static <T> T[] shiftArrayRight(T[] array) {
         if (array.length == 0)
             return array;
 
@@ -135,6 +118,18 @@ public class Maths {
         T[] resArray = array.clone();
         System.arraycopy(array, 0, resArray, 1, array.length - 1);
         resArray[0] = lastValue;
+
+        return resArray;
+    }
+
+    public static <T> T[] shiftArrayLeft(T[] array) {
+        if (array.length == 0)
+            return array;
+
+        T firstValue = array[0];
+        T[] resArray = array.clone();
+        System.arraycopy(array, 1, resArray, 0, array.length - 1);
+        resArray[array.length - 1] = firstValue;
 
         return resArray;
     }
@@ -160,5 +155,9 @@ public class Maths {
 
     public static double invsqrt(double r) {
         return 1.0 / Math.sqrt(r);
+    }
+
+    public static int log(int x, int base) {
+        return (int) (Math.log(x) / Math.log(base));
     }
 }

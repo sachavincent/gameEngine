@@ -5,7 +5,7 @@ import static renderEngine.GuiRenderer.unfilledQuad;
 
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.GuiGlobalConstraints;
+import guis.constraints.layout.GuiLayout;
 import guis.presets.Background;
 import guis.transitions.Transition;
 import inputs.MouseUtils;
@@ -68,9 +68,9 @@ public abstract class GuiComponent implements GuiInterface {
 
     protected float cornerRadius;
 
-    protected GuiGlobalConstraints layout;
+    protected GuiLayout layout;
 
-    public GuiComponent(GuiInterface parent) {
+    public GuiComponent(GuiInterface parent, Background<?> background) {
         if (parent == null)
             throw new NullPointerException("Parent null");
 
@@ -86,17 +86,17 @@ public abstract class GuiComponent implements GuiInterface {
 
         this.debugOutline = new GuiTexture(new Background<>(new Color((int) (Math.random() * 0x1000000))), this);
 
-        parent.addComponent(this);
-    }
-
-    public GuiComponent(GuiInterface parent, Background<?> background) {
-        this(parent);
-
         if (background == null)
             background = Background.NO_BACKGROUND;
 
         this.textures.add(new GuiTexture(background, new Vector2f(this.x, this.y),
                 new Vector2f(this.width, this.height)));
+
+        parent.addComponent(this);
+    }
+
+    public GuiComponent(GuiInterface parent) {
+        this(parent, null);
     }
 
     @Override
@@ -139,7 +139,7 @@ public abstract class GuiComponent implements GuiInterface {
 
     @Override
     public void addComponent(GuiComponent guiComponent, Transition... transitions) {
-        addElementToChildrenConstraints(guiComponent);
+        addElementToLayout(guiComponent);
 
         this.parent.addComponentToParent(guiComponent, transitions);
     }
@@ -148,7 +148,7 @@ public abstract class GuiComponent implements GuiInterface {
         this.parent.addComponentToParent(guiComponent, transitions);
     }
 
-    public void addElementToChildrenConstraints(GuiComponent guiComponent) {
+    public void addElementToLayout(GuiComponent guiComponent) {
         if (layout != null && this.equals(layout.getParent())) {
             layout.addComponent(guiComponent);
         }
@@ -391,7 +391,7 @@ public abstract class GuiComponent implements GuiInterface {
         });
     }
 
-    public void setLayout(GuiGlobalConstraints guiConstraints) {
+    public void setLayout(GuiLayout guiConstraints) {
         guiConstraints.setParent(this);
 
         boolean addAgain = this.layout != null;

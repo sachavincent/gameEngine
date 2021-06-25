@@ -32,8 +32,10 @@ import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
-import scene.gameObjects.*;
-import terrains.TerrainPosition;
+import scene.gameObjects.Light;
+import scene.gameObjects.NPC;
+import scene.gameObjects.OBJGameObject;
+import scene.gameObjects.Terrain;
 import util.KeybindingsManager;
 import util.SettingsManager;
 import util.TimeSystem;
@@ -125,40 +127,6 @@ public class MainGameLoop {
         TextMaster textMaster = TextMaster.getInstance();
 
         {
-            Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 81));
-            Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 89));
-            for (int z = 75; z < 87; z++)
-                GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, z));
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
-//            Utils.getPositionsFromConsoleLogs("test.log").forEach((clazz, positions) -> {
-//                GameObject.newInstances(clazz, positions);
-//            });
-//            TerrainPosition v1 = new TerrainPosition(27, 13);
-//            TerrainPosition v2 = new TerrainPosition(22, 20);
-//
-//            int[] roadPositions = new int[]{
-//                    v1.getX(), v1.getZ(),
-//                    v2.getX(), v2.getZ(),
-//                    22,19,
-//                    22,18,
-//                    22,17,
-//                    22,16,
-//                    23,16,
-//                    24,16,
-//                    25,16,
-//                    22,15,
-//                    23,15,
-//                    24,15,
-//                    27,14,
-//                    27,15,
-//                    27,16,
-//                    26,16,
-//            };
-//
-//            TerrainPosition[] roads = TerrainPosition.toPositionArray(roadPositions);
-//
-//            GameObject.newInstances(DirtRoad.class, roads);
         }
 
         Scene.getInstance();
@@ -229,7 +197,7 @@ public class MainGameLoop {
                 }
                 nbFrames = 0;
                 nbTicks = 0;
-                GuiDebug.getInstance().updateInfoGui();
+                GuiDebug.getInstance().updateDebugGui();
             }
         }
 

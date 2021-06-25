@@ -3,6 +3,8 @@ package entities;
 import renderEngine.FrustumCullingFilter;
 import terrains.TerrainPosition;
 import util.MousePicker;
+import util.math.Maths;
+import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
@@ -18,13 +20,14 @@ public class Camera {
 
     private Direction direction;
 
-    public static Camera instance;
+    private static Camera instance;
 
     private Vector3f movingFactor = new Vector3f(0, 0, 0);
 
-    private float   distanceFromTerrainPoint;
-    private int     angleAroundTerrainPoint;
-    private boolean distanceFromTerrainPointChanged;
+    private float    distanceFromTerrainPoint;
+    private int      angleAroundTerrainPoint;
+    private boolean  distanceFromTerrainPointChanged;
+    private Matrix4f viewMatrix = new Matrix4f();
 
     public Vector3f getFocusPoint() {
         return this.focusPoint;
@@ -75,6 +78,7 @@ public class Camera {
         if (!movingFactor.equals(new Vector3f(0, 0, 0))) {
             focusPoint = MousePicker.getInstance().getIntersectionPoint();
             FrustumCullingFilter.updateFrustum();
+            this.viewMatrix = Maths.createViewMatrix(this);
         }
 
         float horizontalDistance = calculateHorizontalDistance();
@@ -94,6 +98,7 @@ public class Camera {
     }
 
     private void updateDirection() {
+        this.viewMatrix = Maths.createViewMatrix(this);
         this.direction = Direction.getDirectionFromDegree(this.yaw);
     }
 
@@ -150,8 +155,8 @@ public class Camera {
                 zFactor = (float) (MOVING_STEP * -Math.cos(Math.toRadians(360 - degree)));
                 xFactor = (float) (MOVING_STEP * Math.sin(Math.toRadians(degree)));
                 break;
-            case WEST:
             case EAST:
+            case WEST:
                 xFactor = (float) (MOVING_STEP * Math.sin(Math.toRadians(degree)));
                 zFactor = (float) (MOVING_STEP * -Math.cos(Math.toRadians(degree)));
                 break;
@@ -162,6 +167,11 @@ public class Camera {
 
     public void resetMovement() {
         this.movingFactor = new Vector3f(0, 0, 0);
+    }
+
+    public Matrix4f getViewMatrix() {
+//        return this.viewMatrix;
+        return Maths.createViewMatrix(this);
     }
 
     /**
@@ -253,9 +263,9 @@ public class Camera {
     }
 
     public enum Direction {
-        EAST(0),
+        WEST(0),
         NORTH(90),
-        WEST(180),
+        EAST(180),
         SOUTH(270);
 
         int degree;
@@ -268,6 +278,14 @@ public class Camera {
             return this.degree;
         }
 
+        public Direction add(int degree) {
+            return getDirectionFromDegree(this.degree + degree);
+        }
+
+        public Direction sub(int degree) {
+            return getDirectionFromDegree(this.degree - degree);
+        }
+
         public static Direction getDirectionFromDegree(int degree) {
             return values()[(int) Math.round((((double) (degree < 0 ? degree + 360 : degree) % 360) / 90)) % 4];
         }
@@ -276,47 +294,25 @@ public class Camera {
             return Direction.values();
         }
 
-        public Direction getOppositeDirection() {
-            return getDirectionFromDegree(degree + 180);
+        public Direction toOppositeDirection() {
+            return getDirectionFromDegree(this.degree + 180);
         }
 
         public static TerrainPosition toRelativeDistance(Direction direction) {
-            switch (direction) {
-                case EAST:
-                    return new TerrainPosition(0, -1);
-                case NORTH:
-                    return new TerrainPosition(1, 0);
-                case WEST:
-                    return new TerrainPosition(0, 1);
-                case SOUTH:
-                    return new TerrainPosition(-1, 0);
-                default:
-                    return new TerrainPosition(0, 0);
-            }
+            return toRelativeDistance(direction, 1);
         }
 
         public static TerrainPosition toRelativeDistance(Direction direction, int multiple) {
-            switch (direction) {
-                case EAST:
-                    return new TerrainPosition(0, -multiple);
-                case NORTH:
-                    return new TerrainPosition(multiple, 0);
-                case WEST:
-                    return new TerrainPosition(0, multiple);
-                case SOUTH:
-                    return new TerrainPosition(-multiple, 0);
-                default:
-                    return new TerrainPosition(0, 0);
-            }
+            return toRelativeDistance(direction, (double) multiple).toTerrainPosition();
         }
 
         public static Vector3f toRelativeDistance(Direction direction, double multiple) {
             switch (direction) {
-                case EAST:
+                case WEST:
                     return new Vector3f(0, 0, -multiple);
                 case NORTH:
                     return new Vector3f(multiple, 0, 0);
-                case WEST:
+                case EAST:
                     return new Vector3f(0, 0, multiple);
                 case SOUTH:
                     return new Vector3f(-multiple, 0, 0);
@@ -336,21 +332,13 @@ public class Camera {
             if (vector.x > 0)
                 return NORTH;
             if (vector.y < 0)
-                return EAST;
+                return WEST;
 
-            return WEST;
+            return EAST;
         }
 
         public static Direction defaultDirection() {
             return NORTH;
         }
-
-//        public static Direction getDirectionFromName(String name) {
-//            for (Direction direction : values())
-//                if (direction.name().equalsIgnoreCase(name))
-//                    return direction;
-//
-//            return defaultDirection();
-//        }
     }
 }

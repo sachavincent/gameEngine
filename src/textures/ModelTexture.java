@@ -4,11 +4,11 @@ import guis.presets.Background;
 
 public class ModelTexture extends Texture {
 
-    public final static ModelTexture DEFAULT_MODEL = new ModelTexture("purple.png", true);
+    public final static ModelTexture DEFAULT_MODEL = new ModelTexture("#D500F9", true);
 
     private float shineDamper = 1, reflectivity = 0;
 
-    private int normalMap;
+    private int normalMap = -1;
 
     private float   alpha;
     private boolean useFakeLighting;

@@ -3,11 +3,14 @@ package scene.components.requirements;
 import java.util.Map;
 import java.util.Objects;
 
-public class Requirement<Key, Value> implements Map.Entry<Key, Value> {
+public abstract class Requirement<Key, Value> implements Map.Entry<Key, Value> {
 
-    protected final Key                     key;
-    protected       Value                   value;
-    protected       SetValueCallback<Value> onSetValueCallback;
+    protected final Key   key;
+    protected       Value value;
+
+    private final SetValueCallback<Value>  onSetValueCallback;
+    private       MeetRequirementCallback  onMeetRequirementCallback;
+    private       ClearRequirementCallback onClearRequirementCallback;
 
     public Requirement(Key key, Value value, SetValueCallback<Value> onSetValueCallback) {
         this.key = key;
@@ -34,6 +37,32 @@ public class Requirement<Key, Value> implements Map.Entry<Key, Value> {
         return oldValue;
     }
 
+    public void setOnRequirementMetCallback(MeetRequirementCallback onMeetRequirementCallback) {
+        this.onMeetRequirementCallback = onMeetRequirementCallback;
+    }
+
+    public abstract <X> boolean isRequirementMet(X... object);
+
+    /**
+     * Used when the requirement is met
+     */
+    protected void meet() {
+        if (this.onMeetRequirementCallback != null)
+            this.onMeetRequirementCallback.onRequirementMet(this);
+    }
+
+    /**
+     * Used when the requirement is no longer met
+     */
+    protected void clear() {
+        if (this.onClearRequirementCallback != null)
+            this.onClearRequirementCallback.onRequirementCleared(this);
+    }
+
+    public void setOnClearRequirementCallback(ClearRequirementCallback onClearRequirementCallback) {
+        this.onClearRequirementCallback = onClearRequirementCallback;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -54,5 +83,17 @@ public class Requirement<Key, Value> implements Map.Entry<Key, Value> {
     public interface SetValueCallback<Value> {
 
         void onSetValue(Value value);
+    }
+
+    @FunctionalInterface
+    public interface MeetRequirementCallback {
+
+        void onRequirementMet(Requirement<?, ?> requirement);
+    }
+
+    @FunctionalInterface
+    public interface ClearRequirementCallback {
+
+        void onRequirementCleared(Requirement<?, ?> requirement);
     }
 }

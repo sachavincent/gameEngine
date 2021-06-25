@@ -50,7 +50,7 @@ public class WaterRenderer {
         prepareRender();
         for (WaterTile tile : water) {
             Matrix4f modelMatrix = Maths.createTransformationMatrix(
-                    new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), 0, 0, 0,
+                    new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), new Vector3f(0, 0, 0),
                     WaterTile.TILE_SIZE);
             shader.loadModelMatrix(modelMatrix);
             GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
@@ -67,7 +67,8 @@ public class WaterRenderer {
         shader.loadMoveFactor(moveFactor);
         shader.loadPlaneValues();
         shader.loadLight(
-                Scene.getInstance().getGameObjectsForComponent(SunComponent.class, false).stream().findFirst().orElse(null));
+                Scene.getInstance().getGameObjectsForComponent(SunComponent.class, false).stream().findFirst()
+                        .orElse(null));
 
         GL30.glBindVertexArray(quad.getVaoID());
         GL20.glEnableVertexAttribArray(0);

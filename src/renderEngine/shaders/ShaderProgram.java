@@ -42,36 +42,36 @@ public abstract class ShaderProgram {
 
     protected abstract void getAllUniformLocations();
 
-    int getUniformLocation(String uniformName) {
+    final int getUniformLocation(String uniformName) {
         return GL20.glGetUniformLocation(this.programID, uniformName);
     }
 
-    void loadFloat(int location, float value) {
+    final void loadFloat(int location, float value) {
         GL20.glUniform1f(location, value);
     }
 
-    void loadVector(int location, Vector3f vector) {
+    final void loadVector(int location, Vector3f vector) {
         GL20.glUniform3f(location, vector.x, vector.y, vector.z);
     }
 
-    void loadVector(int location, Vector4f vector) {
+    final void loadVector(int location, Vector4f vector) {
         GL20.glUniform4f(location, vector.x, vector.y, vector.z, vector.w);
     }
 
-    void load2DVector(int location, Vector2f vector) {
+    final void load2DVector(int location, Vector2f vector) {
         if (vector != null)
             GL20.glUniform2f(location, vector.x, vector.y);
     }
 
-    void loadInt(int location, int value) {
+    final void loadInt(int location, int value) {
         GL20.glUniform1i(location, value);
     }
 
-    void loadBoolean(int location, boolean value) {
+    final void loadBoolean(int location, boolean value) {
         GL20.glUniform1f(location, value ? 1 : 0);
     }
 
-    void loadMatrix(int location, Matrix4f matrix) {
+    final void loadMatrix(int location, Matrix4f matrix) {
         matrix.store(matrixBuffer);
         matrixBuffer.flip();
         GL20.glUniformMatrix4fv(location, false, matrixBuffer);
@@ -79,17 +79,21 @@ public abstract class ShaderProgram {
         matrixBuffer.clear();
     }
 
-    public void start() {
-        GL20.glUseProgram(this.programID);
-        this.started = true;
+    final public void start() {
+        if (!this.started) {
+            GL20.glUseProgram(this.programID);
+            this.started = true;
+        }
     }
 
-    public void stop() {
-        GL20.glUseProgram(0);
-        this.started = false;
+    final public void stop() {
+        if (this.started) {
+            GL20.glUseProgram(0);
+            this.started = false;
+        }
     }
 
-    public void cleanUp() {
+    final public void cleanUp() {
         stop();
 
         GL20.glDetachShader(this.programID, this.vertexShaderID);
@@ -103,15 +107,15 @@ public abstract class ShaderProgram {
 
     protected abstract void bindAttributes();
 
-    protected void bindAttribute(int attribute, String variableName) {
+    final protected void bindAttribute(int attribute, String variableName) {
         GL20.glBindAttribLocation(this.programID, attribute, variableName);
     }
 
-    public boolean isStarted() {
+    final public boolean isStarted() {
         return this.started;
     }
 
-    private static int loadShader(String file, int type) {
+    final private static int loadShader(String file, int type) {
         StringBuilder shaderSource = new StringBuilder();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));

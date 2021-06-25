@@ -1,19 +1,24 @@
-package guis.constraints;
+package guis.constraints.layout;
 
+import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
+import guis.constraints.RelativeConstraint;
 
-public class PatternGlobalConstraint extends GuiGlobalConstraints {
+public class PatternLayout extends GuiLayout {
 
     private final GuiConstraintsManager guiConstraintsManager;
     private final float                 itemWidth;
     private final float                 itemHeight;
 
-    public PatternGlobalConstraint(int horizontal, int vertical, float distance) {
+    public PatternLayout(int horizontal, int vertical, float distance) {
         this(horizontal, vertical, distance, distance);
     }
+    public PatternLayout(int horizontal, int vertical) {
+        this(horizontal, vertical, 0, 0);
+    }
 
-    public PatternGlobalConstraint(int horizontal, int vertical, float distanceX, float distanceY) {
+    public PatternLayout(int horizontal, int vertical, float distanceX, float distanceY) {
         super(ConstraintsType.POSITION, Constraints.PATTERN, horizontal, vertical, distanceX, distanceY);
 
         assert horizontal > 0;

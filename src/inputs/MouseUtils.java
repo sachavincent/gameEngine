@@ -270,8 +270,21 @@ public class MouseUtils {
                     }
                     break;
                 case GLFW_MOUSE_BUTTON_MIDDLE:
-                    if (!inGui)
-                        onMiddleMouseButton(action);
+                    switch (action) {
+                        case GLFW_PRESS:
+                            OnMidPressed();
+                            if (!inGui)
+                                middleMouseButtonPressed = true;
+                            break;
+                        case GLFW_RELEASE:
+                            OnMidReleased();
+                            if (!inGui) {
+                                middleMouseButtonPressed = false;
+                                previousXPos = -1;
+                                previousYPos = -1;
+                            }
+                            break;
+                    }
                     break;
                 default:
                     System.err.println("Unknown button");
@@ -322,19 +335,6 @@ public class MouseUtils {
 
     private static void hoverOnTerrain(GameObject hoveredObject, Vector2f position) {
 
-    }
-
-    public static void onMiddleMouseButton(int action) {
-        switch (action) {
-            case GLFW_PRESS:
-                middleMouseButtonPressed = true;
-                break;
-            case GLFW_RELEASE:
-                middleMouseButtonPressed = false;
-                previousXPos = -1;
-                previousYPos = -1;
-                break;
-        }
     }
 
     public static void SelectRoad() {
@@ -486,16 +486,20 @@ public class MouseUtils {
                 break;
             case ROAD:
             case BUILDING:
-                scene.resetPreviewedPositions();
                 if (isMouseInGui) {
+                    scene.resetPreviewedPositions(true);
                     previousState = state;
                     state = State.IN_GUI;
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPositionForPlacing()))) {
+                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
                     GuiSelectedItem.getInstance().setDisplayed(false);
-                    scene.addToPreview(terrainPos);
+                    if (scene.getPreviewedGameObjects().isEmpty())
+                        scene.addToPreview(terrainPos);
+                    else
+                        scene.changePreviewPosition(terrainPos);
                 } else {
+                    scene.resetPreviewedPositions(true);
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 }
                 break;
@@ -504,28 +508,33 @@ public class MouseUtils {
                     state = State.IN_GUI;
                     previousState = State.PRESSED_WITH_ROAD;
                     GuiSelectedItem.getInstance().setDisplayed(true);
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPositionForPlacing()))) {
+                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
                     if (!scene.getPreviewItemPositions().contains(terrainPos)) {
                         scene.addToPreview(terrainPos);
                     }
                 } else {
                     GuiSelectedItem.getInstance().setDisplayed(true);
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                 }
                 break;
             case PRESSED_WITH_BUILDING:
-                scene.resetPreviewedPositions();
+//                scene.resetPreviewedPositions(true);
 
                 if (isMouseInGui) {
+                    scene.resetPreviewedPositions(true);
                     state = State.IN_GUI;
                     previousState = State.PRESSED_WITH_BUILDING;
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPositionForPlacing()))) {
-                    scene.addToPreview(terrainPos);
+                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
+                    if (scene.getPreviewedGameObjects().isEmpty())
+                        scene.addToPreview(terrainPos);
+                    else
+                        scene.changePreviewPosition(terrainPos);
                 } else {
+                    scene.resetPreviewedPositions(true);
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 }
                 break;
@@ -573,7 +582,7 @@ public class MouseUtils {
                 break;
             case IN_GUI:
                 if (previousState == State.PRESSED_WITH_BUILDING || previousState == State.PRESSED_WITH_ROAD) {
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                     if (previousState == State.PRESSED_WITH_ROAD) {
                         previousState = State.ROAD;
                     } else {
@@ -609,7 +618,7 @@ public class MouseUtils {
                 case IN_GUI:
                     if (previousState != null) {
                         previousState = null;
-                        scene.resetPreviewedPositions();
+                        scene.resetPreviewedPositions(true);
                         GuiSelectedItem.getInstance().setDisplayed(false);
                         GuiSelectedItem.getInstance().removeSelectedItem();
                     }
@@ -626,17 +635,17 @@ public class MouseUtils {
                 case ROAD:
                 case BUILDING:
                     state = State.DEFAULT;
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                     GuiSelectedItem.getInstance().setDisplayed(false);
                     GuiSelectedItem.getInstance().removeSelectedItem();
                     break;
                 case PRESSED_WITH_BUILDING:
                     state = State.BUILDING;
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                     break;
                 case PRESSED_WITH_ROAD:
                     state = State.ROAD;
-                    scene.resetPreviewedPositions();
+                    scene.resetPreviewedPositions(true);
                     break;
                 default:
                     throw new IllegalStateException("Impossible state : " + state.name());
@@ -663,6 +672,34 @@ public class MouseUtils {
             }
         }
 
+    }
+
+    private static void OnMidPressed() {
+        switch (state) {
+            case DEFAULT:
+            case IN_GUI:
+            case HOVER_TERRAIN:
+            case ROAD:
+            case PRESSED_WITH_ROAD:
+                break;
+            case BUILDING:
+            case PRESSED_WITH_BUILDING:
+                scene.rotatePreview(90);
+                break;
+        }
+    }
+
+    private static void OnMidReleased() {
+        switch (state) {
+            case DEFAULT:
+            case IN_GUI:
+            case HOVER_TERRAIN:
+            case ROAD:
+            case PRESSED_WITH_ROAD:
+            case BUILDING:
+            case PRESSED_WITH_BUILDING:
+                break;
+        }
     }
 
     public static void freeCallbacks() {

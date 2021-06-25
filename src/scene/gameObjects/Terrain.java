@@ -1,5 +1,6 @@
 package scene.gameObjects;
 
+import entities.Model;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +12,8 @@ import renderEngine.Loader;
 import renderEngine.TerrainRenderer;
 import scene.components.BoundingBoxComponent;
 import scene.components.RendererComponent;
+import scene.components.SingleModelComponent;
 import scene.components.TerrainComponent;
-import scene.components.TextureComponent;
 import scene.components.TexturePackComponent;
 import textures.ModelTexture;
 import textures.TerrainTexture;
@@ -22,13 +23,13 @@ import util.math.Vector3f;
 
 public class Terrain extends GameObject {
 
-    public static final  int   SIZE             = 500;
+    public static final int SIZE = 500;
 
     public Terrain() {
-        RawModel model = generateTerrain("black.png");
+        RawModel model = generateTerrain("heightmap.png");
         TexturedModel texturedModel = new TexturedModel(model);
         addComponent(new TerrainComponent());
-        addComponent(new TextureComponent(texturedModel));
+        addComponent(new SingleModelComponent(new Model(texturedModel)));
 
         Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, SIZE),
                 new Vector3f(SIZE, 0, SIZE), new Vector3f(SIZE, 0, 0));
@@ -52,7 +53,7 @@ public class Terrain extends GameObject {
 
             return null;
         }
-        int VERTEX_COUNT = image.getHeight();
+        int VERTEX_COUNT = image.getHeight() * 4;
 
         int count = VERTEX_COUNT * VERTEX_COUNT;
         float[] vertices = new float[count * 3];
@@ -62,10 +63,12 @@ public class Terrain extends GameObject {
         int vertexPointer = 0;
         for (int i = 0; i < VERTEX_COUNT; i++) {
             for (int j = 0; j < VERTEX_COUNT; j++) {
-                vertices[vertexPointer * 3] = (j / (VERTEX_COUNT - 1f) * SIZE);
+//                vertices[vertexPointer * 3] = (j / (VERTEX_COUNT - 1f) * SIZE);
+                vertices[vertexPointer * 3] = j;
                 float height = 0;
                 vertices[vertexPointer * 3 + 1] = height;
-                vertices[vertexPointer * 3 + 2] = i / (VERTEX_COUNT - 1f) * SIZE;
+//                vertices[vertexPointer * 3 + 2] = i / (VERTEX_COUNT - 1f) * SIZE;
+                vertices[vertexPointer * 3 + 2] = i;
                 Vector3f normal = calculateNormal(j, i, image);
                 normals[vertexPointer * 3] = normal.x;
                 normals[vertexPointer * 3 + 1] = normal.y;

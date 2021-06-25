@@ -1,12 +1,18 @@
-package guis.constraints;
+package guis.constraints.layout;
 
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.StickyConstraint;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import renderEngine.DisplayManager;
 
-public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
+public class RatioedPatternLayout extends GuiLayout {
 
     private float xPercentageTaken;
     private float yPercentageTaken;
@@ -15,7 +21,7 @@ public class RatioedPatternGlobalConstraint extends GuiGlobalConstraints {
      * @param percentages x and y list
      * if any < 0 then Aspect ratio constraint used
      */
-    public RatioedPatternGlobalConstraint(int horizontal, int vertical, float distanceX, float distanceY,
+    public RatioedPatternLayout(int horizontal, int vertical, float distanceX, float distanceY,
             Number... percentages) {
         super(ConstraintsType.POSITION, Constraints.RATIOED_PATTERN,
                 Stream.concat(Arrays.stream(new Object[]{horizontal, vertical, distanceX, distanceY}),

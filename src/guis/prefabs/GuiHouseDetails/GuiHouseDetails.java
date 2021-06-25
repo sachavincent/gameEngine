@@ -5,6 +5,7 @@ import guis.Gui;
 import guis.basics.GuiEllipse;
 import guis.basics.GuiRectangle;
 import guis.constraints.*;
+import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.ButtonGroup;
 import guis.presets.buttons.GuiAbstractButton;
@@ -211,7 +212,7 @@ public class GuiHouseDetails extends Gui {
             return;
 
         this.subCategoriesTab.clearComponents();
-        this.subCategoriesTab.setLayout(new PatternGlobalConstraint(subCategories.size(), 1, 0));
+        this.subCategoriesTab.setLayout(new PatternLayout(subCategories.size(), 1, 0));
 
         AtomicBoolean selected = new AtomicBoolean();
         ButtonGroup group = new ButtonGroup(subCategories.size());

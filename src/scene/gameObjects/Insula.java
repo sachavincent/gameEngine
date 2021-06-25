@@ -1,6 +1,7 @@
 package scene.gameObjects;
 
 import entities.Camera.Direction;
+import entities.Model;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.lwjgl.glfw.GLFW;
+import pathfinding.Road;
 import people.Person;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager;
@@ -17,7 +19,7 @@ import resources.ResourceManager.Resource;
 import scene.Scene;
 import scene.components.*;
 import scene.components.callbacks.AddComponentCallback;
-import scene.components.requirements.BuildingRequirement;
+import scene.components.requirements.BuildingRoadConnectionRequirement;
 import scene.components.requirements.Requirement;
 import scene.components.requirements.RequirementComponent;
 import scene.components.requirements.ResourceRequirement;
@@ -27,20 +29,20 @@ public class Insula extends GameObject {
 
     private final static int MAX_PEOPLE_CAPACITY = 10;
 
-    public final static int X_POSITIVE_OFFSET = 2;
+    public final static int X_POSITIVE_OFFSET = 3;
     public final static int X_NEGATIVE_OFFSET = 3;
-    public final static int Z_POSITIVE_OFFSET = 2;
+    public final static int Z_POSITIVE_OFFSET = 3;
     public final static int Z_NEGATIVE_OFFSET = 3;
 
     public Insula() {
         addComponent(new IconComponent(GameObjectPreviews.INSULA));
         DirectionComponent directionComponent = new DirectionComponent(Direction.NORTH);
         addComponent(directionComponent);
-        addComponent(new TextureComponent(OBJGameObjects.INSULA.getTexture()));
+        addComponent(new SingleModelComponent(new Model(OBJGameObjects.INSULA.getTexture())));
         addComponent(new PreviewComponent(OBJGameObjects.INSULA.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
 
-        addComponent(new RoadConnectionsComponent(new AddComponentCallback() {
+        addComponent(new ConnectionsComponent<>(Road.class, new AddComponentCallback() {
             @Override
             public void onAddComponent(GameObject gameObject, Vector3f position) {
                 Scene.getInstance().addBuildingRequirement(gameObject);
@@ -52,11 +54,12 @@ public class Insula extends GameObject {
             }
         }));
 
-        BuildingRequirement marketRequirement = new BuildingRequirement(Market.class, 0, value -> {
-            GuiHouseDetails.getInstance().update();
-        });
+        BuildingRoadConnectionRequirement marketRequirement = new BuildingRoadConnectionRequirement(Market.class, 0,
+                value -> {
+                    GuiHouseDetails.getInstance().update();
+                });
 
-        RequirementComponent requirementComponent = new RequirementComponent(
+        RequirementComponent requirementComponent = new RequirementComponent(new HashSet<>(),
                 new HashSet<>(Collections.singletonList(marketRequirement)), new HashSet<>(), new HashSet<>());
         addComponent(requirementComponent);
 

@@ -13,7 +13,7 @@ class MathsTest {
     void testEmptyArray() {
         Boolean[] test = new Boolean[0];
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
     }
@@ -22,7 +22,7 @@ class MathsTest {
     void testArrayLength1() {
         Boolean[] test = new Boolean[]{true};
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -32,7 +32,7 @@ class MathsTest {
     void testArrayLength2() {
         Boolean[] test = new Boolean[]{true, true};
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -43,7 +43,7 @@ class MathsTest {
     void testArrayLength2_2() {
         Boolean[] test = new Boolean[]{false, true};
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
         assertTrue(testEnd[0]);
@@ -54,7 +54,7 @@ class MathsTest {
     void testArrayLength2_3() {
         Boolean[] test = new Boolean[]{true, false};
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
         assertFalse(testEnd[0]);
@@ -65,7 +65,7 @@ class MathsTest {
     void testArrayLength3() {
         Boolean[] test = new Boolean[]{true, true, false};
 
-        Boolean[] testEnd = Maths.shiftArray(test);
+        Boolean[] testEnd = Maths.shiftArrayRight(test);
 
         assertEquals(testEnd.length, test.length);
         assertArrayEquals(testEnd, new Boolean[]{false, true, true});

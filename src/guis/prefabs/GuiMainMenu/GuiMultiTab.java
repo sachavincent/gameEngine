@@ -4,8 +4,8 @@ import fontMeshCreator.Text;
 import guis.Gui;
 import guis.basics.GuiRectangle;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.PatternGlobalConstraint;
-import guis.constraints.RatioedPatternGlobalConstraint;
+import guis.constraints.layout.PatternLayout;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.callbacks.BackCallback;
@@ -33,17 +33,17 @@ public class GuiMultiTab extends Gui {
 
         this.tabs = new ArrayList<>();
 
-        setLayout(new RatioedPatternGlobalConstraint(1, 2, 0, .01f, 100f, 15f, 100f, 85f));
+        setLayout(new RatioedPatternLayout(1, 2, 0, .01f, 100f, 15f, 100f, 85f));
 
         GuiRectangle upperArea = new GuiRectangle(this, Background.NO_BACKGROUND);
-        upperArea.setLayout(new RatioedPatternGlobalConstraint(2, 1, 0, 0, 5f, 100f, 95f, 100f));
+        upperArea.setLayout(new RatioedPatternLayout(2, 1, 0, 0, 5f, 100f, 95f, 100f));
 
         this.backArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
         Background<String> back = new Background<>("back_arrow.png");
         this.guiBack = new GuiRectangleButton(this.backArea, back, null, (GuiConstraintsManager) null);
 
         this.tabArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
-        this.tabArea.setLayout(new PatternGlobalConstraint(1, 1, .02f, .02f));
+        this.tabArea.setLayout(new PatternLayout(1, 1, .02f, .02f));
 
         this.content = new GuiRectangle(this, Background.NO_BACKGROUND);
         this.selectedTabNum = -1;
@@ -62,7 +62,7 @@ public class GuiMultiTab extends Gui {
         if (this.tabs.contains(guiTab))
             return;
 
-        this.tabArea.setLayout(new PatternGlobalConstraint(this.tabs.size() + 1, 1, .02f, .02f));
+        this.tabArea.setLayout(new PatternLayout(this.tabs.size() + 1, 1, .02f, .02f));
         Text text = new Text(guiTab.getName(), .8f, DEFAULT_FONT, Color.BLACK);
         text.setUpperCase(true);
         GuiRectangleButton rectangleButton = new GuiRectangleButton(this.tabArea, Background.NO_BACKGROUND, null, text);
@@ -81,7 +81,7 @@ public class GuiMultiTab extends Gui {
         this.tabs.remove(guiTab);
 
         this.tabArea.removeComponent(guiTab.getTabMenu());
-        this.tabArea.setLayout(new PatternGlobalConstraint(this.tabs.size(), 1, .02f, .02f));
+        this.tabArea.setLayout(new PatternLayout(this.tabs.size(), 1, .02f, .02f));
     }
 
     public List<GuiTab> getTabs() {

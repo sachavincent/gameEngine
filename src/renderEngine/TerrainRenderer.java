@@ -1,9 +1,14 @@
 package renderEngine;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
+import java.util.Map;
 import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
@@ -12,12 +17,16 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.shaders.TerrainShader;
 import scene.components.PositionComponent;
-import scene.components.TextureComponent;
+import scene.components.SingleModelComponent;
+import scene.components.TerrainComponent;
 import scene.components.TexturePackComponent;
 import scene.gameObjects.GameObject;
+import scene.gameObjects.Terrain;
+import terrains.TerrainPosition;
 import textures.TerrainTexturePack;
 import util.math.Maths;
 import util.math.Matrix4f;
+import util.math.Vector2f;
 import util.math.Vector3f;
 
 public class TerrainRenderer extends Renderer {
@@ -47,20 +56,27 @@ public class TerrainRenderer extends Renderer {
                 Vector3f position = terrain.getComponent(PositionComponent.class).getPosition();
                 loadModelMatrix(position);
                 GL11.glLineWidth(2);
+
                 GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
                 unbindTexturedModel();
             }
         });
-
+//        GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+//        glDisable(GL_TEXTURE_2D);
+//
+//        GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         this.gameObjects.clear();
         this.shader.stop();
     }
 
     public void prepareRender(GameObject gameObject) {
         if (!this.shader.isStarted()) {
+            glEnable(GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             this.shader.start();
             ((TerrainShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((TerrainShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
+            ((TerrainShader) this.shader).loadTerrainSize(new Vector2f(Terrain.SIZE, Terrain.SIZE));
             ((TerrainShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects());
             ((TerrainShader) this.shader).loadViewMatrix();
         }
@@ -69,11 +85,11 @@ public class TerrainRenderer extends Renderer {
     }
 
     private RawModel prepareTerrain(GameObject terrain) {
-        TextureComponent textureComponent = terrain.getComponent(TextureComponent.class);
-        if (textureComponent == null)
+        SingleModelComponent singleModelComponent = terrain.getComponent(SingleModelComponent.class);
+        if (singleModelComponent == null)
             return null;
 
-        TexturedModel texture = textureComponent.getTexture();
+        TexturedModel texture = singleModelComponent.getModel().getTexturedModel();
         if (texture == null)
             return null;
 
@@ -89,6 +105,14 @@ public class TerrainRenderer extends Renderer {
         bindTextures(terrain);
 
         ((TerrainShader) this.shader).loadShineVariables(1, 0);
+
+
+        TerrainComponent terrainComponent = terrain.getComponent(TerrainComponent.class);
+        Map<TerrainPosition, Integer> focusPoints = terrainComponent.getFocusPoints();
+
+        ((TerrainShader) this.shader).loadFocusBuildingPlacement(focusPoints.size());
+        ((TerrainShader) this.shader).loadFocusPoints(focusPoints);
+
         return rawModel;
     }
 
@@ -101,22 +125,22 @@ public class TerrainRenderer extends Renderer {
         TerrainTexturePack texturePack = texturePackComponent.getTerrainTexturePack();
 
         if (texturePack.getBackgroundTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
+            GL11.glBindTexture(GL_TEXTURE_2D, texturePack.getBackgroundTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE1);
         }
 
         if (texturePack.getRedTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getRedTexture().getTextureID());
+            GL11.glBindTexture(GL_TEXTURE_2D, texturePack.getRedTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE2);
         }
 
         if (texturePack.getGreenTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getGreenTexture().getTextureID());
+            GL11.glBindTexture(GL_TEXTURE_2D, texturePack.getGreenTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE3);
         }
 
         if (texturePack.getBlueTexture() != null) {
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.getBlueTexture().getTextureID());
+            GL11.glBindTexture(GL_TEXTURE_2D, texturePack.getBlueTexture().getTextureID());
             GL13.glActiveTexture(GL13.GL_TEXTURE4);
         }
 
@@ -128,17 +152,18 @@ public class TerrainRenderer extends Renderer {
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
         GL20.glDisableVertexAttribArray(2);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GL11.glBindTexture(GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
     }
 
     private void loadModelMatrix(Vector3f position) {
         Matrix4f transformationMatrix = Maths.createTransformationMatrix(
-                new Vector3f(position.getX(), 0, position.getZ()), 0, 0, 0, 1);
+                new Vector3f(position.getX(), 0, position.getZ()), new Vector3f(0, 0, 0), 1);
 
         if (transformationMatrix == null)
             return;
 
         ((TerrainShader) this.shader).loadTransformationMatrix(transformationMatrix);
     }
+
 }

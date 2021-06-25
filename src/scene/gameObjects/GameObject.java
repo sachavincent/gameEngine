@@ -1,14 +1,16 @@
 package scene.gameObjects;
 
+import entities.Camera.Direction;
 import java.lang.reflect.Array;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import scene.Scene;
 import scene.components.Component;
+import scene.components.DirectionComponent;
 import scene.components.PositionComponent;
 import scene.components.RendererComponent;
 import scene.components.callbacks.AddComponentCallback;
@@ -21,7 +23,7 @@ public abstract class GameObject {
 
     private static int ID;
 
-    private final int id;
+    protected final int id;
 
     protected final Map<String, Component> components;
 
@@ -32,7 +34,7 @@ public abstract class GameObject {
     public GameObject() {
         this.id = ++ID;
 
-        this.components = new HashMap<>();
+        this.components = new LinkedHashMap<>();
         this.scene = Scene.getInstance();
 
         UNIQUE_GAMEOBJECTS.add(this.getClass());
@@ -54,20 +56,21 @@ public abstract class GameObject {
         this.components.put(component.getClass().getName(), component);
 
         if (component instanceof PositionComponent) {
-            Scene.getInstance().addGameObject(this);
-            Stream<AddComponentCallback> addComponentCallbackStream = this.components.values().stream()
-                    .map(Component::getAddComponentCallback).filter(Objects::nonNull);
-            if (isIgnoreAddCallback())
-                addComponentCallbackStream = addComponentCallbackStream
-                        .filter(AddComponentCallback::isForEach);
+            if (Scene.getInstance().addGameObject(this)) {
+                Stream<AddComponentCallback> addComponentCallbackStream = this.components.values().stream()
+                        .map(Component::getOnAddComponentCallback).filter(Objects::nonNull);
+                if (isIgnoreAddCallback())
+                    addComponentCallbackStream = addComponentCallbackStream
+                            .filter(AddComponentCallback::isForEach);
 
-            addComponentCallbackStream.forEach(callback -> callback
-                    .onAddComponent(this, ((PositionComponent) component).getPosition()));
+                addComponentCallbackStream.forEach(callback -> callback
+                        .onAddComponent(this, ((PositionComponent) component).getPosition()));
+            }
         }
     }
 
     public void onUniqueAddGameObject(Vector3f position) {
-        this.components.values().stream().map(Component::getAddComponentCallback).filter(Objects::nonNull)
+        this.components.values().stream().map(Component::getOnAddComponentCallback).filter(Objects::nonNull)
                 .filter(addComponentCallback -> !addComponentCallback.isForEach())
                 .forEach(callback -> callback.onAddComponent(this, position));
     }
@@ -117,25 +120,33 @@ public abstract class GameObject {
         Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = Scene.getInstance()
                 .getIdGameObjectsForComponents();
         for (Component component : getComponents().values()) {
-            Set<Integer> integers = idGameObjectsForComponents.get(component.getClass());
-            integers.remove(this.id);
+            Set<Integer> ids = idGameObjectsForComponents.get(component.getClass());
+            ids.remove(this.id);
         }
         Scene.getInstance().removeGameObject(this.id);
 
         if (hasComponent(RendererComponent.class))
             Scene.getInstance().removeRenderableGameObject(getComponent(RendererComponent.class).getRenderer(), this);
-    }
-
-    public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position) {
-        return newInstance(objectClass, position, false);
+//        if (this.id == ID)
+//            ID--;
     }
 
     public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position,
+            Direction direction) {
+        return newInstance(objectClass, position, direction, false);
+    }
+
+    public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position) {
+        return newInstance(objectClass, position, Direction.defaultDirection(), false);
+    }
+
+    public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position,
+            Direction direction,
             boolean ignoreAddCallback) {
         X gameObject = getObjectFromClass(objectClass);
         gameObject.setIgnoreAddCallback(ignoreAddCallback);
+        gameObject.addComponent(new DirectionComponent(direction));
         gameObject.addComponent(new PositionComponent(position));
-
         return gameObject;
     }
 

@@ -18,7 +18,6 @@ import scene.components.PositionComponent;
 import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
-import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Plane3D;
 import util.math.Vector2f;
@@ -38,7 +37,7 @@ public class MousePicker {
     private GameObject gameObject;
 
     private MousePicker() {
-        this.viewMatrix = Maths.createViewMatrix();
+        this.viewMatrix = Camera.getInstance().getViewMatrix();
     }
 
     public static MousePicker getInstance() {
@@ -58,7 +57,7 @@ public class MousePicker {
     }
 
     public void update() {
-        this.viewMatrix = Maths.createViewMatrix();
+        this.viewMatrix = Camera.getInstance().getViewMatrix();
 
         this.currentRay = calculateMouseRay();
         this.currentRay = (Vector3f) this.currentRay.normalise();
@@ -68,7 +67,7 @@ public class MousePicker {
 
         Map<GameObject, Vector3f> map = new HashMap<>();
         Entry<GameObject, Vector3f> intersectionWithGameObject = getIntersectionWithGameObject(
-                Scene.getInstance().getGameObjectsOfType(Terrain.class).stream().findFirst().orElse(null));
+                Scene.getInstance().getGameObjectsOfType(Terrain.class, false).stream().findFirst().orElse(null));
         if (intersectionWithGameObject != null)
             map.put(intersectionWithGameObject.getKey(), intersectionWithGameObject.getValue());
         calculateIntersectionPoint(map);
@@ -106,7 +105,7 @@ public class MousePicker {
                 .orElse(null);
         if (gameObjectDoubleEntry != null) {
             this.gameObject = gameObjectDoubleEntry.getKey();
-            this.intersectionPoint = gameObjectDoubleEntry.getValue();
+            this.intersectionPoint = gameObjectDoubleEntry.getValue().sub(new Vector3f(.5f, 0, .5f));
         }
     }
 

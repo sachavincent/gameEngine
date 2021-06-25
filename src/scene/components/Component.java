@@ -3,21 +3,28 @@ package scene.components;
 import java.util.HashSet;
 import scene.Scene;
 import scene.components.callbacks.AddComponentCallback;
+import scene.components.callbacks.TickElapsedCallback;
 import scene.components.callbacks.UpdateComponentCallback;
+import scene.gameObjects.GameObject;
 
 public abstract class Component {
 
     protected int                     idGameObject;
-    protected AddComponentCallback    addComponentCallback;
-    protected UpdateComponentCallback updateComponentCallback;
+    private   AddComponentCallback    onAddComponentCallback;
+    private   UpdateComponentCallback onUpdateComponentCallback;
+    private   TickElapsedCallback     onTickElapsedCallback;
+    private   int                     nbTicksTickElapsedCallback;
 
-    public int getIdGameObject() {
+    protected boolean updated;
+
+    public final int getIdGameObject() {
         return this.idGameObject;
     }
 
-    public Component(AddComponentCallback addComponentCallback) {
+    public Component(AddComponentCallback onAddComponentCallback) {
         this();
-        this.addComponentCallback = addComponentCallback;
+        this.updated = false;
+        this.onAddComponentCallback = onAddComponentCallback;
     }
 
     public Component() {
@@ -30,16 +37,45 @@ public abstract class Component {
         Scene.getInstance().getIdGameObjectsForComponents().get(getClass()).add(id);
     }
 
-    public AddComponentCallback getAddComponentCallback() {
-        return this.addComponentCallback;
+    public final AddComponentCallback getOnAddComponentCallback() {
+        return this.onAddComponentCallback;
     }
 
-    public UpdateComponentCallback getUpdateComponentCallback() {
-        return this.updateComponentCallback;
+    public void setOnUpdateComponentCallback(UpdateComponentCallback onUpdateComponentCallback) {
+        this.onUpdateComponentCallback = onUpdateComponentCallback;
     }
 
-    protected void update() {
-        if (this.updateComponentCallback != null)
-            this.updateComponentCallback.onUpdateComponent(Scene.getInstance().getGameObjectFromId(this.idGameObject));
+    public void setOnAddComponentCallback(AddComponentCallback onAddComponentCallback) {
+        this.onAddComponentCallback = onAddComponentCallback;
+    }
+
+    public void setOnTickElapsedCallback(TickElapsedCallback onTickElapsedCallback) {
+        this.onTickElapsedCallback = onTickElapsedCallback;
+    }
+
+    public void setUpdated(boolean updated) {
+        this.updated = updated;
+    }
+
+    public boolean isUpdated() {
+        return this.updated;
+    }
+
+    final public void update() {
+        if (this.onUpdateComponentCallback != null) {
+            GameObject gameObjectFromId = Scene.getInstance().getGameObjectFromId(this.idGameObject);
+            if (gameObjectFromId != null)
+                this.onUpdateComponentCallback.onUpdateComponent(gameObjectFromId);
+        }
+    }
+
+    final public void tick() {
+        if (this.onTickElapsedCallback != null) {
+            boolean ticked = this.onTickElapsedCallback
+                    .onTickElapsed(Scene.getInstance().getGameObjectFromId(this.idGameObject),
+                            this.nbTicksTickElapsedCallback++);
+            if (ticked)
+                this.nbTicksTickElapsedCallback = 0;
+        }
     }
 }

@@ -9,7 +9,9 @@ import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
 import renderEngine.DisplayManager;
+import scene.Scene;
 import scene.components.IconComponent;
+import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import util.math.Vector2f;
@@ -42,6 +44,9 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void setSelectedItem(Class<? extends GameObject> gameObjectClass) {
+        Scene.getInstance().getGameObjectsForComponent(TerrainComponent.class, false)
+                .forEach(gameObject -> gameObject.getComponent(TerrainComponent.class).update());
+
         this.currentSelectedItem = gameObjectClass;
         GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
         if (objectFromClass == null)
@@ -61,6 +66,9 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void removeSelectedItem() {
+        Scene.getInstance().getGameObjectsForComponent(TerrainComponent.class, false)
+                .forEach(gameObject -> gameObject.getComponent(TerrainComponent.class).update());
+
         Player.removeSelectedGameObject();
         currentSelectedItem = null;
 

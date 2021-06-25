@@ -44,12 +44,18 @@ public class NodeConnection implements Comparable<NodeConnection> {
 
     @Override
     public int compareTo(NodeConnection other) {
-        int fScore = getgScore() + end.gethScore();
-        int fScoreOther = other.getgScore() + other.getEnd().gethScore();
+        int gScore = getgScore();
+        int othergScore = other.getgScore();
+        int fScore = gScore + end.gethScore();
+        int fScoreOther = othergScore + other.getEnd().gethScore();
 
         int compare = Integer.compare(fScore, fScoreOther);
         if (compare != 0)
             return compare;
+
+//        compare = Integer.compare(gScore, othergScore);
+//        if (compare != 0)
+//            return compare;
 
         compare = end.getPosition().compareTo(other.getEnd().getPosition());
         if (compare != 0)
@@ -58,13 +64,6 @@ public class NodeConnection implements Comparable<NodeConnection> {
         compare = start.getPosition().compareTo(other.getStart().getPosition());
         if (compare != 0)
             return compare;
-
-        compare = Integer.compare(roads.size(), other.roads.size());
-        if (compare != 0)
-            return compare;
-
-        if (roads.equals(other.roads))
-            return 0;
 
         return Integer.compare(roads.hashCode(), other.roads.hashCode());
     }

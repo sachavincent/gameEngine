@@ -8,8 +8,8 @@ import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
 import guis.constraints.CenterConstraint;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RatioedPatternGlobalConstraint;
 import guis.constraints.RelativeConstraint;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiProgressIcon;
 import java.awt.Color;
@@ -34,7 +34,7 @@ public class CategoryView extends GuiRectangle {
     public CategoryView(GuiHouseDetails gui) {
         super(gui, Background.NO_BACKGROUND, CONSTRAINTS);
 
-        setLayout(new RatioedPatternGlobalConstraint(2, 1, 0.03f, 0, 70f, -1f, 30f, -1f));
+        setLayout(new RatioedPatternLayout(2, 1, 0.03f, 0, 70f, -1f, 30f, -1f));
 
         this.categoryIcon = new GuiProgressIcon(this, Resource.FISH.getBackgroundTexture(), null);
         GuiTexture[] categoryIconsArray = new GuiTexture[Resource.values().length];

@@ -71,7 +71,7 @@ public class SpawnCommand extends Command {
         Class<? extends GameObject> gameObjectClass = GameObject.getClassFromName(gameObjectName);
 
         TerrainPosition position = new TerrainPosition(xValue, yValue);
-        if (!Scene.getInstance().canGameObjectClassBePlaced(gameObjectClass, position))
+        if (!Scene.getInstance().canGameObjectClassBePlaced(gameObjectClass, position, direction))
             return 4;
 
         GameObject gameObject = GameObject.newInstance(gameObjectClass, position);
@@ -112,7 +112,7 @@ public class SpawnCommand extends Command {
         System.out.println("Clicked on NPC");
         Map<Path, Color> tempPathsList = new HashMap<>(PathRenderer.getInstance().getTempPathsList());
         tempPathsList.put(bestPath, Color.WHITE);
-        PathRenderer.getInstance().setTempPathsList(tempPathsList);
+        PathRenderer.getInstance().addToTempPathsList(tempPathsList);
     }
 
     public SpawnCommand() {

@@ -9,21 +9,19 @@ public class RawModel {
     private final int     vboID;
     private final int     vertexCount;
     private final boolean instanced;
-    private final boolean tangents;
 
     private Vector3f min, max;
 
-    public RawModel(int vaoID, int vboID, int vertexCount, boolean tangents, boolean instanced) {
+    public RawModel(int vaoID, int vboID, int vertexCount, boolean instanced) {
         this.vaoID = vaoID;
         this.vboID = vboID;
         this.vertexCount = vertexCount;
-        this.tangents = tangents;
         this.instanced = instanced;
     }
 
     public RawModel(int vaoID, int vboID, int vertexCount, Vector3f min, Vector3f max, boolean tangents,
             boolean instanced) {
-        this(vaoID, vboID, vertexCount, tangents, instanced);
+        this(vaoID, vboID, vertexCount, instanced);
 
         this.min = min;
         this.max = max;
@@ -66,9 +64,5 @@ public class RawModel {
     @Override
     public int hashCode() {
         return Objects.hash(vaoID);
-    }
-
-    public boolean areTangentsOn() {
-        return this.tangents;
     }
 }

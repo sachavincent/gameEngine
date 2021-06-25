@@ -1,122 +1,60 @@
 package entities;
 
-import models.TexturedModel;
-import textures.ModelTexture;
-import util.math.Vector3f;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public class Entity {
 
-    private TexturedModel model;
-    private Vector3f      position;
-    private float         rotX, rotY, rotZ, scale;
+    private List<Model> models;
+    private boolean     preview;
 
-    private int textureIndex = 0;
-
-    public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
-        this.model = model;
-        this.position = position;
-        this.rotX = rotX;
-        this.rotY = rotY;
-        this.rotZ = rotZ;
-        this.scale = scale;
+    public Entity(Entity entity) {
+        this(entity.models);
     }
 
-    public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ) {
-        this.model = model;
-        this.position = position;
-        this.rotX = rotX;
-        this.rotY = rotY;
-        this.rotZ = rotZ;
-
-        this.scale = 1f;
+    public Entity(Collection<Model> models) {
+        this.models = new ArrayList<>(models);
     }
 
-    public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale,
-            int textureIndex) {
-        this.model = model;
-        this.position = position;
-        this.rotX = rotX;
-        this.rotY = rotY;
-        this.rotZ = rotZ;
-        this.scale = scale;
-        this.textureIndex = textureIndex;
+    public Entity(Model model) {
+        this(List.of(model));
     }
 
-    public float getTextureXOffset() {
-        ModelTexture modelTexture = model.getModelTexture();
-        if (modelTexture == null)
-            return 0;
-
-        int column = textureIndex % modelTexture.getNumberOfRows();
-        return (float) column / (float) modelTexture.getNumberOfRows();
+    public boolean isPreview() {
+        return this.preview;
     }
 
-    public float getTextureYOffset() {
-        ModelTexture modelTexture = model.getModelTexture();
-        if (modelTexture == null)
-            return 0;
-
-        int row = textureIndex / modelTexture.getNumberOfRows();
-        return (float) row / (float) modelTexture.getNumberOfRows();
+    public void setPreview(boolean preview) {
+        this.preview = preview;
     }
 
-    public void increasePosition(float dx, float dy, float dz) {
-        this.position.x += dx;
-        this.position.y += dy;
-        this.position.z += dz;
+    public void setModel(Model model) {
+        this.models = new ArrayList<>();
+        this.models.add(model);
     }
 
-    public void increaseRotation(float dx, float dy, float dz) {
-        this.rotX += dx;
-        this.rotY += dy;
-        this.rotZ += dz;
+    public void setModels(List<Model> models) {
+        this.models = models;
     }
 
-    public TexturedModel getModel() {
-        return this.model;
+    public List<Model> getModels() {
+        return this.models;
     }
 
-    public void setModel(TexturedModel model) {
-        this.model = model;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Entity entity = (Entity) o;
+        return                 Objects.equals(entity.models, this.models);
     }
 
-    public Vector3f getPosition() {
-        return this.position;
-    }
-
-    public void setPosition(Vector3f position) {
-        this.position = position;
-    }
-
-    public float getRotX() {
-        return this.rotX;
-    }
-
-    public void setRotX(float rotX) {
-        this.rotX = rotX;
-    }
-
-    public float getRotY() {
-        return this.rotY;
-    }
-
-    public void setRotY(float rotY) {
-        this.rotY = rotY;
-    }
-
-    public float getRotZ() {
-        return this.rotZ;
-    }
-
-    public void setRotZ(float rotZ) {
-        this.rotZ = rotZ;
-    }
-
-    public float getScale() {
-        return this.scale;
-    }
-
-    public void setScale(float scale) {
-        this.scale = scale;
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.models);
     }
 }

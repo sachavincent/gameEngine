@@ -1,13 +1,15 @@
-package guis.constraints;
+package guis.constraints.layout;
 
 import guis.GuiComponent;
 import guis.GuiInterface;
+import guis.constraints.GuiConstraints;
+import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.constraints.GuiConstraintsManager.ConstraintsType;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GuiGlobalConstraints extends GuiConstraints {
+public abstract class GuiLayout extends GuiConstraints {
 
     private final Object[] args;
 
@@ -21,7 +23,7 @@ public abstract class GuiGlobalConstraints extends GuiConstraints {
         this.parent = parent;
     }
 
-    public GuiGlobalConstraints(ConstraintsType constraintsType, Constraints constraints, Object... args) {
+    public GuiLayout(ConstraintsType constraintsType, Constraints constraints, Object... args) {
         super(constraintsType, constraints);
 
         this.args = args;

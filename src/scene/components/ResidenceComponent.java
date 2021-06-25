@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.List;
 import people.Person;
 import people.SocialClass;
+import resources.ResourceManager;
 import util.TimeSystem;
 
 public class ResidenceComponent extends Component {
@@ -22,6 +23,24 @@ public class ResidenceComponent extends Component {
 
     public ResidenceComponent(int maxPeopleCapacity) {
         this(maxPeopleCapacity, (p, l) -> {
+        });
+
+        setOnTickElapsedCallback((gameObject, nbTicks) -> {
+            EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
+
+            this.persons.forEach((socialClass, people) -> {
+                if (!peopleList.containsKey(socialClass))
+                    peopleList.put(socialClass, 0);
+
+                peopleList.put(socialClass, peopleList.get(socialClass) + people.size());
+            });
+            peopleList.forEach((socialClass, nb) -> {
+                socialClass.getPersonalResourceInfos().forEach(personalResourceInfos -> {
+                    double depletion = personalResourceInfos.getDepletionRate() * nb;
+                    ResourceManager.removeFromResource(personalResourceInfos.getResource(), depletion);
+                });
+            });
+            return true;
         });
     }
 

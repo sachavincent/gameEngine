@@ -3,7 +3,13 @@ package guis.prefabs;
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
-import guis.constraints.*;
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraints;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
@@ -12,10 +18,7 @@ import java.awt.Color;
 import java.io.File;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
-import scene.gameObjects.DirtRoad;
-import scene.gameObjects.GameObject;
-import scene.gameObjects.Insula;
-import scene.gameObjects.Market;
+import scene.gameObjects.*;
 import textures.FontTexture;
 
 public class GuiItemSelection extends Gui {
@@ -47,13 +50,35 @@ public class GuiItemSelection extends Gui {
 
         setConstraints(menuConstraints);
 
-        setLayout(new PatternGlobalConstraint(5, 3, .02f));
+        setLayout(new PatternLayout(5, 3, .02f));
 
         createDirtRoadButton();
         createInsulaButton();
         createMarketButton();
+        createWheatFieldButton();
+        createWheatFarmButton();
+        Text text = new Text("test", .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton wheatFarmButton = new GuiRectangleButton(this, GameObjectPreviews.WHEAT_FARM, null, null, text);
+        wheatFarmButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("Test selected");
 
+                selectOrUnselect(Test.class, MouseUtils::SelectBuilding);
+            }
+        });
         setDisplayed(false);
+    }
+
+    private void createWheatFarmButton() {
+        Text text = new Text("WheatFarm", .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton wheatFarmButton = new GuiRectangleButton(this, GameObjectPreviews.WHEAT_FARM, null, null, text);
+        wheatFarmButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("WheatFarm selected");
+
+                selectOrUnselect(WheatFarm.class, MouseUtils::SelectBuilding);
+            }
+        });
     }
 
     private void createMarketButton() {
@@ -64,6 +89,18 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Market selected");
 
                 selectOrUnselect(Market.class, MouseUtils::SelectBuilding);
+            }
+        });
+    }
+
+    private void createWheatFieldButton() {
+        Text text = new Text("WheatField", .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton marketButton = new GuiRectangleButton(this, GameObjectPreviews.MARKET, null, null, text);
+        marketButton.setOnMousePress(button -> {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                System.out.println("Market selected");
+
+                selectOrUnselect(WheatField.class, MouseUtils::SelectBuilding);
             }
         });
     }

@@ -21,8 +21,6 @@ public class MasterRenderer extends Renderer {
 
     private final StaticShader shader = new StaticShader();
 
-    private final SkyboxRenderer skyboxRenderer;
-
     private static MasterRenderer instance;
     private static Vector4f       clipPlane;
 
@@ -38,28 +36,15 @@ public class MasterRenderer extends Renderer {
         enableCulling();
 
         createProjectionMatrix();
-        skyboxRenderer = new SkyboxRenderer(projectionMatrix);
     }
 
-    public static void renderScene() {
-        MasterRenderer.getInstance().render();
-    }
-
+    @Override
     public void render() {
         prepare();
-//        shader.start();
-//        shader.loadClipPlane(clipPlane);
-//        shader.loadSkyColor(RED, GREEN, BLUE);
-//        shader.loadLights(LightRenderer.getInstance().getGameObjects());
-//        shader.loadViewMatrix();
-//        shader.stop();
-
-        skyboxRenderer.render();
     }
 
     @Override
     public void prepareRender(GameObject gameObject) {
-
     }
 
     public static Vector4f getClipPlane() {
@@ -80,11 +65,12 @@ public class MasterRenderer extends Renderer {
 
     public void cleanUp() {
         shader.cleanUp();
-        TerrainRenderer.getInstance().getShader().cleanUp();
-        BuildingRenderer.getInstance().getShader().cleanUp();
+        TerrainRenderer.getInstance().cleanUp();
+        BuildingRenderer.getInstance().cleanUp();
+        SkyboxRenderer.getInstance().cleanUp();
     }
 
-    private void prepare() {
+    public void prepare() {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glClearColor(RED, GREEN, BLUE, 1);

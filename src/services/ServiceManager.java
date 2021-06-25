@@ -9,58 +9,52 @@ public class ServiceManager<S extends Service<?>> {
 
     protected Queue<S> serviceQueue = new LinkedList<>();
 
-    private Thread thread;
+    protected volatile boolean serviceRunning;
 
-    public void executeAll() {
-        thread = new Thread(() -> {
-            while (!serviceQueue.isEmpty())
-                exec();
+    public synchronized void execute() {
+        Thread thread = new Thread(() -> {
+            if (this.currentService != null && this.serviceRunning) {
+                this.serviceRunning = false;
+                while (this.currentService.isAlive()) {
+
+                }
+                this.currentService = null;
+            }
+            S service = serviceQueue.poll();
+            if (this.currentService != null)
+                while (this.serviceRunning) {
+                }
+            this.currentService = service;
+            if (service != null) {
+                service.setServiceManager(this);
+                this.serviceRunning = true;
+                service.setPriority(Thread.MAX_PRIORITY);
+                service.start();
+            }
         });
-
         thread.start();
     }
 
-    public void execute() {
-        if (currentService != null && currentService.isSingleton() && currentService.isRunning()) {
-            currentService.setRunning(false);
-            currentService = null;
-        }
-        S service = serviceQueue.poll();
-        if (currentService != null)
-            while (currentService.isRunning()) {
-            }
-        currentService = service;
-        if (service != null) {
-            service.start();
-        }
-//        thread = new Thread(this::exec);
-//        thread.start();
+    public S getCurrentService() {
+        return this.currentService;
     }
 
-    private synchronized void exec() {
-        if (currentService != null && currentService.isSingleton() && currentService.isRunning()) {
-            currentService.setRunning(false);
-            currentService = null;
-        }
+    public synchronized boolean isServiceRunning() {
+        return this.serviceRunning;
+    }
 
-        S service = serviceQueue.poll();
-        if (currentService != null)
-            while (currentService.isRunning()) {
-            }
-        currentService = service;
-        if (service != null) {
-            service.start();
-        }
+    public synchronized void setServiceRunning(boolean serviceRunning) {
+        this.serviceRunning = serviceRunning;
     }
 
     public void addService(S service) {
-        serviceQueue.add(service);
+        this.serviceQueue.add(service);
     }
 
     public void clear() {
-        if (currentService != null)
-            currentService.setRunning(false);
-        currentService = null;
-        serviceQueue.clear();
+        if (this.currentService != null)
+            this.serviceRunning = false;
+        this.currentService = null;
+        this.serviceQueue.clear();
     }
 }

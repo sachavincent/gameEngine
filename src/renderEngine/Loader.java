@@ -52,6 +52,19 @@ public class Loader {
         return new RawModel(vaoID, vboID, indices.length, min, max, true, false);
     }
 
+    public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals,
+            int[] indices, Vector3f min, Vector3f max) {
+        int vaoID = createVAO();
+        int vboID = bindIndicesBuffer(indices);
+
+        storeDataInAttributeList(0, 3, positions);
+        storeDataInAttributeList(1, 2, textureCoords);
+        storeDataInAttributeList(2, 3, normals);
+        unbindVAO();
+
+        return new RawModel(vaoID, vboID, indices.length, min, max, false, false);
+    }
+
     public RawModel loadInstancesToVAO(float[] positions, float[] textureCoords, float[] normals,
             float[] tangents, int[] indices, Vector3f min, Vector3f max) {
         int vaoID = createVAO();
@@ -102,7 +115,7 @@ public class Loader {
         }
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, false, true);
+        return new RawModel(vaoID, vboID, indices.length, true);
     }
 
     public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
@@ -114,7 +127,7 @@ public class Loader {
         storeDataInAttributeList(2, 3, normals);
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, false, false);
+        return new RawModel(vaoID, vboID, indices.length, false);
     }
 
     public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, float[] tangents,
@@ -128,7 +141,7 @@ public class Loader {
         storeDataInAttributeList(3, 3, tangents);
         unbindVAO();
 
-        return new RawModel(vaoID, vboID, indices.length, true, false);
+        return new RawModel(vaoID, vboID, indices.length, false);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions) {
@@ -138,7 +151,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false);
     }
 
     public RawModel loadToVAO(int[] positions, int dimensions) {
@@ -148,7 +161,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false);
     }
 
     public RawModel loadToVAO(float[] positions, int dimensions, int attributeNumber) {
@@ -158,7 +171,7 @@ public class Loader {
 
         unbindVAO();
 
-        return new RawModel(vaoID, 0, positions.length / dimensions, false, false);
+        return new RawModel(vaoID, 0, positions.length / dimensions, false);
     }
 
     public int loadToVAO(float[] positions, float[] textureCoords, float[] colors) {

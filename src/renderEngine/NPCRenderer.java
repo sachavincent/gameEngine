@@ -10,8 +10,9 @@ import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
+import entities.Camera;
 import entities.Camera.Direction;
-import entities.Entity;
+import entities.Model;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class NPCRenderer extends Renderer {
     // TODO: 10000 = max instances
     private static FloatBuffer floatBuffer = MemoryUtil.memAllocFloat(10000 * 16);
 
-    protected final Map<TexturedModel, List<Entity>> entities = new HashMap<>();
+    protected final Map<TexturedModel, List<Model>> renderModels = new HashMap<>();
 
     private static NPCRenderer instance;
 
@@ -55,7 +56,7 @@ public class NPCRenderer extends Renderer {
 
     @Override
     public void render() {
-        for (Entry<TexturedModel, List<Entity>> entry : this.entities.entrySet()) {
+        for (Entry<TexturedModel, List<Model>> entry : this.renderModels.entrySet()) {
             if (entry == null || entry.getKey() == null)
                 continue;
 
@@ -65,9 +66,9 @@ public class NPCRenderer extends Renderer {
             if (rawModel.isInstanced()) {
                 int i = 0;
                 prepareTexturedModel(texturedModel, true);
-                for (Entity entity : entry.getValue()) {
-                    Matrix4f transformationMatrix = Maths.createTransformationMatrix(entity.getPosition(),
-                            entity.getRotX(), entity.getRotY(), entity.getRotZ(), entity.getScale());
+                for (Model model : entry.getValue()) {
+                    Matrix4f transformationMatrix = Maths.createTransformationMatrix(model.getPosition(),
+                            model.getRotation(), model.getScale());
                     try {
                         floatBuffer = transformationMatrix.store(i++ * 16, floatBuffer);
                     } catch (IndexOutOfBoundsException e) {
@@ -84,15 +85,15 @@ public class NPCRenderer extends Renderer {
                 floatBuffer.clear();
             } else {
                 prepareTexturedModel(texturedModel, false);
-                entry.getValue().forEach(entity -> {
-                    prepareInstance(entity);
+                entry.getValue().forEach(model -> {
+                    prepareInstance(model);
                     GL11.glDrawElements(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0);
                 });
             }
             unbindTexturedModel();
         }
 
-        this.entities.clear();
+        this.renderModels.clear();
         this.shader.stop();
         glDisable(GL_BLEND);
     }
@@ -102,10 +103,10 @@ public class NPCRenderer extends Renderer {
         if (!this.shader.isStarted()) {
             glEnable(GL_BLEND);
             this.shader.start();
-            Matrix4f viewMatrix = Maths.createViewMatrix();
+            Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
             ((GameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((GameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((GameObjectShader) this.shader).loadLights(LightRenderer.getInstance().getGameObjects(), viewMatrix);
+            ((GameObjectShader) this.shader).loadLights(false,LightRenderer.getInstance().getGameObjects(), viewMatrix);
             ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
         }
 
@@ -114,10 +115,10 @@ public class NPCRenderer extends Renderer {
             return;
         Vector3f position = positionComponent.getPosition();
 
-        TextureComponent textureComponent = gameObject.getComponent(TextureComponent.class);
-        if (textureComponent == null)
+        SingleModelComponent singleModelComponent = gameObject.getComponent(SingleModelComponent.class);
+        if (singleModelComponent == null)
             return;
-        RawModel rawModel = textureComponent.getTexture().getRawModel();
+        RawModel rawModel = singleModelComponent.getModel().getTexturedModel().getRawModel();
 
         ScaleComponent scaleComponent = gameObject.getComponent(ScaleComponent.class);
         float scale = 1;
@@ -135,7 +136,7 @@ public class NPCRenderer extends Renderer {
         float boundingRadius = scale * rawModel.getMax().sub(rawModel.getMin()).scale(0.5f).length();
 
         if (FrustumCullingFilter.isPosInsideFrustum(position, boundingRadius)) {
-            TexturedModel texture = textureComponent.getTexture();
+            TexturedModel texture = singleModelComponent.getModel().getTexturedModel();
             TransparencyComponent transparencyComponent = gameObject.getComponent(TransparencyComponent.class);
             if (transparencyComponent != null)
                 texture.getModelTexture().setAlpha(transparencyComponent.getAlpha());
@@ -145,10 +146,10 @@ public class NPCRenderer extends Renderer {
 
 
             if (this.displayBoundingBoxes && gameObject.hasComponent(BoundingBoxComponent.class))
-                handleTexture(this.entities, position, direction, scale,
-                        gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox());
+                handleTexture(this.renderModels, new Model(position, direction, scale,
+                        gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox()));
             else
-                handleTexture(this.entities, position, direction, scale, texture);
+                handleTexture(this.renderModels, new Model(position, direction, scale, texture));
         }
     }
 
@@ -172,7 +173,8 @@ public class NPCRenderer extends Renderer {
             if (texture.isTransparent())
                 MasterRenderer.disableCulling();
 
-            ((GameObjectShader) this.shader).loadFakeLightingVariable(texture.doesUseFakeLighting());
+            ((GameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
+            ((GameObjectShader) this.shader).loadUseNormalMap(false);
             ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
             ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
             ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());
@@ -199,14 +201,14 @@ public class NPCRenderer extends Renderer {
         GL30.glBindVertexArray(0);
     }
 
-    private void prepareInstance(Entity entity) {
-        Matrix4f transformationMatrix = Maths.createTransformationMatrix(entity.getPosition(),
-                entity.getRotX(), entity.getRotY(), entity.getRotZ(), entity.getScale());
+    private void prepareInstance(Model model) {
+        Matrix4f transformationMatrix = Maths.createTransformationMatrix(model.getPosition(),
+                model.getRotation(), model.getScale());
 
         if (transformationMatrix == null)
             return;
 
         ((GameObjectShader) this.shader).loadTransformationMatrix(transformationMatrix);
-        ((GameObjectShader) this.shader).loadOffset(entity.getTextureXOffset(), entity.getTextureYOffset());
+        ((GameObjectShader) this.shader).loadOffset(model.getTextureXOffset(), model.getTextureYOffset());
     }
 }

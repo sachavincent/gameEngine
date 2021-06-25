@@ -1,6 +1,6 @@
 package guis;
 
-import guis.constraints.GuiGlobalConstraints;
+import guis.constraints.layout.GuiLayout;
 import guis.transitions.Transition;
 import inputs.callbacks.CloseCallback;
 import inputs.callbacks.OpenCallback;
@@ -40,7 +40,7 @@ public interface GuiInterface {
 
     void updateTexturePosition();
 
-    void setLayout(GuiGlobalConstraints guiConstraints);
+    void setLayout(GuiLayout guiConstraints);
 
     GuiTexture getDebugOutline();
 

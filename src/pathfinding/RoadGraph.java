@@ -4,6 +4,8 @@ import entities.Camera.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 import scene.Scene;
+import scene.callbacks.FilterGameObjectCallback;
+import scene.components.RoadComponent;
 import terrains.TerrainPosition;
 
 public class RoadGraph {
@@ -11,9 +13,34 @@ public class RoadGraph {
     private       Set<NodeRoad>           nodes;
     private final TreeSet<NodeConnection> nodeConnections;
 
+    public static final FilterGameObjectCallback FILTER = gameObject -> gameObject.hasComponent(RoadComponent.class);
+
     public RoadGraph() {
         this.nodes = new HashSet<>();
-        this.nodeConnections = new TreeSet<>();
+        this.nodeConnections = new TreeSet<>((nc1, nc2) -> {
+                    int gScore = nc1.getgScore();
+        int othergScore = nc2.getgScore();
+        int fScore = gScore + nc2.getEnd().gethScore();
+        int fScoreOther = othergScore + nc2.getEnd().gethScore();
+
+        int compare = Integer.compare(fScore, fScoreOther);
+        if (compare != 0)
+            return compare;
+
+        compare = Integer.compare(gScore, othergScore);
+        if (compare != 0)
+            return compare;
+
+        compare = nc1.getEnd().getPosition().compareTo(nc2.getEnd().getPosition());
+        if (compare != 0)
+            return compare;
+
+        compare = nc1.getStart().getPosition().compareTo(nc2.getStart().getPosition());
+        if (compare != 0)
+            return compare;
+
+        return Integer.compare(nc1.getRoads().hashCode(), nc2.getRoads().hashCode());
+        });
     }
 
     public RoadGraph(Set<NodeRoad> nodes, TreeSet<NodeConnection> nodeConnections) {
@@ -43,9 +70,9 @@ public class RoadGraph {
             TerrainPosition nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
 //            Direction[] directionsNextRoad = terrain.getRoadDirections(nextRoadPosition);
-            Direction[] directionsNextRoadOnlyRoads = scene.getRoadConnections(nextRoadPosition);
+            Direction[] directionsNextRoadOnlyRoads = scene.getConnectedDirections(nextRoadPosition, FILTER);
 
-            Direction oppositeDirection = direction.getOppositeDirection();
+            Direction oppositeDirection = direction.toOppositeDirection();
 
             if (directionsNextRoadOnlyRoads.length == 0) // Impossible ?
                 return;
@@ -120,7 +147,7 @@ public class RoadGraph {
      * Add road to position dynamically
      */
     public void addRoad(TerrainPosition position) {
-        Direction[] connectionsToRoadItem = Scene.getInstance().getRoadConnections(position);
+        Direction[] connectionsToRoadItem = Scene.getInstance().getConnectedDirections(position, FILTER);
         if (connectionsToRoadItem.length >= 3) { // New road is a node
             searchForNextNode(position, connectionsToRoadItem, null);
         } else {
@@ -145,7 +172,7 @@ public class RoadGraph {
             } /*else {*/
             for (Direction direction : connectionsToRoadItem) {
                 TerrainPosition newPos = position.add(Direction.toRelativeDistance(direction));
-                Direction[] directions = Scene.getInstance().getRoadConnections(newPos);
+                Direction[] directions = Scene.getInstance().getConnectedDirections(newPos, FILTER);
                 if (directions.length == 3) { // New node created by this road
                     searchForNextNode(newPos, directions, null);
                 }

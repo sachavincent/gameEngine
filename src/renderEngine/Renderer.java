@@ -1,8 +1,7 @@
 package renderEngine;
 
 
-import entities.Camera.Direction;
-import entities.Entity;
+import entities.Model;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.Set;
 import models.TexturedModel;
 import renderEngine.shaders.ShaderProgram;
 import scene.gameObjects.GameObject;
-import util.math.Vector3f;
 
 public abstract class Renderer {
 
@@ -60,18 +58,26 @@ public abstract class Renderer {
         this.displayBoundingBoxes = !this.displayBoundingBoxes;
     }
 
-    protected void handleTexture(Map<TexturedModel, List<Entity>> entities, Vector3f pos, Direction dir,
-            float scale, TexturedModel texture) {
-        if (texture == null || texture.getModelTexture() == null || texture.getRawModel() == null)
+    protected void handleTexture(Map<TexturedModel, List<Model>> models, Model model) {
+        if (model == null || model.getTexturedModel() == null || model.getTexturedModel().getModelTexture() == null ||
+                model.getTexturedModel().getRawModel() == null)
             return;
 
-        if (!entities.containsKey(texture))
-            entities.put(texture, new ArrayList<>());
+        if (!models.containsKey(model.getTexturedModel()))
+            models.put(model.getTexturedModel(), new ArrayList<>());
 
-        entities.get(texture).add(new entities.Entity(texture, pos, 0, dir.getDegree(), 0, scale, 3));
+        models.get(model.getTexturedModel()).add(model);
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    protected void cleanUp() {
+        this.shader.cleanUp();
+    }
+
+    public void doZPass(Set<GameObject> gameObjects) {
     }
 }

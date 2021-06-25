@@ -6,7 +6,7 @@ import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.basics.GuiText;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RatioedPatternGlobalConstraint;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.buttons.GuiTriangleButton;
 import java.awt.Color;
 import java.util.List;
@@ -32,7 +32,7 @@ public class GuiMultiOption<T> extends GuiPreset {
         this.options = options;
         this.selectedOption = defaultOption;
 
-        setLayout(new RatioedPatternGlobalConstraint(3, 1, 0, 0, 7f, 30f, 86f, 100f, 7f, 30f));
+        setLayout(new RatioedPatternLayout(3, 1, 0, 0, 7f, 30f, 86f, 100f, 7f, 30f));
 
         Background<Color> arrowBackground = new Background<>(arrowsColor);
         this.previous = new GuiTriangleButton(this, arrowBackground, null, 270);

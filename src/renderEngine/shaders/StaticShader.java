@@ -1,12 +1,12 @@
 package renderEngine.shaders;
 
+import entities.Camera;
 import java.util.Iterator;
 import java.util.Set;
 import scene.components.AttenuationComponent;
 import scene.components.ColorComponent;
-import scene.gameObjects.GameObject;
 import scene.components.PositionComponent;
-import util.math.Maths;
+import scene.gameObjects.GameObject;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -121,7 +121,7 @@ public class StaticShader extends ShaderProgram {
     }
 
     public void loadViewMatrix() {
-        Matrix4f matrix = Maths.createViewMatrix();
+        Matrix4f matrix = Camera.getInstance().getViewMatrix();
         super.loadMatrix(location_viewMatrix, matrix);
     }
 }

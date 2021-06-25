@@ -107,8 +107,9 @@ public class PathComponent extends Component {
             if (endBuilding == null)
                 return;
 
-            if (!this.atEndBuilding) {
-                RoadConnectionsComponent roadCnsCmpnt = endBuilding.getComponent(RoadConnectionsComponent.class);
+            if (!this.atEndBuilding && endBuilding.hasComponent(ConnectionsComponent.class) &&
+                    endBuilding.getComponent(ConnectionsComponent.class).getConnectionTypeClass() == Road.class) {
+                ConnectionsComponent<Road> roadCnsCmpnt = endBuilding.getComponent(ConnectionsComponent.class);
                 if (roadCnsCmpnt == null)
                     return;
 
@@ -121,7 +122,7 @@ public class PathComponent extends Component {
                     TerrainPosition d = Direction.toRelativeDistance(direction);
                     int id = positions[x + d.getX()][z + d.getZ()];
                     if (id == endBuilding.getId()) {
-                        if (roadCnsCmpnt.getAccessPoints()[direction.getOppositeDirection().ordinal()]) {
+                        if (roadCnsCmpnt.getAccessPoints()[direction.toOppositeDirection().ordinal()]) {
                             // Building can be entered
 //                        System.out.println("found endbuilding");
                             toBuildingDirection = direction;
@@ -158,7 +159,7 @@ public class PathComponent extends Component {
             Direction newDirection = Direction.getDirectionFromVector(new Vector2f(vector3f.x, vector3f.z));
             if (this.direction == null)
                 this.direction = newDirection;
-            else if (newDirection == this.direction.getOppositeDirection()) {
+            else if (newDirection == this.direction.toOppositeDirection()) {
                 // Now on next road
                 this.direction = null;
             } else {

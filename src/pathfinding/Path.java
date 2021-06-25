@@ -237,6 +237,8 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
     public boolean isLegal() {
         Road start;
         Road end = null;
+        if (getEnd() == null)
+            return false;
         for (NodeConnection nodeConnection : this) {
             start = nodeConnection.getStart();
             if (end != null && !start.equals(end))

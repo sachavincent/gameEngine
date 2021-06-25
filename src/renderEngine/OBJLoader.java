@@ -1,6 +1,7 @@
 package renderEngine;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,36 +22,42 @@ public class OBJLoader {
         float[] vertices = new float[]{-1, 0, 1, 1, 0, 1, -1, 0, -1, 1, 0, -1};
         float[] textureCoords = new float[]{0, 0, 1, 0, 0, 1, 1, 1};
         float[] normals = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
-        float[] tangents = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
+//        float[] tangents = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
         int[] indices = new int[]{1, 2, 0, 1, 3, 2};
         Vector3f min = new Vector3f(-1, 0, -1);
         Vector3f max = new Vector3f(1, 0, 1);
 
-        return Loader.getInstance().loadToVAO(vertices, textureCoords, normals, tangents, indices, min, max);
+        return Loader.getInstance().loadToVAO(vertices, textureCoords, normals, indices, min, max);
     }
 
-    public static OBJGameObject loadOBJGameObject(String name, boolean instanced) {
+    public static OBJGameObject loadOBJGameObject(String objName, boolean instanced) {
+        return loadOBJGameObject(objName, objName, instanced);
+    }
+
+    public static OBJGameObject loadOBJGameObject(String objName, String pngName, boolean instanced) {
         OBJGameObject objGameObject = new OBJGameObject();
 
         try (BufferedReader reader = new BufferedReader(
-                new FileReader("res/" + name.toLowerCase() + ".obj"))) {
+                new FileReader("res/" + objName.toLowerCase() + ".obj"))) {
             String line;
 
             List<Vector3f> vertices = new ArrayList<>();
 
             RawModel rawModel = handleIndicesTexturesNormalsVertex(reader, "BoundingBox", instanced);
 
-            ModelTexture modelTexture = new ModelTexture(name.toLowerCase() + ".png", false);
-            modelTexture.setNormalMap(name + "Normal.png");
+            ModelTexture modelTexture = new ModelTexture(pngName.toLowerCase() + ".png", true);
+            if (new File("res/" + pngName + "Normal.png").exists())
+                modelTexture.setNormalMap(pngName + "Normal.png");
             objGameObject.setTexture(new TexturedModel(rawModel, modelTexture));
             objGameObject.setPreviewTexture(objGameObject.getTexture());
 
             line = handleVertices(reader, vertices);
-            final int[] indicesArray = handleIndicesVertex(reader, line);
+            if (!vertices.isEmpty()) {
+                final int[] indicesArray = handleIndicesVertex(reader, line);
+                BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, objName.toLowerCase());
 
-            BoundingBox boundingBox = new BoundingBox(vertices, indicesArray, name.toLowerCase());
-
-            objGameObject.setBoundingBox(boundingBox);
+                objGameObject.setBoundingBox(boundingBox);
+            }
         } catch (IOException e) {
             System.err.println("Oops");
             e.printStackTrace();

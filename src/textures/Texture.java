@@ -73,8 +73,9 @@ public abstract class Texture {
 
     protected int instantiateWithFile(String fileName, boolean normalMap) {
         File file = new File("res/" + fileName);
-        if (!file.exists())
+        if (!file.exists()) {
             fileName = "white.png";
+        }
         int textureID = 0;
         IntBuffer widthBuffer = BufferUtils.createIntBuffer(1);
         IntBuffer heightBuffer = BufferUtils.createIntBuffer(1);

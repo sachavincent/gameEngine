@@ -5,10 +5,10 @@ import static guis.prefabs.GuiHouseDetails.GuiHouseDetails.DEFAULT_BACKGROUND;
 import guis.basics.GuiRectangle;
 import guis.constraints.CenterConstraint;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RatioedPatternGlobalConstraint;
 import guis.constraints.RelativeConstraint;
 import guis.constraints.Side;
 import guis.constraints.StickyConstraint;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
 import org.lwjgl.glfw.GLFW;
@@ -32,7 +32,7 @@ public class CategoriesTab extends GuiRectangle {
 
     public CategoriesTab(GuiHouseDetails gui) {
         super(gui, DEFAULT_BACKGROUND, CONSTRAINTS);
-        setLayout(new RatioedPatternGlobalConstraint(1, 3, 0, 0, -1f, 33.33f, -1f, 33.33f, -1f, 33.33f));
+        setLayout(new RatioedPatternLayout(1, 3, 0, 0, -1f, 33.33f, -1f, 33.33f, -1f, 33.33f));
 
         addFoodButton();
         addDrinksButton();

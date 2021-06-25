@@ -5,7 +5,14 @@ import static guis.prefabs.GuiMainMenu.GuiDisplaySettings.LIGHT_GRAY;
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
-import guis.constraints.*;
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.StickyConstraint;
+import guis.constraints.layout.PatternLayout;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiMultiOption;
 import guis.presets.buttons.GuiRectangleButton;
@@ -39,7 +46,7 @@ public class GuiControlsSettings extends GuiTab {
                 .setyConstraint(new RelativeConstraint(0, parent.content))
                 .create());
 
-        setLayout(new PatternGlobalConstraint(1, Key.KEYS.size() + 1, 0, 0.02f));
+        setLayout(new PatternLayout(1, Key.KEYS.size() + 1, 0, 0.02f));
 
         createLayoutOption();
         createKeybindingsOption();
@@ -77,7 +84,7 @@ public class GuiControlsSettings extends GuiTab {
             Text assignedKeyText = new Text(keyInput.formatKeyInput(), .8f, DEFAULT_FONT, Color.BLACK);
 
             GuiRectangle keyArea = new GuiRectangle(this, Background.NO_BACKGROUND);
-            keyArea.setLayout(new RatioedPatternGlobalConstraint(3, 1, 0, 0, 30f, 100f, 30f, 100f, 40f, 100f));
+            keyArea.setLayout(new RatioedPatternLayout(3, 1, 0, 0, 30f, 100f, 30f, 100f, 40f, 100f));
             new GuiText(keyArea, new Text(key.getName(), .8f, DEFAULT_FONT, Color.BLACK));
 
             GuiText assignedKeyGuiText = new GuiText(keyArea, assignedKeyText);

@@ -5,9 +5,9 @@ import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
 import guis.constraints.CenterConstraint;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.PatternGlobalConstraint;
-import guis.constraints.RatioedPatternGlobalConstraint;
 import guis.constraints.RelativeConstraint;
+import guis.constraints.layout.PatternLayout;
+import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.ButtonGroup;
 import guis.presets.buttons.GuiRectangleButton;
@@ -32,13 +32,13 @@ public class GuiLanguageSettings extends GuiTab {
 
         int nbSupportedLanguages = Language.getNbSupportedLanguages();
 
-        setLayout(new RatioedPatternGlobalConstraint(1, 2, .2f, 0, 100f, 20f, 100f, 80f));
+        setLayout(new RatioedPatternLayout(1, 2, .2f, 0, 100f, 20f, 100f, 80f));
 
         GuiRectangle titleArea = new GuiRectangle(this, Background.NO_BACKGROUND);
         GuiRectangle buttonArea = new GuiRectangle(this, Background.NO_BACKGROUND);
 
         buttonArea.setLayout(
-                new PatternGlobalConstraint(Math.min(nbSupportedLanguages, 2), 8, .03f));
+                new PatternLayout(Math.min(nbSupportedLanguages, 2), 8, .03f));
 
         Text text = new Text(Words.LANGUAGE, .8f, DEFAULT_FONT, Color.BLACK);
         GuiText title = new GuiText(titleArea, text);

@@ -57,7 +57,7 @@ public abstract class Command {
         if (this.parameters.values().stream().anyMatch(String::isEmpty))
             return -1;
 
-        return new Service<Integer>(true, integer -> {
+        return new Service<Integer>(integer -> {
             System.out.println("Done: " + integer);
         }) {
             @Override

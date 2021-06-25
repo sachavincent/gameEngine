@@ -8,14 +8,16 @@ import java.util.Set;
 import scene.Scene;
 import scene.components.requirements.RequirementComponent;
 import scene.components.requirements.ResourceRequirement;
+import util.math.Maths;
 
 public class ResourceManager {
 
     private static final Map<Resource, Stock> RESOURCES = new EnumMap<>(Resource.class);
 
     static {
-        RESOURCES.put(Resource.FISH, new Stock(Integer.MAX_VALUE));
-        RESOURCES.put(Resource.BREAD, new Stock(Integer.MAX_VALUE));
+        RESOURCES.put(Resource.WHEAT, new Stock(200));
+        RESOURCES.put(Resource.FISH, new Stock(200));
+        RESOURCES.put(Resource.BREAD, new Stock(200));
         RESOURCES.put(Resource.FRUIT, new Stock(Integer.MAX_VALUE));
         RESOURCES.put(Resource.VEGETABLE, new Stock(Integer.MAX_VALUE));
         RESOURCES.put(Resource.MEAT, new Stock(Integer.MAX_VALUE));
@@ -25,10 +27,18 @@ public class ResourceManager {
         addToResource(resource, 1);
     }
 
-    public static void addToResource(Resource resource, double amount) {
-        if (amount > 0) {
-            RESOURCES.get(resource).add(amount);
+    /**
+     * Adds given resource to the Stock
+     *
+     * @param resource resource to be added
+     * @param quantity quantity of the resource, rounded down to 2 decimals
+     */
+    public static void addToResource(Resource resource, double quantity) {
+        quantity = Maths.roundDown(quantity, 2);
+        if (quantity > 0) {
+            RESOURCES.get(resource).add(quantity);
 
+//            System.out.println("Added " + quantity + " to " + resource.name);
             updateRequirements();
         }
     }
@@ -57,7 +67,7 @@ public class ResourceManager {
                         requirementComponent.clearRequirement(resourceRequirement);
 
                     for (ResourceRequirement resourceRequirement : resourceRequirements) {
-                        if (RESOURCES.get(resourceRequirement.getKey()).amount > resourceRequirement.getValue())
+                        if (resourceRequirement.isRequirementMet(RESOURCES))
                             requirementComponent.meetRequirement(resourceRequirement);
                     }
                 });
@@ -69,6 +79,7 @@ public class ResourceManager {
 
     public enum Resource {
         FISH(FishResource.TEXTURE, FishResource.NAME, ResourceType.FOOD),
+        WHEAT(WheatResource.TEXTURE, WheatResource.NAME, ResourceType.INGREDIENT),
         BREAD(BreadResource.TEXTURE, BreadResource.NAME, ResourceType.FOOD),
         FRUIT(FruitResource.TEXTURE, FruitResource.NAME, ResourceType.FOOD),
         VEGETABLE(VegetableResource.TEXTURE, VegetableResource.NAME, ResourceType.FOOD),
@@ -96,6 +107,12 @@ public class ResourceManager {
             return this.texture;
         }
 
+    }
+
+    public static class WheatResource {
+
+        final static String             NAME    = "Wheat";//TODO: Name through Word class
+        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
     }
 
     public static class FishResource {

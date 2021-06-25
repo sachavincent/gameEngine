@@ -8,7 +8,7 @@ out vec2 pass_textureCoords;
 out vec3 surfaceNormal;
 out vec3 toLightVector[10];
 out vec3 toCameraVector;
-
+out vec4 worldPosition;
 out float visibility;
 
 uniform mat4 transformationMatrix;
@@ -21,9 +21,8 @@ uniform vec4 plane;
 const float density = 0;
 const float gradient = 5.0;
 
-void main(void){
-
-    vec4 worldPosition = transformationMatrix * vec4(position, 1.0);
+void main(void) {
+    worldPosition = transformationMatrix * vec4(position, 1.0);
 
     gl_ClipDistance[0] = dot(worldPosition, plane);
 

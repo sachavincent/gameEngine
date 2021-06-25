@@ -5,8 +5,8 @@ import fontMeshCreator.Text;
 import guis.Gui;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
-import guis.constraints.PatternGlobalConstraint;
 import guis.constraints.RelativeConstraint;
+import guis.constraints.layout.PatternLayout;
 import guis.prefabs.GuiMainMenu.GuiMainMenu;
 import guis.prefabs.GuiMainMenu.GuiSettingsMenu;
 import guis.presets.Background;
@@ -36,7 +36,7 @@ public class GuiEscapeMenu extends Gui {
                 .setHeightConstraint(DEFAULT_DIMENSIONS[1])
                 .create());
 
-        setLayout(new PatternGlobalConstraint(1, 5, 0.15f, 0.1f));
+        setLayout(new PatternLayout(1, 5, 0.15f, 0.1f));
 
         addResumeButton();
         addSaveAndQuitButton();

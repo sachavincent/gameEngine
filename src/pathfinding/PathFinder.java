@@ -1,5 +1,6 @@
 package pathfinding;
 
+import static pathfinding.RoadGraph.FILTER;
 import static util.math.Maths.manhattanDistance;
 
 import entities.Camera.Direction;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 import scene.Scene;
 import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
+import services.ServiceManager;
 import terrains.TerrainPosition;
 import util.math.Maths;
 import util.math.Vector2f;
@@ -17,6 +19,8 @@ public class PathFinder {
 
     private final static Scene     scene = Scene.getInstance();
     private final        RoadGraph roadGraph;
+
+    private ServiceManager<?> serviceManager;
 
     private NodeRoad startNode;
     private NodeRoad endNode;
@@ -31,10 +35,15 @@ public class PathFinder {
 
     private boolean ambigueousStart, ambigueousEnd;
 
-    private Path path = new Path();
+    private Set<NodeRoad> blacklist = new HashSet<>();
+    private Path          path      = new Path();
 
     public PathFinder(RoadGraph roadGraph) {
         this.roadGraph = roadGraph.copy();
+    }
+
+    public void addBlacklistedRoad(NodeRoad road) {
+        this.blacklist.add(road);
     }
 
     /**
@@ -103,7 +112,7 @@ public class PathFinder {
 
         if (this.startNode != null) {
             this.startNode.sethScore(manhattanDistance(this.startNode.position, endRoad.position));
-            int dirs = scene.getRoadConnections(this.startRoad.position).length;
+            int dirs = scene.getConnectedDirections(this.startRoad.position, FILTER).length;
             if (dirs > 1 && this.startNode.gethScore() > this.startRoad.gethScore() &&
                     this.startNode.equals(this.endNode)) {
                 this.startNode = null;
@@ -140,15 +149,19 @@ public class PathFinder {
      * @param bestPath if true, the path with the lowest cost is returned
      * @return path or empty path if none found
      */
-    public static Path findPath(GameObject startGameObject, Class<? extends GameObject> gameObjectClass,
+    public Path findPath(GameObject startGameObject, Class<? extends GameObject> gameObjectClass,
             int maxPathLength, boolean bestPath) {
         Set<GameObject> possibleGameObjects = new TreeSet<>((o1, o2) -> manhattanDistance(
                 o1.getComponent(PositionComponent.class).getPosition().toTerrainPosition(),
                 o2.getComponent(PositionComponent.class).getPosition().toTerrainPosition()));
-        possibleGameObjects.addAll(scene.getGameObjectsOfType(gameObjectClass));
+        possibleGameObjects.addAll(scene.getGameObjectsOfType(gameObjectClass, false));
 
         Path bestPathFound = new Path();
         for (GameObject possibleGameObject : possibleGameObjects) {
+            if (this.serviceManager != null && !this.serviceManager.isServiceRunning()) {
+                System.err.println("Cancelling n°" + this.serviceManager.getCurrentService().getId());
+                return bestPathFound;
+            }
             Path path = findBestPath(startGameObject, possibleGameObject, maxPathLength);
             if (!path.isEmpty() && !bestPath)
                 return path;
@@ -160,20 +173,22 @@ public class PathFinder {
         return bestPathFound;
     }
 
-    public static Path findBestPath(GameObject fromGameObject, GameObject toGameObject, int maxPathLength) {
-        if (maxPathLength <= 0)
-            maxPathLength = Integer.MAX_VALUE;
+    public Path findBestPath(GameObject fromGameObject, GameObject toGameObject, int pathLength) {
+        if (pathLength <= 0)
+            pathLength = Integer.MAX_VALUE;
 
+        final int maxPathLength = pathLength;
         if (toGameObject == null || fromGameObject == null)
             return new Path();
 
         final PathFinder pathFinder = new PathFinder(scene.getRoadGraph());
-
-        List<TerrainPosition> fromRoads = scene.getRoadsConnectedToGameObject(fromGameObject)
+        pathFinder.setServiceManager(this.serviceManager);
+        this.blacklist.forEach(pathFinder::addBlacklistedRoad);
+        List<TerrainPosition> fromRoads = scene.getNeighbors(fromGameObject, FILTER)
                 .stream()
                 .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
                 .collect(Collectors.toList());
-        List<TerrainPosition> toRoads = scene.getRoadsConnectedToGameObject(toGameObject)
+        List<TerrainPosition> toRoads = scene.getNeighbors(toGameObject, FILTER)
                 .stream()
                 .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
                 .collect(Collectors.toList());
@@ -182,6 +197,10 @@ public class PathFinder {
         boolean optimization = NormalRoad.SCORE == 1 && NodeRoad.SCORE == 1;
         for (TerrainPosition fromRoadPos : fromRoads) {
             for (TerrainPosition destRoadPos : toRoads) {
+                if (this.serviceManager != null && !this.serviceManager.isServiceRunning()) {
+                    System.err.println("Cancelling n°" + this.serviceManager.getCurrentService().getId());
+                    return resPath;
+                }
                 int minDistancePossible = manhattanDistance(fromRoadPos, destRoadPos);
                 if (optimization && minDistancePossible > resPath.getCost()) // No need to check for path
                     continue;
@@ -201,18 +220,19 @@ public class PathFinder {
     }
 
     public Road getRoad(TerrainPosition roadPosition) {
-        Direction[] roadDirections = scene.getRoadConnections(roadPosition);
+        Direction[] roadDirections = scene.getConnectedDirections(roadPosition, FILTER);
 
         return roadDirections.length > 2 ? new NodeRoad(roadPosition) : new NormalRoad(roadPosition);
     }
 
     /**
-     * @param maxPathLength 0 = infinite
+     * @param pathLength 0 = infinite
      */
-    public Path findBestPath(TerrainPosition from, TerrainPosition to, int maxPathLength) {
-        if (maxPathLength <= 0)
-            maxPathLength = Integer.MAX_VALUE;
+    public Path findBestPath(TerrainPosition from, TerrainPosition to, int pathLength) {
+        if (pathLength <= 0)
+            pathLength = Integer.MAX_VALUE;
 
+        final int maxPathLength = pathLength;
 
         // Makes sure everything is default
         assert this.path.isEmpty();
@@ -301,7 +321,8 @@ public class PathFinder {
                 pathFromStartNode2 = pathFromStartNode2.addAtStart(nodeConnectionFromStart2);
             } else {
                 PathFinder pathFinder = new PathFinder(roadGraph);
-
+                pathFinder.setServiceManager(this.serviceManager);
+                this.blacklist.forEach(pathFinder::addBlacklistedRoad);
                 int newMaxLength1 = maxPathLength - nodeConnectionFromStart1.getgScore();
                 int newMaxLength2 = maxPathLength - nodeConnectionFromStart2.getgScore();
 
@@ -386,7 +407,8 @@ public class PathFinder {
                 pathFromEndNode2.add(nodeConnectionFromEnd2.invert());
             } else {
                 PathFinder pathFinder = new PathFinder(roadGraph);
-
+                pathFinder.setServiceManager(this.serviceManager);
+                this.blacklist.forEach(pathFinder::addBlacklistedRoad);
                 int newMaxLength1 = maxPathLength - nodeConnectionFromEnd1.getgScore();
                 int newMaxLength2 = maxPathLength - nodeConnectionFromEnd2.getgScore();
 
@@ -452,10 +474,6 @@ public class PathFinder {
 
             return cost1 < cost2 ? pathFromEndNode1 : pathFromEndNode2; // min global cost
         }
-//
-//        if (this.fromStart[0] != null || this.fromEnd[0] != null)
-//            commonPath = roadGraph.getRoutes().stream()
-//                    .anyMatch(routeRoad -> routeRoad.getRoute().contains(start) && routeRoad.getRoute().contains(end));
         if ((this.startNode == null && this.endNode == null) || commonPath) {
             // Both start and end belong to the same route, no need to check for nodes
             // That or there are no nodes connected to either
@@ -519,7 +537,7 @@ public class PathFinder {
                     this.path.add(this.fromEnd[0].invert());
             } else if (path.size() == 1 && fromStart[0] != null && this.fromEnd[0] != null) {
                 if (this.fromStart[0].getEnd().equals(this.fromEnd[0].getEnd())) { // Specifically for case 12
-                    this.path.add(this.fromEnd[0].invert()); // enough for now //todo check with rest of tests
+                    this.path.add(this.fromEnd[0].invert()); // enough for now
                 }
             }
 
@@ -531,42 +549,88 @@ public class PathFinder {
             return this.path;
         }
 
-        LinkedList<SortedSet<NodeConnection>> listPossibleNodeConnections = new LinkedList<>();
         Set<NodeRoad> usedNodes = new HashSet<>();
 
         NodeRoad node = this.startNode;
         while (usedNodes.size() < this.roadGraph.getNodes().size()) {
+            if (this.blacklist.contains(node))
+                continue;
             usedNodes.add(node);
 
-            Set<NodeConnection> nodeConnections = this.roadGraph.getNodeConnections(node);
-            listPossibleNodeConnections.add(new TreeSet<>(nodeConnections));
+            SortedSet<NodeConnection> nodeConnections = new TreeSet<>(this.roadGraph.getNodeConnections(node));
+            NodeConnection cheapestNodeConnection = nodeConnections.stream()
+                    .filter(nodeConnection -> nodeConnection.getEnd().gethScore() == 0).findFirst().orElse(null);
+            if (cheapestNodeConnection == null && !nodeConnections.isEmpty()) {
+                final int minScore = nodeConnections.stream().
+                        filter(nC -> {
+                            if (nC.getEnd() instanceof NodeRoad && this.blacklist.contains((NodeRoad) nC.getEnd()))
+                                return false;
+                            if (nC.getEnd() instanceof NodeRoad && usedNodes.contains((NodeRoad) nC.getEnd()))
+                                return false;
+                            return !nC.getStart().getPosition().equals(nC.getEnd().getPosition());
+                        }).mapToInt(nC -> nC.getgScore() + nC.getEnd().gethScore()).min().orElse(-1);
+                List<NodeConnection> possibleNodeConnections = nodeConnections.stream().filter(nC -> {
+                    if (nC.getEnd() instanceof NodeRoad && this.blacklist.contains((NodeRoad) nC.getEnd()))
+                        return false;
+                    if (nC.getStart().getPosition().equals(nC.getEnd().getPosition()))
+                        return false;
+                    if (nC.getEnd() instanceof NodeRoad && usedNodes.contains((NodeRoad) nC.getEnd()))
+                        return false;
 
-            // Get cheapest road
-            SortedSet<NodeConnection> cheapestNodeConnections = new TreeSet<>();
-            listPossibleNodeConnections.forEach(lNodeConnections -> { // Second check if end is not found
-                lNodeConnections.stream()
-                        .filter(nodeConnection -> nodeConnection.getEnd() instanceof NodeRoad)
-                        .filter(nodeConnection -> !usedNodes.contains((NodeRoad) nodeConnection.getEnd())).findFirst()
-                        .ifPresent(cheapestNodeConnections::add);
-            });
+                    return nC.getgScore() + nC.getEnd().gethScore() == minScore;
+                }).collect(Collectors.toList());
+                if (possibleNodeConnections.isEmpty())
+                    return new Path();
 
-            NodeConnection cheapestNodeConnection = cheapestNodeConnections.stream().findFirst().orElse(null);
+                if (possibleNodeConnections.size() == 1)
+                    cheapestNodeConnection = possibleNodeConnections.get(0);
+                else {
+                    TerrainPosition destination = to;
+                    if (this.fromEnd[0] != null) {
+                        destination = this.fromEnd[0].getEnd().getPosition();
+                    }
+
+                    Path bestPath = new Path();
+                    int bestCost = bestPath.getCost();
+                    boolean optimization = NormalRoad.SCORE == 1 && NodeRoad.SCORE == 1;
+//                    System.out.println("Preparing to recurse in " + this.serviceManager.getCurrentService().getId() +
+//                            " with nCs=" + possibleNodeConnections);
+                    for (NodeConnection nC : possibleNodeConnections) {
+                        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+                        if (this.serviceManager != null)
+                            pathFinder.setServiceManager(this.serviceManager);
+                        this.blacklist.forEach(pathFinder::addBlacklistedRoad);
+                        usedNodes.forEach(pathFinder::addBlacklistedRoad);
+//                        System.out.println("Recursing in " + this.serviceManager.getCurrentService().getId());
+                        Path path = pathFinder
+                                .findBestPath(nC.getEnd().getPosition(), destination,
+                                        maxPathLength - this.path.getCost());
+
+                        int cost = path.getCost();
+                        if (cost < bestCost) {
+                            bestCost = cost;
+
+                            if (this.fromEnd[0] != null)
+                                path.add(this.fromEnd[0].invert());
+                            bestPath = path.addAtStart(nC);
+//                            break;
+                        }
+                        if (optimization && cost == manhattanDistance(nC.getEnd().getPosition(), destination))
+                            break;
+                    }
+
+                    if (!bestPath.isEmpty()) {
+                        this.path.addAll(bestPath);
+                        if (this.path.isLegal() && this.path.getStart().getPosition().equals(from) &&
+                                this.path.getEnd().getPosition().equals(to))
+                            if (maxPathLength < this.path.getCost())
+                                this.path.clear();
+                        return this.path;
+                    }
+                }
+            }
             if (cheapestNodeConnection == null)
                 return new Path();
-
-            Set<SortedSet<NodeConnection>> removedNodeConnectionsList = listPossibleNodeConnections.stream()
-                    .filter(lNodeConections -> {
-                        NodeConnection nodeConnection = lNodeConections.stream().findFirst().orElse(null);
-                        if (nodeConnection != null) {
-                            return (nodeConnection.getEnd().gethScore() + nodeConnection.getgScore()) <
-                                    (cheapestNodeConnection.getgScore() + cheapestNodeConnection.getEnd().gethScore());
-                        }
-                        return false;
-                    }).collect(Collectors.toSet());
-            removedNodeConnectionsList.forEach(nodeConnectionsList -> this.path.removeAll(nodeConnectionsList));
-            listPossibleNodeConnections.removeAll(removedNodeConnectionsList);
-            // End getting cheapest road
-
             node = (NodeRoad) cheapestNodeConnection.getEnd();
 
             this.path.add(cheapestNodeConnection);
@@ -576,17 +640,16 @@ public class PathFinder {
                 if (fromEnd[0] != null)
                     path.add(fromEnd[0].invert());
 
-                if (maxPathLength < path.stream().mapToInt(NodeConnection::getgScore).sum())
+                if (maxPathLength < this.path.getCost())
                     path.clear();
                 return path;
             }
-            listPossibleNodeConnections.clear();
         }
         return new Path();
     }
 
     private NodeConnection findPathWithoutNodes(NormalRoad start, NormalRoad end) {
-        final Direction[] directions = scene.getRoadConnections(start.getPosition());
+        final Direction[] directions = scene.getConnectedDirections(start.getPosition(), FILTER);
 
         final int nbDir = directions.length;
         if (nbDir == 0 || nbDir > 2)
@@ -605,20 +668,20 @@ public class PathFinder {
 
             Direction dir = directions[finalI];
             TerrainPosition nextPos = start.getPosition().add(Direction.toRelativeDistance(dir));
-            Direction[] nextDirs = scene.getRoadConnections(nextPos);
+            Direction[] nextDirs = scene.getConnectedDirections(nextPos, FILTER);
             int nbDirections = nextDirs.length;
 
             while (!nextPos.equals(end.getPosition()) && nbDirections > 1) {
                 roads.add(new NormalRoad(nextPos));
 
                 for (Direction direction : nextDirs)
-                    if (!direction.equals(dir.getOppositeDirection())) {
+                    if (!direction.equals(dir.toOppositeDirection())) {
                         dir = direction;
                         break;
                     }
 
                 nextPos = nextPos.add(Direction.toRelativeDistance(dir));
-                nextDirs = scene.getRoadConnections(nextPos);
+                nextDirs = scene.getConnectedDirections(nextPos, FILTER);
                 nbDirections = nextDirs.length;
             }
             if (nextPos.equals(end.getPosition())) {
@@ -661,7 +724,7 @@ public class PathFinder {
      */
     public static NodeConnection[] getClosestNodes(NormalRoad road) {
         //Direction[] connectionsToRoadItem = terrain.getConnectionsToRoadItem(road.getPosition(), false); WHY?
-        final Direction[] directions = scene.getRoadConnections(road.getPosition());
+        final Direction[] directions = scene.getConnectedDirections(road.getPosition(), FILTER);
 
         final int nbDir = directions.length;
         if (nbDir == 0 /*|| connectionsToRoadItem.length == 0 || connectionsToRoadItem.length > 2*/ || nbDir > 2)
@@ -681,7 +744,7 @@ public class PathFinder {
 
             Direction dir = directions[finalI];
             TerrainPosition nextPos = road.getPosition().add(Direction.toRelativeDistance(dir));
-            Direction[] nextDirs = scene.getRoadConnections(nextPos);
+            Direction[] nextDirs = scene.getConnectedDirections(nextPos, FILTER);
             int nbDirections = nextDirs.length;
 
             while (nbDirections == 2 &&
@@ -689,13 +752,13 @@ public class PathFinder {
                 roads.add(new NormalRoad(nextPos));
 
                 for (Direction direction : nextDirs)
-                    if (!direction.equals(dir.getOppositeDirection())) {
+                    if (!direction.equals(dir.toOppositeDirection())) {
                         dir = direction;
                         break;
                     }
 
                 nextPos = nextPos.add(Direction.toRelativeDistance(dir));
-                nextDirs = scene.getRoadConnections(nextPos);
+                nextDirs = scene.getConnectedDirections(nextPos, FILTER);
                 nbDirections = nextDirs.length;
             }
             if (nbDirections > 2) { // Node found
@@ -730,6 +793,7 @@ public class PathFinder {
     }
 
     public void reset() {
+        this.blacklist = new HashSet<>();
         this.ambigueousEnd = false;
         this.ambigueousStart = false;
         this.fromStart = new NodeConnection[2];
@@ -917,5 +981,9 @@ public class PathFinder {
         pathRoads.add(nodeConnection);
 
         return pathRoads;
+    }
+
+    public void setServiceManager(ServiceManager<?> serviceManager) {
+        this.serviceManager = serviceManager;
     }
 }

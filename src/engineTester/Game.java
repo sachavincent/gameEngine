@@ -5,21 +5,25 @@ import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.presets.GuiTextInput;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import people.Farmer;
 import people.Person;
-import people.SocialClass;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
 import renderEngine.GuiRenderer;
 import renderEngine.MasterRenderer;
 import renderEngine.fontRendering.TextMaster;
-import resources.ResourceManager;
 import scene.Scene;
-import scene.components.ConstructionComponent;
-import scene.components.ConstructionComponent.ConstructionTier;
+import scene.components.Component;
+import scene.components.ConstructionComponentSingle;
+import scene.components.ConstructionComponentSingle.ConstructionTier;
 import scene.components.ResidenceComponent;
 import scene.components.requirements.RequirementComponent;
 import scene.gameObjects.GameObject;
@@ -66,7 +70,7 @@ public class Game {
         if (house == null || !house.hasComponent(ResidenceComponent.class))
             return false;
 
-        System.out.println("Adding person");
+//        System.out.println("Adding person");
         boolean res = house.getComponent(ResidenceComponent.class).addPerson(new Farmer());
         GuiHouseDetails.getInstance().update();
 
@@ -88,7 +92,7 @@ public class Game {
         if (house == null || !house.hasComponent(ResidenceComponent.class))
             return false;
 
-        System.out.println("Removing person");
+//        System.out.println("Removing person");
         boolean res = house.getComponent(ResidenceComponent.class).removePerson(selectedPerson);
         GuiHouseDetails.getInstance().update();
         return res;
@@ -108,15 +112,17 @@ public class Game {
         return Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false).stream()
                 .collect(Collectors.toMap(gameObject -> gameObject, gameObject -> {
                     ResidenceComponent residenceComponent = gameObject.getComponent(ResidenceComponent.class);
-                    if (residenceComponent.getCurrentPeopleCount() == residenceComponent.getMaxPeopleCapacity())
+                    if (residenceComponent == null ||
+                            residenceComponent.getCurrentPeopleCount() == residenceComponent.getMaxPeopleCapacity())
                         return 0;
 
                     double probability;
 
                     int nbTicksSincePlaceAvailable = 0;
                     // Time since built
-                    if (gameObject.hasComponent(ConstructionComponent.class)) {
-                        ConstructionComponent cstrtionComp = gameObject.getComponent(ConstructionComponent.class);
+                    if (gameObject.hasComponent(ConstructionComponentSingle.class)) {
+                        ConstructionComponentSingle cstrtionComp = gameObject
+                                .getComponent(ConstructionComponentSingle.class);
                         if (cstrtionComp.isFinishedBuilding()) {
                             ConstructionTier currentConstructionTier = cstrtionComp.getCurrentConstructionTier();
                             if (currentConstructionTier != null) {
@@ -274,25 +280,35 @@ public class Game {
     public void processLogic() {
         if (this.gameState == GameState.STARTED) {
             TimeSystem.nextTick();
-            EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
+//            EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
+//
+//            Scene.getInstance()
+//                    .getGameObjectsForComponent(ResidenceComponent.class, false).stream()
+//                    .map(gameObject -> gameObject.getComponent(ResidenceComponent.class).getPersons())
+//                    .forEach(map -> {
+//                        map.forEach((socialClass, people) -> {
+//                            if (!peopleList.containsKey(socialClass))
+//                                peopleList.put(socialClass, 0);
+//
+//                            peopleList.put(socialClass, peopleList.get(socialClass) + people.size());
+//                        });
+//                    }); //TODO: Save this list
+//            peopleList.forEach((socialClass, nb) -> {
+//                socialClass.getPersonalResourceInfos().forEach(personalResourceInfos -> {
+//                    double depletion = personalResourceInfos.getDepletionRate() * nb;
+//                    ResourceManager.removeFromResource(personalResourceInfos.getResource(), depletion);
+//                });
+//            });
 
-            Scene.getInstance()
-                    .getGameObjectsForComponent(ResidenceComponent.class, false).stream()
-                    .map(gameObject -> gameObject.getComponent(ResidenceComponent.class).getPersons())
-                    .forEach(map -> {
-                map.forEach((socialClass, people) -> {
-                    if (!peopleList.containsKey(socialClass))
-                        peopleList.put(socialClass, 0);
+//            Scene.getInstance().getGameObjectsForComponent(ProductionComponent.class, false).forEach(gameObject -> {
+//                Map<Resource, Double> productionRates = gameObject.getComponent(ProductionComponent.class)
+//                        .getProductionRates();
+//                productionRates.forEach(ResourceManager::addToResource);
+//            });
 
-                    peopleList.put(socialClass, peopleList.get(socialClass) + people.size());
-                });
-            }); //TODO: Save this list
-            peopleList.forEach((socialClass, nb) -> {
-                socialClass.getPersonalResourceInfos().forEach(personalResourceInfos -> {
-                    double depletion = personalResourceInfos.getDepletionRate() * nb;
-                    ResourceManager.removeFromResource(personalResourceInfos.getResource(), depletion);
-                });
-            });
+            Scene.getInstance().getGameObjects()
+                    .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::tick));
+
             NPC.updatePositions();
             Scene.getInstance().updateHighlightedPaths();
             int nbTicksForOneHouse = Game.TIME_BETWEEN_SETTLEMENTS.getNbTicks();
@@ -318,11 +334,11 @@ public class Game {
     public void processRendering(Fbo fbo) {
         if (Game.getInstance().getGameState() == GameState.STARTED) {
             Camera.getInstance().move();
-            MasterRenderer.renderScene();
+            MasterRenderer.getInstance().prepare();
             Scene.getInstance().render();
         } else {
             fbo.bindFrameBuffer();
-            MasterRenderer.renderScene();
+            MasterRenderer.getInstance().prepare();
             Scene.getInstance().render();
 
             fbo.unbindFrameBuffer();

@@ -1,6 +1,6 @@
 package renderEngine;
 
-import util.math.Maths;
+import entities.Camera;
 import util.math.Matrix4f;
 import util.math.Vector3f;
 import util.math.Vector4f;
@@ -16,7 +16,7 @@ public class FrustumCullingFilter {
 //            return;
 
         Matrix4f projMatrix = MasterRenderer.getInstance().getProjectionMatrix();
-        Matrix4f viewMatrix = Maths.createViewMatrix();
+        Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
         projMatrix = Matrix4f.mul(projMatrix, viewMatrix, null);
 
         for (int i = 0; i < NUM_PLANES; i++) {

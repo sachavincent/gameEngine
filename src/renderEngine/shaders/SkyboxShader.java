@@ -1,6 +1,6 @@
 package renderEngine.shaders;
 
-import util.math.Maths;
+import entities.Camera;
 import util.math.Matrix4f;
 
 public class SkyboxShader extends ShaderProgram {
@@ -20,7 +20,7 @@ public class SkyboxShader extends ShaderProgram {
     }
 
     public void loadViewMatrix() {
-        Matrix4f matrix =  Maths.createViewMatrix();
+        Matrix4f matrix =  Camera.getInstance().getViewMatrix();
         matrix.m30 = 0;
         matrix.m31 = 0;
         matrix.m32 = 0;
