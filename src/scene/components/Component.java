@@ -3,6 +3,7 @@ package scene.components;
 import java.util.HashSet;
 import scene.Scene;
 import scene.components.callbacks.AddComponentCallback;
+import scene.components.callbacks.FrameRendereredCallback;
 import scene.components.callbacks.TickElapsedCallback;
 import scene.components.callbacks.UpdateComponentCallback;
 import scene.gameObjects.GameObject;
@@ -12,8 +13,12 @@ public abstract class Component {
     protected int                     idGameObject;
     private   AddComponentCallback    onAddComponentCallback;
     private   UpdateComponentCallback onUpdateComponentCallback;
-    private   TickElapsedCallback     onTickElapsedCallback;
-    private   int                     nbTicksTickElapsedCallback;
+
+    private TickElapsedCallback onTickElapsedCallback;
+    private int                 nbTicksTickElapsed;
+
+    private FrameRendereredCallback onFrameRenderedCallback;
+    private int                     nbFramesFrameRendered;
 
     protected boolean updated;
 
@@ -53,6 +58,10 @@ public abstract class Component {
         this.onTickElapsedCallback = onTickElapsedCallback;
     }
 
+    public void setOnFrameRenderedCallback(FrameRendereredCallback onFrameRenderedCallback) {
+        this.onFrameRenderedCallback = onFrameRenderedCallback;
+    }
+
     public void setUpdated(boolean updated) {
         this.updated = updated;
     }
@@ -73,9 +82,19 @@ public abstract class Component {
         if (this.onTickElapsedCallback != null) {
             boolean ticked = this.onTickElapsedCallback
                     .onTickElapsed(Scene.getInstance().getGameObjectFromId(this.idGameObject),
-                            this.nbTicksTickElapsedCallback++);
+                            this.nbTicksTickElapsed++);
             if (ticked)
-                this.nbTicksTickElapsedCallback = 0;
+                this.nbTicksTickElapsed = 0;
+        }
+    }
+
+    final public void render() {
+        if (this.onFrameRenderedCallback != null) {
+            boolean rendered = this.onFrameRenderedCallback
+                    .onFrameRendered(Scene.getInstance().getGameObjectFromId(this.idGameObject),
+                            this.nbFramesFrameRendered++);
+            if (rendered)
+                this.nbFramesFrameRendered = 0;
         }
     }
 }

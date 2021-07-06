@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -36,6 +35,7 @@ import scene.components.*;
 import scene.gameObjects.GameObject;
 import terrains.TerrainPosition;
 import textures.ModelTexture;
+import util.Vao;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
@@ -111,7 +111,7 @@ public class BuildingRenderer extends Renderer {
                         prepareTexturedModel(zPassModel.getTexturedModel(), false);
                         Entity zPassModelEntity = new Entity(zPassCopy);
                         prepareInstance(zPassModel);
-                        glDrawElements(GL_TRIANGLES, zPassModel.getTexturedModel().getRawModel().getVertexCount(),
+                        glDrawElements(GL_TRIANGLES, zPassModel.getTexturedModel().getVao().getIndexCount(),
                                 GL_UNSIGNED_INT, 0);
                     });
                     this.query.stop();
@@ -232,8 +232,8 @@ public class BuildingRenderer extends Renderer {
 
             TexturedModel texturedModel = entry.getKey();
 
-            final RawModel rawModel = texturedModel.getRawModel();
-            if (rawModel.isInstanced()) {
+            final Vao vao = texturedModel.getVao();
+            if (vao.isInstanced()) {
                 int i = 0;
                 prepareTexturedModel(texturedModel, true);
                 for (Model model : entry.getValue()) {
@@ -246,9 +246,9 @@ public class BuildingRenderer extends Renderer {
                     }
                 }
 
-                glBindBuffer(GL_ARRAY_BUFFER, rawModel.getVboID());
+                glBindBuffer(GL_ARRAY_BUFFER, vao.getInstanceVbo().getId());
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                glDrawElementsInstanced(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0,
+                glDrawElementsInstanced(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0,
                         entry.getValue().size());
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -257,7 +257,7 @@ public class BuildingRenderer extends Renderer {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(model -> {
                     prepareInstance(model);
-                    GL11.glDrawElements(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0);
+                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
                 });
             }
             unbindTexturedModel();
@@ -287,11 +287,11 @@ public class BuildingRenderer extends Renderer {
         if (texturedModel == null)
             throw new IllegalArgumentException("TexturedModel null");
 
-        RawModel model = texturedModel.getRawModel();
+        Vao vao = texturedModel.getVao();
         ModelTexture texture = texturedModel.getModelTexture();
         boolean useNormalMap = texture.getNormalMap() != -1;
 
-        GL30.glBindVertexArray(model.getVaoID());
+        GL30.glBindVertexArray(vao.getId());
 
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
@@ -299,14 +299,14 @@ public class BuildingRenderer extends Renderer {
         if (useNormalMap)
             GL20.glEnableVertexAttribArray(3);
         if (isInstanced)
-            GL20.glEnableVertexAttribArray(4);
+            GL20.glEnableVertexAttribArray(6);
 
         ((GameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
         if (texture.isTransparent())
             MasterRenderer.disableCulling();
 
         ((GameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
-//        ((GameObjectShader) this.shader).loadUseNormalMap(useNormalMap);
+        ((GameObjectShader) this.shader).loadUseNormalMap(useNormalMap);
         ((GameObjectShader) this.shader)
                 .loadLights(useNormalMap, LightRenderer.getInstance().getGameObjects(),
                         Camera.getInstance().getViewMatrix());

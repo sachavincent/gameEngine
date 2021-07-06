@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -29,6 +28,7 @@ import renderEngine.shaders.GameObjectShader;
 import scene.components.*;
 import scene.gameObjects.GameObject;
 import textures.ModelTexture;
+import util.Vao;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
@@ -62,8 +62,8 @@ public class NPCRenderer extends Renderer {
 
             TexturedModel texturedModel = entry.getKey();
 
-            final RawModel rawModel = texturedModel.getRawModel();
-            if (rawModel.isInstanced()) {
+            final Vao vao = texturedModel.getVao();
+            if (vao.isInstanced()) {
                 int i = 0;
                 prepareTexturedModel(texturedModel, true);
                 for (Model model : entry.getValue()) {
@@ -76,9 +76,9 @@ public class NPCRenderer extends Renderer {
                     }
                 }
 
-                glBindBuffer(GL_ARRAY_BUFFER, rawModel.getVboID());
+                glBindBuffer(GL_ARRAY_BUFFER, vao.getInstanceVbo().getId());
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                glDrawElementsInstanced(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0,
+                glDrawElementsInstanced(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0,
                         entry.getValue().size());
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -87,7 +87,7 @@ public class NPCRenderer extends Renderer {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(model -> {
                     prepareInstance(model);
-                    GL11.glDrawElements(GL_TRIANGLES, rawModel.getVertexCount(), GL_UNSIGNED_INT, 0);
+                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
                 });
             }
             unbindTexturedModel();
@@ -106,7 +106,8 @@ public class NPCRenderer extends Renderer {
             Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
             ((GameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
             ((GameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((GameObjectShader) this.shader).loadLights(false,LightRenderer.getInstance().getGameObjects(), viewMatrix);
+            ((GameObjectShader) this.shader)
+                    .loadLights(false, LightRenderer.getInstance().getGameObjects(), viewMatrix);
             ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
         }
 
@@ -118,7 +119,7 @@ public class NPCRenderer extends Renderer {
         SingleModelComponent singleModelComponent = gameObject.getComponent(SingleModelComponent.class);
         if (singleModelComponent == null)
             return;
-        RawModel rawModel = singleModelComponent.getModel().getTexturedModel().getRawModel();
+        Vao vao = singleModelComponent.getModel().getTexturedModel().getVao();
 
         ScaleComponent scaleComponent = gameObject.getComponent(ScaleComponent.class);
         float scale = 1;
@@ -133,7 +134,7 @@ public class NPCRenderer extends Renderer {
         if (gameObject.hasComponent(OffsetComponent.class))
             position = position.add(gameObject.getComponent(OffsetComponent.class).getOffset());
 
-        float boundingRadius = scale * rawModel.getMax().sub(rawModel.getMin()).scale(0.5f).length();
+        float boundingRadius = scale * vao.getMax().sub(vao.getMin()).scale(0.5f).length();
 
         if (FrustumCullingFilter.isPosInsideFrustum(position, boundingRadius)) {
             TexturedModel texture = singleModelComponent.getModel().getTexturedModel();
@@ -157,8 +158,8 @@ public class NPCRenderer extends Renderer {
         if (texturedModel == null)
             throw new IllegalArgumentException("TexturedModel null");
 
-        RawModel model = texturedModel.getRawModel();
-        GL30.glBindVertexArray(model.getVaoID());
+        Vao vao = texturedModel.getVao();
+        GL30.glBindVertexArray(vao.getId());
 
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);

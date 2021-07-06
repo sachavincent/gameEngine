@@ -60,7 +60,7 @@ public abstract class Renderer {
 
     protected void handleTexture(Map<TexturedModel, List<Model>> models, Model model) {
         if (model == null || model.getTexturedModel() == null || model.getTexturedModel().getModelTexture() == null ||
-                model.getTexturedModel().getRawModel() == null)
+                model.getTexturedModel().getVao() == null)
             return;
 
         if (!models.containsKey(model.getTexturedModel()))

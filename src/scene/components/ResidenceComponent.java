@@ -19,7 +19,7 @@ public class ResidenceComponent extends Component {
     //TODO: Map for each spot, store moveAwayTime
     protected final NewPersonCallback                  onNewPersonCallback;
 
-    protected int lastLocalMoveAwayTime = TimeSystem.getCurrentTime();
+    protected int lastLocalMoveAwayTime = TimeSystem.getCurrentTimeTicks();
 
     public ResidenceComponent(int maxPeopleCapacity) {
         this(maxPeopleCapacity, (p, l) -> {
@@ -69,7 +69,7 @@ public class ResidenceComponent extends Component {
     public boolean removePerson(Person person) {
         boolean removed = this.persons.get(person.getSocialClass()).remove(person);
         if (removed)
-            this.lastLocalMoveAwayTime = TimeSystem.getCurrentTime();
+            this.lastLocalMoveAwayTime = TimeSystem.getCurrentTimeTicks();
 
         return removed;
     }

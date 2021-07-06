@@ -57,13 +57,13 @@ public class GuiItemSelection extends Gui {
         createMarketButton();
         createWheatFieldButton();
         createWheatFarmButton();
-        Text text = new Text("test", .55f, DEFAULT_FONT, Color.DARK_GRAY);
-        GuiRectangleButton wheatFarmButton = new GuiRectangleButton(this, GameObjectPreviews.WHEAT_FARM, null, null, text);
-        wheatFarmButton.setOnMousePress(button -> {
+        Text text = new Text("Windmill", .55f, DEFAULT_FONT, Color.DARK_GRAY);
+        GuiRectangleButton windMillButton = new GuiRectangleButton(this, GameObjectPreviews.WINDMILL, null, null, text);
+        windMillButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("Test selected");
 
-                selectOrUnselect(Test.class, MouseUtils::SelectBuilding);
+                selectOrUnselect(Windmill.class, MouseUtils::SelectBuilding);
             }
         });
         setDisplayed(false);

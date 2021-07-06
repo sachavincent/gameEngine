@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import models.BoundingBox;
-import models.RawModel;
 import models.TexturedModel;
-import renderEngine.Loader;
 import renderEngine.TerrainRenderer;
 import scene.components.BoundingBoxComponent;
 import scene.components.RendererComponent;
@@ -18,6 +16,9 @@ import scene.components.TexturePackComponent;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
+import util.ModelType;
+import util.Vao;
+import util.colladaParser.dataStructures.MeshData;
 import util.math.Plane3D;
 import util.math.Vector3f;
 
@@ -26,14 +27,15 @@ public class Terrain extends GameObject {
     public static final int SIZE = 500;
 
     public Terrain() {
-        RawModel model = generateTerrain("heightmap.png");
-        TexturedModel texturedModel = new TexturedModel(model);
+        MeshData modelData = generateTerrain("heightmap.png");
+        Vao terrainVao = Vao.createVao(modelData, ModelType.NORMAL);
+        TexturedModel texturedModel = new TexturedModel(terrainVao);
         addComponent(new TerrainComponent());
         addComponent(new SingleModelComponent(new Model(texturedModel)));
 
         Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, SIZE),
                 new Vector3f(SIZE, 0, SIZE), new Vector3f(SIZE, 0, 0));
-        BoundingBox boundingBox = new BoundingBox(model);
+        BoundingBox boundingBox = new BoundingBox(terrainVao);
         boundingBox.addPlane(terrainPlane);
         boundingBox.setModelTexture(ModelTexture.DEFAULT_MODEL);
         addComponent(new BoundingBoxComponent(boundingBox));
@@ -44,7 +46,7 @@ public class Terrain extends GameObject {
     }
 
 
-    private RawModel generateTerrain(String heightMap) {
+    private MeshData generateTerrain(String heightMap) {
         BufferedImage image;
         try {
             image = ImageIO.read(new File("res/" + heightMap));
@@ -97,7 +99,7 @@ public class Terrain extends GameObject {
 
         image.getGraphics().dispose();
 
-        return Loader.getInstance().loadToVAO(vertices, textureCoords, normals, indices);
+        return new MeshData(vertices, textureCoords, normals, indices);
     }
 
     private Vector3f calculateNormal(int x, int z, BufferedImage image) {

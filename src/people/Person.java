@@ -34,7 +34,7 @@ public class Person {
     }
 
     public void settle(int idHouse) {
-        this.settlementTime = TimeSystem.getCurrentTime();
+        this.settlementTime = TimeSystem.getCurrentTimeTicks();
         this.idHouse = idHouse;
     }
 

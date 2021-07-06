@@ -39,6 +39,7 @@ public class Insula extends GameObject {
         DirectionComponent directionComponent = new DirectionComponent(Direction.NORTH);
         addComponent(directionComponent);
         addComponent(new SingleModelComponent(new Model(OBJGameObjects.INSULA.getTexture())));
+//        addComponent(new AnimatedModelComponent(new Model(OBJGameObjects.INSULA.getTexture())));
         addComponent(new PreviewComponent(OBJGameObjects.INSULA.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
 
@@ -88,5 +89,6 @@ public class Insula extends GameObject {
             }
         }));
         addComponent(new RendererComponent(BuildingRenderer.getInstance()));
+//        addComponent(new RendererComponent(AnimatedBuildingRenderer.getInstance()));
     }
 }

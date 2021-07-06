@@ -49,8 +49,8 @@ public class Game {
     private final List<GuiTextInput> guiTextInputs = new ArrayList<>();
     private final List<Gui>          displayedGuis = new ArrayList<>();
 
-    private int lastSettlementAttemptTime = TimeSystem.getCurrentTime();
-    private int lastGlobalMovingAwayTime  = TimeSystem.getCurrentTime();
+    private int lastSettlementAttemptTime = TimeSystem.getCurrentTimeTicks();
+    private int lastGlobalMovingAwayTime  = TimeSystem.getCurrentTimeTicks();
 
     private Game() {
         this.gameState = GameState.NOT_STARTED;
@@ -78,7 +78,7 @@ public class Game {
     }
 
     public boolean removePerson() {
-        int currentTime = TimeSystem.getCurrentTime();
+        int currentTime = TimeSystem.getCurrentTimeTicks();
         if (currentTime - this.lastGlobalMovingAwayTime < COOLDOWN_GLOBAL_MOVE_AWAY)
             return false;
 
@@ -127,7 +127,8 @@ public class Game {
                             ConstructionTier currentConstructionTier = cstrtionComp.getCurrentConstructionTier();
                             if (currentConstructionTier != null) {
                                 int nbTicksSinceConstruction =
-                                        currentConstructionTier.getEndTime().getNbTicks() - TimeSystem.getCurrentTime();
+                                        currentConstructionTier.getEndTime().getNbTicks() -
+                                                TimeSystem.getCurrentTimeTicks();
                                 if (nbTicksSinceConstruction < COOLDOWN_BEFORE_SETTLEMENT.getNbTicks())
                                     return 0;
 
@@ -190,7 +191,7 @@ public class Game {
                     int currentPeopleCount = residenceComponent.getCurrentPeopleCount();
                     if (currentPeopleCount == 0)
                         return null;
-                    if (TimeSystem.getCurrentTime() - residenceComponent.getLastLocalMoveAwayTime() <=
+                    if (TimeSystem.getCurrentTimeTicks() - residenceComponent.getLastLocalMoveAwayTime() <=
                             ResidenceComponent.COOLDOWN_LOCAL_MOVE_AWAY)
                         return null;
 
@@ -214,7 +215,7 @@ public class Game {
                     final int finalCooldown = cooldown;
                     Person eligiblePerson = residenceComponent.getPersons().values().stream().map(
                             people -> people.stream()
-                                    .filter(person -> TimeSystem.getCurrentTime() - person.getSettlementTime() >
+                                    .filter(person -> TimeSystem.getCurrentTimeTicks() - person.getSettlementTime() >
                                             finalCooldown)
                                     .collect(Collectors.toList())).flatMap(Collection::stream)
                             .findFirst().orElse(null);
@@ -317,7 +318,7 @@ public class Game {
             //TODO: Update this number when house is added/removed, not every tick
             //TODO: Also, this should be nbEligibleHouses not nbHouses
             if (nbHouses > 0) {
-                int currentTime = TimeSystem.getCurrentTime();
+                int currentTime = TimeSystem.getCurrentTimeTicks();
                 int nbTicks = currentTime - this.lastSettlementAttemptTime;
                 int i = nbTicksForOneHouse / nbHouses;
                 if (nbTicks > i) {
@@ -331,11 +332,16 @@ public class Game {
         }
     }
 
+    public float prev = TimeSystem.getTimeMillis();
+
     public void processRendering(Fbo fbo) {
         if (Game.getInstance().getGameState() == GameState.STARTED) {
             Camera.getInstance().move();
             MasterRenderer.getInstance().prepare();
             Scene.getInstance().render();
+
+            Scene.getInstance().getGameObjects()
+                    .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::render));
         } else {
             fbo.bindFrameBuffer();
             MasterRenderer.getInstance().prepare();
@@ -345,7 +351,9 @@ public class Game {
             PostProcessing.doPostProcessing(fbo.getColourTexture());
         }
         GuiRenderer.render();
-        TextMaster.getInstance().render();
+        TextMaster.getInstance().
+
+                render();
     }
 
     public enum GameState {

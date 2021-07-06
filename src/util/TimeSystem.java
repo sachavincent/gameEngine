@@ -37,7 +37,7 @@ public class TimeSystem {
         return System.nanoTime() / 1000000L;
     }
 
-    public static int getCurrentTime() {
+    public static int getCurrentTimeTicks() {
         return timeInTicks;
     }
 

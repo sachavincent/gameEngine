@@ -5,7 +5,6 @@ import static util.KeybindingsManager.parseKey;
 import engineTester.Game;
 import engineTester.Game.GameState;
 import entities.Camera;
-import entities.Model;
 import guis.Gui;
 import guis.prefabs.GuiDebug;
 import guis.prefabs.GuiEscapeMenu;
@@ -15,7 +14,6 @@ import guis.prefabs.GuiMainMenu.GuiTab;
 import inputs.callbacks.KeyPressCallback;
 import inputs.callbacks.KeyReleaseCallback;
 import inputs.callbacks.KeyRepeatCallback;
-import items.OBJGameObjects;
 import java.util.ArrayList;
 import java.util.List;
 import language.Words;
@@ -23,8 +21,6 @@ import org.lwjgl.glfw.GLFW;
 import renderEngine.BuildingRenderer;
 import renderEngine.GuiRenderer;
 import renderEngine.NPCRenderer;
-import scene.Scene;
-import scene.components.MultipleModelsComponent;
 
 public class Key {
 
@@ -197,11 +193,7 @@ public class Key {
         };
 
         Key.TEMP.onKeyPress = () -> {
-            Scene.getInstance().getGameObjectsForComponent(MultipleModelsComponent.class, false).forEach(gameObject -> {
-                gameObject.getComponent(MultipleModelsComponent.class)
-                        .replaceConcurrentModels("FENCE", new Model(OBJGameObjects.WHEATFIELD_MIDDLE_FENCE.getTexture()));
-            });
-        };
 
+        };
     }
 }

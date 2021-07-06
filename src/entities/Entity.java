@@ -50,7 +50,7 @@ public class Entity {
         if (o == null || getClass() != o.getClass())
             return false;
         Entity entity = (Entity) o;
-        return                 Objects.equals(entity.models, this.models);
+        return Objects.equals(entity.models, this.models);
     }
 
     @Override

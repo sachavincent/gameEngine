@@ -4,7 +4,7 @@ layout (location=0) in vec3 position;
 layout (location=1) in vec2 textureCoords;
 layout (location=2) in vec3 normal;
 layout (location=3) in vec3 tangent;
-layout (location=4) in mat4 globalTransformationMatrix;
+layout (location=6) in mat4 globalTransformationMatrix;
 
 out vec2 pass_textureCoords;
 out vec3 toLightVector[10];

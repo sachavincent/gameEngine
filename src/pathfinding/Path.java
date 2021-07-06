@@ -4,9 +4,10 @@ import static util.math.Maths.manhattanDistance;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import models.RawModel;
-import renderEngine.Loader;
 import terrains.TerrainPosition;
+import util.ModelType;
+import util.Vao;
+import util.colladaParser.dataStructures.MeshData;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
@@ -226,11 +227,11 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
         this.pathCoordinates = new PathCoordinates(positionsFloat, indicesTab);
     }
 
-    public RawModel createRawModel() {
-        if (this.pathCoordinates != null)
-            return Loader.getInstance()
-                    .loadToVAO(this.pathCoordinates.getPositions(), new float[]{0}, new float[]{0, 1, 0},
-                            this.pathCoordinates.getIndices());
+    public Vao createVao() {
+        if (this.pathCoordinates != null) {
+            return Vao.createVao(new MeshData(this.pathCoordinates.getPositions(), new float[]{0}, new float[]{0, 1, 0},
+                    this.pathCoordinates.getIndices()), ModelType.NORMAL);
+        }
         return null;
     }
 

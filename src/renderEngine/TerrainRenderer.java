@@ -9,7 +9,6 @@ import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
 import java.util.Map;
-import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -24,6 +23,7 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
 import terrains.TerrainPosition;
 import textures.TerrainTexturePack;
+import util.Vao;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -51,13 +51,13 @@ public class TerrainRenderer extends Renderer {
     @Override
     public void render() {
         this.gameObjects.forEach(terrain -> {
-            RawModel rawModel = prepareTerrain(terrain);
-            if (rawModel != null) {
+            Vao vao = prepareTerrain(terrain);
+            if (vao != null) {
                 Vector3f position = terrain.getComponent(PositionComponent.class).getPosition();
                 loadModelMatrix(position);
                 GL11.glLineWidth(2);
 
-                GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+                GL11.glDrawElements(GL11.GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
                 unbindTexturedModel();
             }
         });
@@ -84,7 +84,7 @@ public class TerrainRenderer extends Renderer {
         this.gameObjects.add(gameObject);
     }
 
-    private RawModel prepareTerrain(GameObject terrain) {
+    private Vao prepareTerrain(GameObject terrain) {
         SingleModelComponent singleModelComponent = terrain.getComponent(SingleModelComponent.class);
         if (singleModelComponent == null)
             return null;
@@ -93,8 +93,8 @@ public class TerrainRenderer extends Renderer {
         if (texture == null)
             return null;
 
-        RawModel rawModel = texture.getRawModel();
-        GL30.glBindVertexArray(rawModel.getVaoID());
+        Vao vao = texture.getVao();
+        GL30.glBindVertexArray(vao.getId());
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
         GL20.glEnableVertexAttribArray(2);
@@ -113,7 +113,7 @@ public class TerrainRenderer extends Renderer {
         ((TerrainShader) this.shader).loadFocusBuildingPlacement(focusPoints.size());
         ((TerrainShader) this.shader).loadFocusPoints(focusPoints);
 
-        return rawModel;
+        return vao;
     }
 
     private void bindTextures(GameObject terrain) {

@@ -5,8 +5,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import renderEngine.Loader;
 import textures.ModelTexture;
+import util.ModelType;
+import util.Vao;
+import util.colladaParser.dataStructures.MeshData;
 import util.math.Plane3D;
 import util.math.Triangle3D;
 import util.math.Vector3f;
@@ -16,13 +18,13 @@ public class BoundingBox extends TexturedModel {
     private final Set<Plane3D> planes;
 
     public BoundingBox(BoundingBox boundingBox) {
-        super(boundingBox.rawModel, boundingBox.modelTexture);
+        super(boundingBox.vao, boundingBox.modelTexture);
         this.planes = boundingBox.planes.stream().map(Plane3D::new)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public BoundingBox(RawModel rawModel) {
-        super(rawModel);
+    public BoundingBox(Vao vao) {
+        super(vao);
         this.planes = new LinkedHashSet<>();
     }
 
@@ -79,8 +81,8 @@ public class BoundingBox extends TexturedModel {
 //                plane3D.setPointD(new Vector3f(plane3D.getPointD().x, -plane3D.getPointD().z, plane3D.getPointD().y));
 //            });
 //            planes.forEach(System.out::println);
-            this.rawModel = Loader.getInstance().loadToVAO(verticesArray, textureCoords, normals, indices);
-
+//            this.rawModel = Loader.getInstance().loadToVAO(verticesArray, textureCoords, normals, indices);
+            this.vao = Vao.createVao(new MeshData(verticesArray, textureCoords, normals, indices), ModelType.NORMAL);
             this.modelTexture = ModelTexture.DEFAULT_MODEL;
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -99,9 +101,8 @@ public class BoundingBox extends TexturedModel {
     @Override
     public String toString() {
         return "BoundingBox{" +
-                "planes=" + planes +
-                ", modelTexture=" + modelTexture +
-                ", rawModel=" + rawModel +
+                "planes=" + this.planes +
+                ", vao=" + this.vao +
                 '}';
     }
 }

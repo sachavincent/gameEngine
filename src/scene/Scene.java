@@ -6,7 +6,6 @@ import entities.Camera.Direction;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import models.RawModel;
 import models.TexturedModel;
 import pathfinding.NodeRoad;
 import pathfinding.RoadGraph;
@@ -24,6 +23,7 @@ import skybox.SkyboxRenderer;
 import terrains.TerrainPosition;
 import textures.ModelTexture;
 import util.Utils;
+import util.Vao;
 import util.math.Vector3f;
 
 public class Scene {
@@ -539,9 +539,9 @@ public class Scene {
 
     private void createNewHightlightedPaths() {
         PathRenderer.getInstance().getTempPathsList().forEach((path, color) -> {
-            RawModel rawModel = path.createRawModel();
-            if (rawModel != null) {
-                TexturedModel model = new TexturedModel(rawModel);
+            Vao vao = path.createVao();
+            if (vao != null) {
+                TexturedModel model = new TexturedModel(vao);
                 model.setModelTexture(new ModelTexture(Utils.encodeColor(color)));
                 Route route = new Route(model);
             }

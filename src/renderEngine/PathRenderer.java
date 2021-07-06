@@ -11,7 +11,6 @@ import java.awt.Color;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import models.RawModel;
 import models.TexturedModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -22,6 +21,7 @@ import renderEngine.shaders.GameObjectShader;
 import scene.components.SingleModelComponent;
 import scene.gameObjects.GameObject;
 import textures.ModelTexture;
+import util.Vao;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -74,7 +74,7 @@ public class PathRenderer extends Renderer {
         for (GameObject gameObject : this.gameObjects) {
             TexturedModel texture = gameObject.getComponent(SingleModelComponent.class).getModel().getTexturedModel();
             prepareTexturedModel(texture);
-            GL11.glDrawElements(GL11.GL_LINES, texture.getRawModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+            GL11.glDrawElements(GL11.GL_LINES, texture.getVao().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
             unbindTexturedModel();
         }
 
@@ -106,8 +106,8 @@ public class PathRenderer extends Renderer {
             return;
 
         ModelTexture texture = texturedModel.getModelTexture();
-        RawModel rawModel = texturedModel.getRawModel();
-        GL30.glBindVertexArray(rawModel.getVaoID());
+        Vao vao = texturedModel.getVao();
+        GL30.glBindVertexArray(vao.getId());
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
         GL20.glEnableVertexAttribArray(2);
