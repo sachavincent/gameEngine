@@ -60,7 +60,7 @@ public class MainGameLoop {
 
         /*InputStream stream = null;
         try {
-            stream = new FileInputStream("res/cursor.png");
+            stream = new FileInputStream(RES_PATH + "/cursor.png");
             BufferedImage image = ImageIO.read(stream);
 
             int width = image.getWidth();

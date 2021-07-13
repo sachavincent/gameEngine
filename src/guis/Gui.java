@@ -1,6 +1,7 @@
 package guis;
 
 import static renderEngine.GuiRenderer.filledQuad;
+import static util.Utils.RES_PATH;
 
 import engineTester.Game;
 import fontMeshCreator.FontType;
@@ -30,7 +31,7 @@ public class Gui implements GuiInterface {
     public final static float CORNER_RADIUS = 8f;
 
     public final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
+            new FontTexture(new File(RES_PATH + "/roboto.png")).getTextureID(), new File(RES_PATH + "/roboto.fnt")); //TODO System-wide font
 
     private final Map<GuiComponent, Set<Transition>> components;
 

@@ -242,7 +242,6 @@ public class GuiRenderer {
         assert guiTexture != null;
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_EYE_PLANE);
         GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
     }
 

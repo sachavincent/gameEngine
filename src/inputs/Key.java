@@ -18,12 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
+import renderEngine.AnimatedBuildingRenderer;
 import renderEngine.BuildingRenderer;
 import renderEngine.GuiRenderer;
 import renderEngine.NPCRenderer;
 
 public class Key {
 
+    public final static String    TEMP = "TEMP";
     public final static List<Key> KEYS = new ArrayList<>();
 
     public final static Key DISPLAY_BOUNDING_BOXES = new Key("display_BB", new KeyInput('K'));
@@ -36,8 +38,6 @@ public class Key {
     public final static Key ESCAPE                 = new Key("escape", new KeyInput((char) GLFW.GLFW_KEY_ESCAPE));
 
     public final static Key ITEM_SELECTION = new Key("item selection", new KeyInput('M'));
-    //TEMP
-    public final static Key TEMP           = new Key("TEMP", new KeyInput('H'));
 
     final KeyInput defaultKeyInput; // Default value in the QWERTY layout
     final String   name;
@@ -58,7 +58,8 @@ public class Key {
         };
         this.onKeyRepeat = () -> {
         };
-        KEYS.add(this);
+        if (!name.equals(TEMP))
+            KEYS.add(this);
     }
 
     public void setValue(String value) {
@@ -161,6 +162,7 @@ public class Key {
         Key.DISPLAY_BOUNDING_BOXES.onKeyPress = () -> {
             if (Game.getInstance().getGameState() == GameState.STARTED) {
                 BuildingRenderer.getInstance().switchDisplayBoundingBoxes();
+                AnimatedBuildingRenderer.getInstance().switchDisplayBoundingBoxes();
                 NPCRenderer.getInstance().switchDisplayBoundingBoxes();
                 System.out.println("Display BB pressed");
             }
@@ -190,10 +192,6 @@ public class Key {
         Key.ITEM_SELECTION.onKeyPress = () -> {
             if (Game.getInstance().getGameState() == GameState.STARTED)
                 Gui.toggleGui(GuiItemSelection.getItemSelectionGui());
-        };
-
-        Key.TEMP.onKeyPress = () -> {
-
         };
     }
 }

@@ -20,7 +20,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.set(src);
     }
 
-    public Vector3f(float x, float y, float z) {
+    public Vector3f(Float x, Float y, Float z) {
         this.set(x, y, z);
     }
 

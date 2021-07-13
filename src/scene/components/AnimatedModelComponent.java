@@ -1,17 +1,17 @@
 package scene.components;
 
-import entities.Model;
-import models.AnimatedTexturedModel;
-import models.TexturedModel;
+import entities.ModelEntity;
+import models.AnimatedModel;
+import models.Model;
 
 public class AnimatedModelComponent extends SingleModelComponent {
 
-    public AnimatedModelComponent(Model model) {
-        super(model);
+    public AnimatedModelComponent(ModelEntity modelEntity) {
+        super(modelEntity);
 
         setOnFrameRenderedCallback((gameObject, nbFrames) -> {
-            TexturedModel texturedModel = model.getTexturedModel();
-            ((AnimatedTexturedModel) texturedModel).update();
+            Model model = modelEntity.getModel();
+            ((AnimatedModel) model).update();
             return true;
         });
     }

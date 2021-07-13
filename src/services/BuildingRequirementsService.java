@@ -10,7 +10,7 @@ import renderEngine.PathRenderer;
 import scene.Scene;
 import scene.components.ConnectionsComponent;
 import scene.components.requirements.BuildingRoadConnectionRequirement;
-import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
 import terrains.TerrainPosition;
 
@@ -58,7 +58,7 @@ public class BuildingRequirementsService extends Service<Map<Path, Color>> {
                     continue;
 
                 ConnectionsComponent<?> component = gameObject.getComponent(ConnectionsComponent.class);
-                RequirementComponent requireComponent = gameObject.getComponent(RequirementComponent.class);
+                ResourceRequirementComponent requireComponent = gameObject.getComponent(ResourceRequirementComponent.class);
                 if (component.isConnected()) {
                     Set<BuildingRoadConnectionRequirement> buildingRoadConnectionRequirements = requireComponent
                             .getRequirementsOfType(BuildingRoadConnectionRequirement.class);

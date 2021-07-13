@@ -46,59 +46,59 @@ public class StaticShader extends ShaderProgram {
 
     @Override
     protected void getAllUniformLocations() {
-        this.location_transformationMatrix = super.getUniformLocation("transformationMatrix");
-        this.location_projectionMatrix = super.getUniformLocation("projectionMatrix");
-        this.location_viewMatrix = super.getUniformLocation("viewMatrix");
-        this.location_shineDamper = super.getUniformLocation("shineDamper");
-        this.location_reflectivity = super.getUniformLocation("reflectivity");
-        this.location_useFakeLighting = super.getUniformLocation("useFakeLighting");
-        this.location_skyColor = super.getUniformLocation("skyColor");
-        this.location_numberOfRows = super.getUniformLocation("numberOfRows");
-        this.location_offset = super.getUniformLocation("offset");
-        this.location_plane = super.getUniformLocation("plane");
+        this.location_transformationMatrix = getUniformLocation("transformationMatrix");
+        this.location_projectionMatrix = getUniformLocation("projectionMatrix");
+        this.location_viewMatrix = getUniformLocation("viewMatrix");
+        this.location_shineDamper = getUniformLocation("shineDamper");
+        this.location_reflectivity = getUniformLocation("reflectivity");
+        this.location_useFakeLighting = getUniformLocation("useFakeLighting");
+        this.location_skyColor = getUniformLocation("skyColor");
+        this.location_numberOfRows = getUniformLocation("numberOfRows");
+        this.location_offset = getUniformLocation("offset");
+        this.location_plane = getUniformLocation("plane");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
         this.location_attenuation = new int[MAX_LIGHTS];
 
         for (int i = 0; i < MAX_LIGHTS; i++) {
-            this.location_lightPosition[i] = super.getUniformLocation("lightPosition[" + i + "]");
-            this.location_lightColor[i] = super.getUniformLocation("lightColor[" + i + "]");
-            this.location_attenuation[i] = super.getUniformLocation("attenuation[" + i + "]");
+            this.location_lightPosition[i] = getUniformLocation("lightPosition[" + i + "]");
+            this.location_lightColor[i] = getUniformLocation("lightColor[" + i + "]");
+            this.location_attenuation[i] = getUniformLocation("attenuation[" + i + "]");
         }
     }
 
     public void loadClipPlane(Vector4f plane) {
-        super.loadVector(location_plane, plane);
+        loadVector(location_plane, plane);
     }
 
     public void loadNumberOfRows(int numberofRows) {
-        super.loadFloat(location_numberOfRows, numberofRows);
+        loadInt(location_numberOfRows, numberofRows);
     }
 
     public void loadOffset(float x, float y) {
-        super.load2DVector(location_offset, new Vector2f(x, y));
+        loadVector(location_offset, new Vector2f(x, y));
     }
 
     public void loadSkyColor(float r, float g, float b) {
-        super.loadVector(location_skyColor, new Vector3f(r, g, b));
+        loadVector(location_skyColor, new Vector3f(r, g, b));
     }
 
     public void loadFakeLightingVariable(boolean useFakeLighting) {
-        super.loadBoolean(location_useFakeLighting, useFakeLighting);
+        loadBoolean(location_useFakeLighting, useFakeLighting);
     }
 
     public void loadShineVariables(float damper, float reflectivity) {
-        super.loadFloat(location_shineDamper, damper);
-        super.loadFloat(location_reflectivity, reflectivity);
+        loadFloat(location_shineDamper, damper);
+        loadFloat(location_reflectivity, reflectivity);
     }
 
     public void loadTransformationMatrix(Matrix4f matrix) {
-        super.loadMatrix(location_transformationMatrix, matrix);
+        loadMatrix(location_transformationMatrix, matrix);
     }
 
     public void loadProjectionMatrix(Matrix4f matrix) {
-        super.loadMatrix(location_projectionMatrix, matrix);
+        loadMatrix(location_projectionMatrix, matrix);
     }
 
     public void loadLights(Set<GameObject> lights) {
@@ -106,22 +106,22 @@ public class StaticShader extends ShaderProgram {
         int i = 0;
         while (iterator.hasNext()) {
             GameObject light = iterator.next();
-            super.loadVector(location_lightPosition[i], light.getComponent(PositionComponent.class).getPosition());
-            super.loadVector(location_lightColor[i], light.getComponent(ColorComponent.class).getColor());
-            super.loadVector(location_attenuation[i],
+            loadVector(location_lightPosition[i], light.getComponent(PositionComponent.class).getPosition());
+            loadVector(location_lightColor[i], light.getComponent(ColorComponent.class).getColor());
+            loadVector(location_attenuation[i],
                     light.getComponent(AttenuationComponent.class).getAttenuation());
             i++;
         }
         for (; i < MAX_LIGHTS; i++) {
-            super.loadVector(location_lightPosition[i], new Vector3f(0, 0, 0));
-            super.loadVector(location_lightColor[i], new Vector3f(0, 0, 0));
-            super.loadVector(location_attenuation[i], new Vector3f(1, 0, 0));
+            loadVector(location_lightPosition[i], new Vector3f(0, 0, 0));
+            loadVector(location_lightColor[i], new Vector3f(0, 0, 0));
+            loadVector(location_attenuation[i], new Vector3f(1, 0, 0));
 
         }
     }
 
     public void loadViewMatrix() {
         Matrix4f matrix = Camera.getInstance().getViewMatrix();
-        super.loadMatrix(location_viewMatrix, matrix);
+        loadMatrix(location_viewMatrix, matrix);
     }
 }

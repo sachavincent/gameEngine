@@ -1,20 +1,25 @@
 package scene.components;
 
-import entities.Model;
+import entities.ModelEntity;
+import models.Model;
 
 public class SingleModelComponent extends Component {
 
-    protected Model model;
+    protected ModelEntity modelEntity;
+
+    public SingleModelComponent(ModelEntity modelEntity) {
+        this.modelEntity = modelEntity;
+    }
 
     public SingleModelComponent(Model model) {
-        this.model = model;
+        this(model.toModelEntity());
     }
 
-    public Model getModel() {
-        return this.model;
+    public ModelEntity getModel() {
+        return this.modelEntity;
     }
 
-    public void setModel(Model model) {
-        this.model = model;
+    public void setModel(ModelEntity modelEntity) {
+        this.modelEntity = modelEntity;
     }
 }

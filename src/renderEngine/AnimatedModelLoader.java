@@ -2,15 +2,15 @@ package renderEngine;
 
 import animation.Joint;
 import java.io.File;
-import models.AnimatedTexturedModel;
+import models.AnimatedModel;
 import textures.ModelTexture;
-import util.ModelType;
 import util.Vao;
-import util.colladaParser.colladaLoader.ColladaLoader;
-import util.colladaParser.dataStructures.AnimatedModelData;
-import util.colladaParser.dataStructures.JointData;
-import util.colladaParser.dataStructures.MeshData;
-import util.colladaParser.dataStructures.SkeletonData;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.colladaLoader.ColladaLoader;
+import util.parsing.colladaParser.dataStructures.AnimatedModelData;
+import util.parsing.colladaParser.dataStructures.JointData;
+import util.parsing.colladaParser.dataStructures.MeshData;
+import util.parsing.colladaParser.dataStructures.SkeletonData;
 
 public class AnimatedModelLoader {
 
@@ -21,17 +21,16 @@ public class AnimatedModelLoader {
      *
      * @return The animated entity (no animation applied though)
      */
-    public static AnimatedTexturedModel loadEntity(String model, String texture, ModelType modelType) {
-        File modelFile = new File("res/" + model);
-        File textureFile = new File("res/" + texture);
+    public static AnimatedModel loadEntity(File modelFile, File textureFile, ModelType modelType) {
         AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, 3);
         MeshData meshData = entityData.getMeshData();
         Vao modelVao = Vao.createVao(entityData.getMeshData(), modelType);
         SkeletonData skeletonData = entityData.getJointsData();
         Joint headJoint = createJoints(skeletonData.headJoint);
-        AnimatedTexturedModel animatedTexturedModel = new AnimatedTexturedModel(modelVao,
-                new ModelTexture(textureFile.getName()), headJoint, skeletonData.jointCount);
-        animatedTexturedModel.setIndicesLength(meshData.getIndices().length);
+        AnimatedModel animatedTexturedModel = new AnimatedModel(modelVao, ModelTexture.createTexture(textureFile),
+                headJoint, skeletonData.jointCount);
+        animatedTexturedModel.setIndicesLength(meshData.getIndicesList().values().stream().findFirst()
+                .get().length);//TODO: Definitely wrong if multiple materials...
         return animatedTexturedModel;
     }
 

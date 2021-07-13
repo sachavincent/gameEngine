@@ -6,14 +6,14 @@ import entities.Camera.Direction;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import models.TexturedModel;
+import models.Model;
 import pathfinding.NodeRoad;
 import pathfinding.RoadGraph;
 import renderEngine.PathRenderer;
 import renderEngine.Renderer;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.*;
-import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import scene.gameObjects.Route;
@@ -153,10 +153,11 @@ public class Scene {
         if (!Player.hasSelectedGameObject())
             return;
         GameObject gameObject = GameObject.getObjectFromClass(Player.getSelectedGameObject());
-        if (gameObject == null || !gameObject.hasComponent(PreviewComponent.class))
+        if (gameObject == null)
             return;
         gameObject.addComponent(new DirectionComponent(Player.getDirection()));
-        gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint.toVector3f());
+        if (gameObject.hasComponent(PreviewComponent.class))
+            gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint.toVector3f());
         addRenderableGameObject(gameObject.getComponent(RendererComponent.class).getRenderer(), gameObject);
         this.previewedGameObjects.put(gameObject.getId(), gameObject);
     }
@@ -293,8 +294,8 @@ public class Scene {
         if (objectToPlace == null)
             return false;
 
-        if (objectToPlace.hasComponent(RequirementComponent.class)) {
-            RequirementComponent component = objectToPlace.getComponent(RequirementComponent.class);
+        if (objectToPlace.hasComponent(ResourceRequirementComponent.class)) {
+            ResourceRequirementComponent component = objectToPlace.getComponent(ResourceRequirementComponent.class);
             component.getPlacingRequirements().keySet().forEach(component::clearRequirement);
             if (component.getPlacingRequirements().keySet().stream()
                     .anyMatch(requirement -> !requirement.isRequirementMet(objectToPlace)))
@@ -372,8 +373,8 @@ public class Scene {
 
         this.gameObjects.put(gameObject.getId(), gameObject);
 
-        if (gameObject.hasComponent(RequirementComponent.class)) {
-            RequirementComponent component = gameObject.getComponent(RequirementComponent.class);
+        if (gameObject.hasComponent(ResourceRequirementComponent.class)) {
+            ResourceRequirementComponent component = gameObject.getComponent(ResourceRequirementComponent.class);
             component.getPlacingRequirements().keySet().forEach(component::meetRequirement);
         }
         return true;
@@ -511,7 +512,7 @@ public class Scene {
         System.out.println("Updating everything");
         //TODO: If new road is not connected to anything, stop
         BuildingRequirementsService service = new BuildingRequirementsService(
-                Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false), result -> {
+                Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false), result -> {
             PathRenderer pathRenderer = PathRenderer.getInstance();
             if (result.keySet().equals(pathRenderer.getTempPathsList().keySet())) // No new paths
                 return;
@@ -541,7 +542,7 @@ public class Scene {
         PathRenderer.getInstance().getTempPathsList().forEach((path, color) -> {
             Vao vao = path.createVao();
             if (vao != null) {
-                TexturedModel model = new TexturedModel(vao);
+                Model model = new Model(vao);
                 model.setModelTexture(new ModelTexture(Utils.encodeColor(color)));
                 Route route = new Route(model);
             }

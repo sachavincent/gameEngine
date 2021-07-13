@@ -287,7 +287,15 @@ public class MouseUtils {
                     }
                     break;
                 default:
-                    System.err.println("Unknown button");
+                    boolean handled = false;
+                    if (inGui)
+                        handled = clickableComponents.stream().filter(component ->
+                                component.onMousePress(button)).count() > 0;
+                    if (!handled) {
+                        Key keyFromInput = Key.getKeyFromInput(new KeyInput((char) button));
+                        if (keyFromInput != null)
+                            keyFromInput.on(action);
+                    }
                     break;
             }
         });

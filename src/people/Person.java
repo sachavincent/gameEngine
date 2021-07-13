@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import people.SocialClass.PersonalResourceInfos;
@@ -83,5 +84,14 @@ public class Person {
         }
 
         return enumMap;
+    }
+
+    public static Map<Resource, Double> getResourcesProduced(EnumMap<SocialClass, List<Person>> persons) {
+        List<Person> peopleList = persons.values().stream().flatMap(List::stream).collect(Collectors.toList());
+
+        return peopleList.stream()
+                .map(person -> person.getSocialClass().getResourceProduction())
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, Double::sum));
     }
 }

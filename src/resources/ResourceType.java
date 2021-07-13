@@ -4,5 +4,6 @@ public enum ResourceType {
     INGREDIENT,
     FOOD,
     BEVERAGE,
-    SOCIAL
+    SOCIAL,
+    MONEY
 }

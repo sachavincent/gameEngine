@@ -1,6 +1,7 @@
 package util;
 
 import static renderEngine.DisplayManager.FRAMERATE_INFINITE;
+import static util.Utils.ASSETS_PATH;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,16 +18,11 @@ import renderEngine.DisplayManager.Resolution;
 
 public class SettingsManager {
 
-    public final static String SETTINGS_FILE = "assets/settings.conf";
+    public final static String SETTINGS_FILE = "settings.conf";
 
     public static void loadSettings() {
-        FileReader fileReader;
-        BufferedReader bufferedReader = null;
-        try {
-            fileReader = new FileReader(SETTINGS_FILE);
-            bufferedReader = new BufferedReader(fileReader);
-
-            String line = bufferedReader.readLine();
+        try (BufferedReader reader = new BufferedReader(new FileReader(ASSETS_PATH + "/" + SETTINGS_FILE))) {
+            String line = reader.readLine();
             do {
                 String[] parameters = line.split("=");
                 String name = parameters[0];
@@ -37,69 +33,39 @@ public class SettingsManager {
                     continue;
 
                 option.setValue(value);
-            } while ((line = bufferedReader.readLine()) != null);
+            } while ((line = reader.readLine()) != null);
         } catch (IOException | IndexOutOfBoundsException e) {
             e.printStackTrace();
             resetSettings();
         } finally {
-            try {
-                if (bufferedReader != null)
-                    bufferedReader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             DisplayManager.showWindow();
         }
     }
 
     public static void saveSettings() {
-        FileWriter fileWriter;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter(SETTINGS_FILE, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ASSETS_PATH + "/" + SETTINGS_FILE, false))) {
             for (Option<?> option : Option.OPTIONS) {
                 if (!option.equals(Option.OPTIONS.get(0)))
-                    bufferedWriter.newLine();
-                bufferedWriter.write(option.name + "=" + option.getCallback.onOptionGet().toString());
+                    writer.newLine();
+                writer.write(option.name + "=" + option.getCallback.onOptionGet().toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
             resetSettings();
-        } finally {
-            try {
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public static void resetSettings() {
-        FileWriter fileWriter;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter(SETTINGS_FILE, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ASSETS_PATH + "/" + SETTINGS_FILE, false))) {
             for (Option<?> option : Option.OPTIONS) {
                 option.reset();
 
                 if (!option.equals(Option.OPTIONS.get(0)))
-                    bufferedWriter.newLine();
-                bufferedWriter.write(option.name + "=" + option.defaultValue);
+                    writer.newLine();
+                writer.write(option.name + "=" + option.defaultValue);
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 

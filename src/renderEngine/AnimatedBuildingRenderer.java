@@ -1,53 +1,48 @@
 package renderEngine;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL31.glDrawElementsInstanced;
 import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
 import entities.Camera;
-import entities.Camera.Direction;
 import entities.Entity;
-import entities.Model;
+import entities.ModelEntity;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
-import models.AnimatedTexturedModel;
-import models.TexturedModel;
+import models.AnimatedModel;
+import models.Model;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 import renderEngine.shaders.AnimatedGameObjectShader;
 import scene.Scene;
-import scene.components.*;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
-import textures.ModelTexture;
 import util.Vao;
+import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
-import util.math.Vector3f;
 
 public class AnimatedBuildingRenderer extends Renderer {
 
     // TODO: 10000 = max instances
     private static FloatBuffer floatBuffer = MemoryUtil.memAllocFloat(10000 * 16);
 
-    protected final Map<AnimatedTexturedModel, List<Model>> renderModels       = new HashMap<>();
-    private final   Map<Integer, Entity>                    renderableEntities = new HashMap<>();
+    protected final Map<Model, List<ModelEntity>> renderModels       = new HashMap<>();
+    private final   Map<Integer, Entity>          renderableEntities = new HashMap<>();
 
 //    private final Query query;
 
@@ -141,8 +136,8 @@ public class AnimatedBuildingRenderer extends Renderer {
     }
 
     private void addModelToRender(Entity entity) {
-        entity.getModels().forEach(model -> {
-            AnimatedTexturedModel texturedModel = (AnimatedTexturedModel) model.getTexturedModel();
+        entity.getModelEntities().forEach(model -> {
+            Model texturedModel = model.getModel();
             if (!this.renderModels.containsKey(texturedModel))
                 this.renderModels.put(texturedModel, new ArrayList<>());
             this.renderModels.get(texturedModel).add(model);
@@ -153,99 +148,100 @@ public class AnimatedBuildingRenderer extends Renderer {
         if (gameObject == null)
             return null;
 
-        if (this.displayBoundingBoxes && !gameObject.hasComponent(BoundingBoxComponent.class))
+//        if (this.displayBoundingBoxes && !gameObject.hasComponent(BoundingBoxComponent.class))
             return null;
 
-        TerrainPosition position = null;
-        PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
-        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
-        boolean preview = false;
-        if (previewComponent != null && previewComponent.getPreviewPosition() != null) {
-            Vector3f pos = previewComponent.getPreviewPosition(); // = null if no preview
-            if (pos != null) {
-                preview = true;
-                position = pos.toTerrainPosition();
-            }
-        } else if (positionComponent != null)
-            position = positionComponent.getPosition().toTerrainPosition();
-
-        if (position == null)
-            return null;
-        Vector3f pos = position.toVector3f();
-        if (gameObject.hasComponent(OffsetComponent.class))
-            pos = pos.add(gameObject.getComponent(OffsetComponent.class).getOffset());
-
-        float scale = gameObject.hasComponent(ScaleComponent.class) ? gameObject
-                .getComponent(ScaleComponent.class).getScale() : 1;
-        Direction direction =
-                gameObject.hasComponent(DirectionComponent.class) ? gameObject.getComponent(DirectionComponent.class)
-                        .getDirection() : Direction.defaultDirection();
-
-        Entity entity;
-        if (gameObject.hasComponent(AnimatedModelComponent.class) || this.displayBoundingBoxes) {
-            TexturedModel model;
-            if (preview)
-                model = previewComponent.getTexture();
-            else if (this.displayBoundingBoxes)
-                model = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox();
-            else
-                model = gameObject.getComponent(AnimatedModelComponent.class).getModel().getTexturedModel();
-
-            entity = new Entity(new Model(pos, direction, scale, model));
-        } else if (gameObject.hasComponent(MultipleModelsComponent.class)) {
-            if (preview)
-                entity = new Entity(new Model(pos, direction, scale, previewComponent.getTexture()));
-            else {
-                Vector3f finalPos = pos;
-                MultipleModelsComponent multipleModelsComponent = gameObject
-                        .getComponent(MultipleModelsComponent.class);
-                Map<String, Model> concurrentModels = multipleModelsComponent.getConcurrentModels();
-                List<Model> models = concurrentModels.values().stream().map(Model::new).peek(model -> {
-                    Vector3f modelPosition = model.getPosition();
-                    switch (direction) {
-                        case NORTH:
-                            break;
-                        case WEST:
-                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, modelPosition.z);
-                            break;
-                        case SOUTH:
-                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, -modelPosition.z);
-                            break;
-                        case EAST:
-                            modelPosition = new Vector3f(modelPosition.x, modelPosition.y, -modelPosition.z);
-                            break;
-                    }
-                    model.setPosition(modelPosition.add(finalPos));
-                    model.setScale(model.getScale() + scale);
-                    if (!model.isFixedRotation()) {
-                        model.setRotation(model.getRotation().add(new Vector3f(0, direction.getDegree(), 0)));
-                    }
-                }).collect(Collectors.toList());
-                entity = new Entity(models);
-            }
-        } else {
-            return null;
-        }
-
-        entity.setPreview(preview);
-        return entity;
+//        TerrainPosition position = null;
+//        PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
+//        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
+//        boolean preview = false;
+//        if (previewComponent != null && previewComponent.getPreviewPosition() != null) {
+//            Vector3f pos = previewComponent.getPreviewPosition(); // = null if no preview
+//            if (pos != null) {
+//                preview = true;
+//                position = pos.toTerrainPosition();
+//            }
+//        } else if (positionComponent != null)
+//            position = positionComponent.getPosition().toTerrainPosition();
+//
+//        if (position == null)
+//            return null;
+//        Vector3f pos = position.toVector3f();
+//        if (gameObject.hasComponent(OffsetComponent.class))
+//            pos = pos.add(gameObject.getComponent(OffsetComponent.class).getOffset());
+//
+//        float scale = gameObject.hasComponent(ScaleComponent.class) ? gameObject
+//                .getComponent(ScaleComponent.class).getScale() : 1;
+//        Direction direction =
+//                gameObject.hasComponent(DirectionComponent.class) ? gameObject.getComponent(DirectionComponent.class)
+//                        .getDirection() : Direction.defaultDirection();
+//
+//        Entity entity;
+//        if (gameObject.hasComponent(AnimatedModelComponent.class) || this.displayBoundingBoxes) {
+//            Model model;
+//            if (preview)
+//                model = previewComponent.getTexture();
+//            else if (this.displayBoundingBoxes)
+//                model = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox();
+//            else
+//                model = gameObject.getComponent(AnimatedModelComponent.class).getModel().getModel();
+//
+//            entity = new Entity(new ModelEntity(pos, direction, scale, model));
+//        } else if (gameObject.hasComponent(MultipleModelsComponent.class)) {
+//            if (preview)
+//                entity = new Entity(new ModelEntity(pos, direction, scale, previewComponent.getTexture()));
+//            else {
+//                Vector3f finalPos = pos;
+//                MultipleModelsComponent multipleModelsComponent = gameObject
+//                        .getComponent(MultipleModelsComponent.class);
+//                Map<String, ModelEntity> concurrentModels = multipleModelsComponent.getConcurrentModels();
+//                List<ModelEntity> modelEntities = concurrentModels.values().stream().map(ModelEntity::new).peek(model -> {
+//                    Vector3f modelPosition = model.getPosition();
+//                    switch (direction) {
+//                        case NORTH:
+//                            break;
+//                        case WEST:
+//                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, modelPosition.z);
+//                            break;
+//                        case SOUTH:
+//                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, -modelPosition.z);
+//                            break;
+//                        case EAST:
+//                            modelPosition = new Vector3f(modelPosition.x, modelPosition.y, -modelPosition.z);
+//                            break;
+//                    }
+//                    model.setPosition(modelPosition.add(finalPos));
+//                    model.setScale(model.getScale() + scale);
+//                    if (!model.isFixedRotation()) {
+//                        model.setRotation(model.getRotation().add(new Vector3f(0, direction.getDegree(), 0)));
+//                    }
+//                }).collect(Collectors.toList());
+//                entity = new Entity(modelEntities);
+//            }
+//        } else {
+//            return null;
+//        }
+//
+//        entity.setPreview(preview);
+//        return entity;
     }
 
     @Override
     public void render() {
-        for (Entry<AnimatedTexturedModel, List<Model>> entry : this.renderModels.entrySet()) {
+        for (Entry<Model, List<ModelEntity>> entry : this.renderModels.entrySet()) {
             if (entry == null || entry.getKey() == null)
                 continue;
 
-            AnimatedTexturedModel texturedModel = entry.getKey();
+            Model texturedModel = entry.getKey();
 
             final Vao vao = texturedModel.getVao();
             if (vao.isInstanced()) {
                 int i = 0;
                 prepareTexturedModel(texturedModel, true);
-                for (Model model : entry.getValue()) {
+                for (ModelEntity modelEntity : entry.getValue()) {
                     Matrix4f transformationMatrix = Maths
-                            .createTransformationMatrix(model.getPosition(), model.getRotation(), model.getScale());
+                            .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(), modelEntity
+                                    .getScale());
                     try {
                         floatBuffer = transformationMatrix.store(i++ * 16, floatBuffer);
                     } catch (IndexOutOfBoundsException e) {
@@ -255,8 +251,8 @@ public class AnimatedBuildingRenderer extends Renderer {
 
                 glBindBuffer(GL_ARRAY_BUFFER, vao.getInstanceVbo().getId());
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                glDrawElementsInstanced(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0,
-                        entry.getValue().size());
+//                glDrawElementsInstanced(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0,
+//                        entry.getValue().size());
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
 
                 floatBuffer.clear();
@@ -264,8 +260,15 @@ public class AnimatedBuildingRenderer extends Renderer {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(model -> {
                     prepareInstance(model);
-                    GL11.glDrawElements(GL_TRIANGLES,
-                            ((AnimatedTexturedModel) model.getTexturedModel()).getIndicesLength(), GL_UNSIGNED_INT, 0);
+                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+                    int nbIndices;
+                    if (model.getModel() instanceof AnimatedModel)
+                        nbIndices = ((AnimatedModel) model.getModel()).getIndicesLength();
+                    else
+                        nbIndices = model.getModel().getVao().getIndexCount();
+                    
+//                    GL11.glDrawElements(GL_TRIANGLES, nbIndices, GL_UNSIGNED_INT, 0);
+                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
                 });
             }
             unbindTexturedModel();
@@ -291,54 +294,54 @@ public class AnimatedBuildingRenderer extends Renderer {
 
     }
 
-    private void prepareTexturedModel(TexturedModel texturedModel, boolean isInstanced) {
-        if (texturedModel == null)
+    private void prepareTexturedModel(Model model, boolean isInstanced) {
+//        if (model == null)
             throw new IllegalArgumentException("TexturedModel null");
-
-        Vao vao = texturedModel.getVao();
-        ModelTexture texture = texturedModel.getModelTexture();
-        boolean useNormalMap = texture.getNormalMap() != -1;
-
-        GL30.glBindVertexArray(vao.getId());
-
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-        GL20.glEnableVertexAttribArray(2);
-        if (texturedModel instanceof AnimatedTexturedModel) {
-            GL20.glEnableVertexAttribArray(4);
-            GL20.glEnableVertexAttribArray(5);
-        }
-        if (useNormalMap)
-            GL20.glEnableVertexAttribArray(3);
-        if (isInstanced)
-            GL20.glEnableVertexAttribArray(6);
-
-        ((AnimatedGameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
-        if (texture.isTransparent())
-            MasterRenderer.disableCulling();
-
-        ((AnimatedGameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
-        ((AnimatedGameObjectShader) this.shader).loadUseNormalMap(useNormalMap);
-        ((AnimatedGameObjectShader) this.shader)
-                .loadLights(useNormalMap, LightRenderer.getInstance().getGameObjects(),
-                        Camera.getInstance().getViewMatrix());
-        ((AnimatedGameObjectShader) this.shader)
-                .loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
-        ((AnimatedGameObjectShader) this.shader).loadIsInstanced(isInstanced);
-        ((AnimatedGameObjectShader) this.shader).loadAlpha(texture.getAlpha());
-        ((AnimatedGameObjectShader) this.shader).loadColor(texture.getColor());
-        if (texturedModel instanceof AnimatedTexturedModel)
-            ((AnimatedGameObjectShader) this.shader)
-                    .loadJointTransforms(Arrays.asList(((AnimatedTexturedModel) texturedModel).getJointTransforms()));
-
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
-        if (useNormalMap) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE1);
-            GL13.glBindTexture(GL_TEXTURE_2D, texture.getNormalMap());
-        }
-        if (texture.isTransparent())
-            MasterRenderer.enableCulling(); // Reenable culling
+//
+//        Vao vao = model.getVao();
+//        ModelTexture texture = model.getModelFile();
+//        boolean useNormalMap = texture.getNormalMap() != -1;
+//
+//        GL30.glBindVertexArray(vao.getId());
+//
+//        GL20.glEnableVertexAttribArray(0);
+//        GL20.glEnableVertexAttribArray(1);
+//        GL20.glEnableVertexAttribArray(2);
+//        if (model instanceof AnimatedModel) {
+//            GL20.glEnableVertexAttribArray(4);
+//            GL20.glEnableVertexAttribArray(5);
+//        }
+//        if (useNormalMap)
+//            GL20.glEnableVertexAttribArray(3);
+//        if (isInstanced)
+//            GL20.glEnableVertexAttribArray(6);
+//
+//        ((AnimatedGameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
+//        if (texture.isTransparent())
+//            MasterRenderer.disableCulling();
+//
+//        ((AnimatedGameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
+//        ((AnimatedGameObjectShader) this.shader).loadUseNormalMap(useNormalMap);
+//        ((AnimatedGameObjectShader) this.shader)
+//                .loadLights(useNormalMap, LightRenderer.getInstance().getGameObjects(),
+//                        Camera.getInstance().getViewMatrix());
+//        ((AnimatedGameObjectShader) this.shader)
+//                .loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
+//        ((AnimatedGameObjectShader) this.shader).loadIsInstanced(isInstanced);
+//        ((AnimatedGameObjectShader) this.shader).loadAlpha(texture.getAlpha());
+//        ((AnimatedGameObjectShader) this.shader).loadColor(texture.getColor());
+//        if (model instanceof AnimatedModel)
+//            ((AnimatedGameObjectShader) this.shader)
+//                    .loadJointTransforms(Arrays.asList(((AnimatedModel) model).getJointTransforms()));
+//
+//        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
+//        if (useNormalMap) {
+//            GL13.glActiveTexture(GL13.GL_TEXTURE1);
+//            GL13.glBindTexture(GL_TEXTURE_2D, texture.getNormalMap());
+//        }
+//        if (texture.isTransparent())
+//            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     @Override
@@ -359,14 +362,13 @@ public class AnimatedBuildingRenderer extends Renderer {
         GL30.glBindVertexArray(0);
     }
 
-    private void prepareInstance(Model model) {
+    private void prepareInstance(ModelEntity modelEntity) {
         Matrix4f transformationMatrix = Maths
-                .createTransformationMatrix(model.getPosition(), model.getRotation(), model.getScale());
+                .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(), modelEntity.getScale());
 
         if (transformationMatrix == null)
             return;
 
         ((AnimatedGameObjectShader) this.shader).loadTransformationMatrix(transformationMatrix);
-        ((AnimatedGameObjectShader) this.shader).loadOffset(model.getTextureXOffset(), model.getTextureYOffset());
     }
 }

@@ -102,6 +102,19 @@ public class Text {
         this(word.toString(), fontSize, font, null, 1.0f, true, color);
     }
 
+    private Text(Text text) {
+        this(text.getTextString(), text.getFontSize(), text.getFont(), text.getPosition(), text.getMaxLineLength(),
+                text.isCenteredHorizontally(), text.isCenteredVertically(), text.getCharWidth(),
+                text.getEdgeCharWidth(),
+                text.getColors());
+        setStringChanged(text.isStringChanged());
+        setUpperCase(text.isUpperCase());
+        setMaxLines(text.getMaxLines());
+        this.lines = text.lines;
+        this.colors = text.getColors();
+        this.yOffset = text.getyOffset();
+    }
+
     /**
      * Get width of given character
      *
@@ -290,14 +303,16 @@ public class Text {
     }
 
     public void setTextString(String textString) {
-        this.textString = textString;
-        this.lines = font.getLoader().getLines(this);
+        if (textString != null) {
+            this.textString = textString;
+            this.lines = font.getLoader().getLines(this);
 
-        this.stringChanged = true;
+            this.stringChanged = true;
+        }
     }
 
     public void addTextString(String textString, Color color) {
-        if (textString.isEmpty() || textString.matches("[\\n\\r]+"))
+        if (textString == null || textString.isEmpty() || textString.matches("[\\n\\r]+"))
             return;
 
         this.textString = this.textString + textString;
@@ -424,5 +439,9 @@ public class Text {
 
     public void setMaxLines(int maxLines) {
         this.maxLines = maxLines;
+    }
+
+    public Text copy() {
+        return new Text(this);
     }
 }

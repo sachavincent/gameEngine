@@ -5,11 +5,11 @@ import static util.math.Maths.manhattanDistance;
 import java.util.*;
 import java.util.stream.Collectors;
 import terrains.TerrainPosition;
-import util.ModelType;
 import util.Vao;
-import util.colladaParser.dataStructures.MeshData;
 import util.math.Vector2f;
 import util.math.Vector3f;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.dataStructures.MeshData;
 
 public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Path> {
 
@@ -230,7 +230,7 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
     public Vao createVao() {
         if (this.pathCoordinates != null) {
             return Vao.createVao(new MeshData(this.pathCoordinates.getPositions(), new float[]{0}, new float[]{0, 1, 0},
-                    this.pathCoordinates.getIndices()), ModelType.NORMAL);
+                    this.pathCoordinates.getIndices()), ModelType.DEFAULT);
         }
         return null;
     }

@@ -1,5 +1,7 @@
 package language;
 
+import static util.Utils.ASSETS_PATH;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class TextConverter {
         }
 
         try (BufferedReader bufferedReader = new BufferedReader(
-                new FileReader("assets/" + lang.getLang() + ".conf"))) {
+                new FileReader(ASSETS_PATH + "/" + lang.getLang() + ".conf"))) {
 
             String word;
             currentLanguage = new HashMap<>();

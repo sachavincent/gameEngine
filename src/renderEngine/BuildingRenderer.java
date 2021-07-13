@@ -1,11 +1,9 @@
 package renderEngine;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW;
-import static org.lwjgl.opengl.GL15C.glBindBuffer;
-import static org.lwjgl.opengl.GL15C.glBufferData;
-import static org.lwjgl.opengl.GL31C.glDrawElementsInstanced;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
+import static org.lwjgl.opengl.GL15.glBufferData;
 import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
@@ -13,7 +11,7 @@ import static renderEngine.MasterRenderer.RED;
 import entities.Camera;
 import entities.Camera.Direction;
 import entities.Entity;
-import entities.Model;
+import entities.ModelEntity;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,12 +20,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import models.TexturedModel;
+import models.Model;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL46;
 import org.lwjgl.system.MemoryUtil;
 import renderEngine.shaders.GameObjectShader;
 import scene.Scene;
@@ -36,19 +32,23 @@ import scene.gameObjects.GameObject;
 import terrains.TerrainPosition;
 import textures.ModelTexture;
 import util.Vao;
+import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
+import util.parsing.ModelType;
+import util.parsing.objParser.Material;
 
 public class BuildingRenderer extends Renderer {
 
     // TODO: 10000 = max instances
     private static FloatBuffer floatBuffer = MemoryUtil.memAllocFloat(10000 * 16);
 
-    protected final Map<TexturedModel, List<Model>> renderModels       = new HashMap<>();
-    private final   Map<Integer, Entity>            renderableEntities = new HashMap<>();
+    //    protected final Map<TexturedModel, List<Model>> renderModels       = new HashMap<>();
+    protected final Map<Model, List<ModelEntity>> renderModels       = new HashMap<>();
+    private final   Map<Integer, Entity>          renderableEntities = new HashMap<>();
 
-    private final Query query;
+//    private final Query query;
 
     private static BuildingRenderer instance;
 
@@ -58,7 +58,7 @@ public class BuildingRenderer extends Renderer {
 
     private BuildingRenderer() {
         super(new GameObjectShader());
-        this.query = new Query(GL33.GL_ANY_SAMPLES_PASSED);
+//        this.query = new Query(GL33.GL_ANY_SAMPLES_PASSED);
         this.shader.start();
         ((GameObjectShader) this.shader).loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
         ((GameObjectShader) this.shader).connectTextureUnits();
@@ -66,61 +66,62 @@ public class BuildingRenderer extends Renderer {
     }
 
     public void doZPass(Set<GameObject> gameObjects) {
-        Set<GameObject> newGameObjects = this.query.initNewGameObjects(gameObjects);
+//        Set<GameObject> newGameObjects = this.query.initNewGameObjects(gameObjects);
+        Set<GameObject> newGameObjects = gameObjects;
 
         GameObject gameObject;
-        if (this.query.isResultReady() || !this.query.isInUse()) {
-            int visibleSamples = this.query.getResult();
-            int id = this.query.getCandidateId();
-            Entity candidateEntity = this.query.getCandidateEntity();
-            if (visibleSamples > 0 && (!this.renderableEntities.containsKey(id) ||
-                    !this.renderableEntities.get(id).equals(candidateEntity))) {
-                this.renderableEntities.put(id, candidateEntity);
-            } else if (visibleSamples == 0 && this.renderableEntities.containsKey(id)) {
-                this.renderableEntities.remove(id);
-            }
-        }
+//        if (this.query.isResultReady() || !this.query.isInUse()) {
+//            int visibleSamples = this.query.getResult();
+//            int id = this.query.getCandidateId();
+//            Entity candidateEntity = this.query.getCandidateEntity();
+//            if (visibleSamples > 0 && (!this.renderableEntities.containsKey(id) ||
+//                    !this.renderableEntities.get(id).equals(candidateEntity))) {
+//                this.renderableEntities.put(id, candidateEntity);
+//            } else if (visibleSamples == 0 && this.renderableEntities.containsKey(id)) {
+//                this.renderableEntities.remove(id);
+//            }
+//        }
         newGameObjects.forEach(newGameObject -> {
             Entity entityFromGameObject = createEntityFromGameObject(newGameObject);
             if (entityFromGameObject != null)
                 this.renderableEntities.put(newGameObject.getId(), entityFromGameObject);
         });
-        if (!this.query.isInUse()) {
-            glColorMask(false, false, false, false);
-            glDepthMask(false);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            this.shader.start();
-            Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
-            ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
-            gameObject = this.query.getBestUpdateCandidate();
-            if (gameObject != null && gameObject.hasComponent(BoundingBoxComponent.class)) {
-                boolean displayBoundingBoxes = this.displayBoundingBoxes;
-                this.displayBoundingBoxes = true;
-                Entity entity = createEntityFromGameObject(gameObject);
-                if (entity != null) {
-                    Entity zPassCopy = new Entity(entity);
-                    zPassCopy.getModels().forEach(model -> model.setScale(model.getScale() * 1.5f));
-
-                    this.displayBoundingBoxes = displayBoundingBoxes;
-                    if (!displayBoundingBoxes) {
-                        entity = createEntityFromGameObject(gameObject);
-                    }
-                    this.query.start(gameObject.getId(), entity);
-                    zPassCopy.getModels().forEach(zPassModel -> {
-                        prepareTexturedModel(zPassModel.getTexturedModel(), false);
-                        Entity zPassModelEntity = new Entity(zPassCopy);
-                        prepareInstance(zPassModel);
-                        glDrawElements(GL_TRIANGLES, zPassModel.getTexturedModel().getVao().getIndexCount(),
-                                GL_UNSIGNED_INT, 0);
-                    });
-                    this.query.stop();
-                }
-            }
-            this.shader.stop();
-            glColorMask(true, true, true, true);
-            glDepthMask(true);
-        }
+//        if (!this.query.isInUse()) {
+//            glColorMask(false, false, false, false);
+//            glDepthMask(false);
+//            glEnable(GL_BLEND);
+//            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//            this.shader.start();
+//            Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
+//            ((GameObjectShader) this.shader).loadViewMatrix(viewMatrix);
+//            gameObject = this.query.getBestUpdateCandidate();
+//            if (gameObject != null && gameObject.hasComponent(BoundingBoxComponent.class)) {
+//                boolean displayBoundingBoxes = this.displayBoundingBoxes;
+//                this.displayBoundingBoxes = true;
+//                Entity entity = createEntityFromGameObject(gameObject);
+//                if (entity != null) {
+//                    Entity zPassCopy = new Entity(entity);
+////                    zPassCopy.getModels().forEach(model -> model.setScale(model.getScale() * 1.5f));
+//
+//                    this.displayBoundingBoxes = displayBoundingBoxes;
+//                    if (!displayBoundingBoxes) {
+//                        entity = createEntityFromGameObject(gameObject);
+//                    }
+//                    this.query.start(gameObject.getId(), entity);
+//                    zPassCopy.getModelEntities().forEach(zPassModel -> {
+//                        prepareTexturedModel(zPassModel.getModel(), false);
+//                        Entity zPassModelEntity = new Entity(zPassCopy);
+//                        prepareInstance(zPassModel);
+//                        glDrawElements(GL_TRIANGLES, zPassModel.getModel().getVao().getIndexCount(),
+//                                GL_UNSIGNED_INT, 0);
+//                    });
+//                    this.query.stop();
+//                }
+//            }
+//            this.shader.stop();
+//            glColorMask(true, true, true, true);
+//            glDepthMask(true);
+//        }
         this.renderableEntities.entrySet().removeIf(entry -> entry.getValue().isPreview() &&
                 !Scene.getInstance().getPreviewedGameObjects().containsKey(entry.getKey()));
         this.renderableEntities.forEach((id, entity) -> {
@@ -130,15 +131,15 @@ public class BuildingRenderer extends Renderer {
 
     public void removeGameObject(GameObject gameObject) {
         this.renderableEntities.remove(gameObject.getId());
-        this.query.getLastUpdateTimes().remove(gameObject.getId());
+//        this.query.getLastUpdateTimes().remove(gameObject.getId());
     }
 
     private void addModelToRender(Entity entity) {
-        entity.getModels().forEach(model -> {
-            TexturedModel texturedModel = model.getTexturedModel();
-            if (!this.renderModels.containsKey(texturedModel))
-                this.renderModels.put(texturedModel, new ArrayList<>());
-            this.renderModels.get(texturedModel).add(model);
+        entity.getModelEntities().forEach(modelEntity -> {
+            Model model = modelEntity.getModel();
+            if (!this.renderModels.containsKey(model))
+                this.renderModels.put(model, new ArrayList<>());
+            this.renderModels.get(model).add(modelEntity);
         });
     }
 
@@ -176,45 +177,46 @@ public class BuildingRenderer extends Renderer {
 
         Entity entity;
         if (gameObject.hasComponent(SingleModelComponent.class) || this.displayBoundingBoxes) {
-            TexturedModel model;
+            ModelEntity modelEntity;
             if (preview)
-                model = previewComponent.getTexture();
+                modelEntity = previewComponent.getTexture();
             else if (this.displayBoundingBoxes)
-                model = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox();
+                modelEntity = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox().toModelEntity();
             else
-                model = gameObject.getComponent(SingleModelComponent.class).getModel().getTexturedModel();
+                modelEntity = gameObject.getComponent(SingleModelComponent.class).getModel();
 
-            entity = new Entity(new Model(pos, direction, scale, model));
+            entity = new Entity(new ModelEntity(pos, direction, scale, modelEntity.getModel()));
         } else if (gameObject.hasComponent(MultipleModelsComponent.class)) {
             if (preview)
-                entity = new Entity(new Model(pos, direction, scale, previewComponent.getTexture()));
+                entity = new Entity(new ModelEntity(pos, direction, scale, previewComponent.getTexture().getModel()));
             else {
                 Vector3f finalPos = pos;
                 MultipleModelsComponent multipleModelsComponent = gameObject
                         .getComponent(MultipleModelsComponent.class);
-                Map<String, Model> concurrentModels = multipleModelsComponent.getConcurrentModels();
-                List<Model> models = concurrentModels.values().stream().map(Model::new).peek(model -> {
-                    Vector3f modelPosition = model.getPosition();
-                    switch (direction) {
-                        case NORTH:
-                            break;
-                        case WEST:
-                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, modelPosition.z);
-                            break;
-                        case SOUTH:
-                            modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, -modelPosition.z);
-                            break;
-                        case EAST:
-                            modelPosition = new Vector3f(modelPosition.x, modelPosition.y, -modelPosition.z);
-                            break;
-                    }
-                    model.setPosition(modelPosition.add(finalPos));
-                    model.setScale(model.getScale() + scale);
-                    if (!model.isFixedRotation()) {
-                        model.setRotation(model.getRotation().add(new Vector3f(0, direction.getDegree(), 0)));
-                    }
-                }).collect(Collectors.toList());
-                entity = new Entity(models);
+                Map<String, ModelEntity> concurrentModels = multipleModelsComponent.getConcurrentModels();
+                List<ModelEntity> modelEntities = concurrentModels.values().stream().map(ModelEntity::new)
+                        .peek(model -> {
+                            Vector3f modelPosition = model.getPosition();
+                            switch (direction) {
+                                case NORTH:
+                                    break;
+                                case WEST:
+                                    modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, modelPosition.z);
+                                    break;
+                                case SOUTH:
+                                    modelPosition = new Vector3f(-modelPosition.x, modelPosition.y, -modelPosition.z);
+                                    break;
+                                case EAST:
+                                    modelPosition = new Vector3f(modelPosition.x, modelPosition.y, -modelPosition.z);
+                                    break;
+                            }
+                            model.setPosition(modelPosition.add(finalPos));
+                            model.setScale(model.getScale() + scale);
+                            if (!model.isFixedRotation()) {
+                                model.setRotation(model.getRotation().add(new Vector3f(0, direction.getDegree(), 0)));
+                            }
+                        }).collect(Collectors.toList());
+                entity = new Entity(modelEntities);
             }
         } else {
             return null;
@@ -226,46 +228,91 @@ public class BuildingRenderer extends Renderer {
 
     @Override
     public void render() {
-        for (Entry<TexturedModel, List<Model>> entry : this.renderModels.entrySet()) {
+        for (Entry<Model, List<ModelEntity>> entry : this.renderModels.entrySet()) {
             if (entry == null || entry.getKey() == null)
                 continue;
 
-            TexturedModel texturedModel = entry.getKey();
+            Model model = entry.getKey();
+            List<Material> materials = model.getModelFile().getMTLFile().getMaterials();
 
-            final Vao vao = texturedModel.getVao();
+            final Vao vao = model.getVao();
+            ModelType modelType = vao.getModelType();
+            vao.bind(modelType.getAttributeNumbers());
             if (vao.isInstanced()) {
-                int i = 0;
-                prepareTexturedModel(texturedModel, true);
-                for (Model model : entry.getValue()) {
+                int k = 0;
+
+                for (ModelEntity modelEntity : entry.getValue()) {
                     Matrix4f transformationMatrix = Maths
-                            .createTransformationMatrix(model.getPosition(), model.getRotation(), model.getScale());
+                            .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(),
+                                    modelEntity.getScale());
                     try {
-                        floatBuffer = transformationMatrix.store(i++ * 16, floatBuffer);
+                        floatBuffer = transformationMatrix.store(k++ * 16, floatBuffer);
                     } catch (IndexOutOfBoundsException e) {
                         e.printStackTrace();
                     }
                 }
 
-                glBindBuffer(GL_ARRAY_BUFFER, vao.getInstanceVbo().getId());
+                vao.getInstanceVbo().bind();
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                glDrawElementsInstanced(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0,
-                        entry.getValue().size());
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+                for (Material material : materials) {
+                    Vbo vbo = vao.getIndexVbos().get(material);
+                    vbo.bind();
+                    int indicesCount = vbo.getDataLength();
+                    temp(material, true);
+                    GL46.glDrawElementsInstanced(GL_TRIANGLES, indicesCount,
+                            GL_UNSIGNED_INT, 0, entry.getValue().size());
+                    vbo.unbind();
+                }
+
+                vao.getInstanceVbo().unbind();
                 floatBuffer.clear();
             } else {
-                prepareTexturedModel(texturedModel, false);
-                entry.getValue().forEach(model -> {
-                    prepareInstance(model);
-                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
+                entry.getValue().forEach(modelEntity -> {
+                    prepareInstance(modelEntity);
+
+                    for (Material material : materials) {
+                        Vbo vbo = vao.getIndexVbos().get(material);
+                        vbo.bind();
+                        int indicesCount = vbo.getDataLength();
+                        temp(material, false);
+                        glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
+                        vbo.unbind();
+                    }
                 });
             }
+            vao.unbind(modelType.getAttributeNumbers());
             unbindTexturedModel();
         }
 
         this.renderModels.clear();
         this.shader.stop();
         glDisable(GL_BLEND);
+    }
+
+    void temp(Material material, boolean instanced) {
+        ModelTexture texture;
+        if (material.hasDiffuseMap())
+            texture = material.getDiffuseMap();
+        else
+            texture = ModelTexture.DEFAULT_MODEL;
+
+        ((GameObjectShader) this.shader).loadNumberOfRows(1);
+        if (texture.isTransparent())
+            MasterRenderer.disableCulling();
+
+        ((GameObjectShader) this.shader).loadUseFakeLighting(false);
+        ((GameObjectShader) this.shader)
+                .loadLights(material.hasNormalMap(), LightRenderer.getInstance().getGameObjects(),
+                        Camera.getInstance().getViewMatrix());
+        ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
+        ((GameObjectShader) this.shader).loadIsInstanced(instanced);
+        ((GameObjectShader) this.shader).loadAlpha(1);
+
+        ((GameObjectShader) this.shader).loadMaterial(material);
+
+        if (texture.isTransparent())
+            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     @Override
@@ -283,72 +330,72 @@ public class BuildingRenderer extends Renderer {
 
     }
 
-    private void prepareTexturedModel(TexturedModel texturedModel, boolean isInstanced) {
-        if (texturedModel == null)
-            throw new IllegalArgumentException("TexturedModel null");
-
-        Vao vao = texturedModel.getVao();
-        ModelTexture texture = texturedModel.getModelTexture();
-        boolean useNormalMap = texture.getNormalMap() != -1;
-
-        GL30.glBindVertexArray(vao.getId());
-
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-        GL20.glEnableVertexAttribArray(2);
-        if (useNormalMap)
-            GL20.glEnableVertexAttribArray(3);
-        if (isInstanced)
-            GL20.glEnableVertexAttribArray(6);
-
-        ((GameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
-        if (texture.isTransparent())
-            MasterRenderer.disableCulling();
-
-        ((GameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
-        ((GameObjectShader) this.shader).loadUseNormalMap(useNormalMap);
-        ((GameObjectShader) this.shader)
-                .loadLights(useNormalMap, LightRenderer.getInstance().getGameObjects(),
-                        Camera.getInstance().getViewMatrix());
-        ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
-        ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
-        ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());
-        ((GameObjectShader) this.shader).loadColor(texture.getColor());
-
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
-        if (useNormalMap) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE1);
-            GL13.glBindTexture(GL_TEXTURE_2D, texture.getNormalMap());
-        }
-        if (texture.isTransparent())
-            MasterRenderer.enableCulling(); // Reenable culling
+    private void prepareTexturedModel(Model model, boolean isInstanced) {
+//        if (model == null)
+//            throw new IllegalArgumentException("TexturedModel null");
+//
+//        Vao vao = model.getVao();
+//        ModelTexture texture = model.getModelFile();
+//
+//        GL30.glBindVertexArray(vao.getId());
+//
+//        GL20.glEnableVertexAttribArray(0);
+//        GL20.glEnableVertexAttribArray(1);
+//        GL20.glEnableVertexAttribArray(2);
+//        if (texture.doesUseNormalMap())
+//            GL20.glEnableVertexAttribArray(3);
+//        if (isInstanced)
+//            GL20.glEnableVertexAttribArray(6);
+//
+//        ((GameObjectShader) this.shader).loadNumberOfRows(texture.getNumberOfRows());
+//        if (texture.isTransparent())
+//            MasterRenderer.disableCulling();
+//
+//        ((GameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
+//        ((GameObjectShader) this.shader).loadUseNormalMap(texture.doesUseNormalMap());
+//        ((GameObjectShader) this.shader).loadUseSpecularMap(texture.doesUseSpecularMap());
+//        ((GameObjectShader) this.shader)
+//                .loadLights(texture.doesUseNormalMap(), LightRenderer.getInstance().getGameObjects(),
+//                        Camera.getInstance().getViewMatrix());
+//        ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
+//        ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
+//        ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());
+//        ((GameObjectShader) this.shader).loadColor(texture.getColor());
+//
+//        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
+//        if (texture.doesUseNormalMap()) {
+//            GL13.glActiveTexture(GL13.GL_TEXTURE1);
+//            GL13.glBindTexture(GL_TEXTURE_2D, texture.getNormalMap());
+//        }
+//        if (texture.doesUseSpecularMap()) {
+//            GL13.glActiveTexture(GL13.GL_TEXTURE2);
+//            GL13.glBindTexture(GL_TEXTURE_2D, texture.getSpecularMap());
+//        }
+//        if (texture.isTransparent())
+//            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     @Override
     protected void cleanUp() {
         super.cleanUp();
-        this.query.delete();
+//        this.query.delete();
     }
 
     private void unbindTexturedModel() {
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL20.glDisableVertexAttribArray(2);
-        GL20.glDisableVertexAttribArray(3);
-        GL20.glDisableVertexAttribArray(4);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
     }
 
-    private void prepareInstance(Model model) {
+    private void prepareInstance(ModelEntity modelEntity) {
         Matrix4f transformationMatrix = Maths
-                .createTransformationMatrix(model.getPosition(), model.getRotation(), model.getScale());
+                .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(),
+                        modelEntity.getScale());
 
         if (transformationMatrix == null)
             return;
 
         ((GameObjectShader) this.shader).loadTransformationMatrix(transformationMatrix);
-        ((GameObjectShader) this.shader).loadOffset(model.getTextureXOffset(), model.getTextureYOffset());
+        ((GameObjectShader) this.shader).loadOffset(0, 0);
     }
 }

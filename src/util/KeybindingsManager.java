@@ -1,5 +1,7 @@
 package util;
 
+import static util.Utils.ASSETS_PATH;
+
 import inputs.Key;
 import inputs.KeyInput;
 import inputs.KeyModifiers;
@@ -15,18 +17,13 @@ import renderEngine.DisplayManager;
 
 public class KeybindingsManager {
 
-    public final static String SETTINGS_FILE = "assets/keybindings.conf";
+    public final static String SETTINGS_FILE = "keybindings.conf";
 
     public static void loadKeyBindings() {
-        FileReader fileReader;
-        BufferedReader bufferedReader = null;
-        try {
-            fileReader = new FileReader(SETTINGS_FILE);
-            bufferedReader = new BufferedReader(fileReader);
+        try (BufferedReader reader = new BufferedReader(new FileReader(ASSETS_PATH + "/" + SETTINGS_FILE))) {
+            String line;
 
-            String line = bufferedReader.readLine();
-
-            do {
+            while ((line = reader.readLine()) != null) {
                 String[] parameters = line.split("=");
                 String name = parameters[0];
                 String value = parameters[1];
@@ -48,71 +45,41 @@ public class KeybindingsManager {
                     continue;
 
                 key.setValue(value);
-            } while ((line = bufferedReader.readLine()) != null);
-        } catch (IllegalArgumentException | IOException | IndexOutOfBoundsException e) {
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             resetKeyBindings();
         } finally {
-            try {
-                if (bufferedReader != null)
-                    bufferedReader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             DisplayManager.showWindow();
         }
     }
 
     public static void saveKeyBindings() {
-        FileWriter fileWriter;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter(SETTINGS_FILE, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ASSETS_PATH + "/" + SETTINGS_FILE, false))) {
             for (Key option : Key.KEYS) {
-                bufferedWriter.write(option.getName() + "=" + option.getKeyInput().formatKeyInput());
-                bufferedWriter.newLine();
+                writer.write(option.getName() + "=" + option.getKeyInput().formatKeyInput());
+                writer.newLine();
             }
 
-            bufferedWriter.write("layout=" + KeyboardLayout.getCurrentKeyboardLayout().name());
+            writer.write("layout=" + KeyboardLayout.getCurrentKeyboardLayout().name());
         } catch (IOException e) {
             e.printStackTrace();
             resetKeyBindings();
-        } finally {
-            try {
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public static void resetKeyBindings() {
-        FileWriter fileWriter;
-        BufferedWriter bufferedWriter = null;
-        try {
-            fileWriter = new FileWriter(SETTINGS_FILE, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ASSETS_PATH + "/" + SETTINGS_FILE, false))) {
             for (Key key : Key.KEYS) {
                 key.reset();
 
-                bufferedWriter.write(key.getName() + "=" + key.getDefaultKeyInput().formatKeyInput());
-                bufferedWriter.newLine();
+                writer.write(key.getName() + "=" + key.getDefaultKeyInput().formatKeyInput());
+                writer.newLine();
             }
 
-            bufferedWriter.write("layout=" + KeyboardLayout.getDefaultKeyboardLayout().name());
+            writer.write("layout=" + KeyboardLayout.getDefaultKeyboardLayout().name());
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -130,13 +97,17 @@ public class KeybindingsManager {
             if (key.length() == 1)
                 keyInput = new KeyInput(key.charAt(0), KeyModifiers.NONE); // Only one character
             else {
-                String[] split = key.split("\\+");
-                if (split.length == 2) { // Only one modifier
-                    keyInput = new KeyInput(split[1].charAt(0),
-                            KeyModifiers.getKeyModifierFromName(split[0]));
-                } else { // 2 modifiers
-                    keyInput = new KeyInput(split[2].charAt(0),
-                            KeyModifiers.getKeyModifierFromName(split[0] + "_" + split[1]));
+                if (key.matches("^MOUSEBUTTON[3-9]$")) {
+                    keyInput = new KeyInput((char) ((int) (key.charAt(key.length() - 1)) - '0'));
+                } else {
+                    String[] split = key.split("\\+");
+                    if (split.length == 2) { // Only one modifier
+                        keyInput = new KeyInput(split[1].charAt(0),
+                                KeyModifiers.getKeyModifierFromName(split[0]));
+                    } else { // 2 modifiers
+                        keyInput = new KeyInput(split[2].charAt(0),
+                                KeyModifiers.getKeyModifierFromName(split[0] + "_" + split[1]));
+                    }
                 }
             }
         } catch (IndexOutOfBoundsException e) {

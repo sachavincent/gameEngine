@@ -3,7 +3,7 @@ package scene.components;
 import renderEngine.BuildingRenderer;
 import renderEngine.Renderer;
 import scene.Scene;
-import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirementComponent;
 import terrains.TerrainPosition;
 import util.math.Vector3f;
 
@@ -23,7 +23,7 @@ public class PositionComponent extends Component {
         this.position = position;
 
         setOnUpdateComponentCallback(gameObject -> {
-            if (gameObject.hasComponent(RequirementComponent.class))
+            if (gameObject.hasComponent(ResourceRequirementComponent.class))
                 Scene.getInstance().updateBuildingRequirements();
 
             Renderer renderer = gameObject.getComponent(RendererComponent.class).getRenderer();

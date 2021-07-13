@@ -3,13 +3,13 @@ package animation;
 import engineTester.Game;
 import java.util.HashMap;
 import java.util.Map;
-import models.AnimatedTexturedModel;
+import models.AnimatedModel;
 import util.TimeSystem;
 import util.math.Matrix4f;
 
 public class Animator {
 
-    private final AnimatedTexturedModel entity;
+    private final AnimatedModel entity;
 
     private Animation currentAnimation;
     private float     animationTime = 0;
@@ -17,7 +17,7 @@ public class Animator {
     /**
      * @param entity - the entity which will by animated by this animator.
      */
-    public Animator(AnimatedTexturedModel entity) {
+    public Animator(AnimatedModel entity) {
         this.entity = entity;
     }
 

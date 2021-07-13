@@ -3,5 +3,8 @@ package inputs.callbacks;
 @FunctionalInterface
 public interface MousePressCallback {
 
-    void onPress(int button);
+    /**
+     * @return true if handled
+     */
+    boolean onPress(int button);
 }

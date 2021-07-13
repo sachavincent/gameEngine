@@ -17,13 +17,13 @@ public class ResidenceComponent extends Component {
     protected final EnumMap<SocialClass, List<Person>> persons;
     protected final int                                maxPeopleCapacity;
     //TODO: Map for each spot, store moveAwayTime
-    protected final NewPersonCallback                  onNewPersonCallback;
 
     protected int lastLocalMoveAwayTime = TimeSystem.getCurrentTimeTicks();
 
     public ResidenceComponent(int maxPeopleCapacity) {
-        this(maxPeopleCapacity, (p, l) -> {
-        });
+        this.maxPeopleCapacity = maxPeopleCapacity;
+        this.persons = new EnumMap<>(SocialClass.class);
+        this.persons.put(SocialClass.FARMER, new ArrayList<>());
 
         setOnTickElapsedCallback((gameObject, nbTicks) -> {
             EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
@@ -44,13 +44,6 @@ public class ResidenceComponent extends Component {
         });
     }
 
-    public ResidenceComponent(int maxPeopleCapacity, NewPersonCallback onNewPersonCallback) {
-        this.maxPeopleCapacity = maxPeopleCapacity;
-        this.persons = new EnumMap<>(SocialClass.class);
-        this.persons.put(SocialClass.FARMER, new ArrayList<>());
-        this.onNewPersonCallback = onNewPersonCallback;
-    }
-
     public int getCurrentPeopleCount() {
         return this.persons.values().stream().mapToInt(List::size).sum();
     }
@@ -62,15 +55,17 @@ public class ResidenceComponent extends Component {
         person.settle(this.idGameObject);
 
         this.persons.get(person.getSocialClass()).add(person);
-        this.onNewPersonCallback.onNewPerson(person, this);
+
+        update();
         return true;
     }
 
     public boolean removePerson(Person person) {
         boolean removed = this.persons.get(person.getSocialClass()).remove(person);
-        if (removed)
+        if (removed) {
             this.lastLocalMoveAwayTime = TimeSystem.getCurrentTimeTicks();
-
+            update();
+        }
         return removed;
     }
 
@@ -84,11 +79,5 @@ public class ResidenceComponent extends Component {
 
     public EnumMap<SocialClass, List<Person>> getPersons() {
         return this.persons;
-    }
-
-    @FunctionalInterface
-    public interface NewPersonCallback {
-
-        void onNewPerson(Person person, ResidenceComponent residenceComponent);
     }
 }

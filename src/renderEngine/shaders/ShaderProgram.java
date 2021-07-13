@@ -8,6 +8,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import util.math.Matrix4f;
+import util.math.Vector;
 import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
@@ -18,9 +19,9 @@ public abstract class ShaderProgram {
 
     private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-    private final int programID;
-    private final int vertexShaderID;
-    private final int fragmentShaderID;
+    protected final int programID;
+    private final   int vertexShaderID;
+    private final   int fragmentShaderID;
 
     private boolean started;
 
@@ -43,35 +44,36 @@ public abstract class ShaderProgram {
     protected abstract void getAllUniformLocations();
 
     final int getUniformLocation(String uniformName) {
-        return GL20.glGetUniformLocation(this.programID, uniformName);
+        return getUniformLocation(this.programID, uniformName);
     }
 
-    final void loadFloat(int location, float value) {
+    public static int getUniformLocation(int programID, String uniformName) {
+        return GL20.glGetUniformLocation(programID, uniformName);
+    }
+
+    static void loadFloat(int location, Float value) {
         GL20.glUniform1f(location, value);
     }
 
-    final void loadVector(int location, Vector3f vector) {
-        GL20.glUniform3f(location, vector.x, vector.y, vector.z);
+    public static void loadVector(int location, Vector vector) {
+        if (vector instanceof Vector2f)
+            GL20.glUniform2f(location, ((Vector2f) vector).x, ((Vector2f) vector).y);
+        else if (vector instanceof Vector3f)
+            GL20.glUniform3f(location, ((Vector3f) vector).x, ((Vector3f) vector).y, ((Vector3f) vector).z);
+        else if (vector instanceof Vector4f)
+            GL20.glUniform4f(location, ((Vector4f) vector).x, ((Vector4f) vector).y, ((Vector4f) vector).z,
+                    ((Vector4f) vector).w);
     }
 
-    final void loadVector(int location, Vector4f vector) {
-        GL20.glUniform4f(location, vector.x, vector.y, vector.z, vector.w);
-    }
-
-    final void load2DVector(int location, Vector2f vector) {
-        if (vector != null)
-            GL20.glUniform2f(location, vector.x, vector.y);
-    }
-
-    final void loadInt(int location, int value) {
+    static void loadInt(int location, Integer value) {
         GL20.glUniform1i(location, value);
     }
 
-    final void loadBoolean(int location, boolean value) {
+    static void loadBoolean(int location, boolean value) {
         GL20.glUniform1f(location, value ? 1 : 0);
     }
 
-    final void loadMatrix(int location, Matrix4f matrix) {
+    static void loadMatrix(int location, Matrix4f matrix) {
         matrix.store(matrixBuffer);
         matrixBuffer.flip();
         GL20.glUniformMatrix4fv(location, false, matrixBuffer);

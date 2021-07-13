@@ -12,12 +12,12 @@ public class HorizontalBlurShader extends ShaderProgram {
     }
 
     public void loadTargetWidth(float width) {
-        super.loadFloat(location_targetWidth, width);
+        loadFloat(location_targetWidth, width);
     }
 
     @Override
     protected void getAllUniformLocations() {
-        location_targetWidth = super.getUniformLocation("targetWidth");
+        location_targetWidth = getUniformLocation("targetWidth");
     }
 
     @Override

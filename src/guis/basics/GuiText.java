@@ -46,7 +46,7 @@ public class GuiText extends GuiBasics {
             }
         }
 
-        this.text = text;
+        this.text = text.copy();
 
         update();
     }

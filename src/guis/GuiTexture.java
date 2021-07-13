@@ -2,6 +2,7 @@ package guis;
 
 import guis.presets.Background;
 import java.awt.Color;
+import java.io.File;
 import renderEngine.DisplayManager;
 import textures.Texture;
 import util.math.Vector2f;
@@ -38,20 +39,12 @@ public class GuiTexture extends Texture {
         this.finalAlpha = this.alpha;
     }
 
-//    GuiTexture(String file) {
-//        super(file);
-//
-//        this.alpha = 1f;
-//        this.finalAlpha = this.alpha;
-//    }
-//
-//    GuiTexture(Color color) {
-//        super(color);
-//
-//        this.alpha = color.getAlpha() / 255f;
-//        this.finalAlpha = this.alpha;
-//    }
+    GuiTexture(File file) {
+        super(new Background<>(file));
 
+        this.alpha = 1f;
+        this.finalAlpha = this.alpha;
+    }
 
     public float getAlpha() {
         return this.alpha;

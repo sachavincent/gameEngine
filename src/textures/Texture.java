@@ -21,6 +21,7 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL41;
 import org.lwjgl.stb.STBImage;
+import util.exceptions.MissingFileException;
 
 public abstract class Texture {
 
@@ -41,8 +42,8 @@ public abstract class Texture {
             String backString = ((String) back);
             if (backString.startsWith("#"))
                 instantiateWithHexColor(backString);
-            else
-                instantiateWithFile(backString, false);
+        } else if (back instanceof File) {
+            instantiateWithFile((File) back, this);
         } else if (back instanceof Integer)
             instantiateWithInteger((Integer) back);
 //        else
@@ -64,49 +65,60 @@ public abstract class Texture {
             color = Color.WHITE;
 
         this.color = color;
-        GL41.glBindTexture(GL_TEXTURE_2D, textureID);
+        GL41.glBindTexture(GL_TEXTURE_2D, this.textureID);
     }
 
     private void instantiateWithInteger(Integer integer) {
         this.textureID = integer;
     }
 
-    protected int instantiateWithFile(String fileName, boolean normalMap) {
-        File file = new File("res/" + fileName);
-        if (!file.exists()) {
-            fileName = "white.png";
+    protected static Texture instantiateWithFile(File file, Class<? extends Texture> textureClass) {
+        Texture texture = null;
+        try {
+            texture = textureClass.getDeclaredConstructor(File.class).newInstance(file);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
         }
-        int textureID = 0;
+
+        return instantiateWithFile(file, texture);
+    }
+
+    protected static Texture instantiateWithFile(File file, Texture texture) {
+        if (texture == null || file == null)
+            return texture;
+
+        if (!file.exists())
+            throw new MissingFileException(file);
+
         IntBuffer widthBuffer = BufferUtils.createIntBuffer(1);
         IntBuffer heightBuffer = BufferUtils.createIntBuffer(1);
         IntBuffer compBuffer = BufferUtils.createIntBuffer(1);
-        ByteBuffer byteBuffer = STBImage.stbi_load("res/" + fileName, widthBuffer, heightBuffer, compBuffer, 4);
+        ByteBuffer byteBuffer = STBImage.stbi_load(file.getPath(), widthBuffer, heightBuffer, compBuffer, 4);
 
         if (byteBuffer == null) {
             widthBuffer.clear();
             heightBuffer.clear();
             compBuffer.clear();
 
-            return 0;
+            return texture;
         }
         int width = widthBuffer.get();
         int height = heightBuffer.get();
-        if (!normalMap) {
-            this.width = width;
-            this.height = height;
-        }
+        texture.width = width;
+        texture.height = height;
         if (false) {
-            loadMSAATexture();
+            texture.loadMSAATexture();
         } else {
-            textureID = GL41.glGenTextures();
-            if (!normalMap) {
-                this.textureID = textureID;
-                this.keepAspectRatio = true;
-            }
+            int textureID = GL41.glGenTextures();
+
+            texture.textureID = textureID;
+            texture.keepAspectRatio = true;
+
             GL41.glBindTexture(GL_TEXTURE_2D, textureID);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MIN_FILTER, GL41.GL_NEAREST);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MAG_FILTER, GL41.GL_NEAREST);
-            GL41.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL41.GL_UNSIGNED_BYTE, byteBuffer);
+            GL41.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL41.GL_UNSIGNED_BYTE,
+                    byteBuffer);
             GL41.glGenerateMipmap(GL_TEXTURE_2D);
             glTexParameteri(GL_TEXTURE_2D, GL41.GL_TEXTURE_MIN_FILTER, GL41.GL_LINEAR_MIPMAP_LINEAR);
             GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_LOD_BIAS, 0f);
@@ -114,7 +126,8 @@ public abstract class Texture {
             if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
                 float amount = Math
                         .min(4f, GL41.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
-                GL41.glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+                GL41.glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                        amount);
             } else {
                 System.out.println("no anisotropic");
                 // TODO
@@ -126,7 +139,7 @@ public abstract class Texture {
 
         STBImage.stbi_image_free(byteBuffer);
 
-        return textureID;
+        return texture;
     }
 
     public boolean dokeepAspectRatio() {
@@ -157,7 +170,8 @@ public abstract class Texture {
         GL41.glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, multisampledID);
         GL41.glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, this.width, this.height, true);
         GL41.glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-        GL41.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, multisampledID, 0);
+        GL41.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, multisampledID,
+                0);
 
 
         renderBuffer = GL41.glGenRenderbuffers();

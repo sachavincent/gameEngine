@@ -1,6 +1,5 @@
 package scene.gameObjects;
 
-import entities.Model;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
 import renderEngine.BuildingRenderer;
@@ -15,11 +14,11 @@ public class Test extends GameObject {
 
     public Test() {
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
-        addComponent(new IconComponent(GameObjectPreviews.DIRT_ROAD));
-        addComponent(new ScaleComponent(1f));
+        addComponent(new IconComponent(GameObjectPreviews.INSULA));
+        addComponent(new ScaleComponent(1));
         addComponent(new DirectionComponent());
-        addComponent(new SingleModelComponent(new Model(OBJGameObjects.TEST.getTexture())));
-        addComponent(new PreviewComponent(OBJGameObjects.TEST.getPreviewTexture()));
+        addComponent(new SingleModelComponent(OBJGameObjects.INSULA.getTexture()));
+        addComponent(new PreviewComponent(OBJGameObjects.INSULA.getPreviewTexture()));
 
 //        addComponent(new OffsetComponent(new Vector3f(.5f, 0, .5f)));
 

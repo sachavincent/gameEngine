@@ -3,8 +3,11 @@ package renderEngine;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
+import static org.lwjgl.opengl.GL43.GL_DEBUG_SEVERITY_NOTIFICATION;
+import static util.Utils.RES_PATH;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import java.io.FileInputStream;
@@ -27,9 +30,9 @@ import org.lwjgl.glfw.GLFWVidMode.Buffer;
 import org.lwjgl.glfw.GLFWWindowMaximizeCallback;
 import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
+import util.DisplayUtils;
 import util.Timer;
 import util.math.Maths;
 
@@ -78,8 +81,8 @@ public class DisplayManager {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-//        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);//=less fps
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+//        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
 //        glfwWindowHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); //TODO: temp ?
 
@@ -105,6 +108,9 @@ public class DisplayManager {
 
         glfwMakeContextCurrent(window);
         GL.createCapabilities();
+
+        DisplayUtils.enableDebugging();
+        DisplayUtils.disableDebugMessage(GL_DEBUG_SEVERITY_NOTIFICATION);
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
@@ -138,7 +144,7 @@ public class DisplayManager {
         ByteBuffer buf = null;
         GLFWImage.Buffer images = null;
         try {
-            PNGDecoder dec = new PNGDecoder(new FileInputStream("res/insula_preview.png"));
+            PNGDecoder dec = new PNGDecoder(new FileInputStream(RES_PATH + "/insula_preview.png"));
             int width = dec.getWidth();
             int height = dec.getHeight();
             buf = BufferUtils.createByteBuffer(width * height * 4);
@@ -159,7 +165,7 @@ public class DisplayManager {
             image.free();
         }
 
-        GL11.glEnable(GL13.GL_MULTISAMPLE);
+        glEnable(GL13.GL_MULTISAMPLE);
 
         float[] lineWidthRange = new float[2];
         GL30.glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);

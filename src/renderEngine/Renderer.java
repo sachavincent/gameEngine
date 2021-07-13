@@ -1,14 +1,14 @@
 package renderEngine;
 
 
-import entities.Model;
+import entities.ModelEntity;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import models.TexturedModel;
+import models.Model;
 import renderEngine.shaders.ShaderProgram;
 import scene.gameObjects.GameObject;
 
@@ -58,15 +58,15 @@ public abstract class Renderer {
         this.displayBoundingBoxes = !this.displayBoundingBoxes;
     }
 
-    protected void handleTexture(Map<TexturedModel, List<Model>> models, Model model) {
-        if (model == null || model.getTexturedModel() == null || model.getTexturedModel().getModelTexture() == null ||
-                model.getTexturedModel().getVao() == null)
+    protected void handleTexture(Map<Model, List<ModelEntity>> models, ModelEntity modelEntity) {
+        if (modelEntity == null || modelEntity.getModel() == null || modelEntity.getModel().getModelFile() == null ||
+                modelEntity.getModel().getVao() == null)
             return;
 
-        if (!models.containsKey(model.getTexturedModel()))
-            models.put(model.getTexturedModel(), new ArrayList<>());
+        if (!models.containsKey(modelEntity.getModel()))
+            models.put(modelEntity.getModel(), new ArrayList<>());
 
-        models.get(model.getTexturedModel()).add(model);
+        models.get(modelEntity.getModel()).add(modelEntity);
     }
 
     @Override

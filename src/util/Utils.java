@@ -1,8 +1,10 @@
 package util;
 
+import guis.presets.Background;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,18 +24,24 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
 import scene.gameObjects.Market;
 import terrains.TerrainPosition;
+import util.exceptions.MissingFileException;
 import util.math.Maths;
+import util.math.Vector;
 
 public class Utils {
 
+    public final static String RES_PATH    = "res";
+    public final static String ASSETS_PATH = "assets";
+    public final static String MODELS_PATH = "models";
+
     public static void main(String[] args) {
-        cleanOBJFile(".obj");
+        cleanOBJFile(new File(MODELS_PATH + "/Windmill/boundingbox.obj"));
     }
 
     public static Map<Class<? extends GameObject>, TerrainPosition[]> getPositionsFromConsoleLogs(String fileName) {
         Map<Class<? extends GameObject>, TerrainPosition[]> map = new HashMap<>();
         try (BufferedReader bufferedReader = new BufferedReader(
-                new FileReader("assets/" + fileName))) {
+                new FileReader(ASSETS_PATH + "/" + fileName))) {
             String line;
             Class<? extends GameObject> clazz = null;
             List<TerrainPosition> positions = new ArrayList<>();
@@ -76,28 +84,24 @@ public class Utils {
         return map;
     }
 
-    public static void cleanOBJFile(String fileName) {
-        List<String> lines = new ArrayList<>();
+    public static void cleanOBJFile(File file) {
+        if (!file.exists())
+            throw new MissingFileException(file);
 
-        FileReader fileReader = null;
-        BufferedReader bufferedReader = null;
-        FileWriter fileWriter = null;
-        BufferedWriter bufferedWriter = null;
+        List<String> lines = new ArrayList<>();
 
         State state = State.DEFAULT;
         int nbVertices = 0;
         int nbVerticesBoundingBox = 0;
         int nbVerticesSelectionBox = 0;
-        try {
-            fileReader = new FileReader("res/" + fileName);
-            bufferedReader = new BufferedReader(fileReader);
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
             String line;
             boolean firstLine = false;
-            while ((line = bufferedReader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 if (!firstLine) {
                     if (!line.startsWith("#")) {
-                        System.err.println("File '" + fileName + "' already cleaned!");
+                        System.err.println("File '" + file.getName() + "' already cleaned!");
 
                         return;
                     }
@@ -173,32 +177,39 @@ public class Utils {
                 lines.add(newLine);
             }
 
-            bufferedReader.close();
-            fileReader.close();
-
-            fileWriter = new FileWriter("res/" + fileName);
-            bufferedWriter = new BufferedWriter(fileWriter);
-            for (String l : lines) {
-                bufferedWriter.write(l);
-                bufferedWriter.newLine();
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (bufferedReader != null)
-                    bufferedReader.close();
-                if (fileReader != null)
-                    fileReader.close();
-                if (bufferedWriter != null)
-                    bufferedWriter.close();
-                if (fileWriter != null)
-                    fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String l : lines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Background<File> importResourceTexture(String textureName) {
+        return new Background<>(new File(RES_PATH + "/" + textureName + ".png"));
+    }
+
+    /**
+     * Parses values as string and creates a vector
+     */
+    public static <V extends Vector> V parseVector(Class<V> vectorClass, String[] values) {
+        Object[] floatValues = new Object[values.length];
+        Class<?>[] floatClasses = new Class[values.length];
+        for (int i = 0; i < values.length; i++) {
+            floatClasses[i] = Float.class;
+            floatValues[i] = Float.parseFloat(values[i]);
+        }
+        try {
+            return vectorClass.getConstructor(floatClasses).newInstance(floatValues);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     enum State {

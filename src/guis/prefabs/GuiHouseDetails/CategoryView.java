@@ -13,6 +13,7 @@ import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiProgressIcon;
 import java.awt.Color;
+import java.util.List;
 import resources.ResourceManager.Resource;
 import resources.ResourceType;
 
@@ -37,16 +38,12 @@ public class CategoryView extends GuiRectangle {
         setLayout(new RatioedPatternLayout(2, 1, 0.03f, 0, 70f, -1f, 30f, -1f));
 
         this.categoryIcon = new GuiProgressIcon(this, Resource.FISH.getBackgroundTexture(), null);
-        GuiTexture[] categoryIconsArray = new GuiTexture[Resource.values().length];
-        for (Resource r : Resource.values()) {
-            categoryIconsArray[r.ordinal()] = new GuiTexture(r.getBackgroundTexture(), this.categoryIcon);
+        List<Resource> foodResources = Resource.getResourceOfType(ResourceType.FOOD);
+        for (Resource r : foodResources) {
+            if (r == Resource.FISH)
+                continue;
+            this.categoryIcon.addTexture(new GuiTexture(r.getBackgroundTexture(), this.categoryIcon));
         }
-
-//        categoryIconsArray[Resource.FISH.ordinal()] = new GuiTexture(Resource.FISH.getTexture(), categoryIcon);
-//        categoryIconsArray[ResourceType.BEVERAGE.ordinal()] = new GuiTexture(coinsImage, categoryIcon);
-//        categoryIconsArray[ResourceType.SOCIAL.ordinal()] = new GuiTexture(coinsImage, categoryIcon);
-        for (int i = 1; i < ResourceType.values().length; i++)
-            this.categoryIcon.addTexture(categoryIconsArray[i]);
 
         Text text = new Text("0%", 1.5f, DEFAULT_FONT, Color.BLACK);
 

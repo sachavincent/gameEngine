@@ -1,13 +1,20 @@
 package resources;
 
+import static util.Utils.RES_PATH;
+
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.presets.Background;
+import java.io.File;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import language.Words;
 import scene.Scene;
-import scene.components.requirements.RequirementComponent;
 import scene.components.requirements.ResourceRequirement;
+import scene.components.requirements.ResourceRequirementComponent;
 import util.math.Maths;
 
 public class ResourceManager {
@@ -18,9 +25,14 @@ public class ResourceManager {
         RESOURCES.put(Resource.WHEAT, new Stock(200));
         RESOURCES.put(Resource.FISH, new Stock(200));
         RESOURCES.put(Resource.BREAD, new Stock(200));
-        RESOURCES.put(Resource.FRUIT, new Stock(Integer.MAX_VALUE));
-        RESOURCES.put(Resource.VEGETABLE, new Stock(Integer.MAX_VALUE));
-        RESOURCES.put(Resource.MEAT, new Stock(Integer.MAX_VALUE));
+//        RESOURCES.put(Resource.FRUIT, new Stock(Integer.MAX_VALUE));
+//        RESOURCES.put(Resource.VEGETABLE, new Stock(Integer.MAX_VALUE));
+//        RESOURCES.put(Resource.MEAT, new Stock(Integer.MAX_VALUE));
+        RESOURCES.put(Resource.GOLD, new Stock(Integer.MAX_VALUE));
+    }
+
+    public static Stock getStock(Resource resource) {
+        return RESOURCES.get(resource);
     }
 
     public static void addToResource(Resource resource) {
@@ -58,17 +70,18 @@ public class ResourceManager {
     public static void updateRequirements() {
         GuiHouseDetails.getInstance().update();
 
-        Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false)
+        Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false)
                 .forEach(gameObject -> {
-                    RequirementComponent requirementComponent = gameObject.getComponent(RequirementComponent.class);
-                    Set<ResourceRequirement> resourceRequirements = requirementComponent
+                    ResourceRequirementComponent resourceRequirementComponent = gameObject.getComponent(
+                            ResourceRequirementComponent.class);
+                    Set<ResourceRequirement> resourceRequirements = resourceRequirementComponent
                             .getRequirementsOfType(ResourceRequirement.class);
                     for (ResourceRequirement resourceRequirement : resourceRequirements)
-                        requirementComponent.clearRequirement(resourceRequirement);
+                        resourceRequirementComponent.clearRequirement(resourceRequirement);
 
                     for (ResourceRequirement resourceRequirement : resourceRequirements) {
                         if (resourceRequirement.isRequirementMet(RESOURCES))
-                            requirementComponent.meetRequirement(resourceRequirement);
+                            resourceRequirementComponent.meetRequirement(resourceRequirement);
                     }
                 });
     }
@@ -81,68 +94,80 @@ public class ResourceManager {
         FISH(FishResource.TEXTURE, FishResource.NAME, ResourceType.FOOD),
         WHEAT(WheatResource.TEXTURE, WheatResource.NAME, ResourceType.INGREDIENT),
         BREAD(BreadResource.TEXTURE, BreadResource.NAME, ResourceType.FOOD),
-        FRUIT(FruitResource.TEXTURE, FruitResource.NAME, ResourceType.FOOD),
-        VEGETABLE(VegetableResource.TEXTURE, VegetableResource.NAME, ResourceType.FOOD),
-        MEAT(MeatResource.TEXTURE, MeatResource.NAME, ResourceType.FOOD);
+//        FRUIT(FruitResource.TEXTURE, FruitResource.NAME, ResourceType.FOOD),
+//        VEGETABLE(VegetableResource.TEXTURE, VegetableResource.NAME, ResourceType.FOOD),
+//        MEAT(MeatResource.TEXTURE, MeatResource.NAME, ResourceType.FOOD),
 
-        Resource(Background<String> texture, String name, ResourceType resourceType) {
+        GOLD(GoldResource.TEXTURE, GoldResource.NAME, ResourceType.MONEY);
+
+        Resource(Background<File> texture, Words name, ResourceType resourceType) {
             this.texture = texture;
             this.name = name;
             this.resourceType = resourceType;
         }
 
-        private final Background<String> texture;
-        private final String             name;
-        private final ResourceType       resourceType;
+        private final Background<File> texture;
+        private final Words           name;
+        private final ResourceType     resourceType;
 
         public ResourceType getResourceType() {
             return this.resourceType;
         }
 
-        public String getName() {
+        public Words getName() {
             return this.name;
         }
 
-        public Background<String> getBackgroundTexture() {
+        public Background<File> getBackgroundTexture() {
             return this.texture;
         }
 
+        public static List<Resource> getResourceOfType(ResourceType resourceType) {
+            return Stream.of(Resource.values()).filter(resource -> resource.getResourceType() == resourceType)
+                    .collect(Collectors.toList());
+        }
     }
 
     public static class WheatResource {
 
-        final static String             NAME    = "Wheat";//TODO: Name through Word class
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
+        final static Words            NAME    = Words.WHEAT;
+        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class FishResource {
 
-        final static String             NAME    = "Fish";
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
+        final static Words            NAME    = Words.FISH;
+        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class BreadResource {
 
-        final static String             NAME    = "Bread";
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
+        final static Words            NAME    = Words.BREAD;
+        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
-    public static class FruitResource {
+//    public static class FruitResource {
+//
+//        final static Words            NAME    = Words.FRUIT;
+//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//    }
 
-        final static String             NAME    = "Fruit";
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
-    }
+//    public static class VegetableResource {
+//
+//        final static Words            NAME    = Words.VEGETABLE;
+//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//    }
+//
+//    public static class MeatResource {
+//
+//        final static Words            NAME    = Words.MEAT;
+//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//    }
 
-    public static class VegetableResource {
+    public static class GoldResource {
 
-        final static String             NAME    = "Vegetable";
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
-    }
-
-    public static class MeatResource {
-
-        final static String             NAME    = "Meat";
-        final static Background<String> TEXTURE = new Background<>(NAME + ".png");
+        final static Words            NAME    = Words.GOLD;
+        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class Stock {
@@ -172,6 +197,10 @@ public class ResourceManager {
 
         private void remove(double amount) {
             this.amount = Math.max(0, this.amount - amount);
+        }
+
+        public boolean isFull() {
+            return this.amount == this.maxAmount;
         }
     }
 }

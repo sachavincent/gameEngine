@@ -8,7 +8,7 @@ import resources.ResourceManager.Resource;
 
 public class RemoveResourceCommand extends Command {
 
-    private final static String[] VALID_RESOURCE = new String[]{"FISH", "BREAD"};
+    private final static String[] VALID_RESOURCE = new String[]{"FISH", "WHEAT", "BREAD", "GOLD"};
 
     private final static String[] LOCAL_ALIAS               = new String[]{"rmresource", "rr"};
     private final static String[] LOCAL_PARAMETERS          = new String[]{"resource", "amount"};

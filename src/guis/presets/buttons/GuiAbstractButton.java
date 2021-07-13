@@ -133,7 +133,7 @@ public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstract
         if (text == null)
             return;
 
-        this.text = new GuiText(this, text);
+        this.text = new GuiText(this, text.copy());
     }
 
     @Override
@@ -185,7 +185,7 @@ public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstract
                 setClickType(ClickType.NONE);
 
             updateTexturePosition();
-            onMousePressCallback.onPress(button);
+            return onMousePressCallback.onPress(button);
         };
     }
 
@@ -196,7 +196,7 @@ public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstract
                 setClickType(ClickType.NONE);
 
             updateTexturePosition();
-            onMouseReleaseCallback.onRelease(button);
+            return onMouseReleaseCallback.onRelease(button);
         };
     }
 
@@ -221,22 +221,22 @@ public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstract
     }
 
     @Override
-    public void onMouseRelease(int button) {
+    public boolean onMouseRelease(int button) {
         if (this.onMouseReleaseCallback == null)
-            return;
+            return false;
 
-        this.onMouseReleaseCallback.onRelease(button);
+        return this.onMouseReleaseCallback.onRelease(button);
     }
 
     /**
      * Click + release within component
      */
     @Override
-    public void onMousePress(int button) {
+    public boolean onMousePress(int button) {
         if (this.onMousePressCallback == null)
-            return;
+            return false;
 
-        this.onMousePressCallback.onPress(button);
+        return this.onMousePressCallback.onPress(button);
     }
 
     public void setFilterTransparency(float alpha) {
@@ -295,8 +295,10 @@ public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstract
         setOnLeave(() -> {
         });
         setOnMouseRelease(button -> {
+            return false;
         });
         setOnMousePress(button -> {
+            return false;
         });
     }
 

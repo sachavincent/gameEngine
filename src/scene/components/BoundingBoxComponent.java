@@ -8,6 +8,8 @@ public class BoundingBoxComponent extends Component {
 
     public BoundingBoxComponent(BoundingBox boundingBox) {
         this.boundingBox = boundingBox == null ? null : new BoundingBox(boundingBox);
+        if(this.boundingBox == null)
+            throw new IllegalArgumentException("BoundingBox cannot be null");
     }
 
     public BoundingBoxComponent(BoundingBox boundingBox, DirectionComponent directionComponent) {

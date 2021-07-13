@@ -19,6 +19,7 @@ import inputs.callbacks.MousePressCallback;
 import inputs.callbacks.MouseReleaseCallback;
 import inputs.requests.KeyMappingRequest;
 import inputs.requests.Request.RequestType;
+import inputs.requests.RequestManager;
 import inputs.requests.TextInputRequest;
 import java.awt.Color;
 import java.util.HashSet;
@@ -55,6 +56,8 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
      */
     private final Set<KeyInput> cancelInputs;
 
+    private       int           keyRequestId;
+    private       int           charRequestId;
     /**
      * ENTER & KP_ENTER by default
      */
@@ -418,15 +421,16 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
 
         this.outline.setOnMousePress(button -> {
             if (button != GLFW.GLFW_MOUSE_BUTTON_1)
-                return;
+                return false;
 
             focus();
+            return true;
         });
     }
 
     private void createRequests() {
-        KeyboardUtils.request(new KeyMappingRequest(this.shortcutRequest));
-        KeyboardUtils.request(new TextInputRequest(this.textInputRequest));
+        this.keyRequestId = RequestManager.getInstance().request(new KeyMappingRequest(this.shortcutRequest));
+        this.charRequestId = RequestManager.getInstance().request(new TextInputRequest(this.textInputRequest));
     }
 
     public void focus() {
@@ -485,8 +489,8 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
         this.cursor.setDisplayed(false);
         this.clickType = ClickType.NONE;
         this.lastBlinkTime = 0;
-        KeyboardUtils.cancelRequest(RequestType.CHAR);
-        KeyboardUtils.cancelRequest(RequestType.KEY);
+        RequestManager.getInstance().cancelRequest(RequestType.CHAR, this.charRequestId);
+        RequestManager.getInstance().cancelRequest(RequestType.KEY, this.keyRequestId);
     }
 
     public void updateCursor() {
@@ -519,13 +523,13 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
     }
 
     @Override
-    public void onMousePress(int button) {
-
+    public boolean onMousePress(int button) {
+        return false;
     }
 
     @Override
-    public void onMouseRelease(int button) {
-
+    public boolean onMouseRelease(int button) {
+        return false;
     }
 
     @Override

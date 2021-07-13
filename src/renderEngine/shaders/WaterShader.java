@@ -56,28 +56,28 @@ public class WaterShader extends ShaderProgram {
     }
 
     public void connectTextureUnits() {
-        super.loadInt(location_reflectionTexture, 0);
-        super.loadInt(location_refractionTexture, 1);
-        super.loadInt(location_dudvMap, 2);
-        super.loadInt(location_normalMap, 3);
-        super.loadInt(location_depthMap, 4);
+        loadInt(location_reflectionTexture, 0);
+        loadInt(location_refractionTexture, 1);
+        loadInt(location_dudvMap, 2);
+        loadInt(location_normalMap, 3);
+        loadInt(location_depthMap, 4);
     }
 
     public void loadPlaneValues() {
-        super.loadFloat(location_nearPlane, MasterRenderer.NEAR_PLANE);
-        super.loadFloat(location_farPlane, MasterRenderer.FAR_PLANE);
+        loadFloat(location_nearPlane, MasterRenderer.NEAR_PLANE);
+        loadFloat(location_farPlane, MasterRenderer.FAR_PLANE);
     }
 
     public void loadLight(GameObject sun) {
         if (sun == null)
             return;
 
-        super.loadVector(location_lightColor, sun.getComponent(ColorComponent.class).getColor());
-        super.loadVector(location_lightPosition, sun.getComponent(PositionComponent.class).getPosition());
+        loadVector(location_lightColor, sun.getComponent(ColorComponent.class).getColor());
+        loadVector(location_lightPosition, sun.getComponent(PositionComponent.class).getPosition());
     }
 
     public void loadMoveFactor(float factor) {
-        super.loadFloat(location_moveFactor, factor);
+        loadFloat(location_moveFactor, factor);
     }
 
     public void loadProjectionMatrix(Matrix4f projection) {
@@ -87,7 +87,7 @@ public class WaterShader extends ShaderProgram {
     public void loadViewMatrix() {
         Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
         loadMatrix(location_viewMatrix, viewMatrix);
-        super.loadVector(location_cameraPosition, Camera.getInstance().getPosition());
+        loadVector(location_cameraPosition, Camera.getInstance().getPosition());
     }
 
     public void loadModelMatrix(Matrix4f modelMatrix) {

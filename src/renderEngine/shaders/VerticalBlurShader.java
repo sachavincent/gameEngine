@@ -12,12 +12,12 @@ public class VerticalBlurShader extends ShaderProgram {
     }
 
     public void loadTargetHeight(float height) {
-        super.loadFloat(location_targetHeight, height);
+        loadFloat(location_targetHeight, height);
     }
 
     @Override
     protected void getAllUniformLocations() {
-        location_targetHeight = super.getUniformLocation("targetHeight");
+        location_targetHeight = getUniformLocation("targetHeight");
     }
 
     @Override

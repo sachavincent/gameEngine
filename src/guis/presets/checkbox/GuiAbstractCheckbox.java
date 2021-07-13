@@ -46,9 +46,11 @@ public abstract class GuiAbstractCheckbox extends GuiPreset implements GuiAbstra
 
     private void setListeners() {
         setOnMouseRelease(button -> {
+            return false;
         });
 
         setOnMousePress(button -> {
+            return false;
         });
 
         setOnHover(() -> {
@@ -65,11 +67,11 @@ public abstract class GuiAbstractCheckbox extends GuiPreset implements GuiAbstra
      * Click + release within component
      */
     @Override
-    public void onMousePress(int button) {
+    public boolean onMousePress(int button) {
         if (this.onMousePressCallback == null)
-            return;
+            return false;
 
-        this.onMousePressCallback.onPress(button);
+        return this.onMousePressCallback.onPress(button);
     }
 
     @Override
@@ -115,11 +117,11 @@ public abstract class GuiAbstractCheckbox extends GuiPreset implements GuiAbstra
     }
 
     @Override
-    public void onMouseRelease(int button) {
+    public boolean onMouseRelease(int button) {
         if (this.onMouseReleaseCallback == null)
-            return;
+            return false;
 
-        this.onMouseReleaseCallback.onRelease(button);
+        return this.onMouseReleaseCallback.onRelease(button);
     }
 
     @Override
@@ -143,7 +145,7 @@ public abstract class GuiAbstractCheckbox extends GuiPreset implements GuiAbstra
             }
 
             updateTexturePosition();
-            onMousePressCallback.onPress(button);
+           return onMousePressCallback.onPress(button);
         };
     }
 

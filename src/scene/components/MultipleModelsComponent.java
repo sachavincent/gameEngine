@@ -1,6 +1,6 @@
 package scene.components;
 
-import entities.Model;
+import entities.ModelEntity;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -13,13 +13,13 @@ import util.math.Vector3f;
  */
 public class MultipleModelsComponent extends Component {
 
-    private final Map<String, Model> concurrentModels;
+    private final Map<String, ModelEntity> concurrentModels;
 
     public MultipleModelsComponent() {
         this.concurrentModels = new LinkedHashMap<>();
     }
 
-    public Map<String, Model> getConcurrentModels() {
+    public Map<String, ModelEntity> getConcurrentModels() {
         return Collections.unmodifiableMap(this.concurrentModels);
     }
 
@@ -27,21 +27,21 @@ public class MultipleModelsComponent extends Component {
         return this.concurrentModels.containsKey(name);
     }
 
-    public void addConcurrentModel(String name, Model model) {
-        if (name == null || model == null)
+    public void addConcurrentModel(String name, ModelEntity modelEntity) {
+        if (name == null || modelEntity == null)
             return;
 
         name = name.toUpperCase(Locale.ROOT);
-        this.concurrentModels.put(name, model);
+        this.concurrentModels.put(name, modelEntity);
     }
 
-    public boolean replaceConcurrentModels(String name, Model model) {
-        if (name == null || model == null)
+    public boolean replaceConcurrentModels(String name, ModelEntity modelEntity) {
+        if (name == null || modelEntity == null)
             return false;
 
         name = name.toUpperCase(Locale.ROOT);
         if (this.concurrentModels.containsKey(name))
-            this.concurrentModels.put(name, model);
+            this.concurrentModels.put(name, modelEntity);
 
         return true;
     }
@@ -51,7 +51,7 @@ public class MultipleModelsComponent extends Component {
         this.concurrentModels.remove(name);
     }
 
-    public Model getModelFromName(String name) {
+    public ModelEntity getModelFromName(String name) {
         if (name == null)
             return null;
 
@@ -63,28 +63,28 @@ public class MultipleModelsComponent extends Component {
     }
 
     public Vector3f getOffsetRotation(String name) {
-        Model model = getModelFromName(name);
-        if (model != null)
-            return model.getRotation();
+        ModelEntity modelEntity = getModelFromName(name);
+        if (modelEntity != null)
+            return modelEntity.getRotation();
 
         return new Vector3f();
     }
 
     public Vector3f getOffsetPosition(String name) {
-        Model model = getModelFromName(name);
-        if (model != null)
-            return model.getPosition();
+        ModelEntity modelEntity = getModelFromName(name);
+        if (modelEntity != null)
+            return modelEntity.getPosition();
 
         return new Vector3f();
     }
 
     public void setOffsetsRotation(String name, Vector3f offsetRotation) {
-        Model model = getModelFromName(name);
-        model.setRotation(offsetRotation);
+        ModelEntity modelEntity = getModelFromName(name);
+        modelEntity.setRotation(offsetRotation);
     }
 
     public void setOffsetsPosition(String name, Vector3f offsetPosition) {
-        Model model = getModelFromName(name);
-        model.setPosition(offsetPosition);
+        ModelEntity modelEntity = getModelFromName(name);
+        modelEntity.setPosition(offsetPosition);
     }
 }

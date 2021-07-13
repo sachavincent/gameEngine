@@ -1,7 +1,6 @@
 package guis.prefabs.GuiMainMenu;
 
 import engineTester.Game;
-import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.basics.GuiRectangle;
@@ -15,16 +14,11 @@ import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
-import java.io.File;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.DisplayManager;
-import textures.FontTexture;
 
 public class GuiMainMenu extends Gui {
-
-    private final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
 
     private final static GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
             new SideConstraint(Side.LEFT), new SideConstraint(Side.TOP)};
@@ -87,7 +81,9 @@ public class GuiMainMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
                 Game.getInstance().start();
+                return true;
             }
+            return false;
         });
     }
 
@@ -100,6 +96,7 @@ public class GuiMainMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
             }
+            return false;
         });
     }
 
@@ -113,7 +110,9 @@ public class GuiMainMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
                 showSettings();
+                return true;
             }
+            return false;
         });
     }
 
@@ -128,8 +127,11 @@ public class GuiMainMenu extends Gui {
                 new Background<>(new Color(109, 109, 109, 100)), Color.BLACK, text);
         quitButton.enableFilter();
         quitButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 DisplayManager.closeDisplay();
+                return true;
+            }
+            return false;
         });
     }
 

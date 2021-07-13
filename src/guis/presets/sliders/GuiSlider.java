@@ -105,13 +105,20 @@ public abstract class GuiSlider extends GuiPreset {
 
     private void setListeners() {
         this.sliderCursor.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 this.clicked = true;
+                return true;
+            }
+
+            return false;
         });
 
         this.sliderCursor.setOnMouseRelease(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 this.clicked = false;
+                return true;
+            }
+            return false;
         });
 
         this.sliderCursor.setOnHover(() -> {
@@ -147,7 +154,9 @@ public abstract class GuiSlider extends GuiPreset {
         this.sliderBase.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 startUpdateSliderValue();
+                return true;
             }
+            return false;
         });
     }
 

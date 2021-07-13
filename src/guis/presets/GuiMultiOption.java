@@ -42,12 +42,16 @@ public class GuiMultiOption<T> extends GuiPreset {
         this.previous.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 selectPrevious();
+                return true;
             }
+            return false;
         });
         this.next.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 selectNext();
+                return true;
             }
+            return false;
         });
     }
 

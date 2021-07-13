@@ -3,5 +3,8 @@ package inputs.callbacks;
 @FunctionalInterface
 public interface MouseReleaseCallback {
 
-    void onRelease(int button);
+    /**
+     * @return true if handled
+     */
+    boolean onRelease(int button);
 }

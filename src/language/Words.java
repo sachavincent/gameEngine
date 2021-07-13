@@ -37,6 +37,15 @@ public enum Words {
     CATEGORY_DRINKS("Drinks"),
     AVAILABLE_SPACE("Available"),
 
+    // Resources
+    FISH("Fish"),
+    WHEAT("Wheat"),
+    BREAD("Bread"),
+    FRUIT("Fruit"),
+    VEGETABLE("Vegetable"),
+    MEAT("Meat"),
+    GOLD("Gold"),
+
     // GameObjects
     DIRT_ROAD("Dirt Road"),
     INSULA("Insula"),
@@ -44,11 +53,6 @@ public enum Words {
 
     // Classes
     FARMER("Farmer"),
-
-    // Resources
-    FISH("Fish"),
-    BREAD("Bread"),
-    WHEAT("Wheat"),
 
     // Languages
     ENGLISH("English"),

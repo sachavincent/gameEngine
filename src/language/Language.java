@@ -1,6 +1,5 @@
 package language;
 
-import java.util.Locale;
 import util.Utils;
 
 public enum Language {

@@ -6,9 +6,15 @@ import inputs.callbacks.MouseReleaseCallback;
 
 public interface GuiClickablePreset {
 
-    void onMousePress(int button);
+    /**
+     * @return true if handled
+     */
+    boolean onMousePress(int button);
 
-    void onMouseRelease(int button);
+    /**
+     * @return true if handled
+     */
+    boolean onMouseRelease(int button);
 
     void setOnMouseRelease(MouseReleaseCallback onMouseReleaseCallback);
 

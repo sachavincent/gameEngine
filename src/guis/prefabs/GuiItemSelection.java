@@ -1,6 +1,5 @@
 package guis.prefabs;
 
-import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.constraints.CenterConstraint;
@@ -15,16 +14,11 @@ import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
 import items.GameObjectPreviews;
 import java.awt.Color;
-import java.io.File;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
 import scene.gameObjects.*;
-import textures.FontTexture;
 
 public class GuiItemSelection extends Gui {
-
-    private final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture("roboto.png").getTextureID(), new File("res/roboto.fnt")); //TODO System-wide font
 
     private final static GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
             new SideConstraint(Side.RIGHT), new CenterConstraint()};
@@ -64,7 +58,9 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Test selected");
 
                 selectOrUnselect(Windmill.class, MouseUtils::SelectBuilding);
+                return true;
             }
+            return false;
         });
         setDisplayed(false);
     }
@@ -77,7 +73,9 @@ public class GuiItemSelection extends Gui {
                 System.out.println("WheatFarm selected");
 
                 selectOrUnselect(WheatFarm.class, MouseUtils::SelectBuilding);
+                return true;
             }
+            return false;
         });
     }
 
@@ -89,7 +87,9 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Market selected");
 
                 selectOrUnselect(Market.class, MouseUtils::SelectBuilding);
+                return true;
             }
+            return false;
         });
     }
 
@@ -101,7 +101,9 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Market selected");
 
                 selectOrUnselect(WheatField.class, MouseUtils::SelectBuilding);
+                return true;
             }
+            return false;
         });
     }
 
@@ -114,8 +116,10 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Insula selected");
 
 
-                selectOrUnselect(Insula.class, MouseUtils::SelectBuilding);
+                selectOrUnselect(Test.class, MouseUtils::SelectBuilding);
+                return true;
             }
+            return false;
         });
     }
 
@@ -129,7 +133,9 @@ public class GuiItemSelection extends Gui {
                 System.out.println("DirtRoad selected");
 
                 selectOrUnselect(DirtRoad.class, MouseUtils::SelectRoad);
+                return true;
             }
+            return false;
         });
     }
 

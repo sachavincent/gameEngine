@@ -14,6 +14,7 @@ import guis.presets.graphs.GuiDonutGraph;
 import guis.presets.graphs.GuiDonutGraph.Sector;
 import inputs.ClickType;
 import java.awt.Color;
+import java.io.File;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -30,10 +31,11 @@ import resources.ResourceManager.Stock;
 import resources.ResourceType;
 import scene.components.ResidenceComponent;
 import scene.components.SelectableComponent;
-import scene.components.requirements.RequirementComponent;
 import scene.components.requirements.ResourceRequirement;
+import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
 import util.MousePicker;
+import util.Utils;
 import util.math.Maths;
 
 public class GuiHouseDetails extends Gui {
@@ -42,7 +44,11 @@ public class GuiHouseDetails extends Gui {
             new RelativeConstraint(.22f), new AspectConstraint(1.3f)};
 
     //    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(new Color(255, 255, 255, 0));
-    public final static Background<?> DEFAULT_BACKGROUND = new Background<>("#0D47A1");
+    public final static Background<?> DEFAULT_BACKGROUND = new Background<>("#FFF9C4");
+
+    private final static Background<File> stickyFigureImage = Utils.importResourceTexture("stick_figure");
+
+    private final static Background<File> coinsImage = Utils.importResourceTexture("coins");
 
     private static GuiHouseDetails instance;
 
@@ -63,10 +69,6 @@ public class GuiHouseDetails extends Gui {
     private State        state;
     private ResourceType resourceType;
     private Resource     resource;
-
-    private final static Background<String> stickyFigureImage = new Background<>("stick_figure.png");
-
-    private final static Background<String> coinsImage = new Background<>("coins.png");
 
     private GuiDonutGraph<Integer> peopleDistributionGraph;
     private GuiRectangle           stickyFigure;
@@ -228,7 +230,10 @@ public class GuiHouseDetails extends Gui {
                     this.resource = resource;
                     updatePercentage();
                     this.categoryView.categoryIcon.setTextureIndex(group.getButtonIndex(button.ID));
+
+                    return true;
                 }
+                return false;
             });
 
             if (!selected.get()) {
@@ -243,12 +248,14 @@ public class GuiHouseDetails extends Gui {
 
     private void updatePercentage() {
         if (this.resource == null || this.houseObject == null ||
-                !this.houseObject.hasComponent(RequirementComponent.class))
+                !this.houseObject.hasComponent(ResourceRequirementComponent.class))
             return;
 
-        RequirementComponent requirementComponent = this.houseObject.getComponent(RequirementComponent.class);
+        ResourceRequirementComponent resourceRequirementComponent = this.houseObject.getComponent(
+                ResourceRequirementComponent.class);
 
-        final Set<ResourceRequirement> resourceRequirements = requirementComponent.getTier3Requirements().keySet()
+        final Set<ResourceRequirement> resourceRequirements = resourceRequirementComponent.getTier3Requirements()
+                .keySet()
                 .stream()
                 .filter(ResourceRequirement.class::isInstance).map(ResourceRequirement.class::cast)
                 .collect(Collectors.toSet());
@@ -277,8 +284,11 @@ public class GuiHouseDetails extends Gui {
         this.moneyButton = new GuiRectangleButton(this, coinsImage, null, constraintsManager);
 
         this.moneyButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 onMoneyClick();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -306,8 +316,11 @@ public class GuiHouseDetails extends Gui {
         if (this.peopleButton != null) {
             this.peopleButton.setDisplayed(false);
             this.peopleButton.setOnMousePress(button -> {
-                if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+                if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                     onPeopleClick();
+                    return true;
+                }
+                return false;
             });
 
             setComponentTransitions(this.peopleButton);

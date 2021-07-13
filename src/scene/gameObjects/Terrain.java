@@ -1,12 +1,13 @@
 package scene.gameObjects;
 
-import entities.Model;
+import static util.Utils.RES_PATH;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import models.BoundingBox;
-import models.TexturedModel;
+import models.Model;
 import renderEngine.TerrainRenderer;
 import scene.components.BoundingBoxComponent;
 import scene.components.RendererComponent;
@@ -16,11 +17,12 @@ import scene.components.TexturePackComponent;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
-import util.ModelType;
+import util.ResourceFile;
 import util.Vao;
-import util.colladaParser.dataStructures.MeshData;
 import util.math.Plane3D;
 import util.math.Vector3f;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.dataStructures.MeshData;
 
 public class Terrain extends GameObject {
 
@@ -28,10 +30,10 @@ public class Terrain extends GameObject {
 
     public Terrain() {
         MeshData modelData = generateTerrain("heightmap.png");
-        Vao terrainVao = Vao.createVao(modelData, ModelType.NORMAL);
-        TexturedModel texturedModel = new TexturedModel(terrainVao);
+        Vao terrainVao = Vao.createVao(modelData, ModelType.DEFAULT);
+        Model model = new Model(terrainVao);
         addComponent(new TerrainComponent());
-        addComponent(new SingleModelComponent(new Model(texturedModel)));
+        addComponent(new SingleModelComponent(model));
 
         Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, SIZE),
                 new Vector3f(SIZE, 0, SIZE), new Vector3f(SIZE, 0, 0));
@@ -39,8 +41,11 @@ public class Terrain extends GameObject {
         boundingBox.addPlane(terrainPlane);
         boundingBox.setModelTexture(ModelTexture.DEFAULT_MODEL);
         addComponent(new BoundingBoxComponent(boundingBox));
-        TerrainTexturePack terrainTexturePack = new TerrainTexturePack(new TerrainTexture("blue.png"),
-                new TerrainTexture("red.png"), new TerrainTexture("green.png"), new TerrainTexture("blue.png"));
+        TerrainTexturePack terrainTexturePack = new TerrainTexturePack(
+                new TerrainTexture(new ResourceFile("blue.png")),
+                new TerrainTexture(new ResourceFile("red.png")),
+                new TerrainTexture(new ResourceFile("green.png")),
+                new TerrainTexture(new ResourceFile("blue.png")));
         addComponent(new TexturePackComponent(terrainTexturePack));
         addComponent(new RendererComponent(TerrainRenderer.getInstance()));
     }
@@ -49,7 +54,7 @@ public class Terrain extends GameObject {
     private MeshData generateTerrain(String heightMap) {
         BufferedImage image;
         try {
-            image = ImageIO.read(new File("res/" + heightMap));
+            image = ImageIO.read(new File(RES_PATH + "/" + heightMap));
         } catch (IOException e) {
             e.printStackTrace();
 

@@ -4,6 +4,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 import inputs.requests.Request;
 import inputs.requests.Request.RequestType;
+import inputs.requests.RequestManager;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -31,37 +32,10 @@ public class KeyboardUtils {
 
     private static KeyModifiers keyModifier = KeyModifiers.NONE; // Used out of requests
 
-    public static void cancelRequest(Request request) {
-        requests.get(request.getRequestType()).remove(request);
-    }
-
-    public static void cancelRequest(RequestType requestType) {
-        requests.get(requestType).poll();
-    }
-
-    public static void request(Request request) {
-        requests.get(request.getRequestType()).add(request);
-    }
-
-    private static boolean handleRequests(RequestType requestType, int action, char pressedKey, int scancode) {
-        if (requests.isEmpty())
-            return false;
-
-        Queue<Request> requests = KeyboardUtils.requests.get(requestType);
-        if (requests.isEmpty())
-            return false;
-
-        Request request = requests.element();
-
-        if (request != null)
-            return request.getOnHandleRequest().onHandle(action, pressedKey, scancode, request, requests);
-
-        return false;
-    }
 
     public static void setupListeners() {
         glfwSetCharCallback(DisplayManager.getWindow(), (window, codepoint) -> {
-            handleRequests(RequestType.CHAR, GLFW_PRESS, (char) codepoint, 0);
+            RequestManager.getInstance().handleRequests(RequestType.CHAR, GLFW_PRESS, (char) codepoint, 0);
         });
         callback = glfwSetKeyCallback(DisplayManager.getWindow(), (w, key, scancode, action, mods) -> {
             // Caps lock & Num lock handling
@@ -80,7 +54,7 @@ public class KeyboardUtils {
                 isControl = ctrlPressed == GLFW_MOD_CONTROL;
                 isShift = shiftPressed == GLFW_MOD_SHIFT;
             }
-            boolean handled = handleRequests(RequestType.KEY, action, (char) key, scancode);
+            boolean handled = RequestManager.getInstance().handleRequests(RequestType.KEY, action, (char) key, scancode);
             if (handled)
                 return;
 

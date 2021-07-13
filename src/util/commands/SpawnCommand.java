@@ -96,7 +96,9 @@ public class SpawnCommand extends Command {
             gameObject.addComponent(new SelectableComponent(button -> {
                 if (button == GLFW_MOUSE_BUTTON_LEFT) {
                     showPath(bestPath);
+                    return true;
                 }
+                return false;
             }));
             bestPath.savePathCoordinates();
             if (showBool)

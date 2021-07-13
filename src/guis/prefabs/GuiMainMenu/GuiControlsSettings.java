@@ -1,6 +1,8 @@
 package guis.prefabs.GuiMainMenu;
 
 import static guis.prefabs.GuiMainMenu.GuiDisplaySettings.LIGHT_GRAY;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
@@ -15,17 +17,19 @@ import guis.constraints.layout.PatternLayout;
 import guis.constraints.layout.RatioedPatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiMultiOption;
+import guis.presets.buttons.GuiAbstractButton;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.ClickType;
 import inputs.Key;
 import inputs.KeyInput;
-import inputs.KeyboardUtils;
 import inputs.requests.KeyMappingRequest;
 import inputs.requests.Request.RequestType;
+import inputs.requests.RequestManager;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
@@ -34,7 +38,11 @@ import util.KeybindingsManager.KeyboardLayout;
 
 public class GuiControlsSettings extends GuiTab {
 
+    private final static Text PRESS_TO_ASSIGN = new Text(Words.PRESS_TO_ASSIGN, .8f, DEFAULT_FONT, Color.BLACK);
+    private final static Text PRESS_KEY_TEXT  = new Text(Words.PRESS_KEY, .8f, DEFAULT_FONT, Color.BLACK);
+
     private GuiMultiOption<String> layoutMultiOption;
+    private List<GuiText>          bindings;
 
     public GuiControlsSettings(GuiMultiTab parent) {
         super(Background.NO_BACKGROUND, parent, Words.CONTROLS);
@@ -73,11 +81,9 @@ public class GuiControlsSettings extends GuiTab {
     }
 
     private void createKeybindingsOption() {
-        final List<GuiText> bindings = new ArrayList<>();
+        this.bindings = new ArrayList<>();
         final List<Key> keyBindings = new ArrayList<>(Key.KEYS);
         for (Key key : keyBindings) {
-            Text defaultText = new Text(Words.PRESS_TO_ASSIGN, .8f, DEFAULT_FONT, Color.BLACK);
-            Text pressKeyText = new Text(Words.PRESS_KEY, .8f, DEFAULT_FONT, Color.BLACK);
             if (key.getKeyInput() == null)
                 continue;
             KeyInput keyInput = key.getKeyInput().toLocalKeyboardLayout();
@@ -93,34 +99,21 @@ public class GuiControlsSettings extends GuiTab {
                         : key.getKeyInput().toLocalKeyboardLayout().formatKeyInput();
                 assignedKeyGuiText.getText().setTextString(text);
             });
-            bindings.add(assignedKeyGuiText);
+            this.bindings.add(assignedKeyGuiText);
 
             GuiRectangleButton rectangleButton = new GuiRectangleButton(keyArea, Background.NO_BACKGROUND, Color.BLUE,
                     (GuiConstraintsManager) null);
 
-            rectangleButton.setupText(defaultText);
+            rectangleButton.setupText(PRESS_TO_ASSIGN);
             rectangleButton.setToggleType(true);
             final KeyMappingRequest request = new KeyMappingRequest((action, newKeyInput) -> {
                 if (action == GLFW.GLFW_PRESS) {
-                    rectangleButton.getText().setText(defaultText);
+                    rectangleButton.getText().setText(PRESS_TO_ASSIGN);
                     rectangleButton.setClickType(ClickType.NONE);
 
                     char newGlobalKey = newKeyInput.getKey();
                     if (newGlobalKey != GLFW.GLFW_KEY_ESCAPE) { // Non cancel keys
-                        String previousLocalKey = assignedKeyText.getTextString().isEmpty() ? String
-                                .valueOf((char) Key.getEmptyKey()) : assignedKeyText.getTextString();
-
-                        KeyInput previousKeyInput = KeybindingsManager.parseKey(previousLocalKey);
-                        if (previousKeyInput != null) {
-                            KeyInput previousGlobalKeyInput = previousKeyInput.toDefaultKeyboardLayout();
-
-                            keyBindings.stream().filter(k -> k.getKeyInput().equals(newKeyInput))
-                                    .findFirst()
-                                    .ifPresent(k -> {
-                                        k.setKeyInput(previousGlobalKeyInput);
-                                        bindings.forEach(GuiText::update);
-                                    });
-                        }
+                        updateAllKeys(assignedKeyGuiText.getText().getTextString(), newKeyInput);
                         Key.getKeyFromName(key.getName()).setValue(newKeyInput);
                         assignedKeyGuiText.update();
                     }
@@ -129,34 +122,78 @@ public class GuiControlsSettings extends GuiTab {
 
                 return true;
             });
-
+            AtomicInteger requestId = new AtomicInteger();
             rectangleButton.setOnMousePress(button -> {
                 ClickType clickType = rectangleButton.getClickType();
-                if (button == GLFW.GLFW_MOUSE_BUTTON_2 && clickType == ClickType.M2) {
-                    rectangleButton.setClickType(ClickType.NONE); // If M2 before M1
-                } else if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                    if (clickType == ClickType.M1) {
-                        rectangleButton.getText().setText(pressKeyText);
+                switch (button) {
+                    case GLFW_MOUSE_BUTTON_1:
+                        if (clickType == ClickType.M1) {
+                            rectangleButton.getText().setText(PRESS_KEY_TEXT);
 
-                        KeyboardUtils.request(new KeyMappingRequest(request));
-                    } else {
-                        rectangleButton.getText().setText(defaultText);
-                        KeyboardUtils.cancelRequest(RequestType.KEY);
-                    }
-                } else if (button == GLFW.GLFW_MOUSE_BUTTON_2 && clickType == ClickType.M1) {
-                    Key.getKeyFromName(key.getName()).setValue(String.valueOf((char) Key.getEmptyKey()));
-                    assignedKeyGuiText.update();
+                            int id = RequestManager.getInstance().request(new KeyMappingRequest(request));
+                            requestId.set(id);
+                        } else {
+                            restoreButton(rectangleButton, requestId.get());
+                        }
+                        break;
+                    case GLFW_MOUSE_BUTTON_2:
+                        switch (clickType) {
+                            case M1:
+                                Key.getKeyFromName(key.getName()).setValue(String.valueOf((char) Key.getEmptyKey()));
+                                assignedKeyGuiText.update();
 
-                    rectangleButton.getText().setText(defaultText);
-                    rectangleButton.setClickType(ClickType.NONE);
-                    KeyboardUtils.cancelRequest(RequestType.KEY);
+                                rectangleButton.setClickType(ClickType.NONE);
+                                restoreButton(rectangleButton, requestId.get());
+                                break;
+                            case M2:
+                                rectangleButton.setClickType(ClickType.NONE); // If M2 before M1
+                                break;
+                            case MIDDLE:
+                            case NONE:
+                                return false;
+                        }
+                        break;
+                    default:
+                        String keyName = "MOUSEBUTTON" + button;
+                        KeyInput newInput = KeybindingsManager.parseKey(keyName);
+                        updateAllKeys(assignedKeyGuiText.getText().getTextString(), newInput);
+
+                        Key.getKeyFromName(key.getName()).setKeyInput(newInput);
+                        assignedKeyGuiText.update();
+
+                        rectangleButton.setClickType(ClickType.NONE);
+                        restoreButton(rectangleButton, requestId.get());
+                        break;
                 }
+                return true;
             });
 
         }
         this.layoutMultiOption.setOptionSelectedCallback(layout -> {
             KeyboardLayout.setCurrentKeyboardLayout(KeyboardLayout.getKeyboardLayoutFromName(layout));
-            bindings.forEach(GuiText::update);
+            this.bindings.forEach(GuiText::update);
         });
+    }
+
+    private void updateAllKeys(String assignedKeyText, KeyInput newKeyInput) {
+        String previousLocalKey = assignedKeyText.isEmpty() ? String
+                .valueOf((char) Key.getEmptyKey()) : assignedKeyText;
+
+        KeyInput previousKeyInput = KeybindingsManager.parseKey(previousLocalKey);
+        if (previousKeyInput != null) {
+            KeyInput previousGlobalKeyInput = previousKeyInput.toDefaultKeyboardLayout();
+
+            Key.KEYS.stream().filter(k -> k.getKeyInput().equals(newKeyInput))
+                    .findFirst()
+                    .ifPresent(k -> {
+                        k.setKeyInput(previousGlobalKeyInput);
+                        this.bindings.forEach(GuiText::update);
+                    });
+        }
+    }
+
+    private void restoreButton(GuiAbstractButton button, int requestId) {
+        button.getText().setText(PRESS_TO_ASSIGN);
+        RequestManager.getInstance().cancelRequest(RequestType.KEY, requestId);
     }
 }

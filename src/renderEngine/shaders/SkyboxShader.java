@@ -16,7 +16,7 @@ public class SkyboxShader extends ShaderProgram {
     }
 
     public void loadProjectionMatrix(Matrix4f matrix) {
-        super.loadMatrix(location_projectionMatrix, matrix);
+        loadMatrix(location_projectionMatrix, matrix);
     }
 
     public void loadViewMatrix() {
@@ -25,13 +25,13 @@ public class SkyboxShader extends ShaderProgram {
         matrix.m31 = 0;
         matrix.m32 = 0;
 
-        super.loadMatrix(location_viewMatrix, matrix);
+        loadMatrix(location_viewMatrix, matrix);
     }
 
     @Override
     protected void getAllUniformLocations() {
-        location_projectionMatrix = super.getUniformLocation("projectionMatrix");
-        location_viewMatrix = super.getUniformLocation("viewMatrix");
+        location_projectionMatrix = getUniformLocation("projectionMatrix");
+        location_viewMatrix = getUniformLocation("viewMatrix");
     }
 
     @Override

@@ -24,14 +24,14 @@ public class FontShader extends ShaderProgram {
 
     @Override
     protected void getAllUniformLocations() {
-        this.location_color = super.getUniformLocation("color");
-        this.location_translation = super.getUniformLocation("translation");
-        this.location_charWidth = super.getUniformLocation("charWidth");
-        this.location_edgeCharWidth = super.getUniformLocation("edgeCharWidth");
-        this.location_topLeftCorner = super.getUniformLocation("topLeftCorner");
-//        this.location_topRightCorner = super.getUniformLocation("topRightCorner");
-//        this.location_bottomLeftCorner = super.getUniformLocation("bottomLeftCorner");
-        this.location_bottomRightCorner = super.getUniformLocation("bottomRightCorner");
+        this.location_color = getUniformLocation("color");
+        this.location_translation = getUniformLocation("translation");
+        this.location_charWidth = getUniformLocation("charWidth");
+        this.location_edgeCharWidth = getUniformLocation("edgeCharWidth");
+        this.location_topLeftCorner = getUniformLocation("topLeftCorner");
+//        this.location_topRightCorner = getUniformLocation("topRightCorner");
+//        this.location_bottomLeftCorner = getUniformLocation("bottomLeftCorner");
+        this.location_bottomRightCorner = getUniformLocation("bottomRightCorner");
     }
 
     @Override
@@ -42,29 +42,29 @@ public class FontShader extends ShaderProgram {
     }
 
     public void loadColor(Color color) {
-        super.loadVector(this.location_color,
+        loadVector(this.location_color,
                 new Vector3f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f));
     }
 //
 //    public void loadGuiTextCorners(Vector2f topLeftCorner, Vector2f topRightCorner, Vector2f bottomLeftCorner,
 //            Vector2f bottomRightCorner) {
-//        super.load2DVector(this.location_topLeftCorner, topLeftCorner);
-//        super.load2DVector(this.location_topRightCorner, topRightCorner);
-//        super.load2DVector(this.location_bottomLeftCorner, bottomLeftCorner);
-//        super.load2DVector(this.location_bottomRightCorner, bottomRightCorner);
+//        load2DVector(this.location_topLeftCorner, topLeftCorner);
+//        load2DVector(this.location_topRightCorner, topRightCorner);
+//        load2DVector(this.location_bottomLeftCorner, bottomLeftCorner);
+//        load2DVector(this.location_bottomRightCorner, bottomRightCorner);
 //    }
 
     public void loadGuiTextCorners(Vector2f topLeftCorner, Vector2f bottomRightCorner) {
-        super.load2DVector(this.location_topLeftCorner, topLeftCorner);
-        super.load2DVector(this.location_bottomRightCorner, bottomRightCorner);
+        loadVector(this.location_topLeftCorner, topLeftCorner);
+        loadVector(this.location_bottomRightCorner, bottomRightCorner);
     }
 
     public void loadTranslation(Vector2f translation) {
-        super.load2DVector(this.location_translation, translation);
+        loadVector(this.location_translation, translation);
     }
 
     public void loadCharWidths(float charWidth, float edgeCharWidth) {
-        super.loadFloat(this.location_charWidth, charWidth);
-        super.loadFloat(this.location_edgeCharWidth, edgeCharWidth);
+        loadFloat(this.location_charWidth, charWidth);
+        loadFloat(this.location_edgeCharWidth, edgeCharWidth);
     }
 }

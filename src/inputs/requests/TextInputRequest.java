@@ -10,6 +10,8 @@ import inputs.callbacks.KeyCallback;
 
 public class TextInputRequest extends Request {
 
+    private static final RequestType TYPE = RequestType.CHAR;
+
     private KeyModifiers keyModifier;
 
     private final KeyCallback callback;
@@ -38,7 +40,7 @@ public class TextInputRequest extends Request {
     };
 
     public TextInputRequest(KeyCallback callback) {
-        super(RequestType.CHAR, ON_HANDLE_REQUEST_CALLBACK);
+        super(TYPE, ON_HANDLE_REQUEST_CALLBACK);
 
         this.callback = callback;
         this.keyModifier = KeyModifiers.NONE;

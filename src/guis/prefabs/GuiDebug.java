@@ -16,6 +16,7 @@ import guis.presets.sliders.GuiTextScrollable;
 import guis.presets.sliders.ScrollBar;
 import inputs.Key;
 import java.awt.Color;
+import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
 import scene.Scene;
-import scene.components.ProductionComponent;
+import scene.components.ResourceProductionComponent;
 import util.Utils;
 import util.commands.Command;
 import util.commands.CommandManager;
@@ -37,11 +38,11 @@ import util.math.Maths;
 
 public class GuiDebug extends Gui {
 
-    private final static Background<String> CHECK = new Background<>("check.png");
+    private final static Background<File> CHECK = Utils.importResourceTexture("check");
 
     private static GuiDebug instance;
 
-    private static OutputStream outputStream, outputErrorStream;
+    public static OutputStream outputStream, outputErrorStream;
     private final GuiText           infosGui;
     public final  GuiTextScrollable consoleLogs;
 
@@ -297,10 +298,10 @@ public class GuiDebug extends Gui {
 
         for (Resource resource : Resource.values()) {
             Map<Resource, Double> resourceProductionRates = Scene.getInstance()
-                    .getGameObjectsForComponent(ProductionComponent.class, false)
+                    .getGameObjectsForComponent(ResourceProductionComponent.class, false)
                     .stream()
-                    .map(gameObject -> gameObject.getComponent(ProductionComponent.class))
-                    .map(ProductionComponent::getProductionRates)
+                    .map(gameObject -> gameObject.getComponent(ResourceProductionComponent.class))
+                    .map(ResourceProductionComponent::getProductionRates)
                     .flatMap(map -> map.entrySet().stream())
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue, Double::sum));
             String infosString;
@@ -314,7 +315,7 @@ public class GuiDebug extends Gui {
                 double amount = Maths.roundDown(stock.getAmount(), 2);
                 infosString = "Quantity: " + amount + " / " +
                         (stock.getMaxAmount() == Integer.MAX_VALUE ? "Inf." : stock.getMaxAmount()) + "\n" +
-                        "Rate: " + Maths.roundDown(productionRate, 2) + " per tick";
+                        "Rate: " + Maths.roundDown(productionRate, 2) + " / sec";
 
                 this.resourceInfo[resource.ordinal()].getText().getColors()
                         .set(1, Utils.getColorForResource(amount, stock.getMaxAmount()));

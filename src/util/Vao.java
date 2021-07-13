@@ -5,29 +5,34 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.IntStream;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL41;
-import util.colladaParser.dataStructures.MeshData;
 import util.math.Vector3f;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.dataStructures.MeshData;
+import util.parsing.objParser.Material;
 
 public class Vao {
 
     private static final int BYTES_PER_FLOAT = 4;
     private static final int BYTES_PER_INT   = 4;
 
-    private final int       id;
-    private final List<Vbo> dataVbos = new ArrayList<>();
+    private final int                id;
+    private final List<Vbo>          dataVbos;
+    private final Map<Material, Vbo> indexVbos;
 
-    private Vbo indexVbo;
-    private int indexCount;
-
-    private boolean instanced;
-    private Vbo     instanceVbo;
+    private boolean   instanced;
+    private Vbo       instanceVbo;
+    private ModelType modelType;
 
     public static Vao create() {
         int id = GL30.glGenVertexArrays();
@@ -35,33 +40,37 @@ public class Vao {
     }
 
     private Vao(int id) {
-        super();
         this.id = id;
+        this.dataVbos = new ArrayList<>();
+        this.indexVbos = new LinkedHashMap<>();
+    }
+
+    public Map<Material, Vbo> getIndexVbos() {
+        return this.indexVbos;
     }
 
     public int getIndexCount() {
-        return indexCount;
+        return this.indexVbos.values().stream().mapToInt(Vbo::getDataLength).sum();
     }
 
-    public void bind(int... attributes) {
+    public final void bind(int... attributes) {
         bind();
-        for (int i : attributes) {
-            GL20.glEnableVertexAttribArray(i);
-        }
+
+        IntStream.of(attributes).forEachOrdered(GL20::glEnableVertexAttribArray);
     }
 
-    public void unbind(int... attributes) {
-        for (int i : attributes) {
-            GL20.glDisableVertexAttribArray(i);
-        }
+    public final void unbind(int... attributes) {
+        IntStream.of(attributes).forEachOrdered(GL20::glDisableVertexAttribArray);
+
         unbind();
     }
 
-    public void createIndexBuffer(int[] indices) {
-        this.indexVbo = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
+    public void createIndexBuffer(Material material, int[] indices) {
+        Vbo indexVbo = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
         indexVbo.bind();
         indexVbo.storeData(indices);
-        this.indexCount = indices.length;
+        indexVbo.unbind();
+        this.indexVbos.put(material, indexVbo);
     }
 
     public void createAttribute(int attribute, float[] data, int attrSize) {
@@ -70,7 +79,7 @@ public class Vao {
         dataVbo.storeData(data);
         GL20.glVertexAttribPointer(attribute, attrSize, GL11.GL_FLOAT, false, attrSize * BYTES_PER_FLOAT, 0);
         dataVbo.unbind();
-        dataVbos.add(dataVbo);
+        this.dataVbos.add(dataVbo);
     }
 
     public void createIntAttribute(int attribute, int[] data, int attrSize) {
@@ -79,19 +88,17 @@ public class Vao {
         dataVbo.storeData(data);
         GL30.glVertexAttribIPointer(attribute, attrSize, GL11.GL_INT, attrSize * BYTES_PER_INT, 0);
         dataVbo.unbind();
-        dataVbos.add(dataVbo);
+        this.dataVbos.add(dataVbo);
     }
 
     public void delete() {
-        GL30.glDeleteVertexArrays(id);
-        for (Vbo vbo : dataVbos) {
-            vbo.delete();
-        }
-        indexVbo.delete();
+        GL30.glDeleteVertexArrays(this.id);
+        this.dataVbos.forEach(Vbo::delete);
+        this.indexVbos.values().forEach(Vbo::delete);
     }
 
     private void bind() {
-        GL30.glBindVertexArray(id);
+        GL30.glBindVertexArray(this.id);
     }
 
     private void unbind() {
@@ -108,15 +115,19 @@ public class Vao {
      */
     public static Vao createVao(MeshData data, ModelType modelType) {
         Vao vao = Vao.create();
+        vao.modelType = modelType;
         vao.bind();
-        vao.createIndexBuffer(data.getIndices());
+
+        for (Entry<Material, int[]> materialIndices : data.getIndicesList().entrySet())
+            vao.createIndexBuffer(materialIndices.getKey(), materialIndices.getValue());
+
         vao.createAttribute(0, data.getVertices(), 3);
         vao.createAttribute(1, data.getTextureCoords(), 2);
         vao.createAttribute(2, data.getNormals(), 3);
 
         Vbo vbo;
         switch (modelType) {
-            case NORMAL:
+            case DEFAULT:
                 break;
             case ANIMATED:
                 vao.createIntAttribute(4, data.getJointIds(), 3);
@@ -134,6 +145,7 @@ public class Vao {
                     GL41.glVertexAttribDivisor(i + 6, 1);
                     glEnableVertexAttribArray(i + 6);
                 }
+                vbo.unbind();
                 break;
             case WITH_NORMAL_MAP:
                 vao.createAttribute(3, data.getTangents(), 3);
@@ -153,6 +165,7 @@ public class Vao {
                     GL41.glVertexAttribDivisor(i + 6, 1);
                     glEnableVertexAttribArray(i + 6);
                 }
+                vbo.unbind();
                 break;
             case ANIMATED_WITH_NORMAL_MAP:
                 vao.createAttribute(3, data.getTangents(), 3);
@@ -173,6 +186,7 @@ public class Vao {
                     GL41.glVertexAttribDivisor(i + 6, 1);
                     glEnableVertexAttribArray(i + 6);
                 }
+                vbo.unbind();
                 break;
             case ANIMATED_INSTANCED_WITH_NORMAL_MAP:
                 vao.createAttribute(3, data.getTangents(), 3);
@@ -190,6 +204,7 @@ public class Vao {
                     GL41.glVertexAttribDivisor(i + 6, 1);
                     glEnableVertexAttribArray(i + 6);
                 }
+                vbo.unbind();
                 break;
         }
         vao.unbind();
@@ -215,12 +230,16 @@ public class Vao {
         if (o == null || getClass() != o.getClass())
             return false;
         Vao vao = (Vao) o;
-        return id == vao.id;
+        return this.id == vao.id;
+    }
+
+    public ModelType getModelType() {
+        return this.modelType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(this.id);
     }
 
     public Vector3f getMin() {

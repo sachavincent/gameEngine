@@ -52,8 +52,12 @@ public class GuiLanguageSettings extends GuiTab {
             button.enableFilter();
             button.setButtonGroup(buttonGroup);
             button.setOnMousePress(b -> {
-                if (b == GLFW.GLFW_MOUSE_BUTTON_1)
+                if (b == GLFW.GLFW_MOUSE_BUTTON_1) {
                     TextConverter.setNewLanguage(language);
+                    return true;
+                }
+
+                return false;
             });
 
             if (language == TextConverter.getLanguage())

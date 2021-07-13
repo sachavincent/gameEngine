@@ -1,9 +1,8 @@
 package scene.components;
 
-import entities.Model;
 import java.util.Collections;
 import java.util.List;
-import models.TexturedModel;
+import models.Model;
 import util.TimeSystem;
 
 public class ConstructionComponentSingle extends SingleModelComponent {
@@ -13,7 +12,7 @@ public class ConstructionComponentSingle extends SingleModelComponent {
     protected int currentTier;
 
     public ConstructionComponentSingle(List<ConstructionTier> constructionTiers) {
-        super(constructionTiers.isEmpty() ? null : new Model(constructionTiers.get(0).model));
+        super(constructionTiers.isEmpty() ? null : constructionTiers.get(0).model);
 
         this.constructionTiers = constructionTiers;
     }
@@ -25,7 +24,7 @@ public class ConstructionComponentSingle extends SingleModelComponent {
     public void setCurrentTier(int currentTier) {
         this.currentTier = currentTier;
         if (currentTier < this.constructionTiers.size())
-            setModel(new Model(this.constructionTiers.get(currentTier).model));
+            setModel(this.constructionTiers.get(currentTier).model.toModelEntity());
     }
 
     public ConstructionTier getCurrentConstructionTier() {
@@ -44,21 +43,21 @@ public class ConstructionComponentSingle extends SingleModelComponent {
 
     public static class ConstructionTier {
 
-        private final TexturedModel model;
-        private final int           numTier;
+        private final Model model;
+        private final int   numTier;
 
         private final TimeSystem startTime;
         private       TimeSystem endTime;
         private       double     duration;
 
-        public ConstructionTier(TexturedModel model, int numTier, TimeSystem startTime, double duration) {
+        public ConstructionTier(Model model, int numTier, TimeSystem startTime, double duration) {
             this.model = model;
             this.numTier = numTier;
             this.startTime = startTime;
             this.duration = duration;
         }
 
-        public TexturedModel getModel() {
+        public Model getModel() {
             return this.model;
         }
 

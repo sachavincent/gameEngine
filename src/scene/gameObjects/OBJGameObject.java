@@ -1,28 +1,28 @@
 package scene.gameObjects;
 
 import models.BoundingBox;
-import models.TexturedModel;
+import models.Model;
 
 public class OBJGameObject {
 
-    private TexturedModel texture;
-    private TexturedModel previewTexture;
+    private Model       texture;
+    private Model previewTexture;
 
     private BoundingBox   boundingBox;
 
-    public TexturedModel getTexture() {
+    public Model getTexture() {
         return this.texture;
     }
 
-    public void setTexture(TexturedModel texture) {
+    public void setTexture(Model texture) {
         this.texture = texture;
     }
 
-    public TexturedModel getPreviewTexture() {
+    public Model getPreviewTexture() {
         return this.previewTexture;
     }
 
-    public void setPreviewTexture(TexturedModel previewTexture) {
+    public void setPreviewTexture(Model previewTexture) {
         this.previewTexture = previewTexture;
     }
 

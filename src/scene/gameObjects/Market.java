@@ -1,6 +1,5 @@
 package scene.gameObjects;
 
-import entities.Model;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
 import org.lwjgl.glfw.GLFW;
@@ -22,7 +21,7 @@ public class Market extends GameObject {
         addComponent(new IconComponent(GameObjectPreviews.MARKET));
         DirectionComponent directionComponent = new DirectionComponent();
         addComponent(directionComponent);
-        addComponent(new SingleModelComponent(new Model(OBJGameObjects.MARKET.getTexture())));
+        addComponent(new SingleModelComponent(OBJGameObjects.MARKET.getTexture()));
         addComponent(new PreviewComponent(OBJGameObjects.MARKET.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
         addComponent(new ConnectionsComponent<>(Road.class, new AddComponentCallback() {
@@ -41,6 +40,7 @@ public class Market extends GameObject {
         addComponent(new SelectableComponent(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
             }
+            return false;
         }));
         addComponent(new RendererComponent(BuildingRenderer.getInstance()));
     }

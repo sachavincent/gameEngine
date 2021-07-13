@@ -7,19 +7,19 @@ import java.util.Objects;
 
 public class Entity {
 
-    private List<Model> models;
-    private boolean     preview;
+    private List<ModelEntity> modelEntities;
+    private boolean           preview;
 
     public Entity(Entity entity) {
-        this(entity.models);
+        this(entity.modelEntities);
     }
 
-    public Entity(Collection<Model> models) {
-        this.models = new ArrayList<>(models);
+    public Entity(Collection<ModelEntity> modelEntities) {
+        this.modelEntities = new ArrayList<>(modelEntities);
     }
 
-    public Entity(Model model) {
-        this(List.of(model));
+    public Entity(ModelEntity modelEntity) {
+        this(List.of(modelEntity));
     }
 
     public boolean isPreview() {
@@ -30,17 +30,17 @@ public class Entity {
         this.preview = preview;
     }
 
-    public void setModel(Model model) {
-        this.models = new ArrayList<>();
-        this.models.add(model);
+    public void setModel(ModelEntity modelEntity) {
+        this.modelEntities = new ArrayList<>();
+        this.modelEntities.add(modelEntity);
     }
 
-    public void setModels(List<Model> models) {
-        this.models = models;
+    public void setModels(List<ModelEntity> modelEntities) {
+        this.modelEntities = modelEntities;
     }
 
-    public List<Model> getModels() {
-        return this.models;
+    public List<ModelEntity> getModelEntities() {
+        return this.modelEntities;
     }
 
     @Override
@@ -50,11 +50,11 @@ public class Entity {
         if (o == null || getClass() != o.getClass())
             return false;
         Entity entity = (Entity) o;
-        return Objects.equals(entity.models, this.models);
+        return Objects.equals(entity.modelEntities, this.modelEntities);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.models);
+        return Objects.hash(this.modelEntities);
     }
 }

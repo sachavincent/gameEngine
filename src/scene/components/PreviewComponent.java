@@ -1,17 +1,22 @@
 package scene.components;
 
-import models.TexturedModel;
+import entities.ModelEntity;
+import models.Model;
 import renderEngine.BuildingRenderer;
 import renderEngine.Renderer;
 import util.math.Vector3f;
 
 public class PreviewComponent extends Component {
 
-    private final TexturedModel previewTexture;
+    private final ModelEntity previewTexture;
 
     private Vector3f previewPosition;
 
-    public PreviewComponent(TexturedModel previewTexture) {
+    public PreviewComponent(Model previewTexture) {
+        this(previewTexture.toModelEntity());
+    }
+
+    public PreviewComponent(ModelEntity previewTexture) {
         this.previewTexture = previewTexture;
         setOnUpdateComponentCallback(gameObject -> {
             Renderer renderer = gameObject.getComponent(RendererComponent.class).getRenderer();
@@ -21,7 +26,7 @@ public class PreviewComponent extends Component {
         });
     }
 
-    public TexturedModel getTexture() {
+    public ModelEntity getTexture() {
         return this.previewTexture;
     }
 

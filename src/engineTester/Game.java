@@ -25,9 +25,8 @@ import scene.components.Component;
 import scene.components.ConstructionComponentSingle;
 import scene.components.ConstructionComponentSingle.ConstructionTier;
 import scene.components.ResidenceComponent;
-import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
-import scene.gameObjects.NPC;
 import util.TimeSystem;
 import util.Utils;
 
@@ -109,7 +108,7 @@ public class Game {
      * @return the list of all eligible houses with their probability
      */
     private Map<Integer, Integer> getEligibleHousesSettlement() {
-        return Scene.getInstance().getGameObjectsForComponent(RequirementComponent.class, false).stream()
+        return Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false).stream()
                 .collect(Collectors.toMap(gameObject -> gameObject, gameObject -> {
                     ResidenceComponent residenceComponent = gameObject.getComponent(ResidenceComponent.class);
                     if (residenceComponent == null ||
@@ -156,14 +155,15 @@ public class Game {
                             ((double) placesAvailable / (double) residenceComponent.getMaxPeopleCapacity());
 
                     // Needs Tier reached
-                    if (gameObject.hasComponent(RequirementComponent.class)) {
-                        RequirementComponent requirementComponent = gameObject.getComponent(RequirementComponent.class);
+                    if (gameObject.hasComponent(ResourceRequirementComponent.class)) {
+                        ResourceRequirementComponent resourceRequirementComponent = gameObject.getComponent(
+                                ResourceRequirementComponent.class);
                         double weight;
-                        if (!requirementComponent.areTier1RequirementsMet())
+                        if (!resourceRequirementComponent.areTier1RequirementsMet())
                             weight = 0;
-                        else if (!requirementComponent.areTier2RequirementsMet())
+                        else if (!resourceRequirementComponent.areTier2RequirementsMet())
                             weight = 0.33;
-                        else if (!requirementComponent.areTier3RequirementsMet())
+                        else if (!resourceRequirementComponent.areTier3RequirementsMet())
                             weight = 0.66;
                         else
                             weight = 1;
@@ -202,13 +202,14 @@ public class Game {
 
                     int cooldown = ResidenceComponent.MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_2;
                     // Needs Tier reached
-                    if (gameObject.hasComponent(RequirementComponent.class)) {
-                        RequirementComponent requirementComponent = gameObject.getComponent(RequirementComponent.class);
-                        if (requirementComponent.areTier3RequirementsMet() ||
-                                requirementComponent.areTier2RequirementsMet())
+                    if (gameObject.hasComponent(ResourceRequirementComponent.class)) {
+                        ResourceRequirementComponent resourceRequirementComponent = gameObject.getComponent(
+                                ResourceRequirementComponent.class);
+                        if (resourceRequirementComponent.areTier3RequirementsMet() ||
+                                resourceRequirementComponent.areTier2RequirementsMet())
                             return null;
 
-                        if (!requirementComponent.areTier1RequirementsMet())
+                        if (!resourceRequirementComponent.areTier1RequirementsMet())
                             cooldown = ResidenceComponent.MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_1;
                     }
 
@@ -310,7 +311,7 @@ public class Game {
             Scene.getInstance().getGameObjects()
                     .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::tick));
 
-            NPC.updatePositions();
+//            NPC.updatePositions();
             Scene.getInstance().updateHighlightedPaths();
             int nbTicksForOneHouse = Game.TIME_BETWEEN_SETTLEMENTS.getNbTicks();
             Scene instance = Scene.getInstance();
@@ -350,10 +351,9 @@ public class Game {
             fbo.unbindFrameBuffer();
             PostProcessing.doPostProcessing(fbo.getColourTexture());
         }
-        GuiRenderer.render();
-        TextMaster.getInstance().
 
-                render();
+        GuiRenderer.render();
+        TextMaster.getInstance().render();
     }
 
     public enum GameState {

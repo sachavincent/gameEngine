@@ -15,6 +15,7 @@ public class SelectableComponent extends Component {
         this.mousePressCallback = button -> {
             this.selected = true;
             mousePressCallback.onPress(button);
+            return true;
         };
     }
 

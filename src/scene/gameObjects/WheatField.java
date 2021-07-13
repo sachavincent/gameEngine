@@ -1,7 +1,7 @@
 package scene.gameObjects;
 
 import entities.Camera.Direction;
-import entities.Model;
+import entities.ModelEntity;
 import items.GameObjectPreviews;
 import items.OBJGameObjects;
 import java.util.ArrayList;
@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import models.TexturedModel;
+import models.Model;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager.Resource;
 import scene.Scene;
 import scene.components.*;
 import scene.components.requirements.BuildingRadiusRequirement;
-import scene.components.requirements.RequirementComponent;
+import scene.components.requirements.ResourceRequirementComponent;
 import util.ShiftingList;
 import util.Utils;
 import util.math.Vector3f;
@@ -40,7 +40,7 @@ public class WheatField extends GameObject {
 
     private final static String[] FENCEPOLES = new String[]{FENCEPOLE1, FENCEPOLE2, FENCEPOLE3, FENCEPOLE4};
 
-    public final static List<TexturedModel> TEXTURES = new ArrayList<>();
+    public final static List<Model> TEXTURES = new ArrayList<>();
 
     private final Random random = new Random();
 
@@ -56,11 +56,11 @@ public class WheatField extends GameObject {
         DirectionComponent directionComponent = new DirectionComponent();
         addComponent(directionComponent);
 
-        ShiftingList<TexturedModel> shiftingTextures = new ShiftingList<>(TEXTURES);
+        ShiftingList<Model> shiftingTextures = new ShiftingList<>(TEXTURES);
 
         MultipleModelsComponent modelsComponent = new MultipleModelsComponent();
-        modelsComponent.addConcurrentModel(FENCE, new Model(OBJGameObjects.WHEATFIELD_FULL_FENCE.getTexture()));
-        modelsComponent.addConcurrentModel(LAND, new Model(TEXTURES.get(0), true));
+        modelsComponent.addConcurrentModel(FENCE, OBJGameObjects.WHEATFIELD_FULL_FENCE.getTexture().toModelEntity());
+        modelsComponent.addConcurrentModel(LAND, new ModelEntity(TEXTURES.get(0), true));
 
         modelsComponent.setOnAddComponentCallback((gameObject, position) -> {
             this.random.setSeed(System.currentTimeMillis());
@@ -70,7 +70,7 @@ public class WheatField extends GameObject {
         modelsComponent.setOnTickElapsedCallback((gameObject, nbTicks) -> {
             if (waitTicks.get() == nbTicks - 100) {
                 waitTicks.set(this.random.nextInt(200));
-                modelsComponent.getModelFromName(LAND).setTexturedModel(shiftingTextures.shiftAndGet());
+                modelsComponent.getModelFromName(LAND).setModel(shiftingTextures.shiftAndGet());
 
                 return true;
             }
@@ -85,6 +85,7 @@ public class WheatField extends GameObject {
         addComponent(new SelectableComponent(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
             }
+            return false;
         }));
         BuildingRadiusRequirement wheatFarmRequirement = new BuildingRadiusRequirement(WheatFarm.class, 15,
                 value -> {
@@ -96,15 +97,15 @@ public class WheatField extends GameObject {
             if (building != null && !Scene.getInstance().isPreviewed(this.id)) {
                 System.out
                         .println("Connected WheatField to " + building.getClass().getName() + " = " + building.getId());
-                building.getComponent(ProductionComponent.class)
+                building.getComponent(ResourceProductionComponent.class)
                         .addToProductionRate(Resource.WHEAT, WheatFarm.WHEAT_PRODUCTION_PER_WHEATFIELD);
             }
         });
 
-        RequirementComponent requirementComponent = new RequirementComponent(
+        ResourceRequirementComponent resourceRequirementComponent = new ResourceRequirementComponent(
                 new HashSet<>(Collections.singletonList(wheatFarmRequirement)), new HashSet<>(), new HashSet<>(),
                 new HashSet<>());
-        addComponent(requirementComponent);
+        addComponent(resourceRequirementComponent);
 
         ConnectionsComponent<WheatField> connectionsComponent = new ConnectionsComponent<>(WheatField.class,
                 (gameObject, position) -> {
@@ -151,7 +152,7 @@ public class WheatField extends GameObject {
 
         int[] perpendiculars = new int[]{90, -90};
         int nbConnections = Integer.bitCount(connections);
-        TexturedModel fenceModel;
+        Model fenceModel;
         Direction dir;
         switch (nbConnections) {
             case 1:
@@ -228,7 +229,7 @@ public class WheatField extends GameObject {
                 break;
         }
 
-        multipleModelsComponent.addConcurrentModel(FENCE, new Model(fenceModel));
+        multipleModelsComponent.addConcurrentModel(FENCE, fenceModel.toModelEntity());
     }
 
     /**
@@ -249,7 +250,7 @@ public class WheatField extends GameObject {
                         perpendicularDirection, WheatField.class::isInstance);
         if (gameObjectAtCorner == null) {
             multipleModelsComponent
-                    .addConcurrentModel(modelName, new Model(OBJGameObjects.WHEATFIELD_FENCE_POLE.getTexture()));
+                    .addConcurrentModel(modelName, OBJGameObjects.WHEATFIELD_FENCE_POLE.getTexture().toModelEntity());
             multipleModelsComponent.setOffsetsRotation(modelName, new Vector3f(0, offsetDirection.getDegree(), 0));
         } else {
             if (doesFenceNeedRemoval(
@@ -265,7 +266,7 @@ public class WheatField extends GameObject {
         }
     }
 
-    private boolean doesFenceNeedRemoval(Map<String, Model> concurrentModels) {
+    private boolean doesFenceNeedRemoval(Map<String, ModelEntity> concurrentModels) {
         return concurrentModels.keySet().stream().anyMatch(
                 name -> name.equals(FENCEPOLEC) || name.equals(FENCEPOLE1) || name.equals(FENCEPOLE2) ||
                         name.equals(FENCEPOLE3) || name.equals(FENCEPOLE4));

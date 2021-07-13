@@ -1,5 +1,7 @@
 package objConverter;
 
+import static util.Utils.RES_PATH;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,11 +15,9 @@ import util.math.Vector3f;
 
 public class OBJFileLoader {
 
-    private static final String RES_LOC = "res/";
-
     public static ModelData loadOBJ(String objFileName) {
         FileReader isr = null;
-        File objFile = new File(RES_LOC + objFileName + ".obj");
+        File objFile = new File(RES_PATH + "/" + objFileName + ".obj");
         try {
             isr = new FileReader(objFile);
         } catch (FileNotFoundException e) {

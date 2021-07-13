@@ -10,10 +10,12 @@ import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.callbacks.BackCallback;
 import java.awt.Color;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.lwjgl.glfw.GLFW;
+import util.Utils;
 
 public class GuiMultiTab extends Gui {
 
@@ -39,7 +41,7 @@ public class GuiMultiTab extends Gui {
         upperArea.setLayout(new RatioedPatternLayout(2, 1, 0, 0, 5f, 100f, 95f, 100f));
 
         this.backArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
-        Background<String> back = new Background<>("back_arrow.png");
+        Background<File> back = Utils.importResourceTexture("back_arrow");
         this.guiBack = new GuiRectangleButton(this.backArea, back, null, (GuiConstraintsManager) null);
 
         this.tabArea = new GuiRectangle(upperArea, Background.NO_BACKGROUND);
@@ -70,7 +72,9 @@ public class GuiMultiTab extends Gui {
         rectangleButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 displayTab(num);
+                return true;
             }
+            return false;
         });
 
         guiTab.setTabMenu(rectangleButton);
@@ -119,7 +123,9 @@ public class GuiMultiTab extends Gui {
             this.guiBack.setOnMousePress(button -> {
                 if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                     backCallback.onBack();
+                    return true;
                 }
+                return false;
             });
     }
 }

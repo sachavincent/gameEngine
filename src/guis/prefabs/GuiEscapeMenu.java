@@ -55,7 +55,9 @@ public class GuiEscapeMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
                 Game.getInstance().resume();
+                return true;
             }
+            return false;
         });
     }
 
@@ -67,6 +69,7 @@ public class GuiEscapeMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
             }
+            return false;
         });
     }
 
@@ -78,6 +81,7 @@ public class GuiEscapeMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
 
             }
+            return false;
         });
     }
 
@@ -96,7 +100,9 @@ public class GuiEscapeMenu extends Gui {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
                 guiSettingsMenu.setDisplayed(true);
+                return true;
             }
+            return false;
         });
     }
 
@@ -106,8 +112,11 @@ public class GuiEscapeMenu extends Gui {
         GuiRectangleButton quitButton = new GuiRectangleButton(this, this.buttonBackground, null, text);
         quitButton.enableFilter();
         quitButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 quitFunction();
+                return true;
+            }
+            return false;
         });
     }
 

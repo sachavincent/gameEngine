@@ -8,7 +8,7 @@ import resources.ResourceManager.Resource;
 
 public class AddResourceCommand extends Command {
 
-    private final static String[] VALID_RESOURCE = new String[]{"FISH", "WHEAT", "BREAD"};
+    private final static String[] VALID_RESOURCE = new String[]{"FISH", "WHEAT", "BREAD", "GOLD"};
 
     private final static String[] LOCAL_ALIAS               = new String[]{"addresource", "ar"};
     private final static String[] LOCAL_PARAMETERS          = new String[]{"resource", "amount"};

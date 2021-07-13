@@ -9,7 +9,7 @@ import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
 import java.util.Map;
-import models.TexturedModel;
+import models.Model;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -24,6 +24,7 @@ import scene.gameObjects.Terrain;
 import terrains.TerrainPosition;
 import textures.TerrainTexturePack;
 import util.Vao;
+import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -57,7 +58,9 @@ public class TerrainRenderer extends Renderer {
                 loadModelMatrix(position);
                 GL11.glLineWidth(2);
 
+                vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
                 GL11.glDrawElements(GL11.GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+                vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
                 unbindTexturedModel();
             }
         });
@@ -89,7 +92,7 @@ public class TerrainRenderer extends Renderer {
         if (singleModelComponent == null)
             return null;
 
-        TexturedModel texture = singleModelComponent.getModel().getTexturedModel();
+        Model texture = singleModelComponent.getModel().getModel();
         if (texture == null)
             return null;
 

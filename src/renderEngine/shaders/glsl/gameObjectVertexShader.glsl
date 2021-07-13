@@ -21,7 +21,7 @@ uniform bool useNormalMap;
 uniform bool isInstanced;
 uniform bool areTangentsOn;
 
-uniform float numberOfRows;
+uniform int numberOfRows;
 uniform vec2 offset;
 
 uniform vec4 plane;

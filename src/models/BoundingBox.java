@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import textures.ModelTexture;
-import util.ModelType;
 import util.Vao;
-import util.colladaParser.dataStructures.MeshData;
 import util.math.Plane3D;
 import util.math.Triangle3D;
 import util.math.Vector3f;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.dataStructures.MeshData;
 
-public class BoundingBox extends TexturedModel {
+public class BoundingBox extends Model {
 
     private final Set<Plane3D> planes;
 
@@ -28,16 +28,16 @@ public class BoundingBox extends TexturedModel {
         this.planes = new LinkedHashSet<>();
     }
 
-    public BoundingBox(List<Vector3f> vertices, int[] indices, String name) {
+    public BoundingBox(List<Vector3f> vertices, List<Integer> indices, String name) {
         this.planes = new LinkedHashSet<>();
 
-        if (indices.length % 3 != 0)
+        if (indices.size() % 3 != 0)
             throw new IllegalArgumentException("Wrong indices for " + name);
         try {
             List<Triangle3D> triangles = new ArrayList<>();
-            for (int i = 0; i < indices.length; i += 3)
-                triangles.add(new Triangle3D(vertices.get(indices[i]), vertices.get(indices[i + 1]),
-                        vertices.get(indices[i + 2])));
+            for (int i = 0; i < indices.size(); i += 3)
+                triangles.add(new Triangle3D(vertices.get(indices.get(i)), vertices.get(indices.get(i + 1)),
+                        vertices.get(indices.get(i + 2))));
 
             List<Triangle3D> copyOfTriangles = new ArrayList<>(triangles);
             List<Triangle3D> usedTriangles = new ArrayList<>();
@@ -82,7 +82,8 @@ public class BoundingBox extends TexturedModel {
 //            });
 //            planes.forEach(System.out::println);
 //            this.rawModel = Loader.getInstance().loadToVAO(verticesArray, textureCoords, normals, indices);
-            this.vao = Vao.createVao(new MeshData(verticesArray, textureCoords, normals, indices), ModelType.NORMAL);
+            int[] indicesArray = indices.stream().mapToInt(k -> k).toArray();
+            this.vao = Vao.createVao(new MeshData(verticesArray, textureCoords, normals, indicesArray), ModelType.DEFAULT);
             this.modelTexture = ModelTexture.DEFAULT_MODEL;
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();

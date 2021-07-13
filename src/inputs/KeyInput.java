@@ -68,7 +68,16 @@ public class KeyInput implements Map.Entry<Character, KeyModifiers> {
     public String formatKeyInput() {
         String keyModifierName = this.keyModifiers.formatName();
 
-        return keyModifierName.isEmpty() ? String.valueOf(this.key) : keyModifierName + "+" + this.key;
+        return keyModifierName.isEmpty() ? getKeyName() : keyModifierName + "+" + this.key;
+    }
+
+    public String getKeyName() {
+        int keyValue = this.key;
+
+        if (keyValue >= 3 && keyValue < 10)
+            return "MOUSEBUTTON" + keyValue;
+
+        return String.valueOf(this.key);
     }
 
     public KeyInput toLocalKeyboardLayout() {

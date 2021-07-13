@@ -43,8 +43,11 @@ public class CategoriesTab extends GuiRectangle {
         this.drinksCatButton = new GuiRectangleButton(this, DEFAULT_BACKGROUND, null, null, null, null);
 
         this.drinksCatButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 ((GuiHouseDetails) getParent()).onDrinksCategoryClick();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -52,8 +55,11 @@ public class CategoriesTab extends GuiRectangle {
         this.socialCatButton = new GuiRectangleButton(this, DEFAULT_BACKGROUND, null, null, null, null);
 
         this.socialCatButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 ((GuiHouseDetails) getParent()).onSocialCategoryClick();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -61,8 +67,11 @@ public class CategoriesTab extends GuiRectangle {
         this.foodCatButton = new GuiRectangleButton(this, Resource.FISH.getBackgroundTexture(), null, null, null, null);
 
         this.foodCatButton.setOnMousePress(button -> {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_1)
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 ((GuiHouseDetails) getParent()).onFoodCategoryClick();
+                return true;
+            }
+            return false;
         });
     }
 }
