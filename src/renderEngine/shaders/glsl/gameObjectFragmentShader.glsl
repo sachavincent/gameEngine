@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 #define MAX_MATERIALS 20
 #define MAX_LIGHTS 10
@@ -22,14 +22,15 @@ in vec3 toLightVector[MAX_LIGHTS];
 in vec3 toCameraVector;
 in vec3 surfaceNormal;
 in float visibility;
+flat in uint pass_materialIndex;
 
 out vec4 out_Color;
 
-uniform Material material;
-uniform sampler2D ambientMap;
-uniform sampler2D diffuseMap;
-uniform sampler2D normalMap;
-uniform sampler2D specularMap;
+uniform Material materials[MAX_MATERIALS];
+uniform sampler2D ambientMaps[MAX_MATERIALS];
+uniform sampler2D diffuseMaps[MAX_MATERIALS];
+uniform sampler2D normalMaps[MAX_MATERIALS];
+uniform sampler2D specularMaps[MAX_MATERIALS];
 
 
 uniform vec3 lightColor[MAX_LIGHTS];
@@ -50,12 +51,19 @@ float scaleLinear(float value, vec2 valueDomain, vec2 valueRange) {
 }
 
 void main() {
+    if (pass_materialIndex >= MAX_MATERIALS) {
+//        discard;
+    }
+    Material material = materials[pass_materialIndex];
+    out_Color = vec4(pass_materialIndex, 0, 1, 1);
+    return;
+
     vec3 unitNormal;
     if (material.UseNormalMap) {
-//        vec4 normalMapValue = texture(normalMap, pass_textureCoords, -1.0);
-        vec4 normalMapValue = texture(normalMap, pass_textureCoords);
+        //        vec4 normalMapValue = texture(normalMap, pass_textureCoords, -1.0);
+        vec4 normalMapValue = texture(normalMaps[pass_materialIndex], pass_textureCoords);
         unitNormal = normalize(normalMapValue.rgb);
-//        out_Color = vec4(unitNormal, 1.0);
+        //        out_Color = vec4(unitNormal, 1.0);
     } else {
         unitNormal = normalize(surfaceNormal);
     }
@@ -83,19 +91,19 @@ void main() {
 
     if (material.UseDiffuseMap) {
         if (material.UseNormalMap) {
-            totalDiffuse *= texture(diffuseMap, pass_textureCoords, -1.0);
+            totalDiffuse *= texture(diffuseMaps[pass_materialIndex], pass_textureCoords, -1.0);
         } else {
-            totalDiffuse *= texture(diffuseMap, pass_textureCoords);
+            totalDiffuse *= texture(diffuseMaps[pass_materialIndex], pass_textureCoords);
         }
-//        if (totalDiffuse.a < 0.5) {
-//            discard;
-//        }
+        //        if (totalDiffuse.a < 0.5) {
+        //            discard;
+        //        }
     } else {
         totalDiffuse *= vec4(material.Diffuse, 1.0);
     }
 
     if (material.UseSpecularMap) {
-        vec4 specInfo = texture(specularMap, pass_textureCoords);
+        vec4 specInfo = texture(specularMaps[pass_materialIndex], pass_textureCoords);
         totalSpecular *= specInfo.r;
         if (specInfo.g > 0.5) {
             totalDiffuse = vec4(1.0);
@@ -115,4 +123,5 @@ void main() {
         out_Color.a = alpha;
     }
     out_Color.a = 1;
+//    out_Color.r = 1;
 }

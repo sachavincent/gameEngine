@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 #define PI 3.1415926538
 
 #define DEFAULT 0

@@ -18,7 +18,6 @@ import renderEngine.shaders.AnimatedGameObjectShader;
 import scene.components.SingleModelComponent;
 import scene.gameObjects.GameObject;
 import util.Vao;
-import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
@@ -72,9 +71,9 @@ public class PathRenderer extends Renderer {
             Model texture = gameObject.getComponent(SingleModelComponent.class).getModel().getModel();
             prepareTexturedModel(texture);
             Vao vao = texture.getVao();
-            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-            GL11.glDrawElements(GL11.GL_LINES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+//            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+//            GL11.glDrawElements(GL11.GL_LINES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+//            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
             unbindTexturedModel();
         }
 

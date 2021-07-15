@@ -29,8 +29,8 @@ public class AnimatedModelLoader {
         Joint headJoint = createJoints(skeletonData.headJoint);
         AnimatedModel animatedTexturedModel = new AnimatedModel(modelVao, ModelTexture.createTexture(textureFile),
                 headJoint, skeletonData.jointCount);
-        animatedTexturedModel.setIndicesLength(meshData.getIndicesList().values().stream().findFirst()
-                .get().length);//TODO: Definitely wrong if multiple materials...
+//        animatedTexturedModel.setIndicesLength(meshData.getMaterials().stream().findFirst()
+//                .get().length);//TODO: Definitely wrong if multiple materials...
         return animatedTexturedModel;
     }
 

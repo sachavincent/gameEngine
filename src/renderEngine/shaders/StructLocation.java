@@ -35,8 +35,8 @@ public class StructLocation {
         }
     }
 
-    public void connectTextureUnits() {
-        AtomicInteger idx = new AtomicInteger();
+    public int connectTextureUnits(int id) {
+        AtomicInteger idx = new AtomicInteger(id);
         for (int i = 0; i < this.textureLocations.size(); i++) {
             Location location = this.textureLocations.get(i);
             int idTexture = idx.getAndIncrement();
@@ -44,6 +44,7 @@ public class StructLocation {
             location.uniformLocation = idTexture;
             this.textureLocations.set(i, location);
         }
+        return idx.get();
     }
 
     public void loadTextures(ModelTexture... textures) {

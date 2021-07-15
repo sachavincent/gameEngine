@@ -44,8 +44,8 @@ public class GeometryLoader {
         initArrays();
         convertDataToArrays();
         convertIndicesListToArray();
-        return new MeshData(this.verticesArray, this.texturesArray, this.normalsArray, this.indicesArray,
-                this.jointIdsArray, this.weightsArray);
+        return new MeshData(this.verticesArray, this.texturesArray, this.normalsArray, this.indicesArray, null,
+                this.jointIdsArray, this.weightsArray);//TODO TEMP
     }
 
     private void readRawData() {

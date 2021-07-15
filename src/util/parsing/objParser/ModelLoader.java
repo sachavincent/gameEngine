@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import models.AnimatedModel;
@@ -379,14 +379,20 @@ public class ModelLoader {
 
             String group = null;
             Material material = null;
-            Map<Material, int[]> indicesList = new HashMap<>();
+            Map<Material, int[]> materialsIndices = new LinkedHashMap<>();
+            Map<Material, int[]> tempLocalIndicesMap = new LinkedHashMap<>();
             List<Integer> indices = new ArrayList<>();
+            List<Integer> tempLocalIndices = new ArrayList<>();
+            List<Integer> localIndices = new ArrayList<>();
 
             do {
                 if (line.startsWith("g ")) { // New group
                     if (group != null) {
-                        indicesList.put(material, indices.stream().mapToInt(i -> i).toArray());
-                        indices.clear();
+                        materialsIndices.put(material, localIndices.stream().mapToInt(i -> i).toArray());
+                        tempLocalIndicesMap.put(material, tempLocalIndices.stream().mapToInt(i -> i).toArray());
+                        localIndices.clear();
+                        indices.addAll(tempLocalIndices);
+                        tempLocalIndices.clear();
                     }
                     group = line.substring(2);
                 } else if (line.startsWith("f ")) {
@@ -395,9 +401,10 @@ public class ModelLoader {
                         String[] vertex1 = currentLine[1].split("/");
                         String[] vertex2 = currentLine[2].split("/");
                         String[] vertex3 = currentLine[3].split("/");
-                        VertexNM v0 = processVertex(vertex1, vertices, indices);
-                        VertexNM v1 = processVertex(vertex2, vertices, indices);
-                        VertexNM v2 = processVertex(vertex3, vertices, indices);
+                        VertexNM v0 = processVertex(vertex1, vertices, tempLocalIndices);
+                        VertexNM v1 = processVertex(vertex2, vertices, tempLocalIndices);
+                        VertexNM v2 = processVertex(vertex3, vertices, tempLocalIndices);
+                        localIndices.add(materialsIndices.size());
                         calculateTangents(v0, v1, v2, textures);
                     } catch (ArrayIndexOutOfBoundsException e) {
                         e.printStackTrace();
@@ -407,7 +414,9 @@ public class ModelLoader {
                     material = MTLFile.getMaterial(line.substring(7).trim());
                 }
             } while ((line = reader.readLine()) != null);
-            indicesList.put(material, indices.stream().mapToInt(i -> i).toArray());
+            materialsIndices.put(material, localIndices.stream().mapToInt(i -> i).toArray());
+            tempLocalIndicesMap.put(material, tempLocalIndices.stream().mapToInt(i -> i).toArray());
+            indices.addAll(tempLocalIndices);
 
             removeUnusedVertices(vertices);
             float[] verticesArray = new float[vertices.size() * 3];
@@ -417,8 +426,12 @@ public class ModelLoader {
             Vector3f[] minMax = new Vector3f[2];
             float furthest = convertDataToArrays(vertices, textures, normals, verticesArray, texturesArray,
                     normalsArray, tangentsArray, minMax);
-            MeshData meshData = new MeshData(verticesArray, texturesArray, normalsArray, indicesList, tangentsArray);
 
+            int[] indicesArray = indices.stream().mapToInt(i -> i).toArray();
+            MeshData meshData = new MeshData(verticesArray, texturesArray, normalsArray, indicesArray, materialsIndices,
+                    tangentsArray);
+
+            meshData.setTempValue(tempLocalIndicesMap);
             MTLFile.setMeshData(meshData);
             OBJFile.setMTLFile(MTLFile);
         } catch (IOException e) {

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import models.AnimatedModel;
 import models.Model;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -32,7 +31,6 @@ import renderEngine.shaders.AnimatedGameObjectShader;
 import scene.Scene;
 import scene.gameObjects.GameObject;
 import util.Vao;
-import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
 
@@ -260,15 +258,15 @@ public class AnimatedBuildingRenderer extends Renderer {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(model -> {
                     prepareInstance(model);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-                    int nbIndices;
-                    if (model.getModel() instanceof AnimatedModel)
-                        nbIndices = ((AnimatedModel) model.getModel()).getIndicesLength();
-                    else
-                        nbIndices = model.getModel().getVao().getIndexCount();
-                    
-//                    GL11.glDrawElements(GL_TRIANGLES, nbIndices, GL_UNSIGNED_INT, 0);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+//                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+//                    int nbIndices;
+//                    if (model.getModel() instanceof AnimatedModel)
+//                        nbIndices = ((AnimatedModel) model.getModel()).getIndicesLength();
+//                    else
+//                        nbIndices = model.getModel().getVao().getIndexCount();
+//
+////                    GL11.glDrawElements(GL_TRIANGLES, nbIndices, GL_UNSIGNED_INT, 0);
+//                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
                 });
             }
             unbindTexturedModel();

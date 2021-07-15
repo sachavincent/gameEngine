@@ -7,6 +7,7 @@ import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL33;
 import util.math.Matrix4f;
 import util.math.Vector;
 import util.math.Vector2f;
@@ -32,13 +33,20 @@ public abstract class ShaderProgram {
         this.programID = GL20.glCreateProgram();
         GL20.glAttachShader(this.programID, this.vertexShaderID);
         GL20.glAttachShader(this.programID, this.fragmentShaderID);
-
         bindAttributes();
 
         GL20.glLinkProgram(this.programID);
+        logErrors();
         GL20.glValidateProgram(this.programID);
+        logErrors();
 
         getAllUniformLocations();
+    }
+
+    private void logErrors() {
+        String log = GL33.glGetProgramInfoLog(this.programID);
+        if (!log.isEmpty())
+            System.err.println("Error in ShaderProgram " + getClass().getSimpleName() + ":\n" + log);
     }
 
     protected abstract void getAllUniformLocations();
@@ -84,6 +92,7 @@ public abstract class ShaderProgram {
     final public void start() {
         if (!this.started) {
             GL20.glUseProgram(this.programID);
+            logErrors();
             this.started = true;
         }
     }
@@ -91,6 +100,7 @@ public abstract class ShaderProgram {
     final public void stop() {
         if (this.started) {
             GL20.glUseProgram(0);
+            logErrors();
             this.started = false;
         }
     }

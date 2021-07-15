@@ -166,6 +166,9 @@ public class DisplayManager {
         }
 
         glEnable(GL13.GL_MULTISAMPLE);
+//        glEnableClientState(GL_VERTEX_ARRAY);
+//        glEnableClientState(GL_NORMAL_ARRAY);
+//        glEnableClientState(GL_INDEX_ARRAY);
 
         float[] lineWidthRange = new float[2];
         GL30.glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);

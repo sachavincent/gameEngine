@@ -6,10 +6,12 @@ import util.parsing.objParser.Material;
 
 public class MeshData {
 
-    private final float[]              vertices;
-    private final float[]              textureCoords;
-    private final float[]              normals;
-    private final Map<Material, int[]> indicesList;
+    private final float[] vertices;
+    private final float[] textureCoords;
+    private final float[] normals;
+    private final int[]   indices;
+
+    private final Map<Material, int[]> materialIndices;
 
     private final float[] tangents;
 
@@ -21,34 +23,35 @@ public class MeshData {
      * For Models without NormalMap
      */
     public MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices) {
-        this(vertices, textureCoords, normals, new HashMap<>(Map.of(new Material("TEMP"), indices)), new float[0]);
+        this(vertices, textureCoords, normals, indices, new HashMap<>(Map.of(new Material("TEMP"), new int[0])), new float[0]);
     }
 
 
     /**
      * For Models with NormalMap
      */
-    public MeshData(float[] vertices, float[] textureCoords, float[] normals, Map<Material, int[]> indicesList,
+    public MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices, Map<Material, int[]> materialIndices,
             float[] tangents) {
-        this(vertices, textureCoords, normals, indicesList, new int[0], new float[0], tangents);
+        this(vertices, textureCoords, normals, indices, materialIndices, new int[0], new float[0], tangents);
     }
 
     /**
      * For AnimatedModels
      */
-    public MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices,
+    public MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices, Map<Material, int[]> materialIndices,
             int[] jointIds, float[] vertexWeights) {
-        this(vertices, textureCoords, normals, new HashMap<>(Map.of(new Material("TEMP"), indices)), jointIds,
+        this(vertices, textureCoords, normals, indices, materialIndices, jointIds,
                 vertexWeights,//TODO: Animated textured models
                 new float[0]);
     }
 
-    private MeshData(float[] vertices, float[] textureCoords, float[] normals, Map<Material, int[]> indicesList,
+    private MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices, Map<Material, int[]> materialIndices,
             int[] jointIds, float[] vertexWeights, float[] tangents) {
         this.vertices = vertices;
         this.textureCoords = textureCoords;
         this.normals = normals;
-        this.indicesList = indicesList;
+        this.indices = indices;
+        this.materialIndices = materialIndices;
         this.jointIds = jointIds;
         this.vertexWeights = vertexWeights;
         this.tangents = tangents;
@@ -74,8 +77,12 @@ public class MeshData {
         return this.normals;
     }
 
-    public Map<Material, int[]> getIndicesList() {
-        return this.indicesList;
+    public Map<Material, int[]> getMaterialIndices() {
+        return this.materialIndices;
+    }
+
+    public int[] getIndices() {
+        return this.indices;
     }
 
     public int getVertexCount() {
@@ -84,5 +91,10 @@ public class MeshData {
 
     public float[] getTangents() {
         return this.tangents;
+    }
+
+    public Map<Material, int[]> temp;
+    public void setTempValue(Map<Material, int[]> tempLocalIndicesMap) {
+        temp = tempLocalIndicesMap;
     }
 }

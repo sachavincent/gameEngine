@@ -29,6 +29,7 @@ import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import renderEngine.PathRenderer;
 import renderEngine.fontRendering.TextMaster;
+import renderEngine.shaders.GameObjectShader;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
@@ -135,6 +136,7 @@ public class MainGameLoop {
         new Light(new Vector3f(-250, 150, 250), new Vector3f(2.2f, 2.2f, 2.2f));
         new Light(new Vector3f(250, 150, -250), new Vector3f(2.2f, 2.2f, 2.2f));
 
+        new GameObjectShader();
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
         MouseUtils.setupListeners();

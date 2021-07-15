@@ -5,10 +5,9 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.IntStream;
 import org.lwjgl.opengl.GL11;
@@ -23,12 +22,13 @@ import util.parsing.objParser.Material;
 
 public class Vao {
 
-    private static final int BYTES_PER_FLOAT = 4;
-    private static final int BYTES_PER_INT   = 4;
+    private static final int                  BYTES_PER_FLOAT = 4;
+    private static final int                  BYTES_PER_INT   = 4;
+    public               Map<Material, int[]> materialIndices;
 
-    private final int                id;
-    private final List<Vbo>          dataVbos;
-    private final Map<Material, Vbo> indexVbos;
+    private final int       id;
+    private final List<Vbo> dataVbos;
+    private       Vbo       indexVbo;
 
     private boolean   instanced;
     private Vbo       instanceVbo;
@@ -42,15 +42,14 @@ public class Vao {
     private Vao(int id) {
         this.id = id;
         this.dataVbos = new ArrayList<>();
-        this.indexVbos = new LinkedHashMap<>();
     }
 
-    public Map<Material, Vbo> getIndexVbos() {
-        return this.indexVbos;
+    public Vbo getIndexVbo() {
+        return this.indexVbo;
     }
 
     public int getIndexCount() {
-        return this.indexVbos.values().stream().mapToInt(Vbo::getDataLength).sum();
+        return this.getIndexVbo().getDataLength();
     }
 
     public final void bind(int... attributes) {
@@ -65,12 +64,19 @@ public class Vao {
         unbind();
     }
 
-    public void createIndexBuffer(Material material, int[] indices) {
+    public void createIndexBuffer(int[] indices) {
         Vbo indexVbo = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
         indexVbo.bind();
         indexVbo.storeData(indices);
         indexVbo.unbind();
-        this.indexVbos.put(material, indexVbo);
+        this.indexVbo = indexVbo;
+    }
+    public Vbo createIndexBufferTMP(int[] indices) {
+        Vbo indexVbo = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
+        indexVbo.bind();
+        indexVbo.storeData(indices);
+        indexVbo.unbind();
+        return indexVbo;
     }
 
     public void createAttribute(int attribute, float[] data, int attrSize) {
@@ -94,7 +100,7 @@ public class Vao {
     public void delete() {
         GL30.glDeleteVertexArrays(this.id);
         this.dataVbos.forEach(Vbo::delete);
-        this.indexVbos.values().forEach(Vbo::delete);
+        this.indexVbo.delete();
     }
 
     private void bind() {
@@ -118,12 +124,22 @@ public class Vao {
         vao.modelType = modelType;
         vao.bind();
 
-        for (Entry<Material, int[]> materialIndices : data.getIndicesList().entrySet())
-            vao.createIndexBuffer(materialIndices.getKey(), materialIndices.getValue());
-
+        vao.createIndexBuffer(data.getIndices());
         vao.createAttribute(0, data.getVertices(), 3);
         vao.createAttribute(1, data.getTextureCoords(), 2);
         vao.createAttribute(2, data.getNormals(), 3);
+        vao.materialIndices = data.temp;
+        int[] d = data.getMaterialIndices().values().stream().
+                flatMapToInt(Arrays::stream).toArray();
+//        vao.createIntAttribute(3, data1, 1);
+//        GL41.glVertexAttribDivisor(3, 1);
+        Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
+        dataVbo.bind();
+        dataVbo.storeData(d);
+        GL30.glVertexAttribIPointer(3, 1, GL11.GL_INT, 1 * BYTES_PER_INT, 0);
+        GL41.glVertexAttribDivisor(3, 1);
+        dataVbo.unbind();
+        vao.dataVbos.add(dataVbo);
 
         Vbo vbo;
         switch (modelType) {
@@ -141,14 +157,14 @@ public class Vao {
                 vao.instanceVbo = vbo;
 
                 for (int i = 0; i < 4; i++) {
-                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-                    GL41.glVertexAttribDivisor(i + 6, 1);
-                    glEnableVertexAttribArray(i + 6);
+                    GL20.glVertexAttribPointer(i + 5, 4, GL_FLOAT, false, 64, i * 16);
+                    GL41.glVertexAttribDivisor(i + 5, 1);
+                    glEnableVertexAttribArray(i + 5);
                 }
                 vbo.unbind();
                 break;
             case WITH_NORMAL_MAP:
-                vao.createAttribute(3, data.getTangents(), 3);
+                vao.createAttribute(4, data.getTangents(), 3);
                 break;
             case ANIMATED_INSTANCED:
                 vao.createIntAttribute(4, data.getJointIds(), 3);
@@ -173,7 +189,7 @@ public class Vao {
                 vao.createAttribute(5, data.getVertexWeights(), 3);
                 break;
             case INSTANCED_WITH_NORMAL_MAP:
-                vao.createAttribute(3, data.getTangents(), 3);
+                vao.createAttribute(4, data.getTangents(), 3);
 
                 vbo = Vbo.create(GL_ARRAY_BUFFER);
                 vbo.bind();
@@ -182,9 +198,9 @@ public class Vao {
                 vao.instanceVbo = vbo;
 
                 for (int i = 0; i < 4; i++) {
-                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-                    GL41.glVertexAttribDivisor(i + 6, 1);
-                    glEnableVertexAttribArray(i + 6);
+                    GL20.glVertexAttribPointer(i + 5, 4, GL_FLOAT, false, 64, i * 16);
+                    GL41.glVertexAttribDivisor(i + 5, 1);
+                    glEnableVertexAttribArray(i + 5);
                 }
                 vbo.unbind();
                 break;
@@ -195,7 +211,7 @@ public class Vao {
 
                 vbo = Vbo.create(GL_ARRAY_BUFFER);
                 vbo.bind();
-                vao.dataVbos.add(vbo);
+                vao.dataVbos.add(vbo);//TODO: Do animated attributes number
                 vao.instanced = true;
                 vao.instanceVbo = vbo;
 

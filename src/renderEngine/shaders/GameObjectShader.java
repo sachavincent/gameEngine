@@ -1,6 +1,7 @@
 package renderEngine.shaders;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import renderEngine.shaders.StructLocation.Location;
 import scene.components.AttenuationComponent;
@@ -16,28 +17,30 @@ import util.parsing.objParser.Material;
 
 public class GameObjectShader extends ShaderProgram {
 
-    private static final int MAX_LIGHTS = 10;
+    private static final int MAX_LIGHTS    = 10;
+    private static final int MAX_MATERIALS = 20;
 
     private static final String VERTEX_FILE   = "gameObjectVertexShader.glsl";
     private static final String FRAGMENT_FILE = "gameObjectFragmentShader.glsl";
 
-    private int            location_transformationMatrix;
-    private int            location_projectionMatrix;
-    private int            location_viewMatrix;
-    private int[]          location_lightPosition;
-    private int[]          location_lightColor;
-    private int[]          location_attenuation;
-    private int            location_shineDamper;
-    private int            location_reflectivity;
-    private int            location_useFakeLighting;
-    private int            location_skyColor;
-    private int            location_numberOfRows;
-    private int            location_offset;
-    private int            location_plane;
-    private int            location_useNormalMap;
-    private int            location_isInstanced;
-    private int            location_alpha;
-    private StructLocation location_material;
+    private int              location_transformationMatrix;
+    private int              location_projectionMatrix;
+    private int              location_viewMatrix;
+    private int[]            location_lightPosition;
+    private int[]            location_lightColor;
+    private int[]            location_attenuation;
+    private int              location_shineDamper;
+    private int              location_reflectivity;
+    private int              location_useFakeLighting;
+    private int              location_skyColor;
+    private int              location_numberOfRows;
+    private int              location_offset;
+    private int              location_plane;
+    private int[]            location_useNormalMaps;
+    private int              location_isInstanced;
+    private int              location_alpha;
+    private StructLocation[] location_materials;
+    private int              maxSamplerId;
 
     public GameObjectShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -48,8 +51,9 @@ public class GameObjectShader extends ShaderProgram {
         super.bindAttribute(0, "position");
         super.bindAttribute(1, "textureCoords");
         super.bindAttribute(2, "normal");
-        super.bindAttribute(3, "tangent");
-        super.bindAttribute(4, "globalTransformationMatrix");
+        super.bindAttribute(3, "materialIndex");
+        super.bindAttribute(4, "tangent");
+        super.bindAttribute(5, "globalTransformationMatrix");
     }
 
     @Override
@@ -66,7 +70,6 @@ public class GameObjectShader extends ShaderProgram {
         this.location_plane = getUniformLocation("plane");
         this.location_isInstanced = getUniformLocation("isInstanced");
         this.location_alpha = getUniformLocation("alpha");
-        this.location_useNormalMap = getUniformLocation("useNormalMap");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
@@ -77,20 +80,25 @@ public class GameObjectShader extends ShaderProgram {
             this.location_attenuation[i] = getUniformLocation("attenuation[" + i + "]");
         }
 
-        this.location_material = new StructLocation(this.programID, "material",
-                new Location("Ambient", Vector3f.class),
-                new Location("Diffuse", Vector3f.class),
-                new Location("Specular", Vector3f.class),
-                new Location("Shininess", Float.class),
-                new Location("ambientMap", Texture.class),
-                new Location("diffuseMap", Texture.class),
-                new Location("normalMap", Texture.class),
-                new Location("specularMap", Texture.class),
-                new Location("UseAmbientMap", Boolean.class),
-                new Location("UseDiffuseMap", Boolean.class),
-                new Location("UseNormalMap", Boolean.class),
-                new Location("UseSpecularMap", Boolean.class)
-        );
+        this.location_materials = new StructLocation[MAX_MATERIALS];
+        this.location_useNormalMaps = new int[MAX_MATERIALS];
+        for (int i = 0; i < MAX_MATERIALS; i++) {
+            this.location_useNormalMaps[i] = getUniformLocation("useNormalMaps[" + i + "]");
+            this.location_materials[i] = new StructLocation(this.programID, "materials[" + i + "]",
+                    new Location("Ambient", Vector3f.class),
+                    new Location("Diffuse", Vector3f.class),
+                    new Location("Specular", Vector3f.class),
+                    new Location("Shininess", Float.class),
+                    new Location("ambientMaps[" + i + "]", Texture.class),
+                    new Location("diffuseMaps[" + i + "]", Texture.class),
+                    new Location("normalMaps[" + i + "]", Texture.class),
+                    new Location("specularMaps[" + i + "]", Texture.class),
+                    new Location("UseAmbientMap", Boolean.class),
+                    new Location("UseDiffuseMap", Boolean.class),
+                    new Location("UseNormalMap", Boolean.class),
+                    new Location("UseSpecularMap", Boolean.class)
+            );
+        }
     }
 
     public void loadClipPlane(Vector4f plane) {
@@ -105,13 +113,29 @@ public class GameObjectShader extends ShaderProgram {
         loadInt(this.location_numberOfRows, numberofRows);
     }
 
-    public void loadMaterial(Material material) {
-        this.location_material.load(material.getAmbient(), material.getDiffuse(), material.getSpecular(),
-                material.getShininessExponent(), material.hasAmbientMap(), material.hasDiffuseMap(),
-                material.hasNormalMap(), material.hasSpecularMap());
+    public void connectTextureUnits() {
+        for (StructLocation material : this.location_materials)
+            this.maxSamplerId = material.connectTextureUnits(this.maxSamplerId);
+    }
 
-        this.location_material.loadTextures(material.getAmbientMap(), material.getDiffuseMap(),
-                material.getNormalMap(), material.getSpecularMap());
+    public void loadMaterials(List<Material> materials) {
+        Iterator<Material> iterator = materials.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            Material material = iterator.next();
+            this.location_materials[i].load(material.getAmbient(), material.getDiffuse(), material.getSpecular(),
+                    material.getShininessExponent(), material.hasAmbientMap(), material.hasDiffuseMap(),
+                    material.hasNormalMap(), material.hasSpecularMap());
+
+            this.location_materials[i].loadTextures(material.getAmbientMap(), material.getDiffuseMap(),
+                    material.getNormalMap(), material.getSpecularMap());
+            loadBoolean(this.location_useNormalMaps[i], material.hasNormalMap());
+            i++;
+        }
+        for (; i < MAX_MATERIALS; i++) {
+            this.location_materials[i]
+                    .load(new Vector3f(), new Vector3f(), new Vector3f(), 0f, false, false, false, false);
+        }
     }
 
     public void loadOffset(float x, float y) {
@@ -143,22 +167,17 @@ public class GameObjectShader extends ShaderProgram {
         loadBoolean(this.location_isInstanced, isInstanced);
     }
 
-    public void connectTextureUnits() {
-        this.location_material.connectTextureUnits();
-    }
-
-    public void loadLights(boolean useNormalMap, Set<GameObject> lights, Matrix4f viewMatrix) {
-        loadBoolean(this.location_useNormalMap, useNormalMap);
+    public void loadLights(Set<GameObject> lights, Matrix4f viewMatrix) {
         Iterator<GameObject> iterator = lights.iterator();
         int i = 0;
         while (iterator.hasNext()) {
             GameObject light = iterator.next();
-            if (useNormalMap)
-                loadVector(this.location_lightPosition[i],
-                        getEyeSpacePosition(light.getComponent(PositionComponent.class).getPosition(), viewMatrix));
-            else
-                loadVector(this.location_lightPosition[i],
-                        light.getComponent(PositionComponent.class).getPosition());
+//            if (useNormalMap)
+//                loadVector(this.location_lightPosition[i],
+//                        getEyeSpacePosition(light.getComponent(PositionComponent.class).getPosition(), viewMatrix));
+//            else
+            loadVector(this.location_lightPosition[i],
+                    light.getComponent(PositionComponent.class).getPosition());
             loadVector(this.location_lightColor[i], light.getComponent(ColorComponent.class).getColor());
             loadVector(this.location_attenuation[i],
                     light.getComponent(AttenuationComponent.class).getAttenuation());

@@ -1,8 +1,6 @@
 package renderEngine;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER;
@@ -30,7 +28,6 @@ import renderEngine.shaders.AnimatedGameObjectShader;
 import scene.components.*;
 import scene.gameObjects.GameObject;
 import util.Vao;
-import util.Vbo;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
@@ -89,9 +86,9 @@ public class NPCRenderer extends Renderer {
                 prepareTexturedModel(texturedModel, false);
                 entry.getValue().forEach(model -> {
                     prepareInstance(model);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+//                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+//                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
+//                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
                 });
             }
             unbindTexturedModel();

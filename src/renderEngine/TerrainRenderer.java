@@ -58,9 +58,10 @@ public class TerrainRenderer extends Renderer {
                 loadModelMatrix(position);
                 GL11.glLineWidth(2);
 
-                vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+                Vbo indexVbo = vao.getIndexVbo();
+                indexVbo.bind();
                 GL11.glDrawElements(GL11.GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-                vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+                indexVbo.unbind();
                 unbindTexturedModel();
             }
         });

@@ -1,9 +1,14 @@
 package renderEngine;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBufferData;
+import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
@@ -13,6 +18,7 @@ import entities.Camera.Direction;
 import entities.Entity;
 import entities.ModelEntity;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import models.Model;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL46;
@@ -30,7 +38,6 @@ import scene.Scene;
 import scene.components.*;
 import scene.gameObjects.GameObject;
 import terrains.TerrainPosition;
-import textures.ModelTexture;
 import util.Vao;
 import util.Vbo;
 import util.math.Maths;
@@ -238,81 +245,126 @@ public class BuildingRenderer extends Renderer {
             final Vao vao = model.getVao();
             ModelType modelType = vao.getModelType();
             vao.bind(modelType.getAttributeNumbers());
-            if (vao.isInstanced()) {
-                int k = 0;
 
-                for (ModelEntity modelEntity : entry.getValue()) {
-                    Matrix4f transformationMatrix = Maths
-                            .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(),
-                                    modelEntity.getScale());
-                    try {
-                        floatBuffer = transformationMatrix.store(k++ * 16, floatBuffer);
-                    } catch (IndexOutOfBoundsException e) {
-                        e.printStackTrace();
-                    }
+            int k = 0;
+
+            for (ModelEntity modelEntity : entry.getValue()) {
+                Matrix4f transformationMatrix = Maths
+                        .createTransformationMatrix(modelEntity.getPosition(), modelEntity.getRotation(),
+                                modelEntity.getScale());
+                try {
+                    floatBuffer = transformationMatrix.store(k++ * 16, floatBuffer);
+                } catch (IndexOutOfBoundsException e) {
+                    e.printStackTrace();
                 }
-
-                vao.getInstanceVbo().bind();
-                glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-
-                for (Material material : materials) {
-                    Vbo vbo = vao.getIndexVbos().get(material);
-                    vbo.bind();
-                    int indicesCount = vbo.getDataLength();
-                    temp(material, true);
-                    GL46.glDrawElementsInstanced(GL_TRIANGLES, indicesCount,
-                            GL_UNSIGNED_INT, 0, entry.getValue().size());
-                    vbo.unbind();
-                }
-
-                vao.getInstanceVbo().unbind();
-                floatBuffer.clear();
-            } else {
-                entry.getValue().forEach(modelEntity -> {
-                    prepareInstance(modelEntity);
-
-                    for (Material material : materials) {
-                        Vbo vbo = vao.getIndexVbos().get(material);
-                        vbo.bind();
-                        int indicesCount = vbo.getDataLength();
-                        temp(material, false);
-                        glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
-                        vbo.unbind();
-                    }
-                });
             }
+            vao.getInstanceVbo().bind();
+            glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
+
+            int indexCount = vao.getIndexCount();
+            int nbMaterials = materials.size();
+            int[] indicesNumbers = new int[nbMaterials];
+            IntBuffer indicesBuffer = BufferUtils.createIntBuffer(nbMaterials);
+
+            IntBuffer buffer;
+            PointerBuffer[] pointerBuffers = new PointerBuffer[nbMaterials];
+            PointerBuffer pointerBuffer = PointerBuffer.allocateDirect(indexCount);
+
+            int max = 0;
+//            pointerBuffer[0] = PointerBuffer.allocateDirect(indexCount);
+//            PointerBuffer.allocateDirect(nbMaterials);
+//            for (int i = 0; i < materials.size(); i++) {
+//                Material material = materials.get(i);
+//                int[] indices = vao.materialIndices.get(material);
+//                max += indices.length;
+//                indicesNumbers[i] = indices.length;
+//                buffer = BufferUtils.createIntBuffer(indices.length);
+//                if (i > 0)
+//                pointerBuffer[i] = PointerBuffer.allocateDirect(1);
+//                pointerBuffer[i].put(MemoryUtil.memAddress(buffer));
+//                pointerBuffers[i] = PointerBuffer.allocateDirect(indices.length);
+//                buffer.put(indices.length);
+//                buffer.flip();
+//                pointerBuffer.put(buffer);
+//                int[] arr = new int[indices.length];
+//                Arrays.fill(arr, 0);
+//                pointerBuffer.put(IntBuffer.wrap(arr));
+//                IntBuffer intBuffer = BufferUtils.createIntBuffer(indices.length);
+//                intBuffer.put(indices);
+//                intBuffer.flip();
+//                pointerBuffer.put(indices.length * 2L);
+//                pointerBuffers[0] = PointerBuffer.create(MemoryUtil.memAddress(buffer), indices.length);
+//            }
+//            for (ModelEntity modelEntity : entry.getValue()) {
+//                prepareInstance(modelEntity);
+//                temp(materials, false);
+//                for (int id : indicesNumbers) {
+//                    indicesBuffer.put(id);
+//                }
+//                indicesBuffer.flip();
+//            PointerBuffer ptr = MemoryUtil.memPointerBuffer(MemoryUtil.memAddress(pointerBuffers[0]), indexCount);
+//            GL46.glMultiDrawElements(GL11.GL_TRIANGLES, indicesBuffer, GL11.GL_UNSIGNED_INT, pointerBuffer);
+//            GL46.glDrawElementsInstanced(GL11.GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0, 1);
+//                for (int i = 0; i < materials.size(); i++) {
+//                    glDrawElements(GL11.GL_TRIANGLES, indicesNumbers[i], GL11.GL_UNSIGNED_INT, max);
+//                    max += indicesNumbers[i];
+//                }
+//            }
+
+            vao.getIndexVbo().bind();
+            Vbo vbo2 = Vbo.create(GL_DRAW_INDIRECT_BUFFER);
+            int[] indirect = new int[5 * materials.size()];
+            temp(materials, true);
+            for (int i = 0; i < materials.size(); i++) {
+                Material material = materials.get(i);
+                indirect[i * 5] = vao.materialIndices.get(material).length * 2;
+                indirect[i * 5 + 1] = 1;
+                indirect[i * 5 + 2] = max;
+                indirect[i * 5 + 3] = 0;
+                indirect[i * 5 + 4] = i;
+                max += indirect[0];
+            }
+            vbo2.bind();
+            vbo2.storeData(indirect);
+            GL46.glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, materials.size(), 0);
+            vbo2.unbind();
+            vao.getInstanceVbo().unbind();
+            vao.getIndexVbo().unbind();
             vao.unbind(modelType.getAttributeNumbers());
             unbindTexturedModel();
+//            floatBuffer.clear();
         }
 
         this.renderModels.clear();
         this.shader.stop();
-        glDisable(GL_BLEND);
+
+        GL11.glDisable(GL_BLEND);
     }
 
-    void temp(Material material, boolean instanced) {
-        ModelTexture texture;
-        if (material.hasDiffuseMap())
-            texture = material.getDiffuseMap();
-        else
-            texture = ModelTexture.DEFAULT_MODEL;
+    void temp(List<Material> materials, boolean instanced) {
+//        ModelTexture texture;
+//        if (material.hasDiffuseMap())
+//            texture = material.getDiffuseMap();
+//        else
+//            texture = ModelTexture.DEFAULT_MODEL;
 
         ((GameObjectShader) this.shader).loadNumberOfRows(1);
-        if (texture.isTransparent())
-            MasterRenderer.disableCulling();
+//        if (texture.isTransparent())
+//            MasterRenderer.disableCulling();
 
+//        List<Boolean> useNormalMaps = materials.stream().map(Material::hasNormalMap).collect(Collectors.toList());
         ((GameObjectShader) this.shader).loadUseFakeLighting(false);
         ((GameObjectShader) this.shader)
-                .loadLights(material.hasNormalMap(), LightRenderer.getInstance().getGameObjects(),
+                .loadLights(LightRenderer.getInstance().getGameObjects(),
                         Camera.getInstance().getViewMatrix());
-        ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
+//        ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
         ((GameObjectShader) this.shader).loadIsInstanced(instanced);
         ((GameObjectShader) this.shader).loadAlpha(1);
 
-        ((GameObjectShader) this.shader).loadMaterial(material);
+        ((GameObjectShader) this.shader).loadMaterials(materials);
 
-        if (texture.isTransparent())
-            MasterRenderer.enableCulling(); // Reenable culling
+//        if (texture.isTransparent())
+//            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     @Override

@@ -6,14 +6,14 @@ import util.parsing.objParser.ModelLoader;
 
 public class OBJGameObjects {
 
-    public static final OBJGameObject INSULA = ModelLoader.loadModel("Insula", ModelType.INSTANCED_WITH_NORMAL_MAP);
+    public static final OBJGameObject INSULA = ModelLoader.loadModel("Insula", ModelType.INSTANCED);
 
     public static final OBJGameObject MARKET = ModelLoader.loadModel("Market", ModelType.INSTANCED_WITH_NORMAL_MAP);
 
     public static final OBJGameObject NPC = ModelLoader.loadModel("NPC", ModelType.INSTANCED);
 //    public static final OBJGameObject BARREL = ModelLoader.loadModel("Barrel", ModelType.INSTANCED);
 
-    public static final OBJGameObject WHEAT_FARM = ModelLoader.loadModel("WheatFarm", ModelType.DEFAULT);
+    public static final OBJGameObject WHEAT_FARM = ModelLoader.loadModel("WheatFarm", ModelType.INSTANCED);
 //
 //    public static final OBJGameObject WINDMILL = ModelLoader.loadModel("Windmill", ModelType.ANIMATED);
 
