@@ -24,7 +24,7 @@ public class Vao {
 
     private static final int                  BYTES_PER_FLOAT = 4;
     private static final int                  BYTES_PER_INT   = 4;
-    public               Map<Material, int[]> materialIndices;
+    public               Map<Material, List<Integer>> materialIndices;
 
     private final int       id;
     private final List<Vbo> dataVbos;

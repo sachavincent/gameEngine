@@ -1,6 +1,7 @@
 package util.parsing.colladaParser.dataStructures;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import util.parsing.objParser.Material;
 
@@ -93,8 +94,8 @@ public class MeshData {
         return this.tangents;
     }
 
-    public Map<Material, int[]> temp;
-    public void setTempValue(Map<Material, int[]> tempLocalIndicesMap) {
+    public Map<Material, List<Integer>> temp;
+    public void setTempValue(Map<Material, List<Integer>> tempLocalIndicesMap) {
         temp = tempLocalIndicesMap;
     }
 }

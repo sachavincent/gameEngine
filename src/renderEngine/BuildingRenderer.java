@@ -2,12 +2,7 @@ package renderEngine;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
-import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static renderEngine.MasterRenderer.BLUE;
 import static renderEngine.MasterRenderer.GREEN;
@@ -18,7 +13,6 @@ import entities.Camera.Direction;
 import entities.Entity;
 import entities.ModelEntity;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import models.Model;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL46;
@@ -258,81 +250,81 @@ public class BuildingRenderer extends Renderer {
                     e.printStackTrace();
                 }
             }
-            vao.getInstanceVbo().bind();
-            glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-
-            int indexCount = vao.getIndexCount();
-            int nbMaterials = materials.size();
-            int[] indicesNumbers = new int[nbMaterials];
-            IntBuffer indicesBuffer = BufferUtils.createIntBuffer(nbMaterials);
-
-            IntBuffer buffer;
-            PointerBuffer[] pointerBuffers = new PointerBuffer[nbMaterials];
-            PointerBuffer pointerBuffer = PointerBuffer.allocateDirect(indexCount);
-
-            int max = 0;
-//            pointerBuffer[0] = PointerBuffer.allocateDirect(indexCount);
-//            PointerBuffer.allocateDirect(nbMaterials);
-//            for (int i = 0; i < materials.size(); i++) {
-//                Material material = materials.get(i);
-//                int[] indices = vao.materialIndices.get(material);
-//                max += indices.length;
-//                indicesNumbers[i] = indices.length;
-//                buffer = BufferUtils.createIntBuffer(indices.length);
-//                if (i > 0)
-//                pointerBuffer[i] = PointerBuffer.allocateDirect(1);
-//                pointerBuffer[i].put(MemoryUtil.memAddress(buffer));
-//                pointerBuffers[i] = PointerBuffer.allocateDirect(indices.length);
-//                buffer.put(indices.length);
-//                buffer.flip();
-//                pointerBuffer.put(buffer);
-//                int[] arr = new int[indices.length];
-//                Arrays.fill(arr, 0);
-//                pointerBuffer.put(IntBuffer.wrap(arr));
-//                IntBuffer intBuffer = BufferUtils.createIntBuffer(indices.length);
-//                intBuffer.put(indices);
-//                intBuffer.flip();
-//                pointerBuffer.put(indices.length * 2L);
-//                pointerBuffers[0] = PointerBuffer.create(MemoryUtil.memAddress(buffer), indices.length);
-//            }
-//            for (ModelEntity modelEntity : entry.getValue()) {
-//                prepareInstance(modelEntity);
-//                temp(materials, false);
-//                for (int id : indicesNumbers) {
-//                    indicesBuffer.put(id);
-//                }
-//                indicesBuffer.flip();
-//            PointerBuffer ptr = MemoryUtil.memPointerBuffer(MemoryUtil.memAddress(pointerBuffers[0]), indexCount);
-//            GL46.glMultiDrawElements(GL11.GL_TRIANGLES, indicesBuffer, GL11.GL_UNSIGNED_INT, pointerBuffer);
-//            GL46.glDrawElementsInstanced(GL11.GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0, 1);
-//                for (int i = 0; i < materials.size(); i++) {
-//                    glDrawElements(GL11.GL_TRIANGLES, indicesNumbers[i], GL11.GL_UNSIGNED_INT, max);
-//                    max += indicesNumbers[i];
-//                }
-//            }
-
+//            vao.getInstanceVbo().bind();
+//            glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
             vao.getIndexVbo().bind();
-            Vbo vbo2 = Vbo.create(GL_DRAW_INDIRECT_BUFFER);
-            int[] indirect = new int[5 * materials.size()];
-            temp(materials, true);
-            for (int i = 0; i < materials.size(); i++) {
-                Material material = materials.get(i);
-                indirect[i * 5] = vao.materialIndices.get(material).length * 2;
-                indirect[i * 5 + 1] = 1;
-                indirect[i * 5 + 2] = max;
-                indirect[i * 5 + 3] = 0;
-                indirect[i * 5 + 4] = i;
-                max += indirect[0];
+//            prepareInstance(entry.getValue().get(0));
+//            temp(materials, true);
+//
+//            int nbIndices = 0;
+//            int nbVertices = 0;
+//
+//            for (Material material : materials) {
+//                List<Integer> indices = vao.materialIndices.get(material);
+//                long nbVerticesL = indices.stream().distinct().count();
+//                int indicesLength = indices.size();
+//
+////                GL46.glDrawElementsBaseVertex(GL_TRIANGLES, indicesLength, GL_UNSIGNED_INT, nbIndices, nbVertices);
+////                GL46.glDrawElements(GL_TRIANGLES, indicesLength, GL_UNSIGNED_INT, nbIndices);
+////                GL46.glDrawElementsInstanced(GL_TRIANGLES, indicesLength, GL_UNSIGNED_INT, nbIndices, 1);
+//                nbIndices += indicesLength * 4;
+//                nbVertices += nbVerticesL;
+//            }
+
+
+//            {
+//                for (ModelEntity modelEntity : entry.getValue()) {
+//                    prepareInstance(modelEntity);
+//                    int indexCount = vao.getIndexCount();
+//                    int nbMaterials = materials.size();
+//                    int[] indicesNumbers = new int[nbMaterials];
+//
+//                    temp(materials, false);
+//                    for (int i = 0; i < materials.size(); i++) {
+//                        IntBuffer indicesBuffer = BufferUtils.createIntBuffer(1);
+//                        Material material = materials.get(i);
+//                        List<Integer> indices = vao.materialIndices.get(material);
+//                        indicesNumbers[i] = indices.size();
+//                        PointerBuffer pointerBuffer = PointerBuffer.allocateDirect(indices.size());
+//                        pointerBuffer.put(0);
+////                        for (int id : indicesNumbers) {
+//                            indicesBuffer.put(indicesNumbers[i] * 4);
+////                        }
+//                        indicesBuffer.flip();
+//                        GL33.glVertexAttribI1i(3, i);
+//                        GL46.glMultiDrawElements(GL11.GL_TRIANGLES, indicesBuffer, GL11.GL_UNSIGNED_INT, pointerBuffer);
+//                    }
+//                }
+//            }
+            {
+                for (ModelEntity modelEntity : entry.getValue()) {
+                    prepareInstance(modelEntity);
+                    int max1 = 0;
+                    int max2 = 0;
+                    Vbo vbo2 = Vbo.create(GL_DRAW_INDIRECT_BUFFER);
+                    int[] indirect = new int[5 * materials.size()];
+                    temp(materials, false);
+                    for (int i = 0; i < materials.size(); i++) {
+                        Material material = materials.get(i);
+                        indirect[i * 5] = vao.materialIndices.get(material).size(); // Correct
+                        indirect[i * 5 + 1] = 1; // Correct
+                        indirect[i * 5 + 2] = max1;
+                        indirect[i * 5 + 3] = 0;
+                        indirect[i * 5 + 4] = i;
+                        max1 += indirect[i * 5];
+                        max2 += (int) vao.materialIndices.get(material).stream().distinct().count();
+                    }
+                    vbo2.bind();
+                    vbo2.storeData(indirect);
+                    GL46.glMultiDrawElementsIndirect(GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_INT, 0, materials.size(), 0);
+                    vbo2.unbind();
+                }
             }
-            vbo2.bind();
-            vbo2.storeData(indirect);
-            GL46.glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, materials.size(), 0);
-            vbo2.unbind();
-            vao.getInstanceVbo().unbind();
             vao.getIndexVbo().unbind();
+//            vao.getInstanceVbo().unbind();
             vao.unbind(modelType.getAttributeNumbers());
             unbindTexturedModel();
-//            floatBuffer.clear();
+            floatBuffer.clear();
         }
 
         this.renderModels.clear();

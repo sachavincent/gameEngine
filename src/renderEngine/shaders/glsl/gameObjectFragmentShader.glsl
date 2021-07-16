@@ -55,7 +55,7 @@ void main() {
 //        discard;
     }
     Material material = materials[pass_materialIndex];
-    out_Color = vec4(pass_materialIndex, 0, 1, 1);
+    out_Color = vec4(float(pass_materialIndex)/13f, 0, 1, 1);
     return;
 
     vec3 unitNormal;

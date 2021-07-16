@@ -8,9 +8,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import models.AnimatedModel;
 import models.BoundingBox;
 import models.Model;
@@ -208,13 +210,20 @@ public class ModelLoader {
         float maxY = 0;
         float maxZ = 0;
         for (int i = 0; i < vertices.size(); i++) {
-            VertexNM currentVertex = vertices.get(i);
+            VertexNM currentVertex;
+            Vector2f textureCoord;
+            Vector3f normalVector;
+            try {
+                currentVertex = vertices.get(i);
+                textureCoord = textures.get(currentVertex.getTextureIndex());
+                normalVector = normals.get(currentVertex.getNormalIndex());
+            } catch (IndexOutOfBoundsException e) {
+                break;
+            }
             if (currentVertex.getLength() > furthestPoint) {
                 furthestPoint = currentVertex.getLength();
             }
             Vector3f position = currentVertex.getPosition();
-            Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
-            Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
             Vector3f tangent = currentVertex.getAverageTangent();
             verticesArray[i * 3] = position.x;
             verticesArray[i * 3 + 1] = position.y;
@@ -380,18 +389,17 @@ public class ModelLoader {
             String group = null;
             Material material = null;
             Map<Material, int[]> materialsIndices = new LinkedHashMap<>();
-            Map<Material, int[]> tempLocalIndicesMap = new LinkedHashMap<>();
+            Map<Material, List<Integer>> tempLocalIndicesMap = new LinkedHashMap<>();
             List<Integer> indices = new ArrayList<>();
-            List<Integer> tempLocalIndices = new ArrayList<>();
             List<Integer> localIndices = new ArrayList<>();
+            List<Integer> tempLocalIndices = new ArrayList<>();
 
             do {
                 if (line.startsWith("g ")) { // New group
                     if (group != null) {
                         materialsIndices.put(material, localIndices.stream().mapToInt(i -> i).toArray());
-                        tempLocalIndicesMap.put(material, tempLocalIndices.stream().mapToInt(i -> i).toArray());
+                        tempLocalIndicesMap.put(material, new ArrayList<>(tempLocalIndices));
                         localIndices.clear();
-                        indices.addAll(tempLocalIndices);
                         tempLocalIndices.clear();
                     }
                     group = line.substring(2);
@@ -401,11 +409,18 @@ public class ModelLoader {
                         String[] vertex1 = currentLine[1].split("/");
                         String[] vertex2 = currentLine[2].split("/");
                         String[] vertex3 = currentLine[3].split("/");
-                        VertexNM v0 = processVertex(vertex1, vertices, tempLocalIndices);
-                        VertexNM v1 = processVertex(vertex2, vertices, tempLocalIndices);
-                        VertexNM v2 = processVertex(vertex3, vertices, tempLocalIndices);
+                        List<VertexNM> vertices1 = new ArrayList<>(vertices);
+//                        processVertex(vertex1, vertices1, indices);
+//                         processVertex(vertex2, vertices1, indices);
+//                        processVertex(vertex3, vertices1, indices);
+                        VertexNM v1 = processVertex(vertex1, vertices, tempLocalIndices);
+                        VertexNM v2 = processVertex(vertex2, vertices, tempLocalIndices);
+                        VertexNM v3 = processVertex(vertex3, vertices, tempLocalIndices);
                         localIndices.add(materialsIndices.size());
-                        calculateTangents(v0, v1, v2, textures);
+//                        tempLocalIndices.add(Integer.parseInt(vertex1[0]) - 1);
+//                        tempLocalIndices.add(Integer.parseInt(vertex2[0]) - 1);
+//                        tempLocalIndices.add(Integer.parseInt(vertex3[0]) - 1);
+//                        calculateTangents(v0, v1, v2, textures);
                     } catch (ArrayIndexOutOfBoundsException e) {
                         e.printStackTrace();
                         System.out.println(Arrays.toString(currentLine));
@@ -415,8 +430,7 @@ public class ModelLoader {
                 }
             } while ((line = reader.readLine()) != null);
             materialsIndices.put(material, localIndices.stream().mapToInt(i -> i).toArray());
-            tempLocalIndicesMap.put(material, tempLocalIndices.stream().mapToInt(i -> i).toArray());
-            indices.addAll(tempLocalIndices);
+            tempLocalIndicesMap.put(material, tempLocalIndices);
 
             removeUnusedVertices(vertices);
             float[] verticesArray = new float[vertices.size() * 3];
@@ -427,10 +441,10 @@ public class ModelLoader {
             float furthest = convertDataToArrays(vertices, textures, normals, verticesArray, texturesArray,
                     normalsArray, tangentsArray, minMax);
 
+            indices = tempLocalIndicesMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
             int[] indicesArray = indices.stream().mapToInt(i -> i).toArray();
             MeshData meshData = new MeshData(verticesArray, texturesArray, normalsArray, indicesArray, materialsIndices,
                     tangentsArray);
-
             meshData.setTempValue(tempLocalIndicesMap);
             MTLFile.setMeshData(meshData);
             OBJFile.setMTLFile(MTLFile);
