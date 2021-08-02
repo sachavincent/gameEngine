@@ -1,8 +1,8 @@
 # Blender MTL File: 'insula_rework030620.blend'
-# Material Count: 5
+# Material Count: 4
 
 newmtl Concrete
-Ns 900.000000
+Ns 225.000000
 Ka 1.000000 1.000000 1.000000
 Kd 1.000000 0.913099 0.337164
 Ks 0.000000 0.000000 0.000000
@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Bump -bm 5.399997 normals.png
+map_Bump -bm 4.600000 normals.png
 map_Kd texture.png
 
 newmtl Floor
@@ -22,6 +22,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
+map_Bump -bm 2.300000 normals.png
 map_Kd texture.png
 
 newmtl Roof
@@ -33,17 +34,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd texture.png
-
-newmtl Stairs
-Ns 225.000000
-Ka 1.000000 1.000000 1.000000
-Kd 0.188541 0.045486 0.000000
-Ks 0.000000 0.000000 0.000000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 1
+map_Bump -bm 2.300000 normals.png
 map_Kd texture.png
 
 newmtl Wood
@@ -55,4 +46,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
+map_Bump -bm 2.300000 normals.png
 map_Kd texture.png
