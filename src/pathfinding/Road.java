@@ -1,9 +1,10 @@
 package pathfinding;
 
+import terrain.TerrainPosition;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
-import terrains.TerrainPosition;
 
 public abstract class Road {
 

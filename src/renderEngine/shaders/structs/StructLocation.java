@@ -1,6 +1,7 @@
-package renderEngine.shaders;
+package renderEngine.shaders.structs;
 
 import org.lwjgl.opengl.GL13;
+import renderEngine.shaders.ShaderProgram;
 import textures.ModelTexture;
 import textures.Texture;
 import util.math.Matrix4f;
@@ -15,21 +16,39 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 
 public class StructLocation {
 
+    private final int programID;
+
     private final List<Location> locations;
 
     private final List<Location> textureLocations;
 
     public StructLocation(int programID, String structName, Location... locations) {
+        this.programID = programID;
         this.locations = new ArrayList<>();
         this.textureLocations = new ArrayList<>();
         for (Location location : locations) {
             String uniformName;
             if (location.clazz == Texture.class)
                 uniformName = location.name; // Samplers are not allowed in struct
-            else
+            else if (StructElement.class.isAssignableFrom(location.clazz)) { // Structure
+                try {
+                    StructElement structElement = (StructElement) location.clazz.
+                            getDeclaredConstructor().newInstance();
+                    StructLocation structLocation = structElement.getStructure().
+                            getDeclaredConstructor(Integer.class, String.class).
+                            newInstance(this.programID, structName + "." + location.name);
+
+                    this.locations.addAll(structLocation.locations);
+                    this.textureLocations.addAll(structLocation.textureLocations);
+                } catch (ReflectiveOperationException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            } else
                 uniformName = structName + "." + location.name;
             int uniformLocation = ShaderProgram.getUniformLocation(programID, uniformName);
             location.setUniformLocation(uniformLocation);
+            location.setProgramID(this.programID);
             if (location.clazz == Texture.class)
                 this.textureLocations.add(location);
             else
@@ -42,34 +61,58 @@ public class StructLocation {
         for (int i = 0; i < this.textureLocations.size(); i++) {
             Location location = this.textureLocations.get(i);
             int idTexture = idx.getAndIncrement();
-            Location.getDefaultCallback(Integer.class).onLoadUniform(location.uniformLocation, idTexture);
+            Location.getDefaultCallback(Integer.class).onLoadUniform(this.programID, location.uniformLocation, idTexture);
             location.uniformLocation = idTexture;
             this.textureLocations.set(i, location);
         }
     }
 
-    public void loadTextures(ModelTexture... textures) {
-        AtomicInteger idx = new AtomicInteger();
-        this.textureLocations.forEach(location -> {
-            ModelTexture texture = textures[idx.getAndIncrement()];
-            if (texture != null)
-                location.loadUniform(texture.getTextureID());
-        });
+    public void load(StructElement element) {
+        load(element.getValues());
     }
 
+    /**
+     * Loads given values to the appropriate Shader Uniform Locations
+     *
+     * @param values must not contain NULL values
+     */
     public void load(Object... values) {
-        if (values.length != this.locations.size())
-            throw new IllegalArgumentException("Incorrect number of arguments!");
+        final Object[] toLoad = new Object[this.locations.size()];
+        final ModelTexture[] texturesToLoad = new ModelTexture[this.textureLocations.size()];
 
+        int i = 0;
+        int j = 0;
+        for (Object obj : values) {
+            if (obj == null) throw new NullPointerException("Null value while loading struct");
+            if (obj instanceof StructElement) {
+                for (Object value : ((StructElement) obj).getValues()) {
+                    if (value == null) throw new NullPointerException("Null value while loading struct");
+                    if (value instanceof ModelTexture)
+                        texturesToLoad[j++] = (ModelTexture) value;
+                    else
+                        toLoad[i++] = value;
+                }
+            } else if (obj instanceof ModelTexture)
+                texturesToLoad[j++] = (ModelTexture) obj;
+            else
+                toLoad[i++] = obj;
+        }
         AtomicInteger idx = new AtomicInteger();
         this.locations.forEach(location -> {
-            Object value = values[idx.getAndIncrement()];
+            Object value = toLoad[idx.getAndIncrement()];
             if (value != null) {
-                if (value.getClass() != location.clazz && !location.clazz.isAssignableFrom(value.getClass()))
+                if (value.getClass() != location.clazz &&
+                        !location.clazz.isAssignableFrom(value.getClass()))
                     throw new IllegalArgumentException("Wrong argument type: " + location.name);
 
                 location.loadUniform(value);
             }
+        });
+        idx.set(0);
+        this.textureLocations.forEach(location -> {
+            ModelTexture texture = texturesToLoad[idx.getAndIncrement()];
+            if (!texture.equals(ModelTexture.NONE))
+                location.loadUniform(texture.getID());
         });
     }
 
@@ -77,17 +120,18 @@ public class StructLocation {
     @FunctionalInterface
     public interface LoadUniformCallback {
 
-        void onLoadUniform(int location, Object value);
+        void onLoadUniform(int programID, int location, Object value);
     }
 
 
-    static class Location {
+    public static class Location {
 
         private final String name;
         private final Class<?> clazz;
-        private final LoadUniformCallback loadUniformCallback;
 
         private int uniformLocation;
+        private int programID;
+        private final LoadUniformCallback loadUniformCallback;
 
         public Location(String name, Class<?> clazz, LoadUniformCallback loadUniformCallback) {
             this.name = name;
@@ -98,7 +142,11 @@ public class StructLocation {
         public Location(String name, Class<?> clazz) {
             this.name = name;
             this.clazz = clazz;
-            this.loadUniformCallback = getDefaultCallback(clazz);
+            this.loadUniformCallback = getDefaultCallback(this.clazz);
+        }
+
+        public void setProgramID(int programID) {
+            this.programID = programID;
         }
 
         public void setUniformLocation(int uniformLocation) {
@@ -106,12 +154,12 @@ public class StructLocation {
         }
 
         public void loadUniform(Object value) {
-            this.loadUniformCallback.onLoadUniform(this.uniformLocation, value);
+            this.loadUniformCallback.onLoadUniform(this.programID, this.uniformLocation, value);
         }
 
         public static LoadUniformCallback getDefaultCallback(Class<?> clazz) {
-            return (location, value) -> {
-                if (location < 0 || value == null)
+            return (programID, location, value) -> {
+                if (value == null || location < 0)
                     return;
 
                 if (MaterialColor.class.isAssignableFrom(clazz)) {

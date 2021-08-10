@@ -1,37 +1,29 @@
 package renderEngine;
 
+import org.lwjgl.opengl.*;
+import renderEngine.shaders.structs.Material;
+import util.math.Vector3f;
+import util.parsing.ModelType;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.IntStream;
+
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.IntStream;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL41;
-import util.math.Vector3f;
-import util.parsing.ModelType;
-import util.parsing.colladaParser.dataStructures.MeshData;
-import util.parsing.Material;
-
 public class Vao {
 
     private static final int BYTES_PER_FLOAT = 4;
-    private static final int BYTES_PER_INT   = 4;
+    private static final int BYTES_PER_INT = 4;
 
-    private final int                id;
-    private final List<Vbo>          dataVbos;
+    private final int id;
+    private final List<Vbo> dataVbos;
     private final Map<Material, Vbo> indexVbos;
 
-    private boolean   instanced;
-    private Vbo       instanceVbo;
+    private boolean instanced;
+    private Vbo instanceVbo;
     private ModelType modelType;
 
     public static Vao create() {
@@ -53,19 +45,25 @@ public class Vao {
         return this.indexVbos.values().stream().mapToInt(Vbo::getDataLength).sum();
     }
 
-    public final void bind(int... attributes) {
-        bind();
+    public final void bind() {
+        GL30.glBindVertexArray(this.id);
 
-        IntStream.of(attributes).forEachOrdered(GL20::glEnableVertexAttribArray);
+        if (this.modelType != null)
+            IntStream.of(this.modelType.getAttributeNumbers()).
+                    forEachOrdered(GL20::glEnableVertexAttribArray);
     }
 
-    public final void unbind(int... attributes) {
-        IntStream.of(attributes).forEachOrdered(GL20::glDisableVertexAttribArray);
+    public final void unbind() {
+        if (this.modelType != null)
+            IntStream.of(this.modelType.getAttributeNumbers()).
+                    forEachOrdered(GL20::glDisableVertexAttribArray);
 
-        unbind();
+        GL30.glBindVertexArray(0);
     }
 
     public void createIndexBuffer(Material material, int[] indices) {
+        if (indices.length == 0)
+            return;
         Vbo indexVbo = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
         indexVbo.bind();
         indexVbo.storeData(indices);
@@ -74,6 +72,8 @@ public class Vao {
     }
 
     public void createAttribute(int attribute, float[] data, int attrSize) {
+        if (data.length == 0)
+            return;
         Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
         dataVbo.bind();
         dataVbo.storeData(data);
@@ -83,6 +83,8 @@ public class Vao {
     }
 
     public void createIntAttribute(int attribute, int[] data, int attrSize) {
+        if (data.length == 0)
+            return;
         Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
         dataVbo.bind();
         dataVbo.storeData(data);
@@ -97,19 +99,22 @@ public class Vao {
         this.indexVbos.values().forEach(Vbo::delete);
     }
 
-    private void bind() {
-        GL30.glBindVertexArray(this.id);
-    }
+    public static Vao createVao(TerrainMeshData meshData, ModelType modelType) {
+        Vao vao = Vao.create();
+        vao.modelType = modelType;
+        vao.bind();
+        vao.createIndexBuffer(new Material("T"), meshData.getIndices());
 
-    private void unbind() {
-        GL30.glBindVertexArray(0);
+        vao.createIntAttribute(0, meshData.getVertices(), 2);
+        vao.unbind();
+        return vao;
     }
 
     /**
      * Stores the mesh data in a VAO.
      *
-     * @param data - all the data about the mesh that needs to be stored in the
-     * VAO.
+     * @param data      - all the data about the mesh that needs to be stored in the
+     *                  VAO.
      * @param modelType - type of model
      * @return The VAO containing all the mesh data for the model.
      */

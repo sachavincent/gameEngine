@@ -10,6 +10,7 @@ import java.util.Objects;
 
 public class ModelEntity {
 
+    private int gameObjectId;
     protected AbstractModel model;
     protected Vector3f rotation;
     protected Vector3f position;
@@ -19,23 +20,26 @@ public class ModelEntity {
     private Matrix4f transformationMatrix;
 
     public ModelEntity(ModelEntity modelEntity) {
-        this(modelEntity.position, modelEntity.rotation, modelEntity.scale, modelEntity.model, modelEntity.textureIndex);
+        this(modelEntity.position, modelEntity.rotation, modelEntity.scale,
+                modelEntity.model, modelEntity.textureIndex, modelEntity.gameObjectId);
     }
 
-    private ModelEntity(Vector3f pos, Vector3f rotation, float scale, AbstractModel model, int textureIndex) {
+    private ModelEntity(Vector3f pos, Vector3f rotation, float scale,
+                        AbstractModel model, int textureIndex, int gameObjectId) {
         this.model = model;
         this.position = pos;
         this.rotation = rotation;
         this.scale = scale;
         this.textureIndex = textureIndex;
+        this.gameObjectId = gameObjectId;
     }
 
-    public ModelEntity(Vector3f pos, Vector3f rotation, float scale, AbstractModel model) {
-        this(pos, rotation, scale, model, 0);
+    public ModelEntity(Vector3f pos, Vector3f rotation, float scale, AbstractModel model, int gameObjectId) {
+        this(pos, rotation, scale, model, 0, gameObjectId);
     }
 
-    public ModelEntity(Vector3f pos, Direction direction, float scale, AbstractModel model) {
-        this(pos, new Vector3f(0, direction.getDegree(), 0), scale, model, 0);
+    public ModelEntity(Vector3f pos, Direction direction, float scale, AbstractModel model, int gameObjectId) {
+        this(pos, new Vector3f(0, direction.getDegree(), 0), scale, model, 0, gameObjectId);
     }
 
     public ModelEntity(AbstractModel model, boolean fixedRotation) {
@@ -102,6 +106,14 @@ public class ModelEntity {
 //        int row = this.textureIndex / modelTexture.getNumberOfRows();
 //        return (float) row / (float) modelTexture.getNumberOfRows();
 //    }
+
+    public int getGameObjectId() {
+        return this.gameObjectId;
+    }
+
+    public void setGameObjectId(int gameObjectId) {
+        this.gameObjectId = gameObjectId;
+    }
 
     @Override
     public boolean equals(Object o) {

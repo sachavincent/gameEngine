@@ -1,5 +1,6 @@
 package util;
 
+import engineTester.Game;
 import entities.Camera;
 import inputs.MouseUtils;
 import models.BoundingBox;
@@ -7,18 +8,20 @@ import renderEngine.DisplayManager;
 import renderEngine.MasterRenderer;
 import scene.Scene;
 import scene.components.BoundingBoxComponent;
+import scene.components.HeightMapComponent;
 import scene.components.OffsetComponent;
 import scene.components.PositionComponent;
-import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.*;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.IntStream;
+import java.util.Objects;
 
 public class MousePicker {
 
@@ -32,16 +35,8 @@ public class MousePicker {
 
     private GameObject gameObject;
 
-    private final List<Vector2f> TMMP = new ArrayList<>();
-
     private MousePicker() {
         this.viewMatrix = Camera.getInstance().getViewMatrix();
-
-        IntStream.range(0, 50).forEach(xB -> {
-            IntStream.range(0, 50).forEach(yB -> {
-                TMMP.add(new Vector2f(xB, yB));
-            });
-        });
     }
 
     public static MousePicker getInstance() {
@@ -53,7 +48,7 @@ public class MousePicker {
     }
 
     public boolean isPointOnTerrain() {
-        return intersectionPoint != null && gameObject.getComponent(TerrainComponent.class) != null;
+        return getHoveredCell() != null;
     }
 
     public Vector3f getCurrentRay() {
@@ -73,20 +68,6 @@ public class MousePicker {
 //        if (intersectionWithGameObject != null)
 //            map.put(intersectionWithGameObject.getKey(), intersectionWithGameObject.getValue());
 //        calculateIntersectionPoint(map);
-//        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, Terrain.SIZE),
-//                new Vector3f(Terrain.SIZE, 0, Terrain.SIZE), new Vector3f(Terrain.SIZE, 0, 0));
-//        System.out.println("TerrainPoint: " + intersectionWithPlane(terrainPlane, false));
-//        if (currentTerrainPoint != null)
-//            currentTerrainPoint.y = terrain.getHeightOfTerrain(currentTerrainPoint.x, currentTerrainPoint.z);
-////        TODO: Temp parce que le terrain est plat
-//
-//        if (intersectionInRange(0, RAY_RANGE, currentRay)) {
-//            currentTerrainPoint = binarySearch(0, 0, RAY_RANGE, currentRay);
-//            currentTerrainPoint.y = terrain.getHeightOfTerrain(currentTerrainPoint.x, currentTerrainPoint.z);
-//            System.out.println(currentTerrainPoint);
-//        } else
-//            currentTerrainPoint = null;
-
     }
 
     public void updateIntersectionOnClick() {
@@ -207,33 +188,45 @@ public class MousePicker {
         return this.gameObject;
     }
 
-    TerrainPosition tmp;
-
     public TerrainPosition getHoveredCell() {
         if (!MouseUtils.rightClickPressed)
-            return tmp;
+            return this.intersectionPoint == null ? null : this.intersectionPoint.toTerrainPosition();
 //        if (this.needRayUpdate)
 //            update();
 
-        tmp = null;
+        this.intersectionPoint = null;
         float slopeSpeed = 1.0f;
         Vector3f currPos = new Vector3f(Camera.getInstance().getPosition());
-        while (currPos.x >= 0 && currPos.z >= 0 &&
-                currPos.x < Terrain.SIZE && currPos.z < Terrain.SIZE) {
+        // First, check if mouseRay intersects with Terrain:
+//        if (!terrainPlane.doesLineIntersect(this.currentRay))
+//            return null;//TODO:Use full BB (minHeight to maxHeight Box
+        while (!isPosOnTerrain(currPos)) {//Dangerous for now if not clicked on terrain@see TODO-Above
+            // Camera not above the Terrain
+            Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
+                    this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
+            currPos = Vector3f.add(currPos, tmp, null);
+        }
+        Terrain terrain = Scene.getInstance().getTerrain();
+        HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
+        while (isPosOnTerrain(currPos)) {
             int minX = (int) Math.floor(currPos.x);
             int minZ = (int) Math.floor(currPos.z);
             int maxX = minX + 1;
             int maxZ = minZ + 1;
 
-            Vector3f p1 = new Vector3f(minX, Terrain.heights[minX][minZ], minZ);
-            Vector3f p2 = new Vector3f(maxX, Terrain.heights[maxX][minZ], minZ);
-            Vector3f p3 = new Vector3f(minX, Terrain.heights[minX][maxZ], maxZ);
-            Vector3f p4 = new Vector3f(maxX, Terrain.heights[maxX][maxZ], maxZ);
+            Vector3f p1 = new Vector3f(minX, heightMapComponent.getHeight(minX, minZ), minZ);
+            Vector3f p2 = new Vector3f(maxX, heightMapComponent.getHeight(maxX, minZ), minZ);
+            Vector3f p3 = new Vector3f(minX, heightMapComponent.getHeight(minX, maxZ), maxZ);
+            Vector3f p4 = new Vector3f(maxX, heightMapComponent.getHeight(maxX, maxZ), maxZ);
 
             float height = currPos.y;
 
-            if (p1.y >= height || p2.y >= height || p3.y >= height || p4.y >= height)
-                return tmp = p1.toTerrainPosition();
+            if (p1.y >= height || p2.y >= height || p3.y >= height || p4.y >= height) {
+                TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.x), p1.y,
+                        (int) Math.floor(p1.z));
+                this.intersectionPoint = terrainPosition.toVector3f();
+                return terrainPosition;
+            }
 
             Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
                     this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
@@ -242,78 +235,9 @@ public class MousePicker {
         return null;
     }
 
-    public void TBD() {
-        List<Vector3f> crossedLines = new ArrayList<>();
-        Vector3f cameraPosition = new Vector3f(Camera.getInstance().getPosition());
-
-        while (cameraPosition.x < 0 || cameraPosition.z < 0 ||
-                cameraPosition.x >= (Terrain.SIZE - 1) || cameraPosition.z >= (Terrain.SIZE - 1)) {
-            // Camera is out of the terrain
-            cameraPosition.translate(this.currentRay.x, this.currentRay.y, this.currentRay.z);
-        }
-        while (!(cameraPosition.x < 0 || cameraPosition.z < 0 ||
-                cameraPosition.x >= (Terrain.SIZE - 1) || cameraPosition.z >= (Terrain.SIZE - 1))) {
-
-            int minX = (int) Math.floor(cameraPosition.x);
-            int minZ = (int) Math.floor(cameraPosition.z);
-//            int maxX = (int) Math.ceil(cameraPosition.x);
-//            int maxZ = (int) Math.ceil(cameraPosition.z);
-            int maxX = minX + 1;
-            int maxZ = minZ + 1;
-            double topLeftHeight = Terrain.heights[maxX][minZ];
-            double topRightHeight = Terrain.heights[maxX][maxZ];
-            double bottomLeftHeight = Terrain.heights[minX][minZ];
-            double bottomRightHeight = Terrain.heights[minX][maxZ];
-
-            float height = cameraPosition.y;
-            double sign1 = Math.signum(topLeftHeight - height);
-            double sign2 = Math.signum(topRightHeight - height);
-            double sign3 = Math.signum(bottomLeftHeight - height);
-            double sign4 = Math.signum(bottomRightHeight - height);
-            Vector2f cam = new Vector2f(cameraPosition.x, cameraPosition.z);
-            Vector3f tmp = new Vector3f(this.currentRay.x, this.currentRay.y, this.currentRay.z);
-            cameraPosition = Vector3f.add(cameraPosition, tmp, null);
-//            if (sign1 != sign2 || sign3 != sign4 || sign1 != sign3
-//                    || sign2 != sign4 || sign1 != sign4 || sign2 != sign3)
-//                continue;
-//            if (sign1 == sign2 && sign1 == sign3 && sign1 == sign4)
-//                continue;
-            if (topLeftHeight < height && bottomLeftHeight < height &&
-                    topRightHeight < height && bottomRightHeight < height)
-                continue;
-            Vector3f p1 = new Vector3f(minX, bottomLeftHeight, minZ);
-            Vector3f p2 = new Vector3f(maxX, topLeftHeight, minZ);
-            Vector3f p3 = new Vector3f(minX, bottomRightHeight, maxZ);
-            Vector3f p4 = new Vector3f(maxX, topRightHeight, maxZ);
-//            float height1 = Maths.barryCentric(p1, p2, p3, cam);
-//            float height2 = Maths.barryCentric(p2, p3, p4, cam);
-            float eps = 0.01f;
-//            if (Math.abs(height - height1) < eps) {
-            if (isPointInTriangle(cam, new Vector2f(p1.x, p1.z), new Vector2f(p2.x, p2.z), new Vector2f(p3.x, p3.z))) {
-//                crossedLines.add(p1);
-//                crossedLines.add(p2);
-//                crossedLines.add(p3);
-//                break;
-//            } else if (Math.abs(height - height2) < eps) {
-            } else if (isPointInTriangle(cam, new Vector2f(p2.x, p2.z), new Vector2f(p3.x, p3.z), new Vector2f(p4.x, p4.z))) {
-//                crossedLines.add(p2);
-//                crossedLines.add(p3);
-//                crossedLines.add(p4);
-//                break;
-            }
-            crossedLines.add(p1);
-            crossedLines.add(p2);
-            crossedLines.add(p3);
-            crossedLines.add(p4);
-            System.out.println(this.currentRay + "=>" + new Vector3f(cam.x, height, cam.y));
-            System.out.println("\t" + p1 + " vs " + Terrain.heights[(int) p1.x][(int) p1.z]);
-            System.out.println("\t" + p2 + " vs " + Terrain.heights[(int) p2.x][(int) p2.z]);
-            System.out.println("\t" + p3 + " vs " + Terrain.heights[(int) p3.x][(int) p3.z]);
-            System.out.println("\t" + p4 + " vs " + Terrain.heights[(int) p4.x][(int) p4.z]);
-
-            this.intersectionPoint = p1;
-            break;
-        }
+    private boolean isPosOnTerrain(Vector3f pos) {
+        return pos.x >= 0 && pos.z >= 0 && pos.x < Game.TERRAIN_WIDTH - 1
+                && pos.z < Game.TERRAIN_DEPTH - 1;
     }
 
     float sign(Vector2f p1, Vector2f p2, Vector2f p3) {

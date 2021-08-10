@@ -1,4 +1,4 @@
-package util;
+package util.noise;
 
 /**
  * K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")
@@ -52,7 +52,6 @@ public class OpenSimplex2S {
      * 2D SuperSimplex noise, standard lattice orientation.
      */
     public double noise2(double x, double y) {
-
         // Get points for A2* lattice
         double s = 0.366025403784439 * (x + y);
         double xs = x + s, ys = y + s;
@@ -66,7 +65,6 @@ public class OpenSimplex2S {
      * Probably slightly less optimal for heightmaps or continent maps.
      */
     public double noise2_XBeforeY(double x, double y) {
-
         // Skew transform and rotation baked into one.
         double xx = x * 0.7071067811865476;
         double yy = y * 1.224744871380249;
@@ -141,7 +139,6 @@ public class OpenSimplex2S {
      * For a time varied animation, call noise3_XYBeforeZ(x, y, T).
      */
     public double noise3_XYBeforeZ(double x, double y, double z) {
-
         // Re-orient the cubic lattices without skewing, to make X and Y triangular like 2D.
         // Orthonormal rotation. Not a skew transform.
         double xy = x + y;
@@ -163,7 +160,6 @@ public class OpenSimplex2S {
      * For a time varied animation, call noise3_XZBeforeY(x, T, y) or use noise3_XYBeforeZ.
      */
     public double noise3_XZBeforeY(double x, double y, double z) {
-
         // Re-orient the cubic lattices without skewing, to make X and Z triangular like 2D.
         // Orthonormal rotation. Not a skew transform.
         double xz = x + z;
@@ -184,7 +180,6 @@ public class OpenSimplex2S {
      * than to build up the index with enough info to isolate 8 points.
      */
     private double noise3_BCC(double xr, double yr, double zr) {
-
         // Get base and offsets inside cube of first lattice.
         int xrb = fastFloor(xr), yrb = fastFloor(yr), zrb = fastFloor(zr);
         double xri = xr - xrb, yri = yr - yrb, zri = zr - zrb;
@@ -219,7 +214,6 @@ public class OpenSimplex2S {
      * 4D SuperSimplex noise, classic lattice orientation.
      */
     public double noise4_Classic(double x, double y, double z, double w) {
-
         // Get points for A4 lattice
         double s = 0.309016994374947 * (x + y + z + w);
         double xs = x + s, ys = y + s, zs = z + s, ws = w + s;
@@ -233,7 +227,6 @@ public class OpenSimplex2S {
      * Recommended for noise(x, y, sin(time), cos(time)) trick.
      */
     public double noise4_XYBeforeZW(double x, double y, double z, double w) {
-
         double s2 = (x + y) * -0.28522513987434876941 + (z + w) * 0.83897065470611435718;
         double t2 = (z + w) * 0.21939749883706435719 + (x + y) * -0.48214856493302476942;
         double xs = x + s2, ys = y + s2, zs = z + t2, ws = w + t2;
@@ -246,7 +239,6 @@ public class OpenSimplex2S {
      * Recommended for 3D terrain, where X and Z (or Y and W) are horizontal.
      */
     public double noise4_XZBeforeYW(double x, double y, double z, double w) {
-
         double s2 = (x + z) * -0.28522513987434876941 + (y + w) * 0.83897065470611435718;
         double t2 = (y + w) * 0.21939749883706435719 + (x + z) * -0.48214856493302476942;
         double xs = x + s2, ys = y + t2, zs = z + s2, ws = w + t2;
@@ -260,7 +252,6 @@ public class OpenSimplex2S {
      * Recommended for time-varied animations which texture a 3D object (W=time)
      */
     public double noise4_XYZBeforeW(double x, double y, double z, double w) {
-
         double xyz = x + y + z;
         double ww = w * 1.118033988749894;
         double s2 = xyz * -0.16666666666666666 + ww;
@@ -808,7 +799,6 @@ public class OpenSimplex2S {
     private static final Grad4[] GRADIENTS_4D;
 
     static {
-
         GRADIENTS_2D = new Grad2[PSIZE];
         Grad2[] grad2 = {
                 new Grad2(0.130526192220052, 0.99144486137381),

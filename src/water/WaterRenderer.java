@@ -1,6 +1,5 @@
 package water;
 
-import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -15,6 +14,8 @@ import textures.ModelTexture;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
+
+import java.util.List;
 
 public class WaterRenderer {
 
@@ -35,8 +36,8 @@ public class WaterRenderer {
     public WaterRenderer(Loader loader, WaterShader shader, Matrix4f projectionMatrix, WaterFrameBuffers fbos) {
         this.shader = shader;
         this.fbos = fbos;
-        this.dudvTexture = new ModelTexture(DUDV_MAP).getTextureID();
-        this.normalMap = new ModelTexture(NORMAL_MAP).getTextureID();
+        this.dudvTexture = new ModelTexture(DUDV_MAP).getID();
+        this.normalMap = new ModelTexture(NORMAL_MAP).getID();
 
         shader.start();
         shader.connectTextureUnits();

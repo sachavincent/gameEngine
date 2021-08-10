@@ -1,6 +1,6 @@
-package util.parsing.colladaParser.dataStructures;
+package renderEngine;
 
-import util.parsing.Material;
+import renderEngine.shaders.structs.Material;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,14 +29,17 @@ public class MeshData {
         this(vertices, textureCoords, normals, indicesList, new float[0]);
     }
 
+    public MeshData(float[] vertices) {
+        this(vertices, new int[0]);
+    }
+
 
     /**
      * For BoundingBoxes
      */
     public MeshData(float[] vertices, int[] indices) {
-        this(vertices, new float[0], new float[0], new HashMap<>(Map.of(new Material("TEMP"), indices)), new float[0]);
+        this(vertices, new float[0], new float[0], indices.length > 0 ? new HashMap<>(Map.of(new Material("TEMP"), indices)) : new HashMap<>(), new float[0]);
     }
-
 
     /**
      * For Models with NormalMap

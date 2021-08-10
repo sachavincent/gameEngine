@@ -9,7 +9,7 @@ import scene.components.*;
 import scene.components.callbacks.AddComponentCallback;
 import scene.components.requirements.BuildingRoadConnectionRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.Vector3f;
 
 import java.util.Collection;

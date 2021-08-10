@@ -1,22 +1,26 @@
-package util.parsing;
+package renderEngine.shaders.structs;
 
 import textures.ModelTexture;
 import util.math.Vector3f;
+import util.parsing.MaterialColor;
+import util.parsing.SimpleMaterialColor;
 import util.parsing.colladaParser.dataStructures.MaterialData;
 
+import java.awt.*;
 import java.io.File;
 import java.util.Objects;
-import java.util.UUID;
 
-public class Material {
+public class Material implements StructElement {
+
+    public final static Material DEFAULT = new Material("DEFAULT");
 
     private final String name;
 
     private float shininessExponent;
+    private MaterialColor emission;
     private MaterialColor ambient;
     private MaterialColor diffuse;
     private MaterialColor specular;
-    private MaterialColor emission;
     private float opticalDensity;
     private float dissolve;
     private float illumination;
@@ -25,6 +29,10 @@ public class Material {
     private ModelTexture diffuseMap;
     private ModelTexture normalMap;
     private ModelTexture specularMap;
+
+    protected Material() {
+        this.name = null;
+    }
 
     public Material(String name) {
         this.name = name;
@@ -117,19 +125,19 @@ public class Material {
     }
 
     public final MaterialColor getAmbient() {
-        return this.ambient;
+        return this.ambient == null ? new SimpleMaterialColor(Color.BLACK) : this.ambient;
     }
 
     public final MaterialColor getDiffuse() {
-        return this.diffuse;
+        return this.diffuse == null ? new SimpleMaterialColor(Color.BLACK) : this.diffuse;
     }
 
     public final MaterialColor getSpecular() {
-        return this.specular;
+        return this.specular == null ? new SimpleMaterialColor(Color.BLACK) : this.specular;
     }
 
     public final MaterialColor getEmission() {
-        return this.emission;
+        return this.emission == null ? new SimpleMaterialColor(Color.BLACK) : this.emission;
     }
 
     public final float getOpticalDensity() {
@@ -145,35 +153,35 @@ public class Material {
     }
 
     public final ModelTexture getAmbientMap() {
-        return this.ambientMap;
+        return this.ambientMap == null ? ModelTexture.NONE : this.ambientMap;
     }
 
     public final ModelTexture getDiffuseMap() {
-        return this.diffuseMap;
+        return this.diffuseMap == null ? ModelTexture.NONE : this.diffuseMap;
     }
 
     public final ModelTexture getNormalMap() {
-        return this.normalMap;
+        return this.normalMap == null ? ModelTexture.NONE : this.normalMap;
     }
 
     public final ModelTexture getSpecularMap() {
-        return this.specularMap;
+        return this.specularMap == null ? ModelTexture.NONE : this.specularMap;
     }
 
     public final boolean hasAmbientMap() {
-        return this.ambientMap != null;
+        return !getAmbientMap().equals(ModelTexture.NONE);
     }
 
     public final boolean hasDiffuseMap() {
-        return this.diffuseMap != null;
+        return !getDiffuseMap().equals(ModelTexture.NONE);
     }
 
     public final boolean hasNormalMap() {
-        return this.normalMap != null;
+        return !getNormalMap().equals(ModelTexture.NONE);
     }
 
     public final boolean hasSpecularMap() {
-        return this.specularMap != null;
+        return !getSpecularMap().equals(ModelTexture.NONE);
     }
 
     @Override
@@ -216,5 +224,18 @@ public class Material {
         material.setIllumination(this.illumination);
 
         return material;
+    }
+
+    @Override
+    public Class<? extends StructLocation> getStructure() {
+        return MaterialStruct.class;
+    }
+
+    @Override
+    public Object[] getValues() {
+        return new Object[]{getEmission(), getAmbient(), getDiffuse(), getSpecular(),
+                getShininessExponent(), hasAmbientMap(), hasDiffuseMap(),
+                hasNormalMap(), hasSpecularMap(), getAmbientMap(), getDiffuseMap(),
+                getNormalMap(), getSpecularMap()};
     }
 }

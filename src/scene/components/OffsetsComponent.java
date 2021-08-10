@@ -1,11 +1,12 @@
 package scene.components;
 
 import entities.Camera.Direction;
+import terrain.TerrainPosition;
+import util.math.Maths;
+
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import terrains.TerrainPosition;
-import util.math.Maths;
 
 public class OffsetsComponent extends Component {
 
@@ -63,7 +64,7 @@ public class OffsetsComponent extends Component {
         AtomicInteger i = new AtomicInteger();
         IntStream.range(-offset3, offset1).forEach(x -> {
             IntStream.range(-offset0, offset2).forEach(z -> {
-                positions[i.getAndIncrement()] = new TerrainPosition(x, z);
+                positions[i.getAndIncrement()] = new TerrainPosition(x, 0, z);
             });
         });
 

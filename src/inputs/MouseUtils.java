@@ -1,14 +1,5 @@
 package inputs;
 
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static renderEngine.DisplayManager.getWindow;
-import static util.math.Maths.isPointIn2DBounds;
-
 import engineTester.Game;
 import engineTester.Game.GameState;
 import entities.Camera;
@@ -22,12 +13,6 @@ import guis.presets.GuiAbstractShapePreset;
 import guis.presets.GuiClickablePreset;
 import guis.presets.GuiPreset;
 import guis.presets.GuiTextInput;
-import java.nio.DoubleBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Callback;
@@ -37,11 +22,22 @@ import scene.Scene;
 import scene.components.SelectableComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.MousePicker;
 import util.math.Maths;
 import util.math.Vector2f;
 import util.math.Vector3f;
+
+import java.nio.DoubleBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.lwjgl.glfw.GLFW.*;
+import static renderEngine.DisplayManager.getWindow;
+import static util.math.Maths.isPointIn2DBounds;
 
 public class MouseUtils {
 

@@ -48,7 +48,7 @@ public abstract class ShaderProgram {
         return GL20.glGetUniformLocation(programID, uniformName);
     }
 
-    static void loadFloat(int location, Float value) {
+    public static void loadFloat(int location, Float value) {
         GL20.glUniform1f(location, value);
     }
 
@@ -62,15 +62,15 @@ public abstract class ShaderProgram {
                     ((Vector4f) vector).w);
     }
 
-    static void loadInt(int location, Integer value) {
+    public static void loadInt(int location, Integer value) {
         GL20.glUniform1i(location, value);
     }
 
-    static void loadBoolean(int location, boolean value) {
+    public static void loadBoolean(int location, boolean value) {
         GL20.glUniform1f(location, value ? 1 : 0);
     }
 
-    static void loadMatrix(int location, Matrix4f matrix) {
+    public static void loadMatrix(int location, Matrix4f matrix) {
         matrix.store(matrixBuffer);
         matrixBuffer.flip();
         GL20.glUniformMatrix4fv(location, false, matrixBuffer);

@@ -15,16 +15,6 @@ import guis.presets.checkbox.GuiRectangleCheckbox;
 import guis.presets.sliders.GuiTextScrollable;
 import guis.presets.sliders.ScrollBar;
 import inputs.Key;
-import java.awt.Color;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import renderEngine.DisplayManager;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
@@ -35,6 +25,17 @@ import util.Utils;
 import util.commands.Command;
 import util.commands.CommandManager;
 import util.math.Maths;
+
+import java.awt.*;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class GuiDebug extends Gui {
 
@@ -291,7 +292,7 @@ public class GuiDebug extends Gui {
 
         this.infosGui.getText().setTextString(
                 "TPS: " + DisplayManager.TPS + "\r\n" + "MSPT: " + DisplayManager.MSPT + "\r\nFPS: " +
-                        DisplayManager.FPS);
+                        DisplayManager.CURRENT_FPS);
         List<Color> colors = this.infosGui.getText().getColors();
         colors.set(1, Utils.getColorForTPS(DisplayManager.TPS));
         colors.set(3, Utils.getColorForMSPT(DisplayManager.MSPT));

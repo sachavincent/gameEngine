@@ -1,6 +1,6 @@
 package pathfinding;
 
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 
 public class NodeRoad extends Road {
 

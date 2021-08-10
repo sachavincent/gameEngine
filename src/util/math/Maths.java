@@ -1,9 +1,10 @@
 package util.math;
 
 import entities.Camera;
+import terrain.TerrainPosition;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import terrains.TerrainPosition;
 
 public class Maths {
 

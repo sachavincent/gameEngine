@@ -2,8 +2,8 @@ package models;
 
 import entities.ModelEntity;
 import renderEngine.Vao;
+import renderEngine.shaders.structs.Material;
 import util.math.Vector3f;
-import util.parsing.Material;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +39,7 @@ public abstract class AbstractModel {
     }
 
     public final ModelEntity toModelEntity() {
-        return new ModelEntity(new Vector3f(), new Vector3f(), 1, this);
+        return new ModelEntity(new Vector3f(), new Vector3f(), 1, this, -1);
     }
 
     public abstract List<Material> getMaterials();

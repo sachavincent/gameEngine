@@ -1,21 +1,22 @@
-package terrains;
+package terrain;
+
+import util.math.Vector3f;
 
 import java.util.Objects;
-import util.math.Vector3f;
 
 public class TerrainPosition implements Comparable<TerrainPosition> {
 
     private int x;
-    //    private final int y;
+    private float y;
     private int z;
 
     public TerrainPosition(TerrainPosition terrainPosition) {
-        this(terrainPosition.x, terrainPosition.z);
+        this(terrainPosition.x, terrainPosition.y, terrainPosition.z);
     }
 
-    public TerrainPosition(int x,/* int y, */int z) {
+    public TerrainPosition(int x, float y, int z) {
         this.x = x;
-//        this.y = y;
+        this.y = y;
         this.z = z;
     }
 
@@ -23,9 +24,9 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         return this.x;
     }
 
-//    public int getY() {
-//        return this.y;
-//    }
+    public float getY() {
+        return this.y;
+    }
 
     public int getZ() {
         return this.z;
@@ -35,16 +36,20 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         this.x = x;
     }
 
+    public void setY(float y) {
+        this.y = y;
+    }
+
     public void setZ(int z) {
         this.z = z;
     }
 
     public TerrainPosition add(TerrainPosition terrainPosition) {
-        return new TerrainPosition(this.x + terrainPosition.x, this.z + terrainPosition.z);
+        return new TerrainPosition(this.x + terrainPosition.x, this.y + terrainPosition.y, this.z + terrainPosition.z);
     }
 
     public TerrainPosition sub(TerrainPosition terrainPosition) {
-        return new TerrainPosition(this.x - terrainPosition.x, this.z - terrainPosition.z);
+        return new TerrainPosition(this.x - terrainPosition.x, this.y - terrainPosition.y, this.z - terrainPosition.z);
     }
 
     public static TerrainPosition[] toPositionArray(int[] roadPositions) {
@@ -53,7 +58,9 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
 
         TerrainPosition[] roads = new TerrainPosition[roadPositions.length / 2];
         for (int i = 0; i < roads.length; i++) {
-            roads[i] = new TerrainPosition(roadPositions[i * 2], roadPositions[i * 2 + 1]);
+            int x = roadPositions[i * 2];
+            int z = roadPositions[i * 2 + 1];
+            roads[i] = new TerrainPosition(x, 0, z);
         }
 
         return roads;
@@ -71,12 +78,15 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.x, this.z);
+        return Objects.hash(this.x, this.y, this.z);
     }
 
     @Override
     public int compareTo(TerrainPosition o) {
         int i = Integer.compare(this.x, o.x);
+        if (i != 0)
+            return i;
+        i = Float.compare(this.y, o.y);
         if (i != 0)
             return i;
 
@@ -85,10 +95,10 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
 
     @Override
     public String toString() {
-        return "TerrainPosition{" + "x=" + this.x + ", z=" + this.z + '}';
+        return "TerrainPosition{" + "x=" + x + ", y=" + y + ", z=" + z + '}';
     }
 
     public Vector3f toVector3f() {
-        return new Vector3f(this.x, 0.05f, this.z);
+        return new Vector3f(this.x, this.y, this.z);
     }
 }

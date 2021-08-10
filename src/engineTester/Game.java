@@ -4,15 +4,6 @@ import entities.Camera;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.presets.GuiTextInput;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import people.Farmer;
 import people.Person;
 import postProcessing.Fbo;
@@ -30,6 +21,11 @@ import scene.gameObjects.GameObject;
 import util.TimeSystem;
 import util.Utils;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 public class Game {
 
     public final static TimeSystem COOLDOWN_BEFORE_SETTLEMENT      = new TimeSystem(
@@ -39,6 +35,10 @@ public class Game {
     public final static TimeSystem TIME_BETWEEN_SETTLEMENTS        = new TimeSystem(
             TimeSystem.TICK_RATE * 20); // 20 seconds
     public final static int        COOLDOWN_GLOBAL_MOVE_AWAY       = TimeSystem.TICK_RATE * 10; // 10 seconds
+
+    public final static int TERRAIN_WIDTH = 128;
+    public final static int TERRAIN_DEPTH = 128;
+    public final static int TERRAIN_MAX_HEIGHT = 32;
 
     private static Game instance;
 

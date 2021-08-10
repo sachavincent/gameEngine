@@ -1,31 +1,29 @@
 package scene.components;
 
 import entities.Camera.Direction;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import scene.Scene;
 import scene.components.callbacks.AddComponentCallback;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
+import scene.gameObjects.Terrain;
+import terrain.TerrainPosition;
+
+import java.util.*;
 
 public class ConnectionsComponent<ConnectionType> extends Component {
 
     // EAST NORTH WEST SOUTH
     private final boolean[] accessPoints = new boolean[]{true, true, true, true};
-    private final int[]     connections  = new int[]{0, 0, 0, 0};
+    private final int[] connections = new int[]{0, 0, 0, 0};
 
     private final Class<ConnectionType> connectionTypeClass;
 
     public ConnectionsComponent(Class<ConnectionType> clazz, boolean west, boolean north, boolean east, boolean south,
-            AddComponentCallback addComponentCallback) {
+                                AddComponentCallback addComponentCallback) {
         this(clazz, new boolean[]{west, north, east, south}, addComponentCallback);
     }
 
     public ConnectionsComponent(Class<ConnectionType> clazz, boolean[] accessPoints,
-            AddComponentCallback addComponentCallback) {
+                                AddComponentCallback addComponentCallback) {
         super((gameObject, position) -> {
             Set<ConnectionsComponent<?>> toUpdate = new HashSet<>();
             TerrainPosition pos = position.toTerrainPosition();
@@ -34,6 +32,11 @@ public class ConnectionsComponent<ConnectionType> extends Component {
             ConnectionsComponent<ConnectionType> connectionsComponent = gameObject
                     .getComponent(ConnectionsComponent.class);
             if (connectionsComponent == null)
+                return;
+
+            Terrain terrain = Scene.getInstance().getTerrain();
+            HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
+            if (heightMapComponent == null)
                 return;
 
             int xNeg = 0;
@@ -54,8 +57,10 @@ public class ConnectionsComponent<ConnectionType> extends Component {
             ConnectionsComponent<?> relativeComponent;
             Map<Integer, Integer> nbConnections = new HashMap<>();
             for (int x = -xNeg; x < xPos; x++) {
+                int xOff = pos.getX() + x;
+                int zOff = pos.getZ() - zNeg - 1;
                 GameObject relativeGameObject = scene
-                        .getGameObjectAtPosition(new TerrainPosition(pos.getX() + x, pos.getZ() - zNeg - 1));
+                        .getGameObjectAtPosition(new TerrainPosition(xOff, heightMapComponent.getHeight(xOff, zOff), zOff));
                 if (relativeGameObject != null && relativeGameObject.hasComponent(ConnectionsComponent.class)) {
                     relativeComponent = relativeGameObject.getComponent(ConnectionsComponent.class);
                     if (relativeComponent.getConnectionTypeClass() == connectionsComponent.getConnectionTypeClass()) {
@@ -83,8 +88,9 @@ public class ConnectionsComponent<ConnectionType> extends Component {
                     }
                 }
 
+                zOff = pos.getZ() + zPos;
                 relativeGameObject = scene
-                        .getGameObjectAtPosition(new TerrainPosition(pos.getX() + x, pos.getZ() + zPos));
+                        .getGameObjectAtPosition(new TerrainPosition(xOff, heightMapComponent.getHeight(xOff, zOff), zOff));
                 if (relativeGameObject != null && relativeGameObject.hasComponent(ConnectionsComponent.class)) {
                     relativeComponent = relativeGameObject.getComponent(ConnectionsComponent.class);
                     if (relativeComponent.getConnectionTypeClass() == connectionsComponent.getConnectionTypeClass()) {
@@ -113,8 +119,10 @@ public class ConnectionsComponent<ConnectionType> extends Component {
                 }
             }
             for (int z = -zNeg; z < zPos; z++) {
+                int xOff = pos.getX() - xNeg - 1;
+                int zOff = pos.getZ() + z;
                 GameObject relativeGameObject = scene
-                        .getGameObjectAtPosition(new TerrainPosition(pos.getX() - xNeg - 1, pos.getZ() + z));
+                        .getGameObjectAtPosition(new TerrainPosition(xOff, heightMapComponent.getHeight(xOff, zOff), zOff));
                 if (relativeGameObject != null && relativeGameObject.hasComponent(ConnectionsComponent.class)) {
                     relativeComponent = relativeGameObject.getComponent(ConnectionsComponent.class);
                     if (relativeComponent.getConnectionTypeClass() == connectionsComponent.getConnectionTypeClass()) {
@@ -141,8 +149,9 @@ public class ConnectionsComponent<ConnectionType> extends Component {
                         }
                     }
                 }
+                xOff = pos.getX() + xPos;
                 relativeGameObject = scene
-                        .getGameObjectAtPosition(new TerrainPosition(pos.getX() + xPos, pos.getZ() + z));
+                        .getGameObjectAtPosition(new TerrainPosition(xOff, heightMapComponent.getHeight(xOff, zOff), zOff));
                 if (relativeGameObject != null && relativeGameObject.hasComponent(ConnectionsComponent.class)) {
                     relativeComponent = relativeGameObject.getComponent(ConnectionsComponent.class);
                     if (relativeComponent.getConnectionTypeClass() == connectionsComponent.getConnectionTypeClass()) {

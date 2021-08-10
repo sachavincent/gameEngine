@@ -14,9 +14,9 @@ public class DirectionComponent extends Component {
 
     public DirectionComponent(Direction direction) {
         setOnUpdateComponentCallback(gameObject -> {
-            GameObjectRenderer gameObjectRenderer = gameObject.getComponent(RendererComponent.class).getRenderer();
+            GameObjectRenderer<?> gameObjectRenderer = gameObject.getComponent(RendererComponent.class).getRenderer();
             if (gameObjectRenderer instanceof BuildingRenderer) {
-                ((BuildingRenderer) gameObjectRenderer).removeGameObject(gameObject);
+                gameObjectRenderer.removeGameObject(gameObject);
             }
         });
 

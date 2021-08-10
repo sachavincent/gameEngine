@@ -1,61 +1,44 @@
 package scene.gameObjects;
 
-import models.BoundingBox;
+import engineTester.Game;
 import models.Model;
+import renderEngine.TerrainMeshData;
 import renderEngine.TerrainRenderer;
 import renderEngine.Vao;
-import scene.components.*;
-import textures.ModelTexture;
+import scene.components.HeightMapComponent;
+import scene.components.RendererComponent;
+import scene.components.SingleModelComponent;
+import scene.components.TerrainComponent;
+import terrain.HeightMapGenerator;
+import terrain.HeightMapSupplier;
 import textures.TerrainTexture;
-import textures.TerrainTexturePack;
 import util.ResourceFile;
-import util.math.Plane3D;
 import util.math.Vector3f;
 import util.parsing.ModelType;
-import util.parsing.colladaParser.dataStructures.MeshData;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static util.Utils.RES_PATH;
-
 public class Terrain extends GameObject {
 
-    public static final int SIZE = 128;
-    public static final int MAX_HEIGHT = 32;
-    public static final int TEST;
-
-    public static double[][] heights;
-
-    static {
-        ModelTexture modelTexture = ModelTexture.createTexture(new ResourceFile("dirt.png"));
-        TEST = modelTexture.getTextureID();
-    }
-
     public Terrain() {
-        MeshData modelData = generateTerrain("test.png");
+        ResourceFile heightMap = new ResourceFile("hihi.png");
+        long seed = 4815162342L;
+//                (long) (Math.random() * Long.MAX_VALUE);
+        HeightMapSupplier<TerrainTexture, Exception> heightMapSupplier =
+//                new HeightMapReader(heightMap);
+                new HeightMapGenerator(seed
+                        , heightMap
+                );
+        HeightMapComponent heightMapComponent = new HeightMapComponent(Game.TERRAIN_MAX_HEIGHT,
+                Game.TERRAIN_WIDTH, Game.TERRAIN_DEPTH, heightMapSupplier);
+        addComponent(heightMapComponent);
+        TerrainMeshData modelData = generateTerrain();
         Vao terrainVao = Vao.createVao(modelData, ModelType.DEFAULT);
         Model model = new Model(terrainVao);
         addComponent(new TerrainComponent());
         addComponent(new SingleModelComponent(model));
 
-        Plane3D terrainPlane = new Plane3D(new Vector3f(0, 0, 0), new Vector3f(0, 0, SIZE),
-                new Vector3f(SIZE, 0, SIZE), new Vector3f(SIZE, 0, 0));
-        BoundingBox boundingBox = new BoundingBox(terrainVao);
-        boundingBox.addPlane(terrainPlane);
-        boundingBox.setModelTexture(ModelTexture.DEFAULT_MODEL);
-        addComponent(new BoundingBoxComponent(boundingBox));
-        TerrainTexturePack terrainTexturePack = new TerrainTexturePack(
-                new TerrainTexture(new ResourceFile("blue.png")),
-                new TerrainTexture(new ResourceFile("red.png")),
-                new TerrainTexture(new ResourceFile("green.png")),
-                new TerrainTexture(new ResourceFile("blue.png")));
-        addComponent(new TexturePackComponent(terrainTexturePack));
         RendererComponent component = new RendererComponent(TerrainRenderer.getInstance());
         component.setOnFrameRenderedCallback((gameObject, nbFrames) -> {
 //            if (nbFrames > 200) {
@@ -68,57 +51,28 @@ public class Terrain extends GameObject {
         addComponent(component);
     }
 
-
-    private MeshData generateTerrain(String heightMap) {
+    private TerrainMeshData generateTerrain() {
         System.out.println("Generating Terrain...");
-        BufferedImage image;
-        try {
-            image = ImageIO.read(new File(RES_PATH + "/" + heightMap));
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            return null;
-        }
-
-        int VERTEX_COUNT = SIZE;
-
-        int count = VERTEX_COUNT * VERTEX_COUNT;
-        float[] vertices = new float[count * 3];
-        float[] normals = new float[count * 3];
-        float[] textureCoords = new float[count * 2];
-        int[] indices = new int[6 * (VERTEX_COUNT - 1) * (VERTEX_COUNT - 1)];
+        int width = Game.TERRAIN_WIDTH;
+        int depth = Game.TERRAIN_DEPTH;
+        int count = width * depth;
+        int[] vertices = new int[count * 2];
+        int[] indices = new int[6 * (width - 1) * (depth - 1)];
         int vertexPointer = 0;
-        Raster data = image.getData();
         System.out.println("Calculating positions...");
-        int jOffset = image.getWidth() / SIZE;
-        int iOffset = image.getHeight() / SIZE;
-        heights = new double[SIZE][SIZE];
-        for (int i = 0; i < VERTEX_COUNT; i++) {
-            for (int j = 0; j < VERTEX_COUNT; j++) {
-//                vertices[vertexPointer * 3] = (j / (VERTEX_COUNT - 1f) * SIZE);
-                vertices[vertexPointer * 3] = j;
-                heights[j][i] = getHeight(j * jOffset, i * iOffset, image, data) * MAX_HEIGHT;
-                vertices[vertexPointer * 3 + 1] = (float) heights[j][i];
-//                vertices[vertexPointer * 3 + 2] = i / (VERTEX_COUNT - 1f) * SIZE;
-                vertices[vertexPointer * 3 + 2] = i;
-//                Vector3f normal = calculateNormal(j, i, image, data);
-//                normals[vertexPointer * 3] = normal.x;
-//                normals[vertexPointer * 3 + 1] = normal.y;
-//                normals[vertexPointer * 3 + 2] = normal.z;
-                textureCoords[vertexPointer * 2] = (float) j / ((float) VERTEX_COUNT - 1);
-                textureCoords[vertexPointer * 2 + 1] = (float) i / ((float) VERTEX_COUNT - 1);
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < depth; j++) {
+                vertices[vertexPointer * 2] = j;
+                vertices[vertexPointer * 2 + 1] = i;
                 vertexPointer++;
             }
         }
-//        System.out.println("Calculating normals...");
-        normals = calcNormals(vertices, VERTEX_COUNT, VERTEX_COUNT);
-//        System.out.println("Done with normals!");
         int pointer = 0;
-        for (int gz = 0; gz < VERTEX_COUNT - 1; gz++) {
-            for (int gx = 0; gx < VERTEX_COUNT - 1; gx++) {
-                int topLeft = (gz * VERTEX_COUNT) + gx;
+        for (int gz = 0; gz < width - 1; gz++) {
+            for (int gx = 0; gx < depth - 1; gx++) {
+                int topLeft = (gz * width) + gx;
                 int topRight = topLeft + 1;
-                int bottomLeft = ((gz + 1) * VERTEX_COUNT) + gx;
+                int bottomLeft = ((gz + 1) * width) + gx;
                 int bottomRight = bottomLeft + 1;
                 indices[pointer++] = topLeft;
                 indices[pointer++] = bottomLeft;
@@ -129,28 +83,10 @@ public class Terrain extends GameObject {
             }
         }
 
-        System.out.println("Max height: " + Height);
         System.out.println("Done with indices!");
-        image.getGraphics().dispose();
-
-        return new MeshData(vertices, textureCoords, normals, indices);
+        return new TerrainMeshData(vertices, indices);
     }
 
-    float Height = Float.MIN_VALUE;
-
-    private double getHeight(int x, int z, BufferedImage image, Raster data) {
-        if (x < 0 || x >= image.getHeight() || z < 0 || z >= image.getHeight()) return 0;
-        float height = data.getSample(x, z, 0);
-//        float height = image.getRGB(x, z);
-//        height += MAX_PIXEL_COLOR / 2f;
-//        height /= MAX_PIXEL_COLOR / 2f;
-//        height *= MAX_HEIGHT;
-        if (height > Height)
-            Height = height;
-        height /= 256.0;
-//        height *= MAX_HEIGHT;
-        return height;
-    }
 
     private float[] calcNormals(float[] posArr, int width, int height) {
         Vector3f v0 = new Vector3f();
@@ -226,16 +162,4 @@ public class Terrain extends GameObject {
             normalsArray[i] = normals.get(i);
         return normalsArray;
     }
-
-    private Vector3f calculateNormal(int x, int z, BufferedImage image, Raster data) {
-        double heightL = getHeight(x - 1, z, image, data);
-        double heightR = getHeight(x + 1, z, image, data);
-        double heightD = getHeight(x, z - 1, image, data);
-        double heightU = getHeight(x, z + 1, image, data);
-        Vector3f normal = new Vector3f(heightL - heightR, 2, heightD - heightU);
-
-        normal.normalise();
-        return normal;
-    }
-
 }

@@ -2,8 +2,8 @@ package models;
 
 import renderEngine.Vao;
 import renderEngine.Vbo;
+import renderEngine.shaders.structs.Material;
 import textures.ModelTexture;
-import util.parsing.Material;
 
 import java.util.ArrayList;
 import java.util.List;

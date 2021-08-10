@@ -1,14 +1,13 @@
 package scene.gameObjects;
 
 import models.BoundingBox;
-import models.Model;
 import models.SimpleModel;
+import renderEngine.MeshData;
 import renderEngine.Vao;
+import renderEngine.shaders.structs.Material;
 import textures.ModelTexture;
 import util.exceptions.MissingFileException;
-import util.parsing.Material;
 import util.parsing.ModelType;
-import util.parsing.colladaParser.dataStructures.MeshData;
 import util.parsing.objParser.ModelLoader;
 
 import java.io.File;

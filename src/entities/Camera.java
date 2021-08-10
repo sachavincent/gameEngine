@@ -1,7 +1,7 @@
 package entities;
 
 import renderEngine.FrustumCullingFilter;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.MousePicker;
 import util.math.Maths;
 import util.math.Matrix4f;

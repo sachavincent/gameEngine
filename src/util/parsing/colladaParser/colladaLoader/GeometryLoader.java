@@ -1,13 +1,13 @@
 package util.parsing.colladaParser.colladaLoader;
 
+import renderEngine.MeshData;
+import renderEngine.shaders.structs.Material;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
-import util.parsing.Material;
 import util.parsing.Vertex;
 import util.parsing.colladaParser.dataStructures.MaterialData;
-import util.parsing.colladaParser.dataStructures.MeshData;
 import util.parsing.colladaParser.dataStructures.VertexSkinData;
 import util.parsing.colladaParser.xmlParser.XmlNode;
 

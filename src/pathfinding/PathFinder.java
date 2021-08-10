@@ -1,24 +1,25 @@
 package pathfinding;
 
-import static pathfinding.RoadGraph.FILTER;
-import static util.math.Maths.manhattanDistance;
-
 import entities.Camera.Direction;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 import scene.Scene;
 import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import services.ServiceManager;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.Maths;
 import util.math.Vector2f;
 
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+
+import static pathfinding.RoadGraph.FILTER;
+import static util.math.Maths.manhattanDistance;
+
 public class PathFinder {
 
-    private final static Scene     scene = Scene.getInstance();
-    private final        RoadGraph roadGraph;
+    private final static Scene scene = Scene.getInstance();
+    private final RoadGraph roadGraph;
 
     private ServiceManager<?> serviceManager;
 
@@ -31,12 +32,12 @@ public class PathFinder {
     // Optional if extremities != start or end
     // Represent the paths from the normalRoad start to the closest 2 nodes
     private NodeConnection[] fromStart = new NodeConnection[2];
-    private NodeConnection[] fromEnd   = new NodeConnection[2];
+    private NodeConnection[] fromEnd = new NodeConnection[2];
 
     private boolean ambigueousStart, ambigueousEnd;
 
     private Set<NodeRoad> blacklist = new HashSet<>();
-    private Path          path      = new Path();
+    private Path path = new Path();
 
     public PathFinder(RoadGraph roadGraph) {
         this.roadGraph = roadGraph.copy();
@@ -145,12 +146,12 @@ public class PathFinder {
      *
      * @param startGameObject (A)
      * @param gameObjectClass (B) given type
-     * @param maxPathLength if path exceeds given length, it is discarded
-     * @param bestPath if true, the path with the lowest cost is returned
+     * @param maxPathLength   if path exceeds given length, it is discarded
+     * @param bestPath        if true, the path with the lowest cost is returned
      * @return path or empty path if none found
      */
     public Path findPath(GameObject startGameObject, Class<? extends GameObject> gameObjectClass,
-            int maxPathLength, boolean bestPath) {
+                         int maxPathLength, boolean bestPath) {
         Set<GameObject> possibleGameObjects = new TreeSet<>((o1, o2) -> manhattanDistance(
                 o1.getComponent(PositionComponent.class).getPosition().toTerrainPosition(),
                 o2.getComponent(PositionComponent.class).getPosition().toTerrainPosition()));
@@ -808,7 +809,7 @@ public class PathFinder {
      * This path must be a straight line
      *
      * @param startPos starting position
-     * @param endPos final position
+     * @param endPos   final position
      * @return empty path if none is found
      */
     public Path findStraightClearPath(final TerrainPosition startPos, final TerrainPosition endPos) {
@@ -884,9 +885,9 @@ public class PathFinder {
         TerrainPosition currPos = new TerrainPosition(startPos);
         while (currPos.getX() != endPos.getX()) {
             if (currPos.getX() < endPos.getX()) {
-                currPos = currPos.add(new TerrainPosition(1, 0));
+                currPos = currPos.add(new TerrainPosition(1, 0, 0));
             } else
-                currPos = currPos.add(new TerrainPosition(-1, 0));
+                currPos = currPos.add(new TerrainPosition(-1, 0, 0));
 
             if (scene.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Path();
@@ -906,9 +907,9 @@ public class PathFinder {
 
         while (currPos.getZ() != endPos.getZ()) {
             if (currPos.getZ() < endPos.getZ()) {
-                currPos = currPos.add(new TerrainPosition(0, 1));
+                currPos = currPos.add(new TerrainPosition(0, 0, 1));
             } else
-                currPos = currPos.add(new TerrainPosition(0, -1));
+                currPos = currPos.add(new TerrainPosition(0, 0, -1));
 
             if (scene.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Path();
@@ -943,9 +944,9 @@ public class PathFinder {
 
         while (currPos.getZ() != endPos.getZ()) {
             if (currPos.getZ() < endPos.getZ()) {
-                currPos = currPos.add(new TerrainPosition(0, 1));
+                currPos = currPos.add(new TerrainPosition(0, 0, 1));
             } else
-                currPos = currPos.add(new TerrainPosition(0, -1));
+                currPos = currPos.add(new TerrainPosition(0, 0, -1));
 
             if (scene.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Path();
@@ -966,9 +967,9 @@ public class PathFinder {
 
         while (currPos.getX() != endPos.getX()) {
             if (currPos.getX() < endPos.getX()) {
-                currPos = currPos.add(new TerrainPosition(1, 0));
+                currPos = currPos.add(new TerrainPosition(1, 0, 0));
             } else
-                currPos = currPos.add(new TerrainPosition(-1, 0));
+                currPos = currPos.add(new TerrainPosition(-1, 0, 0));
 
             if (scene.isPositionOccupied(currPos) && !previewItemPositions.contains(currPos))
                 return new Path();

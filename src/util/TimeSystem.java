@@ -2,14 +2,14 @@ package util;
 
 public class TimeSystem {
 
-    public static final  int   TICK_RATE = 20;
-    private final static float STEP      = 1000.0f / TICK_RATE;
+    public static final int TICK_RATE = 20;
+    private static final float STEP = 1000.0f / TICK_RATE;
 
-    public static int   elapsedTicks;
+    public static int elapsedTicks;
     public static float nbTicksSinceLastUpdate;
 
-    private static long  lastUpdateTime;
-    private static int   timeInTicks;
+    private static long lastUpdateTime;
+    private static int timeInTicks;
     private static float partialTicks;
 
     private final int nbTicks;

@@ -1,17 +1,11 @@
-package skybox;
+package renderEngine;
 
-import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import renderEngine.Loader;
-import renderEngine.MasterRenderer;
-import renderEngine.GameObjectRenderer;
 import renderEngine.shaders.SkyboxShader;
-import scene.gameObjects.GameObject;
+import util.parsing.ModelType;
 
-public class SkyboxGameObjectRenderer extends GameObjectRenderer {
+public class SkyboxRenderer extends Renderer<SkyboxShader> {
 
     private static final float SIZE = 500f;
 
@@ -61,44 +55,38 @@ public class SkyboxGameObjectRenderer extends GameObjectRenderer {
 
     private static final String[] TEXTURE_FILES = {"right", "left", "top", "bottom", "back", "front"};
 
-    private static SkyboxGameObjectRenderer instance;
+    private static SkyboxRenderer instance;
 
-    private final RawModel cube;
-    private final int      texture;
+    private final Vao vao;
+    private final int texture;
 
-    public static SkyboxGameObjectRenderer getInstance() {
-        return instance == null ? (instance = new SkyboxGameObjectRenderer()) : instance;
+    public static SkyboxRenderer getInstance() {
+        return instance == null ? (instance = new SkyboxRenderer()) : instance;
     }
 
-    public SkyboxGameObjectRenderer() {
-        super(new SkyboxShader());
+    public SkyboxRenderer() {
+        super(new SkyboxShader(), s ->
+                s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix()));
 
-        this.cube = Loader.getInstance().loadToVAO(VERTICES, 3);
+        this.vao = Vao.createVao(new MeshData(VERTICES), ModelType.DEFAULT);
         this.texture = Loader.getInstance().loadCubeMap(TEXTURE_FILES);
-
-        this.shader.start();
-        ((SkyboxShader) this.shader).loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
-        this.shader.stop();
-    }
-
-    public void render() {
-        GL30.glBindVertexArray(this.cube.getVaoID());
-        GL20.glEnableVertexAttribArray(0);
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, this.texture);
-        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, this.cube.getVertexCount());
-        GL20.glDisableVertexAttribArray(0);
-        GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, 0);
-        GL30.glBindVertexArray(0);
-
-        GL11.glDepthMask(true);
-        this.shader.stop();
     }
 
     @Override
-    public void prepareRender(GameObject gameObject) {
+    public void render() {
         this.shader.start();
-        ((SkyboxShader) this.shader).loadViewMatrix();
         GL11.glDepthMask(false);
+
+        this.vao.bind();
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, this.texture);
+
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, VERTICES.length / 3);
+
+        this.vao.unbind();
+        GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, 0);
+
+        GL11.glDepthMask(true);
+        this.shader.stop();
     }
 }

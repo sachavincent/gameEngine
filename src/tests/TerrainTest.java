@@ -1,26 +1,10 @@
 package tests;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static pathfinding.RoadGraph.FILTER;
-
 import entities.Camera.Direction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pathfinding.NodeConnection;
-import pathfinding.NodeRoad;
-import pathfinding.NormalRoad;
-import pathfinding.Path;
-import pathfinding.PathFinder;
-import pathfinding.RoadGraph;
+import pathfinding.*;
 import renderEngine.DisplayManager;
 import renderEngine.PathRenderer;
 import scene.Scene;
@@ -29,8 +13,18 @@ import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
 import scene.gameObjects.Market;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.Utils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static pathfinding.RoadGraph.FILTER;
 
 class TerrainTest {
 
@@ -53,16 +47,16 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject() {
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 50));
 
-        Direction[] directions = scene.getConnectedDirections(new TerrainPosition(50, 50), FILTER);
+        Direction[] directions = scene.getConnectedDirections(new TerrainPosition(50, 0, 50), FILTER);
 
         assertArrayEquals(new Direction[0], directions);
     }
 
     @Test
     void testGetRoadConnectionsToRoadGameObject2() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 
@@ -73,7 +67,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject3() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
 
@@ -85,7 +79,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject4() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
 
@@ -96,7 +90,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject5() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
 
@@ -108,7 +102,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject6() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
@@ -120,7 +114,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject7() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.NORTH)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.SOUTH)));
@@ -133,7 +127,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject8() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -146,7 +140,7 @@ class TerrainTest {
 
     @Test
     void testGetRoadConnectionsToRoadGameObject9() {
-        TerrainPosition center = new TerrainPosition(50, 50);
+        TerrainPosition center = new TerrainPosition(50, 0, 50);
         GameObject.newInstance(DirtRoad.class, center);
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -168,7 +162,7 @@ class TerrainTest {
 //
 //        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
 //        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
-//        TerrainPosition center = new TerrainPosition(50, 50);
+//        TerrainPosition center = new TerrainPosition(50, 0, 50);
 //        GameObject.newInstance(DirtRoad.class, center);
 //         GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.EAST)));
 //        GameObject.newInstance(DirtRoad.class, center.add(Direction.toRelativeDistance(Direction.WEST)));
@@ -193,10 +187,10 @@ class TerrainTest {
 //        AbstractDirtRoadGameObject abstractDirtRoadGameObject = AbstractDirtRoadGameObject.getInstance();
 //        TerrainPosition v0 = new TerrainPosition(49, 50);
 //        TerrainPosition v00 = new TerrainPosition(50, 51);
-//        TerrainPosition center = new TerrainPosition(50, 50);
-//        TerrainPosition v1 = new TerrainPosition(51, 50);
-//        TerrainPosition v2 = new TerrainPosition(52, 50);
-//        TerrainPosition v3 = new TerrainPosition(53, 50);
+//        TerrainPosition center = new TerrainPosition(50, 0, 50);
+//        TerrainPosition v1 = new TerrainPosition(51, 0, 50);
+//        TerrainPosition v2 = new TerrainPosition(52, 0, 50);
+//        TerrainPosition v3 = new TerrainPosition(53, 0, 50);
 //        TerrainPosition v4 = new TerrainPosition(53, 51);
 //        TerrainPosition v5 = new TerrainPosition(53, 49);
 //
@@ -226,7 +220,7 @@ class TerrainTest {
 //    }
     @Test
     void testInvertPath1() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
 
         Path path = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
@@ -243,8 +237,8 @@ class TerrainTest {
 
     @Test
     void testInvertPath2() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
 
         Path path = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(v1));
@@ -264,10 +258,10 @@ class TerrainTest {
 
     @Test
     void testInvertPath3() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
 
         Path path = new Path();
         // Expected individual routes
@@ -293,13 +287,13 @@ class TerrainTest {
 
     @Test
     void testInvertPath4() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
 
         Path path = new Path();
 
@@ -335,16 +329,16 @@ class TerrainTest {
 
     @Test
     void testInvertPath5() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
-        TerrainPosition v8 = new TerrainPosition(57, 50);
-        TerrainPosition v9 = new TerrainPosition(58, 50);
-        TerrainPosition v10 = new TerrainPosition(59, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(57, 0, 50);
+        TerrainPosition v9 = new TerrainPosition(58, 0, 50);
+        TerrainPosition v10 = new TerrainPosition(59, 0, 50);
 
         Path path = new Path();
 
@@ -393,17 +387,17 @@ class TerrainTest {
      */
     @Test
     void testPathfinding1() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
 
         // v1 -> v2 -> v3 -> v4
 
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 51));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 0, 51));
         GameObject.newInstance(DirtRoad.class, v1);
         GameObject.newInstance(DirtRoad.class, v2);
         GameObject.newInstance(DirtRoad.class, v3);
@@ -432,18 +426,18 @@ class TerrainTest {
      */
     @Test
     void testPathfinding2() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         // v1 -> v2 -> v3 -> v4 -> v5
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 50));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 50));
         GameObject.newInstance(DirtRoad.class, v1);
         GameObject.newInstance(DirtRoad.class, v2);
         GameObject.newInstance(DirtRoad.class, v3);
@@ -478,11 +472,11 @@ class TerrainTest {
      */
     @Test
     void testPathfinding3() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(50, 49);
-        TerrainPosition v3 = new TerrainPosition(50, 48);
-        TerrainPosition v4 = new TerrainPosition(51, 48);
-        TerrainPosition v5 = new TerrainPosition(52, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v3 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v5 = new TerrainPosition(52, 0, 48);
 
         // v1 -> v2 -> v3 -> v4 -> v5
         int[] roadPositions = new int[]{
@@ -534,15 +528,15 @@ class TerrainTest {
      */
     @Test
     void testPathfinding4() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(55, 49);
-        TerrainPosition v8 = new TerrainPosition(56, 49);
-        TerrainPosition v9 = new TerrainPosition(57, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v9 = new TerrainPosition(57, 0, 49);
 
         // v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7 -> v8 -> v9
         int[] roadPositions = new int[]{
@@ -603,18 +597,18 @@ class TerrainTest {
      */
     @Test
     void testPathfinding5() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(50, 49);
-        TerrainPosition v6 = new TerrainPosition(50, 48);
-        TerrainPosition v7 = new TerrainPosition(51, 48);
-        TerrainPosition v8 = new TerrainPosition(52, 48);
-        TerrainPosition v9 = new TerrainPosition(53, 48);
-        TerrainPosition v10 = new TerrainPosition(53, 49);
-        TerrainPosition v11 = new TerrainPosition(54, 48);
-        TerrainPosition v12 = new TerrainPosition(55, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v11 = new TerrainPosition(54, 0, 48);
+        TerrainPosition v12 = new TerrainPosition(55, 0, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -698,19 +692,19 @@ class TerrainTest {
      */
     @Test
     void testPathfinding6() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(50, 49);
-        TerrainPosition v6 = new TerrainPosition(50, 48);
-        TerrainPosition v7 = new TerrainPosition(51, 48);
-        TerrainPosition v8 = new TerrainPosition(52, 48);
-        TerrainPosition v9 = new TerrainPosition(53, 48);
-        TerrainPosition v10 = new TerrainPosition(53, 49);
-        TerrainPosition v11 = new TerrainPosition(53, 47);
-        TerrainPosition v12 = new TerrainPosition(53, 46);
-        TerrainPosition v13 = new TerrainPosition(54, 46);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v11 = new TerrainPosition(53, 0, 47);
+        TerrainPosition v12 = new TerrainPosition(53, 0, 46);
+        TerrainPosition v13 = new TerrainPosition(54, 0, 46);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -804,11 +798,11 @@ class TerrainTest {
      */
     @Test
     void testPathfinding7() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -855,12 +849,12 @@ class TerrainTest {
      */
     @Test
     void testPathfinding8() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(53, 49);
-        TerrainPosition v6 = new TerrainPosition(53, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(53, 0, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -929,11 +923,11 @@ class TerrainTest {
      */
     @Test
     void testPathfinding9() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -977,12 +971,12 @@ class TerrainTest {
      */
     @Test
     void testPathfinding10() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(53, 0, 49);
 
         /*
         v2 -> v3 -> v4
@@ -1029,15 +1023,15 @@ class TerrainTest {
      */
     @Test
     void testPathfinding11() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
-        TerrainPosition v8 = new TerrainPosition(51, 49);
-        TerrainPosition v9 = new TerrainPosition(55, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v9 = new TerrainPosition(55, 0, 49);
 
         /*
         v3 -> v4 -> v5
@@ -1082,14 +1076,14 @@ class TerrainTest {
      */
     @Test
     void testPathfinding12() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(50, 49);
-        TerrainPosition v8 = new TerrainPosition(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(53, 0, 49);
 
         /*
         v2 -> v3 -> v4 -> v5 -> v6
@@ -1152,10 +1146,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding13() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(54, 0, 50);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1185,15 +1179,15 @@ class TerrainTest {
      */
     @Test
     void testPathfinding14() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 50);
-        TerrainPosition v5 = new TerrainPosition(56, 49);
-        TerrainPosition v6 = new TerrainPosition(56, 48);
-        TerrainPosition v7 = new TerrainPosition(55, 49);
-        TerrainPosition v8 = new TerrainPosition(57, 49);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(57, 0, 49);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1233,15 +1227,15 @@ class TerrainTest {
      */
     @Test
     void testPathfinding15() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
-        TerrainPosition v5 = new TerrainPosition(55, 50);
-        TerrainPosition v6 = new TerrainPosition(56, 50);
-        TerrainPosition v7 = new TerrainPosition(57, 50);
-        TerrainPosition v8 = new TerrainPosition(56, 49);
+        TerrainPosition v5 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(57, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(56, 0, 49);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1275,10 +1269,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding16() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1314,10 +1308,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding17() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1363,12 +1357,12 @@ class TerrainTest {
      */
     @Test
     void testPathfinding18() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(51, 51);
-        TerrainPosition v6 = new TerrainPosition(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1407,16 +1401,16 @@ class TerrainTest {
      */
     @Test
     void testPathfinding19() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v5 = new TerrainPosition(51, 51);
-        TerrainPosition v6 = new TerrainPosition(52, 51);
+        TerrainPosition v5 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 0, 51);
 
-        TerrainPosition v7 = new TerrainPosition(51, 49);
-        TerrainPosition v8 = new TerrainPosition(52, 49);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1457,11 +1451,11 @@ class TerrainTest {
      */
     @Test
     void testPathfinding20() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 51);
-        TerrainPosition v5 = new TerrainPosition(52, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v5 = new TerrainPosition(52, 0, 51);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1498,10 +1492,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding21() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(50, 49);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1538,9 +1532,9 @@ class TerrainTest {
      */
     @Test
     void testPathfinding22() {
-        TerrainPosition v1 = new TerrainPosition(52, 50);
-        TerrainPosition v2 = new TerrainPosition(53, 50);
-        TerrainPosition v3 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(54, 0, 50);
 
 
         /*
@@ -1591,9 +1585,9 @@ class TerrainTest {
      */
     @Test
     void testPathfinding23() {
-        TerrainPosition v1 = new TerrainPosition(52, 48);
-        TerrainPosition v2 = new TerrainPosition(53, 48);
-        TerrainPosition v3 = new TerrainPosition(54, 48);
+        TerrainPosition v1 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v2 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v3 = new TerrainPosition(54, 0, 48);
 
 
         /*
@@ -1646,11 +1640,11 @@ class TerrainTest {
      */
     @Test
     void testPathfinding24() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
 
         /*
@@ -1701,16 +1695,16 @@ class TerrainTest {
      */
     @Test
     void testPathfinding25() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(60, 50);
-        TerrainPosition v7 = new TerrainPosition(61, 50);
-        TerrainPosition v8 = new TerrainPosition(62, 50);
-        TerrainPosition v9 = new TerrainPosition(63, 50);
-        TerrainPosition v10 = new TerrainPosition(64, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(60, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(61, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(62, 0, 50);
+        TerrainPosition v9 = new TerrainPosition(63, 0, 50);
+        TerrainPosition v10 = new TerrainPosition(64, 0, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5
@@ -1787,13 +1781,13 @@ class TerrainTest {
      */
     @Test
     void testPathfinding26() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 49);
-        TerrainPosition v5 = new TerrainPosition(56, 50);
-        TerrainPosition v6 = new TerrainPosition(56, 51);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v5 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 51);
 
         /*
                                 v4
@@ -1856,13 +1850,13 @@ class TerrainTest {
      */
     @Test
     void testPathfinding27() {
-        TerrainPosition v1 = new TerrainPosition(51, 50);
-        TerrainPosition v2 = new TerrainPosition(52, 50);
-        TerrainPosition v3 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 50);
-        TerrainPosition v5 = new TerrainPosition(57, 50);
-        TerrainPosition v6 = new TerrainPosition(58, 50);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(57, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(58, 0, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5 -> v6
@@ -1952,13 +1946,13 @@ class TerrainTest {
      */
     @Test
     void testPathfinding28() {
-        TerrainPosition v1 = new TerrainPosition(51, 50);
-        TerrainPosition v2 = new TerrainPosition(52, 50);
-        TerrainPosition v3 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(57, 51);
-        TerrainPosition v5 = new TerrainPosition(58, 51);
-        TerrainPosition v6 = new TerrainPosition(58, 50);
+        TerrainPosition v4 = new TerrainPosition(57, 0, 51);
+        TerrainPosition v5 = new TerrainPosition(58, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(58, 0, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5
@@ -2028,13 +2022,13 @@ class TerrainTest {
      */
     @Test
     void testPathfinding29() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7
@@ -2118,14 +2112,14 @@ class TerrainTest {
      */
     @Test
     void testPathfinding29b() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v6b = new TerrainPosition(54, 51);
-        TerrainPosition v7 = new TerrainPosition(55, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v6b = new TerrainPosition(54, 0, 51);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 51);
 
         /*
                                     v6b -> v7
@@ -2227,9 +2221,9 @@ class TerrainTest {
      */
     @Test
     void testPathfinding30() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(51, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(51, 0, 51);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -2266,10 +2260,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding31() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(50, 49);
-        TerrainPosition v3 = new TerrainPosition(51, 49);
-        TerrainPosition v4 = new TerrainPosition(50, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v3 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v4 = new TerrainPosition(50, 0, 48);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -2307,10 +2301,10 @@ class TerrainTest {
      */
     @Test
     void testPathfinding32() {
-        TerrainPosition v1 = new TerrainPosition(0, 0);
-        TerrainPosition v2 = new TerrainPosition(0, 2);
-        TerrainPosition v3 = new TerrainPosition(5, 0);
-        TerrainPosition v4 = new TerrainPosition(5, 2);
+        TerrainPosition v1 = new TerrainPosition(0, 0, 0);
+        TerrainPosition v2 = new TerrainPosition(0, 0, 2);
+        TerrainPosition v3 = new TerrainPosition(5, 0, 0);
+        TerrainPosition v4 = new TerrainPosition(5, 0, 2);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -2345,19 +2339,19 @@ class TerrainTest {
 
         // Expected individual routes
         NodeConnection expectedNodeConnection1 = new NodeConnection(new NormalRoad(v1), new NodeRoad(v3));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(1, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(2, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(3, 0)));
-        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(4, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(1, 0, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(2, 0, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(3, 0, 0)));
+        expectedNodeConnection1.addRoad(new NormalRoad(new TerrainPosition(4, 0, 0)));
         expectedNodeConnection1.addRoad(new NodeRoad(v3));
         NodeConnection expectedNodeConnection2 = new NodeConnection(new NodeRoad(v3), new NodeRoad(v4));
-        expectedNodeConnection2.addRoad(new NormalRoad(new TerrainPosition(5, 1)));
+        expectedNodeConnection2.addRoad(new NormalRoad(new TerrainPosition(5, 0, 1)));
         expectedNodeConnection2.addRoad(new NodeRoad(v4));
         NodeConnection expectedNodeConnection3 = new NodeConnection(new NodeRoad(v4), new NormalRoad(v2));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(4, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(3, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(2, 2)));
-        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(1, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(4, 0, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(3, 0, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(2, 0, 2)));
+        expectedNodeConnection3.addRoad(new NormalRoad(new TerrainPosition(1, 0, 2)));
         expectedNodeConnection3.addRoad(new NormalRoad(v2));
 
         expectedPath.add(expectedNodeConnection1);
@@ -2373,19 +2367,19 @@ class TerrainTest {
         RoadGraph roadGraph = scene.getRoadGraph();
         PathFinder pathFinder = new PathFinder(roadGraph);
 
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(60, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(60, 0, 50);
 
         TerrainPosition[] positions = new TerrainPosition[]{
-                new TerrainPosition(51, 50),
-                new TerrainPosition(52, 50),
-                new TerrainPosition(53, 50),
-                new TerrainPosition(54, 50),
-                new TerrainPosition(55, 50),
-                new TerrainPosition(56, 50),
-                new TerrainPosition(57, 50),
-                new TerrainPosition(58, 50),
-                new TerrainPosition(59, 50),
+                new TerrainPosition(51, 0, 50),
+                new TerrainPosition(52, 0, 50),
+                new TerrainPosition(53, 0, 50),
+                new TerrainPosition(54, 0, 50),
+                new TerrainPosition(55, 0, 50),
+                new TerrainPosition(56, 0, 50),
+                new TerrainPosition(57, 0, 50),
+                new TerrainPosition(58, 0, 50),
+                new TerrainPosition(59, 0, 50),
         };
         Path foundPath = pathFinder.findUnobstructedPathV1(v1, v2);
         // Expected global routes
@@ -2410,26 +2404,26 @@ class TerrainTest {
         RoadGraph roadGraph = scene.getRoadGraph();
         PathFinder pathFinder = new PathFinder(roadGraph);
 
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(55, 50);
-        TerrainPosition v3 = new TerrainPosition(55, 60);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(55, 0, 60);
 
         TerrainPosition[] positions = new TerrainPosition[]{
-                new TerrainPosition(51, 50),
-                new TerrainPosition(52, 50),
-                new TerrainPosition(53, 50),
-                new TerrainPosition(54, 50)
+                new TerrainPosition(51, 0, 50),
+                new TerrainPosition(52, 0, 50),
+                new TerrainPosition(53, 0, 50),
+                new TerrainPosition(54, 0, 50)
         };
         TerrainPosition[] positions2 = new TerrainPosition[]{
-                new TerrainPosition(55, 51),
-                new TerrainPosition(55, 52),
-                new TerrainPosition(55, 53),
-                new TerrainPosition(55, 54),
-                new TerrainPosition(55, 55),
-                new TerrainPosition(55, 56),
-                new TerrainPosition(55, 57),
-                new TerrainPosition(55, 58),
-                new TerrainPosition(55, 59)
+                new TerrainPosition(55, 0, 51),
+                new TerrainPosition(55, 0, 52),
+                new TerrainPosition(55, 0, 53),
+                new TerrainPosition(55, 0, 54),
+                new TerrainPosition(55, 0, 55),
+                new TerrainPosition(55, 0, 56),
+                new TerrainPosition(55, 0, 57),
+                new TerrainPosition(55, 0, 58),
+                new TerrainPosition(55, 0, 59)
         };
 
         Path foundPath = pathFinder.findUnobstructedPathV1(v1, v3);
@@ -2465,28 +2459,28 @@ class TerrainTest {
         int x = 50;
         int z = 50;
 
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(x, z));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(x, 0, z));
 
         GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, z - Market.Z_NEGATIVE_OFFSET - 1),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z - Market.Z_NEGATIVE_OFFSET),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 2),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET + 3),
-                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 2),
-                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 3),
-                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, z),
-                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 2, z)
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, 0, z - Market.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z - Market.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z + Market.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z + Market.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z + Market.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x - 1, 0, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - 1, 0, z + Market.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - 1, 0, z + Market.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, 0, z),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 2, 0, z)
         });
 
         TerrainPosition[] connectedRoads = new TerrainPosition[]{
-                new TerrainPosition(x - 1, z + Market.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z + Market.Z_POSITIVE_OFFSET),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, z - Market.Z_NEGATIVE_OFFSET - 1),
-                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, z - Market.Z_NEGATIVE_OFFSET),
-                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, z)
+                new TerrainPosition(x - 1, 0, z + Market.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z + Market.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET, 0, z - Market.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Market.X_NEGATIVE_OFFSET - 1, 0, z - Market.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x + Market.X_POSITIVE_OFFSET + 1, 0, z)
         };
 
         for (TerrainPosition roadPos : connectedRoads) {
@@ -2504,28 +2498,28 @@ class TerrainTest {
         int x = 35;
         int z = 50;
 
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(x, z));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(x, 0, z));
 
         GameObject.newInstances(DirtRoad.class, new TerrainPosition[]{
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, z - Insula.Z_NEGATIVE_OFFSET - 1),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z - Insula.Z_NEGATIVE_OFFSET),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 2),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET + 3),
-                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 2),
-                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 3),
-                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, z),
-                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 2, z)
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, 0, z - Insula.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z - Insula.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z + Insula.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 2),
+                new TerrainPosition(x - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 3),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, 0, z),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 2, 0, z)
         });
 
         TerrainPosition[] connectedRoads = new TerrainPosition[]{
-                new TerrainPosition(x - 1, z + Insula.Z_POSITIVE_OFFSET + 1),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z + Insula.Z_POSITIVE_OFFSET),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, z - Insula.Z_NEGATIVE_OFFSET - 1),
-                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, z - Insula.Z_NEGATIVE_OFFSET),
-                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, z)
+                new TerrainPosition(x - 1, 0, z + Insula.Z_POSITIVE_OFFSET + 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z + Insula.Z_POSITIVE_OFFSET),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET, 0, z - Insula.Z_NEGATIVE_OFFSET - 1),
+                new TerrainPosition(x - Insula.X_NEGATIVE_OFFSET - 1, 0, z - Insula.Z_NEGATIVE_OFFSET),
+                new TerrainPosition(x + Insula.X_POSITIVE_OFFSET + 1, 0, z)
         };
 
         for (TerrainPosition roadPos : connectedRoads) {
@@ -2538,13 +2532,13 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula1() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
+            positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
@@ -2562,31 +2556,31 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula2() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
+            positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 76));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 77));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 78));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 79));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 80));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 81));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 82));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 83));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 84));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 85));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 77));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 78));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 79));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 80));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 81));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 82));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 83));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 84));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 85));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
@@ -2603,21 +2597,21 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula3() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[21];
         for (int i = 53; i < 74; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
+            positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
         TerrainPosition[] connectedRoads = new TerrainPosition[10 * 4];
         for (int i = 0; i < connectedRoads.length / 4; i++) {
-            connectedRoads[i * 4] = new TerrainPosition(i + 44, 74);
-            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 44, 85);
-            connectedRoads[i * 4 + 2] = new TerrainPosition(44, i + 74);
-            connectedRoads[i * 4 + 3] = new TerrainPosition(55, i + 74);
+            connectedRoads[i * 4] = new TerrainPosition(i + 44, 0, 74);
+            connectedRoads[i * 4 + 1] = new TerrainPosition(i + 44, 0, 85);
+            connectedRoads[i * 4 + 2] = new TerrainPosition(44, 0, i + 74);
+            connectedRoads[i * 4 + 3] = new TerrainPosition(55, 0, i + 74);
         }
         GameObject.newInstances(DirtRoad.class, connectedRoads);
 
@@ -2625,7 +2619,7 @@ class TerrainTest {
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
-        NodeRoad nodeRoad = new NodeRoad(new TerrainPosition(50, 74));
+        NodeRoad nodeRoad = new NodeRoad(new TerrainPosition(50, 0, 74));
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(positions[0]), nodeRoad);
 
         Arrays.stream(positions).skip(1).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
@@ -2637,31 +2631,31 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula4() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(35, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(35, 0, 50)));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(36, 61)));
+        market.addComponent(new PositionComponent(new TerrainPosition(36, 0, 61)));
 
         TerrainPosition[] positions = new TerrainPosition[]{
-                new TerrainPosition(33, 47),
-                new TerrainPosition(31, 48),
-                new TerrainPosition(32, 47),
-                new TerrainPosition(32, 48),
-                new TerrainPosition(32, 49),
-                new TerrainPosition(32, 50),
-                new TerrainPosition(32, 51),
-                new TerrainPosition(32, 52),
-                new TerrainPosition(32, 53),
-                new TerrainPosition(32, 54),
-                new TerrainPosition(32, 55),
-                new TerrainPosition(34, 53),
-                new TerrainPosition(34, 54),
-                new TerrainPosition(34, 55),
-                new TerrainPosition(35, 53),
-                new TerrainPosition(36, 53),
-                new TerrainPosition(37, 53),
-                new TerrainPosition(33, 54),
-                new TerrainPosition(33, 55),
-                new TerrainPosition(33, 53)
+                new TerrainPosition(33, 0, 47),
+                new TerrainPosition(31, 0, 48),
+                new TerrainPosition(32, 0, 47),
+                new TerrainPosition(32, 0, 48),
+                new TerrainPosition(32, 0, 49),
+                new TerrainPosition(32, 0, 50),
+                new TerrainPosition(32, 0, 51),
+                new TerrainPosition(32, 0, 52),
+                new TerrainPosition(32, 0, 53),
+                new TerrainPosition(32, 0, 54),
+                new TerrainPosition(32, 0, 55),
+                new TerrainPosition(34, 0, 53),
+                new TerrainPosition(34, 0, 54),
+                new TerrainPosition(34, 0, 55),
+                new TerrainPosition(35, 0, 53),
+                new TerrainPosition(36, 0, 53),
+                new TerrainPosition(37, 0, 53),
+                new TerrainPosition(33, 0, 54),
+                new TerrainPosition(33, 0, 55),
+                new TerrainPosition(33, 0, 53)
         };
 
         GameObject.newInstances(DirtRoad.class, positions);
@@ -2669,31 +2663,31 @@ class TerrainTest {
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 53)),
-                new NodeRoad(new TerrainPosition(33, 54)));
-        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(33, 54)));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 0, 53)),
+                new NodeRoad(new TerrainPosition(33, 0, 54)));
+        nodeConnection.addRoad(new NodeRoad(new TerrainPosition(33, 0, 54)));
 
-        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 54)),
-                new NodeRoad(new TerrainPosition(33, 55)));
-        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 55)));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(33, 0, 54)),
+                new NodeRoad(new TerrainPosition(33, 0, 55)));
+        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(33, 0, 55)));
 
         Path expectedPath2 = new Path();
-        NodeConnection nodeConnection21 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 53)),
-                new NodeRoad(new TerrainPosition(34, 54)));
-        nodeConnection21.addRoad(new NodeRoad(new TerrainPosition(34, 54)));
+        NodeConnection nodeConnection21 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 0, 53)),
+                new NodeRoad(new TerrainPosition(34, 0, 54)));
+        nodeConnection21.addRoad(new NodeRoad(new TerrainPosition(34, 0, 54)));
 
-        NodeConnection nodeConnection22 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 54)),
-                new NodeRoad(new TerrainPosition(34, 55)));
-        nodeConnection22.addRoad(new NodeRoad(new TerrainPosition(34, 55)));
+        NodeConnection nodeConnection22 = new NodeConnection(new NodeRoad(new TerrainPosition(34, 0, 54)),
+                new NodeRoad(new TerrainPosition(34, 0, 55)));
+        nodeConnection22.addRoad(new NodeRoad(new TerrainPosition(34, 0, 55)));
 
         Path expectedPath3 = new Path();
-        NodeConnection nodeConnection31 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 53)),
-                new NodeRoad(new TerrainPosition(32, 54)));
-        nodeConnection31.addRoad(new NodeRoad(new TerrainPosition(32, 54)));
+        NodeConnection nodeConnection31 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 0, 53)),
+                new NodeRoad(new TerrainPosition(32, 0, 54)));
+        nodeConnection31.addRoad(new NodeRoad(new TerrainPosition(32, 0, 54)));
 
-        NodeConnection nodeConnection32 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 54)),
-                new NormalRoad(new TerrainPosition(32, 55)));
-        nodeConnection32.addRoad(new NormalRoad(new TerrainPosition(32, 55)));
+        NodeConnection nodeConnection32 = new NodeConnection(new NodeRoad(new TerrainPosition(32, 0, 54)),
+                new NormalRoad(new TerrainPosition(32, 0, 55)));
+        nodeConnection32.addRoad(new NormalRoad(new TerrainPosition(32, 0, 55)));
 
         expectedPath.add(nodeConnection);
         expectedPath.add(nodeConnection2);
@@ -2713,16 +2707,16 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula5() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
+            positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
@@ -2739,16 +2733,16 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula6() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
-            positions[i - 53] = new TerrainPosition(50, i);
+            positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
 
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
@@ -2765,25 +2759,25 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula7() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 60)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 60)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
 
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 57));
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 55)), end);
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 0, 57));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 0, 55)), end);
 
         Arrays.stream(positions, 0, 3).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
         expectedPath.add(nodeConnection.invert());
@@ -2793,26 +2787,26 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula8() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 0, 58));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 0, 55)), end);
 
         Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
         expectedPath.add(nodeConnection.invert());
@@ -2822,27 +2816,27 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula9() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 61)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 68));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 65));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 65));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 0, 58));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 0, 55)), end);
 
         Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
         expectedPath.add(nodeConnection.invert());
@@ -2852,26 +2846,26 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula10() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(54, 61)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(54, 0, 61)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 63));
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
-        NormalRoad end = new NormalRoad(new TerrainPosition(50, 58));
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 55)), end);
+        NormalRoad end = new NormalRoad(new TerrainPosition(50, 0, 58));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(50, 0, 55)), end);
 
         Arrays.stream(positions, 1, 4).forEach(pos -> nodeConnection.addRoad(new NormalRoad(pos)));
         expectedPath.add(nodeConnection.invert());
@@ -2881,25 +2875,25 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula11() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
         Market market2 = new Market();
-        market2.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        market2.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         TerrainPosition[] positions2 = new TerrainPosition[14];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
         for (int i = 50; i < 64; i++)
-            positions2[i - 50] = new TerrainPosition(i, 70);
+            positions2[i - 50] = new TerrainPosition(i, 0, 70);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(63, 75)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(63, 0, 75)));
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 63));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 0, 71));
 
         List<TerrainPosition> pos2 = Arrays.asList(positions2);
         Collections.reverse(pos2);
@@ -2912,11 +2906,11 @@ class TerrainTest {
 
         Path expectedPath = new Path();
 
-        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 63));
-        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 70));
-        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 55));
+        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 0, 63));
+        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 0, 70));
+        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 0, 55));
 
-        NodeConnection nodeConnection1 = new NodeConnection(new NormalRoad(new TerrainPosition(62, 71)), node2);
+        NodeConnection nodeConnection1 = new NodeConnection(new NormalRoad(new TerrainPosition(62, 0, 71)), node2);
         nodeConnection1.addRoad(node2);
         expectedPath.add(nodeConnection1);
 
@@ -2939,27 +2933,27 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula12() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(40, 47)));
+        insula.addComponent(new PositionComponent(new TerrainPosition(40, 0, 47)));
         Insula insula2 = new Insula();
-        insula2.addComponent(new PositionComponent(new TerrainPosition(50, 50)));
+        insula2.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 80)));
+        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
         for (int x = 0; x < 21; x++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 0));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 0, 0));
 
         for (int x = 20; x < 41; x++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 40));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 41));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 42));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 43));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 54));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(35, 39));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 0, 40));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 0, 41));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 0, 42));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(40, 0, 43));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 54));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(35, 0, 39));
 
         for (int i = 53; i < 76; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, i));
 
-        GameObject.newInstance(Insula.class, new TerrainPosition(32, 37));
-        Insula extraInsula = GameObject.newInstance(Insula.class, new TerrainPosition(39, 37));
+        GameObject.newInstance(Insula.class, new TerrainPosition(32, 0, 37));
+        Insula extraInsula = GameObject.newInstance(Insula.class, new TerrainPosition(39, 0, 37));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
@@ -2971,16 +2965,16 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula13() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 0, 75));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 0, 80));
 
         for (int i = 55; i < 75; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, i));
         for (int i = 32; i < 50; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 0, 55));
         for (int i = 56; i < 73; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, 0, i));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 0, 58));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
@@ -2988,17 +2982,17 @@ class TerrainTest {
 
         Path expectedPath = new Path();
 
-        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
-        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
+        NodeRoad node = new NodeRoad(new TerrainPosition(32, 0, 58));
+        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 0, 72)));
         IntStream.rangeClosed(59, 72)
-                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
+                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, 0, z))));
         expectedPath.add(nodeConnection1.invert());
 
-        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
-        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
-        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 0, 74)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 57)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 56)));
+        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
+        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
 
         expectedPath.add(nodeConnection2);
 
@@ -3007,22 +3001,22 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula14() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 75));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(36, 0, 75));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 0, 80));
 
         for (int i = 55; i < 75; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, i));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, i));
         for (int i = 32; i < 50; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 55));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 0, 55));
         for (int i = 56; i < 73; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, i));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 58));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(32, 0, i));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 0, 58));
         for (int i = 77; i > 66; i--)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(39, i));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(39, 0, i));
         for (int i = 40; i < 45; i++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 67));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 66));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 65));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(i, 0, 67));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 0, 66));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 0, 65));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
@@ -3030,17 +3024,17 @@ class TerrainTest {
 
         Path expectedPath = new Path();
 
-        NodeRoad node = new NodeRoad(new TerrainPosition(32, 58));
-        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 72)));
+        NodeRoad node = new NodeRoad(new TerrainPosition(32, 0, 58));
+        NodeConnection nodeConnection1 = new NodeConnection(node, new NormalRoad(new TerrainPosition(32, 0, 72)));
         IntStream.rangeClosed(59, 72)
-                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, z))));
+                .forEach(z -> nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(32, 0, z))));
         expectedPath.add(nodeConnection1.invert());
 
-        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 74)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 57)));
-        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 56)));
-        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 55))));
-        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, z))));
+        NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 0, 74)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 57)));
+        nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 56)));
+        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
+        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
 
         expectedPath.add(nodeConnection2);
 
@@ -3049,32 +3043,32 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula15() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(52, 69));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(52, 0, 69));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 0, 80));
 
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 76));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 72));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 0, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 70));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 73));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 72));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 71));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(48, 71)),
-                new NormalRoad(new TerrainPosition(48, 74)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 72)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 73)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 74)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 74)));
+        NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(48, 0, 71)),
+                new NormalRoad(new TerrainPosition(48, 0, 74)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 0, 72)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 0, 73)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 0, 74)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(48, 0, 74)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3082,28 +3076,28 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula16() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(41, 79));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 80));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(41, 0, 79));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 0, 80));
 
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 76));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 70));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 73));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 72));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 71));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 0, 76));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 70));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 73));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 72));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(48, 0, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 71));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(44, 76)),
-                new NormalRoad(new TerrainPosition(44, 76)));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(44, 0, 76)),
+                new NormalRoad(new TerrainPosition(44, 0, 76)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3111,19 +3105,19 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula17() {
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(54, 73));
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 81));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(54, 0, 73));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(50, 0, 81));
 
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 74));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 74));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 75));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
-        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 75)),
-                new NormalRoad(new TerrainPosition(50, 75)));
+        NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 0, 75)),
+                new NormalRoad(new TerrainPosition(50, 0, 75)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3131,20 +3125,20 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula18() {
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 81));
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 89));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(51, 0, 81));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(49, 0, 89));
         for (int z = 75; z < 87; z++)
-            GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, z));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 75));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 75));
+            GameObject.newInstance(DirtRoad.class, new TerrainPosition(45, 0, z));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(44, 0, 75));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 0, 75));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(
-                new NormalRoad(new TerrainPosition(45, 86)), new NormalRoad(new TerrainPosition(45, 85)));
-        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(45, 85)));
+                new NormalRoad(new TerrainPosition(45, 0, 86)), new NormalRoad(new TerrainPosition(45, 0, 85)));
+        nodeConnection.addRoad(new NormalRoad(new TerrainPosition(45, 0, 85)));
         expectedPath.add(nodeConnection);
 
         assertEquals(expectedPath, bestPath);
@@ -3153,8 +3147,8 @@ class TerrainTest {
 
     @Test
     void testPathfindingMarketToInsula19() {
-        TerrainPosition v1 = new TerrainPosition(27, 13);
-        TerrainPosition v2 = new TerrainPosition(22, 20);
+        TerrainPosition v1 = new TerrainPosition(27, 0, 13);
+        TerrainPosition v2 = new TerrainPosition(22, 0, 20);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -3179,8 +3173,8 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, roads);
 
-        Market market = GameObject.newInstance(Market.class, new TerrainPosition(26, 8));
-        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(23, 24));
+        Market market = GameObject.newInstance(Market.class, new TerrainPosition(26, 0, 8));
+        Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(23, 0, 24));
 
 
         PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
@@ -3188,25 +3182,25 @@ class TerrainTest {
         System.out.println(bestPath);
         Path expectedPath = new Path();
         NodeConnection nodeConnection1 = new NodeConnection(
-                new NormalRoad(new TerrainPosition(27, 13)), new NodeRoad(new TerrainPosition(24, 16)));
-        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 14)));
-        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 15)));
-        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 16)));
-        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(26, 16)));
-        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(25, 16)));
-        nodeConnection1.addRoad(new NodeRoad(new TerrainPosition(24, 16)));
-        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(24, 16)),
-                new NodeRoad(new TerrainPosition(23, 16)));
-        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(23, 16)));
-        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(23, 16)),
-                new NodeRoad(new TerrainPosition(22, 16)));
-        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(22, 16)));
-        NodeConnection nodeConnection4 = new NodeConnection(new NodeRoad(new TerrainPosition(22, 16)),
-                new NormalRoad(new TerrainPosition(22, 20)));
-        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 17)));
-        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 18)));
-        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 19)));
-        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 20)));
+                new NormalRoad(new TerrainPosition(27, 0, 13)), new NodeRoad(new TerrainPosition(24, 0, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 0, 14)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 0, 15)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(27, 0, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(26, 0, 16)));
+        nodeConnection1.addRoad(new NormalRoad(new TerrainPosition(25, 0, 16)));
+        nodeConnection1.addRoad(new NodeRoad(new TerrainPosition(24, 0, 16)));
+        NodeConnection nodeConnection2 = new NodeConnection(new NodeRoad(new TerrainPosition(24, 0, 16)),
+                new NodeRoad(new TerrainPosition(23, 0, 16)));
+        nodeConnection2.addRoad(new NodeRoad(new TerrainPosition(23, 0, 16)));
+        NodeConnection nodeConnection3 = new NodeConnection(new NodeRoad(new TerrainPosition(23, 0, 16)),
+                new NodeRoad(new TerrainPosition(22, 0, 16)));
+        nodeConnection3.addRoad(new NodeRoad(new TerrainPosition(22, 0, 16)));
+        NodeConnection nodeConnection4 = new NodeConnection(new NodeRoad(new TerrainPosition(22, 0, 16)),
+                new NormalRoad(new TerrainPosition(22, 0, 20)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 0, 17)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 0, 18)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 0, 19)));
+        nodeConnection4.addRoad(new NormalRoad(new TerrainPosition(22, 0, 20)));
 
         expectedPath.add(nodeConnection1);
         expectedPath.add(nodeConnection2);

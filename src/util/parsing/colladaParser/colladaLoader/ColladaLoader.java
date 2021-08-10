@@ -1,5 +1,6 @@
 package util.parsing.colladaParser.colladaLoader;
 
+import renderEngine.MeshData;
 import util.parsing.colladaParser.dataStructures.*;
 import util.parsing.colladaParser.xmlParser.XmlNode;
 import util.parsing.colladaParser.xmlParser.XmlParser;

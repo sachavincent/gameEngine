@@ -1,26 +1,22 @@
 package renderEngine;
 
 import entities.Camera;
+import entities.ModelEntity;
 import models.AbstractModel;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import pathfinding.Path;
 import renderEngine.shaders.AnimatedGameObjectShader;
-import scene.components.SingleModelComponent;
-import scene.gameObjects.GameObject;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.*;
 
 import static renderEngine.MasterRenderer.*;
 
-public class PathRenderer extends GameObjectRenderer {
+public class PathRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
     private static PathRenderer instance;
 
@@ -32,11 +28,14 @@ public class PathRenderer extends GameObjectRenderer {
     private boolean updateNeeded;
 
     private PathRenderer() {
-        super(new AnimatedGameObjectShader());
-
-        this.shader.start();
-        ((AnimatedGameObjectShader) this.shader).loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
-        this.shader.stop();
+        super(new AnimatedGameObjectShader(), s -> {
+            s.loadTransformationMatrix(
+                    Maths.createTransformationMatrix(new Vector2f(0, 0), new Vector2f(1, 1)));
+            s.loadOffset(0, 0);
+            s.loadClipPlane(MasterRenderer.getClipPlane());
+            s.loadSkyColor(RED, GREEN, BLUE);
+            s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
+        });
     }
 
     public Map<Path, Color> getTempPathsList() {
@@ -62,39 +61,33 @@ public class PathRenderer extends GameObjectRenderer {
     }
 
     @Override
-    public void render() {
+    protected void doPreRender() {
+        Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
+        this.shader.loadLights(false, viewMatrix);
+        this.shader.loadViewMatrix(viewMatrix);
         GL11.glLineWidth(5);
+    }
 
-        for (GameObject gameObject : this.gameObjects) {
-            AbstractModel texture = gameObject.getComponent(SingleModelComponent.class).getModel().getModel();
-            prepareTexturedModel(texture);
-            Vao vao = texture.getVao();
-            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-            GL11.glDrawElements(GL11.GL_LINES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+    @Override
+    protected void doRender(Set<Map.Entry<AbstractModel, List<ModelEntity>>> entrySet) {
+        for (var entry : entrySet) {
+            AbstractModel abstractModel = entry.getKey();
+            List<ModelEntity> modelEntities = entry.getValue();
+            Vao vao = abstractModel.getVao();
+            vao.bind();
+//            AbstractModel texture = .getComponent(SingleModelComponent.class).getModel().getModel();
+//            prepareTexturedModel(texture);
+//            Vao vao = texture.getVao();
+//            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
+//            GL11.glDrawElements(GL11.GL_LINES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+//            vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+            vao.unbind();
             unbindTexturedModel();
         }
 
         GL11.glLineWidth(2);
 
-        this.gameObjects.clear();
         this.shader.stop();
-    }
-
-    public void prepareRender(GameObject gameObject) {
-        if (!this.shader.isStarted()) {
-            this.shader.start();
-            Matrix4f viewMatrix = Camera.getInstance().getViewMatrix();
-            ((AnimatedGameObjectShader) this.shader).loadClipPlane(MasterRenderer.getClipPlane());
-            ((AnimatedGameObjectShader) this.shader).loadSkyColor(RED, GREEN, BLUE);
-            ((AnimatedGameObjectShader) this.shader)
-                    .loadLights(false, LightRenderer.getInstance().getGameObjects(), viewMatrix);
-            ((AnimatedGameObjectShader) this.shader).loadViewMatrix(viewMatrix);
-            ((AnimatedGameObjectShader) this.shader).loadTransformationMatrix(Maths.createTransformationMatrix(new Vector2f(0, 0), new Vector2f(1, 1)));
-            ((AnimatedGameObjectShader) this.shader).loadOffset(0, 0);
-        }
-
-        this.gameObjects.add(gameObject);
     }
 
     private void prepareTexturedModel(AbstractModel model) {
@@ -121,11 +114,7 @@ public class PathRenderer extends GameObjectRenderer {
     }
 
     private void unbindTexturedModel() {
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL20.glDisableVertexAttribArray(2);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-        GL30.glBindVertexArray(0);
     }
 
     public void removePath(Path path) {

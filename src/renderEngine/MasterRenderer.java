@@ -1,15 +1,13 @@
 package renderEngine;
 
 import org.lwjgl.opengl.GL11;
-import scene.gameObjects.GameObject;
-import skybox.SkyboxGameObjectRenderer;
 import util.math.Matrix4f;
 import util.math.Vector4f;
 
-public class MasterRenderer extends GameObjectRenderer {
+public class MasterRenderer {
 
-    private static final float FOV = 70;
-    public static final float NEAR_PLANE = 0.1f;
+    private static final float FOV = 70;//TODO:Config
+    public static final float NEAR_PLANE = 0.5f;
     public static final float FAR_PLANE = 1000;
 
     public static final float RED = 0.5f;
@@ -35,15 +33,6 @@ public class MasterRenderer extends GameObjectRenderer {
         createProjectionMatrix();
     }
 
-    @Override
-    public void render() {
-        prepare();
-    }
-
-    @Override
-    public void prepareRender(GameObject gameObject) {
-    }
-
     public static Vector4f getClipPlane() {
         return clipPlane;
     }
@@ -63,7 +52,7 @@ public class MasterRenderer extends GameObjectRenderer {
     public void cleanUp() {
         TerrainRenderer.getInstance().cleanUp();
         BuildingRenderer.getInstance().cleanUp();
-        SkyboxGameObjectRenderer.getInstance().cleanUp();
+        SkyboxRenderer.getInstance().cleanUp();
     }
 
     public void prepare() {

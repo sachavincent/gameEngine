@@ -1,20 +1,19 @@
 package renderEngine.shaders;
 
-import java.util.Iterator;
-import java.util.Set;
-
-import renderEngine.shaders.StructLocation.Location;
-import scene.components.AttenuationComponent;
-import scene.components.ColorComponent;
+import renderEngine.shaders.structs.Material;
+import renderEngine.shaders.structs.MaterialStruct;
+import renderEngine.shaders.structs.StructLocation;
+import scene.Scene;
+import scene.components.LightComponent;
 import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
-import textures.Texture;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
-import util.parsing.Material;
-import util.parsing.MaterialColor;
+
+import java.util.Iterator;
+import java.util.Set;
 
 public class GameObjectShader extends ShaderProgram implements IGameObjectShader {
 
@@ -87,20 +86,7 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
     }
 
     protected final void createMaterialLocation() {
-        this.location_material = new StructLocation(this.programID, "material",
-                new Location("Ambient", MaterialColor.class),
-                new Location("Diffuse", MaterialColor.class),
-                new Location("Specular", MaterialColor.class),
-                new Location("Shininess", Float.class),
-                new Location("ambientMap", Texture.class),
-                new Location("diffuseMap", Texture.class),
-                new Location("normalMap", Texture.class),
-                new Location("specularMap", Texture.class),
-                new Location("UseAmbientMap", Boolean.class),
-                new Location("UseDiffuseMap", Boolean.class),
-                new Location("UseNormalMap", Boolean.class),
-                new Location("UseSpecularMap", Boolean.class)
-        );
+        this.location_material = new MaterialStruct(this.programID, "material");
     }
 
     public void loadClipPlane(Vector4f plane) {
@@ -116,12 +102,7 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
     }
 
     public void loadMaterial(Material material) {
-        this.location_material.load(material.getAmbient(), material.getDiffuse(), material.getSpecular(),
-                material.getShininessExponent(), material.hasAmbientMap(), material.hasDiffuseMap(),
-                material.hasNormalMap(), material.hasSpecularMap());
-
-        this.location_material.loadTextures(material.getAmbientMap(), material.getDiffuseMap(),
-                material.getNormalMap(), material.getSpecularMap());
+        this.location_material.load(material);
     }
 
     public void loadOffset(float x, float y) {
@@ -158,8 +139,9 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
         this.location_material.connectTextureUnits();
     }
 
-    public void loadLights(boolean useNormalMap, Set<GameObject> lights, Matrix4f viewMatrix) {
+    public void loadLights(boolean useNormalMap, Matrix4f viewMatrix) {
         loadBoolean(this.location_useNormalMap, useNormalMap);
+        Set<GameObject> lights = Scene.getInstance().getGameObjectsForComponent(LightComponent.class, false);
         Iterator<GameObject> iterator = lights.iterator();
         int i = 0;
         while (iterator.hasNext()) {
@@ -170,9 +152,9 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
             else
                 loadVector(this.location_lightPosition[i],
                         light.getComponent(PositionComponent.class).getPosition());
-            loadVector(this.location_lightColor[i], light.getComponent(ColorComponent.class).getColor());
-            loadVector(this.location_attenuation[i],
-                    light.getComponent(AttenuationComponent.class).getAttenuation());
+            LightComponent lightComponent = light.getComponent(LightComponent.class);
+            loadVector(this.location_lightColor[i], lightComponent.getColor());
+            loadVector(this.location_attenuation[i], lightComponent.getAttenuation());
             i++;
         }
         for (; i < MAX_LIGHTS; i++) {

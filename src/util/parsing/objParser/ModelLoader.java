@@ -4,7 +4,9 @@ import models.AnimatedModel;
 import models.BoundingBox;
 import models.Model;
 import renderEngine.AnimatedModelLoader;
+import renderEngine.MeshData;
 import renderEngine.Vao;
+import renderEngine.shaders.structs.Material;
 import scene.gameObjects.GameObjectData;
 import util.Utils;
 import util.exceptions.MTLFileException;
@@ -13,7 +15,6 @@ import util.math.Vector2f;
 import util.math.Vector3f;
 import util.parsing.*;
 import util.parsing.colladaParser.colladaLoader.AnimationLoader;
-import util.parsing.colladaParser.dataStructures.MeshData;
 
 import java.io.BufferedReader;
 import java.io.File;

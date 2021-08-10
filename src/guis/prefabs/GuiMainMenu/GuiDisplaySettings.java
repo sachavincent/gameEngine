@@ -1,18 +1,9 @@
 package guis.prefabs.GuiMainMenu;
 
-import static renderEngine.DisplayManager.FRAMERATE_INFINITE;
-import static renderEngine.DisplayManager.MAX_FRAMERATE;
-import static renderEngine.DisplayManager.MIN_FRAMERATE;
-
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
-import guis.constraints.CenterConstraint;
-import guis.constraints.GuiConstraintsManager;
-import guis.constraints.RelativeConstraint;
-import guis.constraints.Side;
-import guis.constraints.SideConstraint;
-import guis.constraints.StickyConstraint;
+import guis.constraints.*;
 import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiMultiOption;
@@ -21,14 +12,17 @@ import guis.presets.GuiOnOffOption.OnOff;
 import guis.presets.sliders.GuiHorizontalSlider;
 import guis.presets.sliders.GuiSlider;
 import guis.presets.sliders.Interval;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 import language.Words;
 import renderEngine.DisplayManager;
 import renderEngine.DisplayManager.DisplayMode;
-import renderEngine.DisplayManager.Resolution;
+import renderEngine.DisplayManager.*;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import static renderEngine.DisplayManager.*;
 
 public class GuiDisplaySettings extends GuiTab {
 
@@ -190,7 +184,7 @@ public class GuiDisplaySettings extends GuiTab {
             else
                 maxFps = Integer.parseInt(value);
 
-            DisplayManager.setFPS(maxFps);
+            DisplayManager.setCurrentFps(maxFps);
         });
     }
 }

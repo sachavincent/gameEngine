@@ -1,15 +1,5 @@
 package tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +12,13 @@ import renderEngine.PathRenderer;
 import scene.Scene;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
+
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.lwjgl.glfw.GLFW.glfwInit;
 
 public class RoadGraphTest {
 
@@ -44,16 +40,16 @@ public class RoadGraphTest {
 
     @Test
     void testRoadGraph1() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
 
         // v1 -> v2 -> v3 -> v4
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 51));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 51));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(53, 0, 51));
         GameObject.newInstance(DirtRoad.class, v1);
         GameObject.newInstance(DirtRoad.class, v2);
         GameObject.newInstance(DirtRoad.class, v3);
@@ -89,18 +85,18 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph2() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         // v1 -> v2 -> v3 -> v4 -> v5
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 50));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 49));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 50));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(50, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(52, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(54, 0, 49));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 50));
         GameObject.newInstance(DirtRoad.class, v1);
         GameObject.newInstance(DirtRoad.class, v2);
         GameObject.newInstance(DirtRoad.class, v3);
@@ -144,11 +140,11 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph3() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(50, 49);
-        TerrainPosition v3 = new TerrainPosition(50, 48);
-        TerrainPosition v4 = new TerrainPosition(51, 48);
-        TerrainPosition v5 = new TerrainPosition(52, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v3 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v5 = new TerrainPosition(52, 0, 48);
 
         // v1 -> v2 -> v3 -> v4 -> v5
         int[] roadPositions = new int[]{
@@ -211,15 +207,15 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph4() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(55, 49);
-        TerrainPosition v8 = new TerrainPosition(56, 49);
-        TerrainPosition v9 = new TerrainPosition(57, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v9 = new TerrainPosition(57, 0, 49);
 
         // v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7 -> v8 -> v9
         int[] roadPositions = new int[]{
@@ -292,18 +288,18 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph5() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(50, 49);
-        TerrainPosition v6 = new TerrainPosition(50, 48);
-        TerrainPosition v7 = new TerrainPosition(51, 48);
-        TerrainPosition v8 = new TerrainPosition(52, 48);
-        TerrainPosition v9 = new TerrainPosition(53, 48);
-        TerrainPosition v10 = new TerrainPosition(53, 49);
-        TerrainPosition v11 = new TerrainPosition(54, 48);
-        TerrainPosition v12 = new TerrainPosition(55, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v11 = new TerrainPosition(54, 0, 48);
+        TerrainPosition v12 = new TerrainPosition(55, 0, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -410,19 +406,19 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph6() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(50, 49);
-        TerrainPosition v6 = new TerrainPosition(50, 48);
-        TerrainPosition v7 = new TerrainPosition(51, 48);
-        TerrainPosition v8 = new TerrainPosition(52, 48);
-        TerrainPosition v9 = new TerrainPosition(53, 48);
-        TerrainPosition v10 = new TerrainPosition(53, 49);
-        TerrainPosition v11 = new TerrainPosition(53, 47);
-        TerrainPosition v12 = new TerrainPosition(53, 46);
-        TerrainPosition v13 = new TerrainPosition(54, 46);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(50, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 48);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v9 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v10 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v11 = new TerrainPosition(53, 0, 47);
+        TerrainPosition v12 = new TerrainPosition(53, 0, 46);
+        TerrainPosition v13 = new TerrainPosition(54, 0, 46);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -554,11 +550,11 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph7() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -608,12 +604,12 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph8() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(53, 49);
-        TerrainPosition v6 = new TerrainPosition(53, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(53, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(53, 0, 48);
 
         /*
         v1 -> v2 -> v3 -> v4
@@ -692,11 +688,11 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph9() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
         /*
         v1 -> v2 -> v3 -> v4 -> v5
@@ -732,12 +728,12 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph10() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(53, 0, 49);
 
         /*
         v2 -> v3 -> v4
@@ -775,15 +771,15 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph11() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
-        TerrainPosition v8 = new TerrainPosition(51, 49);
-        TerrainPosition v9 = new TerrainPosition(55, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v9 = new TerrainPosition(55, 0, 49);
 
         /*
         v3 -> v4 -> v5
@@ -835,14 +831,14 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph12() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(50, 49);
-        TerrainPosition v8 = new TerrainPosition(53, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(53, 0, 49);
 
         /*
         v2 -> v3 -> v4 -> v5 -> v6
@@ -882,10 +878,10 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph13() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(54, 0, 50);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -915,15 +911,15 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph14() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 50);
-        TerrainPosition v5 = new TerrainPosition(56, 49);
-        TerrainPosition v6 = new TerrainPosition(56, 48);
-        TerrainPosition v7 = new TerrainPosition(55, 49);
-        TerrainPosition v8 = new TerrainPosition(57, 49);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 48);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(57, 0, 49);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -960,15 +956,15 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph15() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
-        TerrainPosition v5 = new TerrainPosition(55, 50);
-        TerrainPosition v6 = new TerrainPosition(56, 50);
-        TerrainPosition v7 = new TerrainPosition(57, 50);
-        TerrainPosition v8 = new TerrainPosition(56, 49);
+        TerrainPosition v5 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(57, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(56, 0, 49);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1007,10 +1003,10 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph16() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1041,10 +1037,10 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph17() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1078,12 +1074,12 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph18() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(51, 51);
-        TerrainPosition v6 = new TerrainPosition(52, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1127,16 +1123,16 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph19() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v5 = new TerrainPosition(51, 51);
-        TerrainPosition v6 = new TerrainPosition(52, 51);
+        TerrainPosition v5 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(52, 0, 51);
 
-        TerrainPosition v7 = new TerrainPosition(51, 49);
-        TerrainPosition v8 = new TerrainPosition(52, 49);
+        TerrainPosition v7 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v8 = new TerrainPosition(52, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1198,11 +1194,11 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph20() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(51, 51);
-        TerrainPosition v5 = new TerrainPosition(52, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 51);
+        TerrainPosition v5 = new TerrainPosition(52, 0, 51);
 
 
         int[] roadPositions = new int[]{
@@ -1237,10 +1233,10 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph21() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(50, 49);
-        TerrainPosition v4 = new TerrainPosition(51, 49);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v4 = new TerrainPosition(51, 0, 49);
 
 
         int[] roadPositions = new int[]{
@@ -1271,9 +1267,9 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph22() {
-        TerrainPosition v1 = new TerrainPosition(52, 50);
-        TerrainPosition v2 = new TerrainPosition(53, 50);
-        TerrainPosition v3 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(54, 0, 50);
 
 
         /*
@@ -1338,9 +1334,9 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph23() {
-        TerrainPosition v1 = new TerrainPosition(52, 48);
-        TerrainPosition v2 = new TerrainPosition(53, 48);
-        TerrainPosition v3 = new TerrainPosition(54, 48);
+        TerrainPosition v1 = new TerrainPosition(52, 0, 48);
+        TerrainPosition v2 = new TerrainPosition(53, 0, 48);
+        TerrainPosition v3 = new TerrainPosition(54, 0, 48);
 
 
         /*
@@ -1423,11 +1419,11 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph24() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
 
 
         /*
@@ -1469,16 +1465,16 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph25() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(60, 50);
-        TerrainPosition v7 = new TerrainPosition(61, 50);
-        TerrainPosition v8 = new TerrainPosition(62, 50);
-        TerrainPosition v9 = new TerrainPosition(63, 50);
-        TerrainPosition v10 = new TerrainPosition(64, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(60, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(61, 0, 50);
+        TerrainPosition v8 = new TerrainPosition(62, 0, 50);
+        TerrainPosition v9 = new TerrainPosition(63, 0, 50);
+        TerrainPosition v10 = new TerrainPosition(64, 0, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5
@@ -1528,13 +1524,13 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph26() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 49);
-        TerrainPosition v5 = new TerrainPosition(56, 50);
-        TerrainPosition v6 = new TerrainPosition(56, 51);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 49);
+        TerrainPosition v5 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(56, 0, 51);
 
         /*
                                 v4
@@ -1573,13 +1569,13 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph27() {
-        TerrainPosition v1 = new TerrainPosition(51, 50);
-        TerrainPosition v2 = new TerrainPosition(52, 50);
-        TerrainPosition v3 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(56, 50);
-        TerrainPosition v5 = new TerrainPosition(57, 50);
-        TerrainPosition v6 = new TerrainPosition(58, 50);
+        TerrainPosition v4 = new TerrainPosition(56, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(57, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(58, 0, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5 -> v6
@@ -1624,13 +1620,13 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph28() {
-        TerrainPosition v1 = new TerrainPosition(51, 50);
-        TerrainPosition v2 = new TerrainPosition(52, 50);
-        TerrainPosition v3 = new TerrainPosition(53, 50);
+        TerrainPosition v1 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(53, 0, 50);
 
-        TerrainPosition v4 = new TerrainPosition(57, 51);
-        TerrainPosition v5 = new TerrainPosition(58, 51);
-        TerrainPosition v6 = new TerrainPosition(58, 50);
+        TerrainPosition v4 = new TerrainPosition(57, 0, 51);
+        TerrainPosition v5 = new TerrainPosition(58, 0, 51);
+        TerrainPosition v6 = new TerrainPosition(58, 0, 50);
 
         /*
             v1 -> v2 -> v3  ||  v4 -> v5
@@ -1698,13 +1694,13 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v7 = new TerrainPosition(56, 50);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v7 = new TerrainPosition(56, 0, 50);
 
         /*
             v1 -> v2 -> v3 -> v4 -> v5 -> v6 -> v7
@@ -1784,14 +1780,14 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph29b() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(52, 50);
-        TerrainPosition v4 = new TerrainPosition(53, 50);
-        TerrainPosition v5 = new TerrainPosition(54, 50);
-        TerrainPosition v6 = new TerrainPosition(55, 50);
-        TerrainPosition v6b = new TerrainPosition(54, 51);
-        TerrainPosition v7 = new TerrainPosition(55, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(52, 0, 50);
+        TerrainPosition v4 = new TerrainPosition(53, 0, 50);
+        TerrainPosition v5 = new TerrainPosition(54, 0, 50);
+        TerrainPosition v6 = new TerrainPosition(55, 0, 50);
+        TerrainPosition v6b = new TerrainPosition(54, 0, 51);
+        TerrainPosition v7 = new TerrainPosition(55, 0, 51);
 
         /*
                                     v6b -> v7
@@ -1832,9 +1828,9 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph30() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(51, 50);
-        TerrainPosition v3 = new TerrainPosition(51, 51);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(51, 0, 50);
+        TerrainPosition v3 = new TerrainPosition(51, 0, 51);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1863,10 +1859,10 @@ public class RoadGraphTest {
      */
     @Test
     void testRoadGraph31() {
-        TerrainPosition v1 = new TerrainPosition(50, 50);
-        TerrainPosition v2 = new TerrainPosition(50, 49);
-        TerrainPosition v3 = new TerrainPosition(51, 49);
-        TerrainPosition v4 = new TerrainPosition(50, 48);
+        TerrainPosition v1 = new TerrainPosition(50, 0, 50);
+        TerrainPosition v2 = new TerrainPosition(50, 0, 49);
+        TerrainPosition v3 = new TerrainPosition(51, 0, 49);
+        TerrainPosition v4 = new TerrainPosition(50, 0, 48);
 
         int[] roadPositions = new int[]{
                 v1.getX(), v1.getZ(),
@@ -1901,15 +1897,15 @@ public class RoadGraphTest {
         TerrainPosition[] positions = new TerrainPosition[15];
         TerrainPosition[] positions2 = new TerrainPosition[14];
         for (int i = 55; i < 70; i++)
-            positions[i - 55] = new TerrainPosition(50, i);
+            positions[i - 55] = new TerrainPosition(50, 0, i);
         for (int i = 50; i < 64; i++)
-            positions2[i - 50] = new TerrainPosition(i, 70);
+            positions2[i - 50] = new TerrainPosition(i, 0, 70);
 
         GameObject.newInstances(DirtRoad.class, positions);
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 55));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 63));
-        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 71));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 63));
+        GameObject.newInstance(DirtRoad.class, new TerrainPosition(62, 0, 71));
 
         List<TerrainPosition> pos2 = Arrays.asList(positions2);
         Collections.reverse(pos2);
@@ -1924,9 +1920,9 @@ public class RoadGraphTest {
         Set<NodeRoad> expectedNodes = new HashSet<>();
         Set<NodeConnection> expectedPaths = new TreeSet<>();
 
-        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 63));
-        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 70));
-        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 55));
+        NodeRoad node1 = new NodeRoad(new TerrainPosition(50, 0, 63));
+        NodeRoad node2 = new NodeRoad(new TerrainPosition(62, 0, 70));
+        NodeRoad node3 = new NodeRoad(new TerrainPosition(50, 0, 55));
         expectedNodes.add(node1);
         expectedNodes.add(node2);
         expectedNodes.add(node3);

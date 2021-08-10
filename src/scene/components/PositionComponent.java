@@ -4,7 +4,7 @@ import renderEngine.BuildingRenderer;
 import renderEngine.GameObjectRenderer;
 import scene.Scene;
 import scene.components.requirements.ResourceRequirementComponent;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.Vector3f;
 
 public class PositionComponent extends Component {
@@ -16,7 +16,7 @@ public class PositionComponent extends Component {
     }
 
     public PositionComponent() {
-        this(new TerrainPosition(-1, -1));
+        this(new TerrainPosition(-1,-1, -1));
     }
 
     public PositionComponent(Vector3f position) {

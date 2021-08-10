@@ -1,7 +1,7 @@
 package util.parsing.objParser;
 
-import util.parsing.Material;
-import util.parsing.colladaParser.dataStructures.MeshData;
+import renderEngine.MeshData;
+import renderEngine.shaders.structs.Material;
 
 import java.io.File;
 import java.util.List;

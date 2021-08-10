@@ -1,11 +1,10 @@
 package util;
 
 import guis.presets.Background;
-import scene.gameObjects.DirtRoad;
-import scene.gameObjects.GameObject;
-import scene.gameObjects.Insula;
-import scene.gameObjects.Market;
-import terrains.TerrainPosition;
+import scene.Scene;
+import scene.components.HeightMapComponent;
+import scene.gameObjects.*;
+import terrain.TerrainPosition;
 import util.exceptions.MissingFileException;
 import util.math.Maths;
 import util.math.Vector;
@@ -63,8 +62,9 @@ public class Utils {
                 } else if (line.contains("Placing")) {
                     String[] coords = line.split("\\{")[1].split("}")[0].split(", ");
                     String x = coords[0].split("=")[1];
-                    String z = coords[1].split("=")[1];
-                    positions.add(new TerrainPosition(Integer.parseInt(x), Integer.parseInt(z)));
+                    String y = coords[1].split("=")[1];
+                    String z = coords[2].split("=")[1];
+                    positions.add(new TerrainPosition(Integer.parseInt(x), Float.parseFloat(y), Integer.parseInt(z)));
                 } else {
                     System.out.println(line);
                 }
@@ -220,6 +220,13 @@ public class Utils {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 
+    /**
+     * Formats text in such a way that the first character
+     * of every word in the String is capitalized and everything else is lower case.
+     *
+     * @param text String to format
+     * @return formatted text
+     */
     public static String formatText(String text) {
         if (text.isEmpty())
             return "";
@@ -244,7 +251,11 @@ public class Utils {
     public static TerrainPosition decodePositionCommand(String position) {
         position = position.substring(1, position.length() - 1);
         String[] split = position.split(",");
-        return new TerrainPosition(Integer.parseInt(split[0].trim()), Integer.parseInt(split[1].trim()));
+        int x = Integer.parseInt(split[0].trim());
+        int z = Integer.parseInt(split[1].trim());
+        Terrain terrain = Scene.getInstance().getTerrain();
+        HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
+        return new TerrainPosition(x, heightMapComponent.getHeight(x, z), z);
     }
 
     public static double formatDoubleToNDecimals(double value, int N) {

@@ -1,5 +1,7 @@
 package util.parsing.colladaParser.dataStructures;
 
+import renderEngine.MeshData;
+
 public class AnimatedModelData {
 
     private final SkeletonData joints;

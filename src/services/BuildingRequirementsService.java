@@ -1,8 +1,5 @@
 package services;
 
-import java.awt.Color;
-import java.util.*;
-import java.util.stream.Collectors;
 import pathfinding.Path;
 import pathfinding.PathFinder;
 import pathfinding.Road;
@@ -12,7 +9,12 @@ import scene.components.ConnectionsComponent;
 import scene.components.requirements.BuildingRoadConnectionRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
+
+import java.awt.*;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class BuildingRequirementsService extends Service<Map<Path, Color>> {
 

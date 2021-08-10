@@ -1,6 +1,6 @@
 package renderEngine;
 
-
+import entities.Entity;
 import entities.ModelEntity;
 import models.AbstractModel;
 import renderEngine.shaders.IGameObjectShader;
@@ -9,75 +9,93 @@ import scene.gameObjects.GameObject;
 
 import java.util.*;
 
-public abstract class GameObjectRenderer {
+public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends Renderer<Shader> {
 
-    protected final Set<GameObject> gameObjects;
+    private final Map<AbstractModel, List<ModelEntity>> renderedModels;
+    private final Set<Integer> renderedGameObjects;
+
     private final int id;
     protected boolean displayBoundingBoxes;
 
-    protected ShaderProgram shader;
-
     private static int ID;
 
-    protected GameObjectRenderer(ShaderProgram shader) {
-        this();
-        this.shader = shader;
-    }
+    protected GameObjectRenderer(Shader shader, LoadShaderCallback<Shader> loadShaderCallback) {
+        super(shader, loadShaderCallback);
 
-    protected GameObjectRenderer() {
         this.id = ++ID;
-        this.gameObjects = new HashSet<>();
+        this.renderedGameObjects = new HashSet<>();
+        this.renderedModels = new HashMap<>();
     }
 
-    public Set<GameObject> getGameObjects() {
-        return this.gameObjects;
+    protected GameObjectRenderer(Shader shader) {
+        super(shader);
+
+        this.id = ++ID;
+        this.renderedGameObjects = new HashSet<>();
+        this.renderedModels = new HashMap<>();
     }
-
-    public ShaderProgram getShader() {
-        return this.shader;
-    }
-
-    public abstract void render();
-
-    public abstract void prepareRender(GameObject gameObject);
 
     @Override
-    public boolean equals(Object o) {
+    public final void render() {
+        if (!this.shader.isStarted())
+            this.shader.start();
+
+        doPreRender();
+
+        doRender(this.renderedModels.entrySet());
+
+        this.shader.stop();
+    }
+
+    protected abstract void doPreRender();
+
+    protected abstract void doRender(Set<Map.Entry<AbstractModel, List<ModelEntity>>> entrySet);
+
+    public final void addToRender(GameObject gameObject) {
+        if (!this.shader.isStarted())
+            this.shader.start();
+
+        if (!this.renderedGameObjects.contains(gameObject.getId())) {
+            this.renderedGameObjects.add(gameObject.getId());
+            Entity entityFromGameObject = GameObject.createEntityFromGameObject(gameObject, this.displayBoundingBoxes);
+
+            entityFromGameObject.getModelEntities().forEach(modelEntity -> {
+                AbstractModel model = modelEntity.getModel();
+                if (!this.renderedModels.containsKey(model))
+                    this.renderedModels.put(model, new ArrayList<>());
+                this.renderedModels.get(model).add(modelEntity);
+            });
+        }
+    }
+
+    @Override
+    public final boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        GameObjectRenderer gameObjectRenderer = (GameObjectRenderer) o;
-        return id == gameObjectRenderer.id;
+
+        GameObjectRenderer<?> gameObjectRenderer = (GameObjectRenderer<?>) o;
+        return this.id == gameObjectRenderer.id;
     }
 
-    public void switchDisplayBoundingBoxes() {
+    public final void switchDisplayBoundingBoxes() {
         this.displayBoundingBoxes = !this.displayBoundingBoxes;
     }
 
-    protected void handleTexture(Map<AbstractModel, List<ModelEntity>> models, ModelEntity modelEntity) {
-        if (modelEntity == null || modelEntity.getModel() == null || modelEntity.getModel().getVao() == null)
-            return;
-
-        if (!models.containsKey(modelEntity.getModel()))
-            models.put(modelEntity.getModel(), new ArrayList<>());
-
-        models.get(modelEntity.getModel()).add(modelEntity);
-    }
-
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    protected void cleanUp() {
-        this.shader.cleanUp();
-    }
-
-    public void doZPass(Set<GameObject> gameObjects) {
+    public final int hashCode() {
+        return Objects.hash(this.id);
     }
 
     protected void prepareInstance(ModelEntity modelEntity) {
         ((IGameObjectShader) this.shader).loadTransformationMatrix(modelEntity.getTransformationMatrix());
     }
+
+    public void removeGameObject(GameObject gameObject) {
+        int id = gameObject.getId();
+        this.renderedGameObjects.remove(id);
+        this.renderedModels.forEach((key, value) -> value.removeIf(modelEntity -> modelEntity.getGameObjectId() == id));
+    }
+
 }

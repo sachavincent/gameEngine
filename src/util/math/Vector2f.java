@@ -3,7 +3,6 @@ package util.math;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Objects;
-import terrains.TerrainPosition;
 
 public class Vector2f extends Vector implements Serializable, ReadableVector2f, WritableVector2f, Comparable<Vector2f> {
 
@@ -53,6 +52,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         this.y += y;
         return this;
     }
+
     public static Vector2f translate(float x, float y, Vector2f dest) {
         dest.x += x;
         dest.y += y;
@@ -126,6 +126,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
             return dest;
         }
     }
+
     public static float cross_product(Vector2f v1, Vector2f v2) {
         return v1.x * v2.y - v1.y * v2.x;
     }
@@ -189,12 +190,12 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return Objects.hash(this.x, this.y);
     }
 
     public double distanceSquared(Vector2f v) {
-        double dx = x - v.x;
-        double dy = y - v.y;
+        double dx = this.x - v.x;
+        double dy = this.y - v.y;
         return dx * dx + dy * dy;
     }
 
@@ -204,14 +205,10 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     @Override
     public int compareTo(Vector2f o) {
-        int i = Float.compare(x, o.x);
+        int i = Float.compare(this.x, o.x);
         if (i != 0)
             return i;
 
-        return Float.compare(y, o.y);
-    }
-
-    public TerrainPosition toTerrainPosition() {
-        return new TerrainPosition((int) Math.rint(x), (int) Math.rint(y));
+        return Float.compare(this.y, o.y);
     }
 }

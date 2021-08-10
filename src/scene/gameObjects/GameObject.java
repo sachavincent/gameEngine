@@ -7,7 +7,7 @@ import models.AbstractModel;
 import scene.Scene;
 import scene.components.*;
 import scene.components.callbacks.AddComponentCallback;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.Vector3f;
 
 import java.lang.reflect.Array;
@@ -104,7 +104,7 @@ public abstract class GameObject {
     public void prepareRender() {
         RendererComponent renderer = getComponent(RendererComponent.class);
         if (renderer != null)
-            renderer.getRenderer().prepareRender(this);
+            renderer.getRenderer().addToRender(this);
     }
 
     public static <X extends GameObject> X getObjectFromClass(Class<X> objectClass) {
@@ -175,12 +175,12 @@ public abstract class GameObject {
         if (o == null || getClass() != o.getClass())
             return false;
         GameObject that = (GameObject) o;
-        return id == that.id;
+        return this.id == that.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(this.id);
     }
 
     public boolean isIgnoreAddCallback() {
@@ -205,6 +205,7 @@ public abstract class GameObject {
 
         if (displayBoundingBoxes && !gameObject.hasComponent(BoundingBoxComponent.class))
             return null;
+        int id = gameObject.getId();
 
         TerrainPosition position = null;
         PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
@@ -246,17 +247,18 @@ public abstract class GameObject {
                     modelEntity = gameObject.getComponent(AnimatedModelComponent.class).getModel();
             }
 
-            entity = new Entity(new ModelEntity(pos, direction, scale, modelEntity.getModel()));
+            entity = new Entity(new ModelEntity(pos, direction, scale, modelEntity.getModel(), id));
         } else if (gameObject.hasComponent(MultipleModelsComponent.class)) {
             if (preview)
-                entity = new Entity(new ModelEntity(pos, direction, scale, previewComponent.getTexture().getModel()));
+                entity = new Entity(new ModelEntity(pos, direction,
+                        scale, previewComponent.getTexture().getModel(), id));
             else {
                 Vector3f finalPos = pos;
                 MultipleModelsComponent multipleModelsComponent = gameObject
                         .getComponent(MultipleModelsComponent.class);
                 Map<String, Entry<AbstractModel, Offset>> concurrentModels = multipleModelsComponent.getConcurrentModels();
-                List<ModelEntity> modelEntities = concurrentModels.values().stream()
-                        .map(entry -> {
+                List<ModelEntity> modelEntities = concurrentModels
+                        .values().stream().map(entry -> {
                             ModelEntity modelEntity = new ModelEntity(entry.getKey().toModelEntity());
                             Vector3f offsetPosition = entry.getValue().getOffsetPosition();
                             Vector3f offsetRotation = entry.getValue().getOffsetRotation();

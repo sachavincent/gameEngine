@@ -1,5 +1,7 @@
 package util.math;
 
+import entities.Camera;
+
 import java.util.Objects;
 
 public class Plane3D {
@@ -332,5 +334,22 @@ public class Plane3D {
 //        setPointB(newPointB);
 //        setPointC(newPointC);
 //        setPointD(newPointD);
+    }
+
+    public boolean doesLineIntersect(Vector3f line) {
+        Vector3f origin = Camera.getInstance().getPosition();
+
+        Vector3f normal = getNormal();
+        float dot_dn = Vector3f.dot(line, normal);
+        if (dot_dn == 0)
+            return false;
+
+        Vector3f pointPlane = this.pointA;
+        float t = -(Vector3f.dot(Vector3f.sub(origin, pointPlane, null), normal)) / dot_dn;
+
+        Vector3f P = Vector3f.add((Vector3f) line.scale(t), origin, null);
+        P.format();
+
+        return isPointOnPlane(P);
     }
 }

@@ -1,12 +1,13 @@
 package pathfinding;
 
 import entities.Camera.Direction;
-import java.util.*;
-import java.util.stream.Collectors;
 import scene.Scene;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.RoadComponent;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class RoadGraph {
 

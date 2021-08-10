@@ -1,9 +1,5 @@
 package renderEngine;
 
-import static guis.basics.GuiRectangle.POSITIONS_FILLED;
-import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
-import static org.lwjgl.opengl.GL11.*;
-
 import engineTester.Game;
 import guis.GuiInterface;
 import guis.GuiTexture;
@@ -11,19 +7,20 @@ import guis.basics.GuiShape;
 import guis.presets.Background;
 import guis.presets.GuiTextInput;
 import guis.presets.graphs.GuiDonutGraph;
-import java.awt.Color;
-import java.util.List;
-import java.util.Set;
 import models.RawModel;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.*;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.GuiShader;
 import util.math.Maths;
 import util.math.Vector2f;
+
+import java.awt.*;
+import java.util.List;
+import java.util.Set;
+
+import static guis.basics.GuiRectangle.POSITIONS_FILLED;
+import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
+import static org.lwjgl.opengl.GL11.*;
 
 public class GuiRenderer {
 
@@ -242,7 +239,7 @@ public class GuiRenderer {
         assert guiTexture != null;
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getTextureID());
+        GL11.glBindTexture(GL_TEXTURE_2D, guiTexture.getID());
     }
 
     public static void cleanUp() {

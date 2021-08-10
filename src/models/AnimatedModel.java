@@ -4,9 +4,8 @@ import animation.Animation;
 import animation.Animator;
 import animation.Joint;
 import renderEngine.Vao;
-import util.math.Matrix;
+import renderEngine.shaders.structs.Material;
 import util.math.Matrix4f;
-import util.parsing.Material;
 
 import java.util.List;
 

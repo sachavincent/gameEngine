@@ -1,7 +1,7 @@
 package models;
 
 import renderEngine.Vao;
-import util.parsing.Material;
+import renderEngine.shaders.structs.Material;
 import util.parsing.objParser.OBJFile;
 
 import java.util.List;

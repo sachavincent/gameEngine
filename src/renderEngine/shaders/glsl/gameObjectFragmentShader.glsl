@@ -4,6 +4,7 @@
 #define MAX_LIGHTS 10
 
 struct Material {
+    vec3 Emission;
     vec3 Ambient;
     vec3 Diffuse;
     vec3 Specular;
@@ -61,7 +62,7 @@ void main() {
     }
     vec3 unitVectorToCamera = normalize(toCameraVector);
 
-    vec4 totalDiffuse = vec4(0.0);
+    vec3 totalDiffuse = vec3(0.0);
     vec3 totalSpecular = vec3(0.0);
 
     for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -75,7 +76,7 @@ void main() {
         float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
         specularFactor = max(specularFactor, 0.0);
         float dampedFactor = pow(specularFactor, shineDamper);
-        totalDiffuse = totalDiffuse + (brightness * vec4(lightColor[i], 1.0)) / attFactor;
+        totalDiffuse = totalDiffuse + (brightness * lightColor[i]) / attFactor;
         totalSpecular = totalSpecular + (dampedFactor * reflectivity * lightColor[i]) / attFactor;
     }
     //    totalDiffuse = max(totalDiffuse, 0.2);
@@ -91,19 +92,19 @@ void main() {
 //            discard;
 //        }
     } else {
-        totalDiffuse *= vec4(material.Diffuse, 1.0);
+        totalDiffuse *= vec3(material.Diffuse);
     }
 
     if (material.UseSpecularMap) {
         vec4 specInfo = texture(specularMap, pass_textureCoords);
         totalSpecular *= specInfo.r;
         if (specInfo.g > 0.5) {
-            totalDiffuse = vec4(1.0);
+            totalDiffuse = vec3(1.0);
         }
     } else {
         totalSpecular = material.Specular;
     }
-    out_Color = totalDiffuse;
+    vec3 color = totalDiffuse;
     //    out_Color = totalDiffuse + vec4(totalSpecular, 1.0);
     //    out_Color = mix(vec4(skyColor, 1.0), out_Color, visibility);
     //
@@ -111,8 +112,10 @@ void main() {
     //    out_Color.y = scaleLinear(out_Color.y, vec2(0, 1), vec2(0.1, .5));
     //    out_Color.z = scaleLinear(out_Color.z, vec2(0, 1), vec2(0.1, .5));
 
+    color += material.Emission;
+    out_Color = vec4(color.rgb, 1.0);
+
     if (alpha >= 0) { // Set by user
         out_Color.a = alpha;
     }
-    out_Color.a = 1;
 }

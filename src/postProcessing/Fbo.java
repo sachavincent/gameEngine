@@ -1,19 +1,20 @@
 
 package postProcessing;
 
-import static org.lwjgl.opengl.GL30.glBindFramebuffer;
-
-import java.nio.ByteBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL31;
 import renderEngine.DisplayManager;
+
+import java.nio.ByteBuffer;
+
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 public class Fbo {
 
-    public static final int NONE                = 0;
-    public static final int DEPTH_TEXTURE       = 1;
+    public static final int NONE = 0;
+    public static final int DEPTH_TEXTURE = 1;
     public static final int DEPTH_RENDER_BUFFER = 2;
 
     private final int width;
@@ -31,10 +32,10 @@ public class Fbo {
      * Creates an FBO of a specified width and height, with the desired type of
      * depth buffer attachment.
      *
-     * @param width - the width of the FBO.
-     * @param height - the height of the FBO.
+     * @param width           - the width of the FBO.
+     * @param height          - the height of the FBO.
      * @param depthBufferType - an int indicating the type of depth buffer attachment that
-     * this FBO should use.
+     *                        this FBO should use.
      */
     public Fbo(int width, int height, int depthBufferType) {
         this.width = width;
@@ -100,7 +101,7 @@ public class Fbo {
      * possibly a depth buffer.
      *
      * @param type - the type of depth buffer attachment to be attached to the
-     * FBO.
+     *             FBO.
      */
     private void initialiseFrameBuffer(int type) {
         createFrameBuffer();
@@ -148,10 +149,12 @@ public class Fbo {
     private void createDepthTextureAttachment() {
         depthTexture = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, depthTexture);
-        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL14.GL_DEPTH_COMPONENT24, width, height, 0, GL11.GL_DEPTH_COMPONENT,
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL30.GL_DEPTH_COMPONENT32F, width, height, 0, GL11.GL_DEPTH_COMPONENT,
                 GL11.GL_FLOAT, (ByteBuffer) null);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL31.GL_TEXTURE_COMPARE_FUNC, GL11.GL_LEQUAL);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL31.GL_TEXTURE_COMPARE_MODE, GL11.GL_NONE);
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL11.GL_TEXTURE_2D, depthTexture, 0);
     }
 
@@ -162,7 +165,7 @@ public class Fbo {
     private void createDepthBufferAttachment() {
         depthBuffer = GL30.glGenRenderbuffers();
         GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthBuffer);
-        GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL14.GL_DEPTH_COMPONENT24, width, height);
+        GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL30.GL_DEPTH_COMPONENT32F, width, height);
         GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER,
                 depthBuffer);
     }

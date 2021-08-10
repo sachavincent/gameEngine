@@ -1,28 +1,29 @@
 package scene;
 
-import static pathfinding.RoadGraph.FILTER;
-
+import engineTester.Game;
 import entities.Camera.Direction;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import models.Model;
 import pathfinding.NodeRoad;
 import pathfinding.RoadGraph;
-import renderEngine.PathRenderer;
-import renderEngine.GameObjectRenderer;
+import renderEngine.*;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.*;
 import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import scene.gameObjects.Route;
+import scene.gameObjects.Terrain;
 import services.BuildingRequirementsService;
 import services.ServiceManager;
-import skybox.SkyboxGameObjectRenderer;
-import terrains.TerrainPosition;
-import renderEngine.Vao;
+import terrain.TerrainPosition;
+import util.DayNightCycle;
 import util.math.Vector3f;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import static pathfinding.RoadGraph.FILTER;
 
 public class Scene {
 
@@ -34,11 +35,13 @@ public class Scene {
 
     private final Map<GameObjectRenderer, Set<GameObject>> renderableGameObjects = new HashMap<>();
 
-    private int[][] positions = new int[500][500];
+    private int[][] positions = new int[Game.TERRAIN_WIDTH][Game.TERRAIN_DEPTH];
 
     private final ServiceManager<BuildingRequirementsService> serviceManager = new ServiceManager<>();
 
     private RoadGraph roadGraph;
+
+    private Terrain terrain;
 
     private static Scene instance;
 
@@ -51,6 +54,9 @@ public class Scene {
     }
 
     public boolean addGameObject(GameObject gameObject) {
+        if (gameObject instanceof Terrain)
+            this.terrain = (Terrain) gameObject;
+
         PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
         if (positionComponent != null &&
                 positionComponent.getPosition().isTerrainPosition()) { // Objects belongs on terrain and has offset
@@ -115,13 +121,13 @@ public class Scene {
     }
 
     public void render() {
-        SkyboxGameObjectRenderer.getInstance().prepareRender(null);
-        SkyboxGameObjectRenderer.getInstance().render();
+        MasterRenderer.getInstance().prepare();
+        SkyboxRenderer.getInstance().render();
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
-            renderer.doZPass(lGameObjects);
             lGameObjects.forEach(GameObject::prepareRender);
             renderer.render();
         });
+        DayNightCycle.incrementCycleTime();
     }
 
     public Set<GameObject> getGameObjects() {
@@ -274,7 +280,7 @@ public class Scene {
     }
 
     public boolean canGameObjectClassBePlaced(Class<? extends GameObject> gameObjectClass, TerrainPosition pos,
-            Direction direction) {
+                                              Direction direction) {
         if (gameObjectClass == null)
             return false;
 
@@ -419,7 +425,7 @@ public class Scene {
 
     /**
      * @param gameObjectPosition position of the GameObject
-     * @param filter filter on connections
+     * @param filter             filter on connections
      * @return the directions in which the GameObject is connected
      */
     public Direction[] getConnectedDirections(TerrainPosition gameObjectPosition, FilterGameObjectCallback filter) {
@@ -445,7 +451,7 @@ public class Scene {
 
     /**
      * @param gameObject GameObject of which we want the neighbors
-     * @param filter filter on neighbors
+     * @param filter     filter on neighbors
      * @return set of neighbors : 0 <= size <= 4
      */
     public Set<GameObject> getNeighbors(GameObject gameObject, FilterGameObjectCallback filter) {
@@ -469,8 +475,8 @@ public class Scene {
      * Get Neighbor in chosen direction
      *
      * @param gameObject GameObject reference
-     * @param direction direction in which to search for neighbor
-     * @param filter filter on neighbor
+     * @param direction  direction in which to search for neighbor
+     * @param filter     filter on neighbor
      * @return neighbor
      */
     public GameObject getNeighbor(GameObject gameObject, Direction direction, FilterGameObjectCallback filter) {
@@ -576,6 +582,10 @@ public class Scene {
      */
     public void resetRoadGraph() {
         this.roadGraph = new RoadGraph();
+    }
+
+    public Terrain getTerrain() {
+        return this.terrain;
     }
 
     /**

@@ -2,7 +2,7 @@ package renderEngine;
 
 import animation.Joint;
 import models.AnimatedModel;
-import util.parsing.Material;
+import renderEngine.shaders.structs.Material;
 import util.parsing.ModelType;
 import util.parsing.colladaParser.colladaLoader.ColladaLoader;
 import util.parsing.colladaParser.dataStructures.AnimatedModelData;

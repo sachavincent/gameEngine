@@ -1,6 +1,7 @@
 package textures;
 
 import guis.presets.Background;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +10,12 @@ public class ModelTexture extends Texture {
 
     public final static Map<File, ModelTexture> TEXTURES = new HashMap<>();
 
+    public final static ModelTexture NONE = new ModelTexture();
     public final static ModelTexture DEFAULT_MODEL = new ModelTexture("#D500F9", true);
 
     private float shineDamper = 1, reflectivity = 0;
 
-    private float   alpha;
+    private float alpha;
     private boolean useFakeLighting;
 
     private int numberOfRows = 1;
@@ -25,6 +27,13 @@ public class ModelTexture extends Texture {
         ModelTexture modelTexture = new ModelTexture(file);
         TEXTURES.put(file, modelTexture);
         return modelTexture;
+    }
+
+    /**
+     * Internal Constructor for the NONE instance
+     */
+    private ModelTexture() {
+        this.ID = -1;
     }
 
     public ModelTexture(String background) {

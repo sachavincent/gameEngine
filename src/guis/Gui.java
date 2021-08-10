@@ -1,8 +1,5 @@
 package guis;
 
-import static renderEngine.GuiRenderer.filledQuad;
-import static util.Utils.RES_PATH;
-
 import engineTester.Game;
 import fontMeshCreator.FontType;
 import guis.constraints.GuiConstraintHandler;
@@ -15,9 +12,6 @@ import inputs.MouseUtils;
 import inputs.callbacks.CloseCallback;
 import inputs.callbacks.OpenCallback;
 import inputs.callbacks.UpdateCallback;
-import java.awt.Color;
-import java.io.File;
-import java.util.*;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
@@ -26,12 +20,20 @@ import renderEngine.GuiRenderer;
 import textures.FontTexture;
 import util.math.Vector2f;
 
+import java.awt.*;
+import java.io.File;
+import java.util.List;
+import java.util.*;
+
+import static renderEngine.GuiRenderer.filledQuad;
+import static util.Utils.RES_PATH;
+
 public class Gui implements GuiInterface {
 
     public final static float CORNER_RADIUS = 8f;
 
     public final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture(new File(RES_PATH + "/roboto.png")).getTextureID(), new File(RES_PATH + "/roboto.fnt")); //TODO System-wide font
+            new FontTexture(new File(RES_PATH + "/roboto.png")).getID(), new File(RES_PATH + "/roboto.fnt")); //TODO System-wide font
 
     private final Map<GuiComponent, Set<Transition>> components;
 

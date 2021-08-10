@@ -1,15 +1,16 @@
 package pathfinding;
 
-import static util.math.Maths.manhattanDistance;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import terrains.TerrainPosition;
+import renderEngine.MeshData;
 import renderEngine.Vao;
+import terrain.TerrainPosition;
 import util.math.Vector2f;
 import util.math.Vector3f;
 import util.parsing.ModelType;
-import util.parsing.colladaParser.dataStructures.MeshData;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static util.math.Maths.manhattanDistance;
 
 public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Path> {
 

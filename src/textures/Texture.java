@@ -1,21 +1,6 @@
 package textures;
 
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
-import static org.lwjgl.opengl.GL30.GL_DEPTH24_STENCIL8;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_STENCIL_ATTACHMENT;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
-import static org.lwjgl.opengl.GL30.GL_RENDERBUFFER;
-import static org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE;
-import static org.lwjgl.opengl.GL41.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL41.glTexParameteri;
-
 import guis.presets.Background;
-import java.awt.Color;
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
@@ -23,16 +8,38 @@ import org.lwjgl.opengl.GL41;
 import org.lwjgl.stb.STBImage;
 import util.exceptions.MissingFileException;
 
+import java.awt.*;
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Objects;
+
+import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.GL_TEXTURE_RECTANGLE;
+import static org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE;
+import static org.lwjgl.opengl.GL41.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL41.glTexParameteri;
+
 public abstract class Texture {
 
-    protected int textureID, width, height;
+    protected int ID, width, height;
 
-    private   Color   color;
+    private Color color;
     protected boolean keepAspectRatio;
-    private   int     renderBuffer;
-    private   int     intermediateFbo;
-    private   int     multisampledID;
-    private   int     frameBuffer;
+    private int renderBuffer;
+    private int intermediateFbo;
+    private int multisampledID;
+    private int frameBuffer;
+
+    protected Texture() {
+    }
+
+    public Texture(Float[][] array) {
+        int w = array.length;
+        int h = array[0].length;
+        instantiateWithArray(array, w, h, this);
+    }
 
     public Texture(Background<?> background) {
         Object back = background.getBackground();
@@ -44,8 +51,9 @@ public abstract class Texture {
                 instantiateWithHexColor(backString);
         } else if (back instanceof File) {
             instantiateWithFile((File) back, this);
-        } else if (back instanceof Integer)
+        } else if (back instanceof Integer) {
             instantiateWithInteger((Integer) back);
+        }
 //        else
 //            throw new IllegalArgumentException("Invalid type: " + background);
     }
@@ -60,16 +68,16 @@ public abstract class Texture {
     private void instantiateWithColor(Color color) {
         this.width = 8;
         this.height = 8;
-        this.textureID = GL41.glGenTextures();
+        this.ID = GL41.glGenTextures();
         if (color == null)
             color = Color.WHITE;
 
         this.color = color;
-        GL41.glBindTexture(GL_TEXTURE_2D, this.textureID);
+        GL41.glBindTexture(GL_TEXTURE_2D, this.ID);
     }
 
     private void instantiateWithInteger(Integer integer) {
-        this.textureID = integer;
+        this.ID = integer;
     }
 
     protected static Texture instantiateWithFile(File file, Class<? extends Texture> textureClass) {
@@ -81,6 +89,44 @@ public abstract class Texture {
         }
 
         return instantiateWithFile(file, texture);
+    }
+
+    protected static Texture instantiateWithArray(Float[][] data, int width, int height, Texture texture) {
+        if (texture == null || data == null || data.length != width || data[0].length != height)
+            return texture;
+        texture.width = width;
+        texture.height = height;
+        if (false) {
+            texture.loadMSAATexture();
+        } else {
+            int textureID = GL41.glGenTextures();
+
+            texture.ID = textureID;
+            texture.keepAspectRatio = true;
+            float[] texels = new float[data.length * data[0].length];
+            for (int i = 0; i < data.length; ++i) {
+                float[] arr = new float[data[i].length];
+                for (int j = 0; j < arr.length; j++) {
+                    arr[j] = data[i][j];
+                }
+                System.arraycopy(arr, 0, texels, i * data[0].length, data[i].length);
+            }
+
+//            float min = Float.MAX_VALUE;
+//            float max = Float.MIN_VALUE;
+//            for (float texel : texels) {
+//                if (texel < min)
+//                    min = texel;
+//                if (texel > max)
+//                    max = texel;
+//            }
+//            System.out.println("MIN TEXEL: " + min);
+//            System.out.println("MAX TEXEL: " + max);
+            GL41.glBindTexture(GL_TEXTURE_RECTANGLE, textureID);
+            GL41.glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RED, width, height,
+                    0, GL_RED, GL41.GL_FLOAT, texels);
+        }
+        return texture;
     }
 
     protected static Texture instantiateWithFile(File file, Texture texture) {
@@ -111,7 +157,7 @@ public abstract class Texture {
         } else {
             int textureID = GL41.glGenTextures();
 
-            texture.textureID = textureID;
+            texture.ID = textureID;
             texture.keepAspectRatio = true;
 
             GL41.glBindTexture(GL_TEXTURE_2D, textureID);
@@ -150,8 +196,8 @@ public abstract class Texture {
         return this.color;
     }
 
-    public int getTextureID() {
-        return this.textureID;
+    public int getID() {
+        return this.ID;
     }
 
     public int getWidth() {
@@ -189,12 +235,12 @@ public abstract class Texture {
         GL41.glBindFramebuffer(GL_FRAMEBUFFER, intermediateFbo);
 
 
-        this.textureID = GL41.glGenTextures();
-        GL41.glBindTexture(GL_TEXTURE_2D, this.textureID);
+        this.ID = GL41.glGenTextures();
+        GL41.glBindTexture(GL_TEXTURE_2D, this.ID);
         GL41.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA, GL41.GL_UNSIGNED_BYTE, 0);
         GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MIN_FILTER, GL41.GL_NEAREST);
         GL41.glTexParameterf(GL_TEXTURE_2D, GL41.GL_TEXTURE_MAG_FILTER, GL41.GL_NEAREST);
-        GL41.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this.textureID, 0);
+        GL41.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this.ID, 0);
 
         if (GL41.glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             System.err.println("Error renderBuffer");
@@ -216,5 +262,18 @@ public abstract class Texture {
 
     public int getFrameBuffer() {
         return this.frameBuffer;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Texture texture = (Texture) o;
+        return this.ID == texture.ID;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.ID);
     }
 }

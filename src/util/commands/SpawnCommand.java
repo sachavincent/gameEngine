@@ -1,51 +1,45 @@
 package util.commands;
 
-import static entities.Camera.Direction.NORTH;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-
 import entities.Camera.Direction;
-import scene.gameObjects.GameObjectDatas;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import pathfinding.Path;
 import pathfinding.PathFinder;
 import renderEngine.PathRenderer;
 import scene.Scene;
-import scene.components.BoundingBoxComponent;
-import scene.components.DirectionComponent;
-import scene.components.PathComponent;
+import scene.components.*;
 import scene.components.PathComponent.PathType;
-import scene.components.PositionComponent;
-import scene.components.SelectableComponent;
-import scene.components.TransparencyComponent;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
+import scene.gameObjects.GameObjectDatas;
+import scene.gameObjects.Terrain;
+import terrain.TerrainPosition;
 import util.Utils;
+
+import java.awt.*;
+import java.util.List;
+import java.util.*;
+
+import static entities.Camera.Direction.NORTH;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 public class SpawnCommand extends Command {
 
     private final static String[] VALID_GAMEOBJECTS = new String[]{"NPC", "Insula", "Market"};
 
-    private final static String[] LOCAL_ALIAS               = new String[]{"spawn"};
-    private final static String[] LOCAL_PARAMETERS          = new String[]{"GameObject", "x", "y"};
+    private final static String[] LOCAL_ALIAS = new String[]{"spawn"};
+    private final static String[] LOCAL_PARAMETERS = new String[]{"GameObject", "x", "y"};
     private final static String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{"direction", "start",
             "destination", "show"};
 
-    private final static LocalExecuteCommandCallback LOCAL_CALLBACK = (gameObjectName, x, y, dir, start, dest, show) -> {
+    private final static LocalExecuteCommandCallback LOCAL_CALLBACK = (gameObjectName, x, z, dir, start, dest, show) -> {
         if (!isGameObjectValid(gameObjectName))
             return 1;
 
         if (!x.matches("\\d+(\\.\\d+)?"))
             return 2;
-        if (!y.matches("\\d+(\\.\\d+)?"))
+        if (!z.matches("\\d+(\\.\\d+)?"))
             return 3;
 
         int xValue = Integer.parseInt(x);
-        int yValue = Integer.parseInt(y);
+        int zValue = Integer.parseInt(z);
         Direction direction;
         try {
             direction = Direction.valueOf(dir.toUpperCase());
@@ -70,7 +64,9 @@ public class SpawnCommand extends Command {
 
         Class<? extends GameObject> gameObjectClass = GameObject.getClassFromName(gameObjectName);
 
-        TerrainPosition position = new TerrainPosition(xValue, yValue);
+        Terrain terrain = Scene.getInstance().getTerrain();
+        HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
+        TerrainPosition position = new TerrainPosition(xValue, heightMapComponent.getHeight(xValue, zValue), zValue);
         if (!Scene.getInstance().canGameObjectClassBePlaced(gameObjectClass, position, direction))
             return 4;
 

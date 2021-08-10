@@ -1,8 +1,9 @@
 package scene.components;
 
+import terrain.TerrainPosition;
+
 import java.util.HashMap;
 import java.util.Map;
-import terrains.TerrainPosition;
 
 public class TerrainComponent extends Component {
 

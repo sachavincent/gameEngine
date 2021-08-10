@@ -1,16 +1,15 @@
 package textures;
 
-import guis.presets.Background;
-import java.awt.Color;
-import java.io.File;
-
 public class TerrainTexture extends Texture {
 
-    public TerrainTexture(File file) {
-        super(new Background<>(file));
+    private final Float[][] heights;
+
+    public TerrainTexture(Float[][] heights) {
+        super(heights);
+        this.heights = heights;
     }
 
-    public TerrainTexture(Color color) {
-        super(new Background<>(color));
+    public Float[][] getHeights() {
+        return this.heights;
     }
 }

@@ -1,22 +1,18 @@
 package scene.components;
 
 import entities.Camera.Direction;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import pathfinding.NodeRoad;
-import pathfinding.NormalRoad;
-import pathfinding.Path;
-import pathfinding.PathFinder;
-import pathfinding.Road;
-import pathfinding.RoadGraph;
+import pathfinding.*;
 import renderEngine.DisplayManager;
 import scene.Scene;
 import scene.components.PedestrianComponent.Behavior;
 import scene.gameObjects.GameObject;
-import terrains.TerrainPosition;
+import terrain.TerrainPosition;
 import util.math.Vector2f;
 import util.math.Vector3f;
+
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class PathComponent extends Component {
 

@@ -17,22 +17,20 @@ import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
 import scene.gameObjects.*;
-import util.*;
+import util.KeybindingsManager;
+import util.SettingsManager;
+import util.TimeSystem;
+import util.Utils;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import water.WaterFrameBuffers;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static renderEngine.DisplayManager.getWindow;
-import static util.Utils.RES_PATH;
 
 public class MainGameLoop {
 
@@ -146,11 +144,7 @@ public class MainGameLoop {
         }
 
         Scene.getInstance();
-        new Light(new Vector3f(-250, 150, -250), new Vector3f(2.2f, 2.2f, 2.2f));
-        new Light(new Vector3f(250, 150, 250), new Vector3f(2.2f, 2.2f, 2.2f));
-        new Light(new Vector3f(-250, 150, 250), new Vector3f(2.2f, 2.2f, 2.2f));
-        new Light(new Vector3f(250, 150, -250), new Vector3f(2.2f, 2.2f, 2.2f));
-
+        new Light.Sun(new Vector3f(1.3f, 1.3f, 1.3f), 300f);
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
         MouseUtils.setupListeners();
@@ -202,7 +196,7 @@ public class MainGameLoop {
             while (TimeSystem.getTimeMillis() >= startTime + 1000L) {
                 startTime += 1000;
 
-                DisplayManager.FPS = nbFrames;
+                DisplayManager.CURRENT_FPS = nbFrames;
 
                 tpsList.add(0, nbTicks);
                 if (tpsList.size() > 5) {

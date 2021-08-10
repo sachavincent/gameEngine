@@ -1,69 +1,51 @@
 package renderEngine;
 
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
-import static org.lwjgl.opengl.GL43.GL_DEBUG_SEVERITY_NOTIFICATION;
-import static util.Utils.RES_PATH;
-
-import de.matthiasmann.twl.utils.PNGDecoder;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWImage;
-import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.*;
 import org.lwjgl.glfw.GLFWVidMode.Buffer;
-import org.lwjgl.glfw.GLFWWindowMaximizeCallback;
-import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
-import util.DisplayUtils;
 import util.Timer;
 import util.math.Maths;
 
+import java.io.PrintStream;
+import java.nio.IntBuffer;
+import java.util.*;
+
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_ALIASED_LINE_WIDTH_RANGE;
+
 public class DisplayManager {
 
-    public static int WIDTH = 2560, HEIGHT = 1440, FRAMERATE_LIMIT = 300, FPS = FRAMERATE_LIMIT, TPS = 20;
-    public static  double  MSPT;
-    private static double  FRAMERATE_LIMIT_NS = 1000000000 / (double) FRAMERATE_LIMIT;
+    public static int WIDTH = 2560, HEIGHT = 1440, FRAMERATE_LIMIT = 300, CURRENT_FPS = FRAMERATE_LIMIT, TPS = 20;
+    public static double MSPT;
+    private static double FRAMERATE_LIMIT_NS = 1000000000 / (double) FRAMERATE_LIMIT;
     private static boolean LIMIT_FRAMERATE;
-    public static  float   MIN_LINE_WIDTH;
-    public static  float   MAX_LINE_WIDTH;
-    private static long    window;
-    public static  boolean VSYNC_ENABLED;
+    public static float MIN_LINE_WIDTH;
+    public static float MAX_LINE_WIDTH;
+    private static long window;
+    public static boolean VSYNC_ENABLED;
 
     public static List<Screen> screens;
-    public static Screen       currentScreen;
-    public static int          indexCurrentScreen;
+    public static Screen currentScreen;
+    public static int indexCurrentScreen;
 
     public static DisplayMode displayMode;
 
-    private static GLFWErrorCallback           callback;
+    private static GLFWErrorCallback callback;
     private static GLFWFramebufferSizeCallback callback2;
-    private static GLFWWindowMaximizeCallback  callback3;
-    private static GLFWWindowPosCallback       callback4;
-    private static long                        firstWindow;
+    private static GLFWWindowMaximizeCallback callback3;
+    private static GLFWWindowPosCallback callback4;
+    private static long firstWindow;
 
     public static PrintStream outStream;
     public static PrintStream errStream;
 
-    public final static int    MIN_FRAMERATE      = 30;
-    public final static int    MAX_FRAMERATE      = 300;
+    public final static int MIN_FRAMERATE = 30;
+    public final static int MAX_FRAMERATE = 300;
     public final static String FRAMERATE_INFINITE = "Inf.";
     ;
 
@@ -140,30 +122,30 @@ public class DisplayManager {
             }
         }));
 
-        GLFWImage image = GLFWImage.malloc();
-        ByteBuffer buf = null;
-        GLFWImage.Buffer images = null;
-        try {
-            PNGDecoder dec = new PNGDecoder(new FileInputStream(RES_PATH + "/insula_preview.png"));
-            int width = dec.getWidth();
-            int height = dec.getHeight();
-            buf = BufferUtils.createByteBuffer(width * height * 4);
-            dec.decode(buf, width * 4, PNGDecoder.Format.RGBA);
-            buf.flip();
-            image.set(width, height, buf);
-            images = GLFWImage.malloc(1);
-            images.put(0, image);
-
-            glfwSetWindowIcon(window, images);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (buf != null)
-                buf.clear();
-            if (images != null)
-                images.free();
-            image.free();
-        }
+//        GLFWImage image = GLFWImage.malloc();
+//        ByteBuffer buf = null;
+//        GLFWImage.Buffer images = null;
+//        try {
+//            PNGDecoder dec = new PNGDecoder(new FileInputStream(RES_PATH + "/insula_preview.png"));
+//            int width = dec.getWidth();
+//            int height = dec.getHeight();
+//            buf = BufferUtils.createByteBuffer(width * height * 4);
+//            dec.decode(buf, width * 4, PNGDecoder.Format.RGBA);
+//            buf.flip();
+//            image.set(width, height, buf);
+//            images = GLFWImage.malloc(1);
+//            images.put(0, image);
+//
+//            glfwSetWindowIcon(window, images);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (buf != null)
+//                buf.clear();
+//            if (images != null)
+//                images.free();
+//            image.free();
+//        }
 
         glEnable(GL13.GL_MULTISAMPLE);
 
@@ -176,7 +158,7 @@ public class DisplayManager {
 //        System.out.println("max: " + MAX_LINE_WIDTH);
     }
 
-    public static void setFPS(int fps) {
+    public static void setCurrentFps(int fps) {
         LIMIT_FRAMERATE = fps < Integer.MAX_VALUE;
 
         FRAMERATE_LIMIT = fps;
@@ -185,11 +167,11 @@ public class DisplayManager {
 
     public static void setFPS(String fps) {
         if (fps.equalsIgnoreCase(FRAMERATE_INFINITE))
-            setFPS(Integer.MAX_VALUE);
+            setCurrentFps(Integer.MAX_VALUE);
         else {
             try {
                 int fpsValue = Integer.parseInt(fps);
-                setFPS(Maths.clamp(fpsValue, MIN_FRAMERATE, MAX_FRAMERATE));
+                setCurrentFps(Maths.clamp(fpsValue, MIN_FRAMERATE, MAX_FRAMERATE));
             } catch (NumberFormatException e) {
 
             }
@@ -405,10 +387,10 @@ public class DisplayManager {
     public static class Screen {
 
         public long id;
-        int     x;
-        int     y;
+        int x;
+        int y;
         boolean isPrimary;
-        public Resolution      resolution;
+        public Resolution resolution;
         public Set<Resolution> resolutions;
 
         public Screen(long id, int x, int y, boolean isPrimary, Set<Resolution> resolutions) {

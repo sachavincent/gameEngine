@@ -1,17 +1,21 @@
 package util.math;
 
+import scene.Scene;
+import scene.components.HeightMapComponent;
+import scene.gameObjects.Terrain;
+import terrain.TerrainPosition;
+
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Locale;
 import java.util.Objects;
-import terrains.TerrainPosition;
 
 public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
 
-    private static final long  serialVersionUID = 1L;
-    public               float x;
-    public               float y;
-    public               float z;
+    private static final long serialVersionUID = 1L;
+    public float x;
+    public float y;
+    public float z;
 
     public Vector3f() {
     }
@@ -217,21 +221,28 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y, z);
+        return Objects.hash(this.x, this.y, this.z);
     }
 
     public void format() {
-        x = Float.parseFloat(String.format(Locale.ROOT, "%.4f", x));
-        y = Float.parseFloat(String.format(Locale.ROOT, "%.4f", y));
-        z = Float.parseFloat(String.format(Locale.ROOT, "%.4f", z));
+        this.x = Float.parseFloat(String.format(Locale.ROOT, "%.4f", this.x));
+        this.y = Float.parseFloat(String.format(Locale.ROOT, "%.4f", this.y));
+        this.z = Float.parseFloat(String.format(Locale.ROOT, "%.4f", this.z));
     }
 
     public boolean isTerrainPosition() {
-        return y == 0.05f;
+        Terrain terrain = Scene.getInstance().getTerrain();
+        HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
+        TerrainPosition pos = toTerrainPosition();
+        if (pos.getX() < 0 || pos.getX() > heightMapComponent.getHeights().length ||
+                pos.getZ() < 0 || pos.getZ() > heightMapComponent.getHeights()[0].length)
+            return false;
+
+        return this.y == heightMapComponent.getHeight(pos.getX(), pos.getZ());
     }
 
     public TerrainPosition toTerrainPosition() {
-        return new TerrainPosition((int) Math.rint(x), (int) Math.rint(z));
+        return new TerrainPosition((int) Math.rint(this.x), this.y, (int) Math.rint(this.z));
     }
 
 //    public TerrainPosition toTerrainPositionForPlacing() {
