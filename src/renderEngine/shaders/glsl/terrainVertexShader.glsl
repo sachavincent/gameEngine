@@ -1,6 +1,7 @@
 #version 400 core
 
 #define MAX_LIGHTS 10
+#define MIN_HEIGHT_EDGE -10 // Lowest height of edges
 #define DEFAULT_MAX_HEIGHT 32.0
 
 invariant gl_Position;
@@ -21,6 +22,7 @@ uniform vec3 lightPosition[MAX_LIGHTS];
 
 uniform float maxHeight = DEFAULT_MAX_HEIGHT;
 uniform sampler2DRect heightMap;
+uniform ivec2 terrainSize;
 
 uniform vec4 plane;
 
@@ -28,7 +30,7 @@ const float density = 0;
 const float gradient = 5.0;
 
 float getHeight(int x, int z) {
-    if (x < 0 || z < 0 || x > 127 || z > 127) {
+    if (x < 0 || z < 0 || x > terrainSize.x - 1 || z > terrainSize.y - 1) {
         return 0;
     }
 
@@ -48,8 +50,25 @@ vec3 calculateNormal(int x, int z) {
 }
 
 void main(void) {
-    float height = texture2DRect(heightMap, position).r;
-    vec3 pos = vec3(position.x, height * maxHeight, position.y);
+    float height = MIN_HEIGHT_EDGE;
+    ivec2 finalPosition = position;
+    bool edge = false;
+    if (position.x < 0 || position.x > terrainSize.x - 1) {
+        // Edge
+        edge = true;
+        finalPosition.x = clamp(position.x, 0, terrainSize.x - 1);
+    }
+    if (position.y < 0 || position.y > terrainSize.y - 1) {
+        // Edge
+        edge = true;
+        finalPosition.y = clamp(position.y, 0, 127);
+    }
+
+    if(!edge) {
+        height = getHeight(position.x, position.y) * maxHeight;
+    }
+
+    vec3 pos = vec3(finalPosition.x, height, finalPosition.y);
     worldPosition = transformationMatrix * vec4(pos, 1.0);
 
     gl_ClipDistance[0] = dot(worldPosition, plane);
@@ -58,7 +77,7 @@ void main(void) {
 
     gl_Position = projectionMatrix * positionRelativeToCam;
 
-    surfaceNormal = (transformationMatrix * vec4(calculateNormal(position.x, position.y), 0.0)).xyz;
+    surfaceNormal = (transformationMatrix * vec4(calculateNormal(finalPosition.x, finalPosition.y), 0.0)).xyz;
     for (int i = 0; i < MAX_LIGHTS; i++) {
         toLightVector[i] = lightPosition[i] - worldPosition.xyz;
     }

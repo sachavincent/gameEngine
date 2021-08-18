@@ -32,7 +32,7 @@ public class PathRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
             s.loadTransformationMatrix(
                     Maths.createTransformationMatrix(new Vector2f(0, 0), new Vector2f(1, 1)));
             s.loadOffset(0, 0);
-            s.loadClipPlane(MasterRenderer.getClipPlane());
+            s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
         });

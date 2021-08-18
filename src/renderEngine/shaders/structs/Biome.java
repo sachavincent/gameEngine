@@ -13,7 +13,9 @@ public class Biome implements StructElement {
     /**
      * Creates a biome with material between minHeight and maxHeight
      * material is interpolated if height < minHeight or height >= maxHeight
-     * for all biomes
+     * for all biomes.
+     * Throws an {@link IllegalArgumentException}
+     * if minHeight > maxHeight or material is null
      *
      * @param material  material used to represent the biome
      * @param minHeight inclusive
@@ -23,6 +25,9 @@ public class Biome implements StructElement {
         this.material = material;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+
+        if (material == null || minHeight > maxHeight)
+            throw new IllegalArgumentException("Illegal Biome argument");
     }
 
     public Material getMaterial() {

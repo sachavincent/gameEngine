@@ -62,6 +62,16 @@ public abstract class ShaderProgram {
                     ((Vector4f) vector).w);
     }
 
+    public static void loadIntVector(int location, Vector vector) {
+        if (vector instanceof Vector2f)
+            GL20.glUniform2i(location, (int) ((Vector2f) vector).x, (int) ((Vector2f) vector).y);
+        else if (vector instanceof Vector3f)
+            GL20.glUniform3i(location, (int) ((Vector3f) vector).x, (int) ((Vector3f) vector).y, (int) ((Vector3f) vector).z);
+        else if (vector instanceof Vector4f)
+            GL20.glUniform4i(location, (int) ((Vector4f) vector).x, (int) ((Vector4f) vector).y, (int) ((Vector4f) vector).z,
+                    (int) ((Vector4f) vector).w);
+    }
+
     public static void loadInt(int location, Integer value) {
         GL20.glUniform1i(location, value);
     }
@@ -78,21 +88,21 @@ public abstract class ShaderProgram {
         matrixBuffer.clear();
     }
 
-    final public void start() {
+    public final void start() {
         if (!this.started) {
             GL20.glUseProgram(this.programID);
             this.started = true;
         }
     }
 
-    final public void stop() {
+    public final void stop() {
         if (this.started) {
             GL20.glUseProgram(0);
             this.started = false;
         }
     }
 
-    final public void cleanUp() {
+    public final void cleanUp() {
         stop();
 
         GL20.glDetachShader(this.programID, this.vertexShaderID);
@@ -106,15 +116,15 @@ public abstract class ShaderProgram {
 
     protected abstract void bindAttributes();
 
-    final protected void bindAttribute(int attribute, String variableName) {
+    protected final void bindAttribute(int attribute, String variableName) {
         GL20.glBindAttribLocation(this.programID, attribute, variableName);
     }
 
-    final public boolean isStarted() {
+    public final boolean isStarted() {
         return this.started;
     }
 
-     private static int loadShader(String file, int type) {
+    private static int loadShader(String file, int type) {
         StringBuilder shaderSource = new StringBuilder();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));

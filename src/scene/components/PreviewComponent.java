@@ -2,8 +2,6 @@ package scene.components;
 
 import entities.ModelEntity;
 import models.AbstractModel;
-import renderEngine.BuildingRenderer;
-import renderEngine.GameObjectRenderer;
 import util.math.Vector3f;
 
 public class PreviewComponent extends Component {
@@ -18,12 +16,6 @@ public class PreviewComponent extends Component {
 
     public PreviewComponent(ModelEntity previewTexture) {
         this.previewTexture = previewTexture;
-        setOnUpdateComponentCallback(gameObject -> {
-            GameObjectRenderer gameObjectRenderer = gameObject.getComponent(RendererComponent.class).getRenderer();
-            if (gameObjectRenderer instanceof BuildingRenderer) {
-                ((BuildingRenderer) gameObjectRenderer).removeGameObject(gameObject);
-            }
-        });
     }
 
     public ModelEntity getTexture() {

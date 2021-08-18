@@ -22,7 +22,6 @@ import util.SettingsManager;
 import util.TimeSystem;
 import util.Utils;
 import util.math.Vector3f;
-import util.math.Vector4f;
 import water.WaterFrameBuffers;
 
 import java.util.ArrayList;
@@ -152,9 +151,6 @@ public class MainGameLoop {
         Game.getInstance().updateGuis();
 
         Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
-
-        Vector4f clipPlane = new Vector4f(0, -1, 0, 1000000);
-        MasterRenderer.setClipPlane(clipPlane);
 
         long lastUpdate = System.nanoTime();
         int nbFrames = 0;

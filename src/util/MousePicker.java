@@ -17,11 +17,8 @@ import terrain.TerrainPosition;
 import util.math.*;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 
 public class MousePicker {
 
@@ -30,6 +27,8 @@ public class MousePicker {
     private Matrix4f viewMatrix;
 
     private Vector3f intersectionPoint;
+
+    public List<TerrainPosition> hoveredCells = new ArrayList<>();
 
     private static MousePicker instance;
 
@@ -193,20 +192,22 @@ public class MousePicker {
             return this.intersectionPoint == null ? null : this.intersectionPoint.toTerrainPosition();
 //        if (this.needRayUpdate)
 //            update();
-
+        Terrain terrain = Scene.getInstance().getTerrain();
+        if (terrain == null)
+            return null;
+        this.hoveredCells.clear();
         this.intersectionPoint = null;
         float slopeSpeed = 1.0f;
         Vector3f currPos = new Vector3f(Camera.getInstance().getPosition());
         // First, check if mouseRay intersects with Terrain:
 //        if (!terrainPlane.doesLineIntersect(this.currentRay))
-//            return null;//TODO:Use full BB (minHeight to maxHeight Box
+//            return null;//TODO:Use full BB (minHeight to maxHeight Box)
         while (!isPosOnTerrain(currPos)) {//Dangerous for now if not clicked on terrain@see TODO-Above
             // Camera not above the Terrain
             Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
                     this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
             currPos = Vector3f.add(currPos, tmp, null);
         }
-        Terrain terrain = Scene.getInstance().getTerrain();
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
         while (isPosOnTerrain(currPos)) {
             int minX = (int) Math.floor(currPos.x);
@@ -225,14 +226,13 @@ public class MousePicker {
                 TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.x), p1.y,
                         (int) Math.floor(p1.z));
                 this.intersectionPoint = terrainPosition.toVector3f();
-                return terrainPosition;
             }
-
+            hoveredCells.add(new TerrainPosition(p1));
             Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
                     this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
             currPos = Vector3f.add(currPos, tmp, null);
         }
-        return null;
+        return this.intersectionPoint == null ? null : this.intersectionPoint.toTerrainPosition();
     }
 
     private boolean isPosOnTerrain(Vector3f pos) {

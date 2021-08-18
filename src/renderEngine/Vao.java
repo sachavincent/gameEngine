@@ -7,7 +7,6 @@ import util.parsing.ModelType;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.IntStream;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -24,7 +23,7 @@ public class Vao {
 
     private boolean instanced;
     private Vbo instanceVbo;
-    private ModelType modelType;
+    private final List<Integer> attributes;
 
     public static Vao create() {
         int id = GL30.glGenVertexArrays();
@@ -34,6 +33,7 @@ public class Vao {
     private Vao(int id) {
         this.id = id;
         this.dataVbos = new ArrayList<>();
+        this.attributes = new ArrayList<>();
         this.indexVbos = new LinkedHashMap<>();
     }
 
@@ -48,15 +48,11 @@ public class Vao {
     public final void bind() {
         GL30.glBindVertexArray(this.id);
 
-        if (this.modelType != null)
-            IntStream.of(this.modelType.getAttributeNumbers()).
-                    forEachOrdered(GL20::glEnableVertexAttribArray);
+        this.attributes.forEach(GL20::glEnableVertexAttribArray);
     }
 
     public final void unbind() {
-        if (this.modelType != null)
-            IntStream.of(this.modelType.getAttributeNumbers()).
-                    forEachOrdered(GL20::glDisableVertexAttribArray);
+        this.attributes.forEach(GL20::glDisableVertexAttribArray);
 
         GL30.glBindVertexArray(0);
     }
@@ -74,7 +70,7 @@ public class Vao {
     public void createAttribute(int attribute, float[] data, int attrSize) {
         if (data.length == 0)
             return;
-        Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
+        Vbo dataVbo = createAttribute(attribute);
         dataVbo.bind();
         dataVbo.storeData(data);
         GL20.glVertexAttribPointer(attribute, attrSize, GL11.GL_FLOAT, false, attrSize * BYTES_PER_FLOAT, 0);
@@ -85,12 +81,18 @@ public class Vao {
     public void createIntAttribute(int attribute, int[] data, int attrSize) {
         if (data.length == 0)
             return;
-        Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
+        Vbo dataVbo = createAttribute(attribute);
         dataVbo.bind();
         dataVbo.storeData(data);
         GL30.glVertexAttribIPointer(attribute, attrSize, GL11.GL_INT, attrSize * BYTES_PER_INT, 0);
         dataVbo.unbind();
         this.dataVbos.add(dataVbo);
+    }
+
+    private Vbo createAttribute(int attribute) {
+        this.attributes.add(attribute);
+
+        return Vbo.create(GL15.GL_ARRAY_BUFFER);
     }
 
     public void delete() {
@@ -99,13 +101,13 @@ public class Vao {
         this.indexVbos.values().forEach(Vbo::delete);
     }
 
-    public static Vao createVao(TerrainMeshData meshData, ModelType modelType) {
+    public static Vao createVao(TerrainMeshData meshData) {
         Vao vao = Vao.create();
-        vao.modelType = modelType;
         vao.bind();
         vao.createIndexBuffer(new Material("T"), meshData.getIndices());
 
         vao.createIntAttribute(0, meshData.getVertices(), 2);
+        vao.createIntAttribute(1, meshData.getIsEdge(), 1);
         vao.unbind();
         return vao;
     }
@@ -120,7 +122,6 @@ public class Vao {
      */
     public static Vao createVao(MeshData data, ModelType modelType) {
         Vao vao = Vao.create();
-        vao.modelType = modelType;
         vao.bind();
 
         for (Entry<Material, int[]> materialIndices : data.getIndicesList().entrySet())
@@ -236,10 +237,6 @@ public class Vao {
             return false;
         Vao vao = (Vao) o;
         return this.id == vao.id;
-    }
-
-    public ModelType getModelType() {
-        return this.modelType;
     }
 
     @Override

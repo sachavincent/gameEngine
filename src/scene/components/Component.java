@@ -1,6 +1,5 @@
 package scene.components;
 
-import java.util.HashSet;
 import scene.Scene;
 import scene.components.callbacks.AddComponentCallback;
 import scene.components.callbacks.FrameRendereredCallback;
@@ -8,17 +7,19 @@ import scene.components.callbacks.TickElapsedCallback;
 import scene.components.callbacks.UpdateComponentCallback;
 import scene.gameObjects.GameObject;
 
+import java.util.HashSet;
+
 public abstract class Component {
 
-    protected int                     idGameObject;
-    private   AddComponentCallback    onAddComponentCallback;
-    private   UpdateComponentCallback onUpdateComponentCallback;
+    protected int idGameObject;
+    private AddComponentCallback onAddComponentCallback;
+    private UpdateComponentCallback onUpdateComponentCallback;
 
     private TickElapsedCallback onTickElapsedCallback;
-    private int                 nbTicksTickElapsed;
+    private int nbTicksTickElapsed;
 
     private FrameRendereredCallback onFrameRenderedCallback;
-    private int                     nbFramesFrameRendered;
+    private int nbFramesFrameRendered;
 
     protected boolean updated;
 
@@ -35,6 +36,10 @@ public abstract class Component {
     public Component() {
         if (!Scene.getInstance().getIdGameObjectsForComponents().containsKey(getClass()))
             Scene.getInstance().getIdGameObjectsForComponents().put(getClass(), new HashSet<>());
+
+        this.onUpdateComponentCallback = gameObject -> {
+
+        };
     }
 
     public void setId(int id) {
@@ -70,15 +75,17 @@ public abstract class Component {
         return this.updated;
     }
 
-    final public void update() {
+    public final void update() {
         if (this.onUpdateComponentCallback != null) {
             GameObject gameObjectFromId = Scene.getInstance().getGameObjectFromId(this.idGameObject);
-            if (gameObjectFromId != null)
+            if (gameObjectFromId != null) {
+                this.onUpdateComponentCallback.onUpdateComponentDefault(gameObjectFromId);
                 this.onUpdateComponentCallback.onUpdateComponent(gameObjectFromId);
+            }
         }
     }
 
-    final public void tick() {
+    public final void tick() {
         if (this.onTickElapsedCallback != null) {
             boolean ticked = this.onTickElapsedCallback
                     .onTickElapsed(Scene.getInstance().getGameObjectFromId(this.idGameObject),
@@ -88,7 +95,7 @@ public abstract class Component {
         }
     }
 
-    final public void render() {
+    public final void render() {
         if (this.onFrameRenderedCallback != null) {
             boolean rendered = this.onFrameRenderedCallback
                     .onFrameRendered(Scene.getInstance().getGameObjectFromId(this.idGameObject),

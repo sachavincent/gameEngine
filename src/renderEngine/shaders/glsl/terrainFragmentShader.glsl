@@ -31,9 +31,6 @@ in vec3 pass_pos;
 
 out vec4 out_Color;
 
-uniform bool uniformColor;
-uniform vec2 terrainSize;
-
 uniform int focusBuildingPlacement;
 uniform vec3 centerFocus[100];
 uniform int radiusFocus[100];
@@ -41,12 +38,13 @@ uniform int radiusFocus[100];
 uniform vec3 lightColor[MAX_LIGHTS];
 uniform vec3 attenuation[MAX_LIGHTS];
 uniform Biome biomes[MAX_BIOMES];
-uniform float shineDamper;
 uniform float maxHeight = DEFAULT_MAX_HEIGHT;
-uniform float reflectivity;
 uniform vec3 skyColor;
-uniform vec2 hoveredCell;
+uniform vec2 hoveredCells[200];
 
+bool isPosInCell(vec2 cell, vec2 position) {
+    return position.x >= cell.x && position.x < cell.x + 1 && position.y >= cell.y && position.y < cell.y + 1;
+}
 float manhattanDistance(float p1, float p2) {
     float d1 = abs(p1 - p2);
     return d1;
@@ -86,12 +84,12 @@ void main() {
         vec3 unitLightVector = normalize(toLightVector[i]);
         float nDotl = dot(unitNormal, unitLightVector);
 
-        vec3 lightDirection = -unitLightVector;
-        vec3 reflectedLightDirection = reflect(lightDirection, unitNormal);
+        //        vec3 lightDirection = -unitLightVector;
+        //        vec3 reflectedL ightDirection = reflect(lightDirection, unitNormal);
 
-        float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
-        specularFactor = max(specularFactor, 0.0);
-        float dampedFactor = pow(specularFactor, shineDamper);
+        //        float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
+        //        specularFactor = max(specularFactor, 0.0);
+        //        float dampedFactor = pow(specularFactor, shineDamper);
 
         vec3 color = lightColor[i];
         float brightness = clamp(nDotl, 0.0, 1.0) / 2.0;
@@ -100,7 +98,8 @@ void main() {
         //            totalSpecular = totalSpecular + (dampedFactor * reflectivity * color) / attFactor;
     }
 
-//    totalDiffuse = max(totalDiffuse, 0.1);
+    totalDiffuse = max(totalDiffuse, 0.3);
+
 
     //    out_Color = vec4(totalDiffuse, 1.0) * totalColor/* + vec4(totalSpecular, 1.0)*/;
     //    out_Color = vec4(totalDiffuse, 1.0) * texture(backgroundTexture, pass_textureCoords);
@@ -116,62 +115,74 @@ void main() {
     //        out_Color = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), yLevel / 32.0);
     //    out_Color = vec4(1, 0, 0, 1);
 
-    if (pass_pos.x > hoveredCell.x && pass_pos.x < hoveredCell.x + 1
-    && pass_pos.z > hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
-        out_Color = vec4(0, 1, 1, 1);
-    } else {
-        Biome biomeBelow;
-        biomeBelow.MinHeight = -1;
-        Biome biomeAbove;
-        biomeAbove.MinHeight = maxHeight + 1;
-        for (int i = 0; i < MAX_BIOMES; i++) {
-            Biome biome = biomes[i];
-            if (biome.MinHeight < 0) { // End of the list of biomes
-                break;
-            }
-
-            if (pass_pos.y >= biome.MinHeight && pass_pos.y < biome.MaxHeight) { // Fully in biome
-                out_Color = vec4(biome.Material.Diffuse.rgb, 1.0);
-                //                return;
-            }
-
-            if (pass_pos.y < biome.MinHeight && biome.MinHeight < biomeAbove.MinHeight) {
-                biomeAbove = biome;
-            }
-            if (pass_pos.y >= biome.MaxHeight && biome.MaxHeight > biomeBelow.MaxHeight) {
-                biomeBelow = biome;
-            }
+    vec2 p = vec2(pass_pos.x, pass_pos.z);
+    for (int i = 0; i < 200; i++) {
+        vec2 cell = hoveredCells[i];
+        if (cell.x < 0 || cell.y < 0) {
+            break;
         }
-        vec3 color;
-        if (biomeAbove.MinHeight < 0 && biomeBelow.MinHeight < 0) { // No biome
-            color = vec3(1, 0, 0);
-        } else if (biomeAbove.MinHeight < 0) { // No biome above
-            color = biomeBelow.Material.Diffuse;
-            //            color = vec3(0, 1, 0);
-        } else if (biomeBelow.MinHeight < 0) { // No biome below
-            color = biomeAbove.Material.Diffuse;
-            //            color = vec3(0, 0, 1);
-        } else {
-            if (abs(biomeAbove.MinHeight - biomeBelow.MaxHeight) < 1) {
-                color = biomeAbove.Material.Diffuse;
-            } else {
-                color = mix(biomeBelow.Material.Diffuse, biomeAbove.Material.Diffuse,
-                (pass_pos.y - biomeBelow.MaxHeight) / (biomeAbove.MinHeight - biomeBelow.MaxHeight));
-            }
+        if (isPosInCell(cell, p)) {
+            out_Color = vec4(0, 1, 1, 1);
+            return;
         }
-
-        if (pass_pos.y < 5)
-        color = vec3(1, 0, 0);
-        else if (pass_pos.y < 10)
-        color = vec3(0, 1, 0);
-        else if (pass_pos.y < 15)
-        color = vec3(0, 0, 1);
-        else if (pass_pos.y < 20)
-        color = vec3(1, 0, 1);
-        else
-        color = vec3(1, 1, 1);
-        color= color * totalDiffuse;
-//        color=  totalDiffuse;
-        out_Color = vec4(color, 1.0);
     }
+    //    if (pass_pos.x >= hoveredCell.x && pass_pos.x < hoveredCell.x + 1
+    //    && pass_pos.z >= hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
+    //        out_Color = vec4(0, 1, 1, 1);
+    //    } else {
+    Biome biomeBelow;
+    biomeBelow.MinHeight = -1;
+    Biome biomeAbove;
+    biomeAbove.MinHeight = maxHeight + 1;
+    for (int i = 0; i < MAX_BIOMES; i++) {
+        Biome biome = biomes[i];
+        if (biome.MinHeight < 0) { // End of the list of biomes
+            break;
+        }
+
+        if (pass_pos.y >= biome.MinHeight && pass_pos.y < biome.MaxHeight) { // Fully in biome
+            out_Color = vec4(biome.Material.Diffuse.rgb * totalDiffuse, 1.0);
+            return;
+        }
+
+        if (pass_pos.y < biome.MinHeight && biome.MinHeight < biomeAbove.MinHeight) {
+            biomeAbove = biome;
+        }
+        if (pass_pos.y >= biome.MaxHeight && biome.MaxHeight > biomeBelow.MaxHeight) {
+            biomeBelow = biome;
+        }
+    }
+    vec3 colorBelow = biomeBelow.Material.Diffuse * totalDiffuse;
+    vec3 colorAbove = biomeAbove.Material.Diffuse * totalDiffuse;
+    vec3 color;
+    if (biomeAbove.MinHeight < 0 && biomeBelow.MinHeight < 0) { // No biome
+        color = vec3(1, 0, 0);
+    } else if (biomeAbove.MinHeight < 0) { // No biome above
+        color = colorBelow;
+        //            color = vec3(0, 1, 0);
+    } else if (biomeBelow.MinHeight < 0) { // No biome below
+        color = colorAbove;
+        //            color = vec3(0, 0, 1);
+    } else {
+        //            if (abs(biomeAbove.MinHeight - biomeBelow.MaxHeight) < 1) {
+        //                color = biomeAbove.Material.Diffuse;
+        //            } else {
+        color = mix(colorBelow, colorAbove,
+        (pass_pos.y - biomeBelow.MaxHeight) / (biomeAbove.MinHeight - biomeBelow.MaxHeight));
+        //            }
+    }
+
+    //        if (pass_pos.y < 5)
+    //        color = vec3(1, 0, 0);
+    //        else if (pass_pos.y < 10)
+    //        color = vec3(0, 1, 0);
+    //        else if (pass_pos.y < 15)
+    //        color = vec3(0, 0, 1);
+    //        else if (pass_pos.y < 20)
+    //        color = vec3(1, 0, 1);
+    //        else
+    //        color = vec3(1, 1, 1);
+    //        color=  totalDiffuse;
+    out_Color = vec4(color, 1.0);
+    //    }
 }

@@ -17,11 +17,7 @@ public class MasterRenderer {
     private Matrix4f projectionMatrix;
 
     private static MasterRenderer instance;
-    private static Vector4f clipPlane;
-
-    public static void setClipPlane(Vector4f clipPlane) {
-        MasterRenderer.clipPlane = clipPlane;
-    }
+    public final static Vector4f CLIP_PLANE =  new Vector4f(0, -1, 0, 1000000);
 
     public static MasterRenderer getInstance() {
         return instance == null ? (instance = new MasterRenderer()) : instance;
@@ -31,10 +27,6 @@ public class MasterRenderer {
         enableCulling();
 
         createProjectionMatrix();
-    }
-
-    public static Vector4f getClipPlane() {
-        return clipPlane;
     }
 
     /**

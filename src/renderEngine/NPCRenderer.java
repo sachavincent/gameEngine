@@ -34,7 +34,7 @@ public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
     private NPCRenderer() {
         super(new AnimatedGameObjectShader(), s -> {
-            s.loadClipPlane(MasterRenderer.getClipPlane());
+            s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
         });

@@ -38,13 +38,11 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
     private int[] location_lightPosition;
     private int[] location_lightColor;
     private int[] location_attenuation;
-    private int location_shineDamper;
-    private int location_reflectivity;
     private int location_skyColor;
     private int location_plane;
     private int location_terrainSize;
     private int location_focusBuildingPlacement;
-    private int location_hoveredCell;
+    private int[] location_hoveredCells;
     private int location_heightMap;
     private int location_maxHeight;
     private int[] location_centerFocus;
@@ -65,10 +63,7 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         this.location_transformationMatrix = getUniformLocation("transformationMatrix");
         this.location_projectionMatrix = getUniformLocation("projectionMatrix");
         this.location_viewMatrix = getUniformLocation("viewMatrix");
-        this.location_shineDamper = getUniformLocation("shineDamper");
-        this.location_reflectivity = getUniformLocation("reflectivity");
         this.location_skyColor = getUniformLocation("skyColor");
-        this.location_hoveredCell = getUniformLocation("hoveredCell");
         this.location_heightMap = getUniformLocation("heightMap");
         this.location_maxHeight = getUniformLocation("maxHeight");
 
@@ -81,6 +76,10 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         for (int i = 0; i < MAX_FOCUS_POINTS; i++) {
             this.location_centerFocus[i] = getUniformLocation("centerFocus[" + i + "]");
             this.location_radiusFocus[i] = getUniformLocation("radiusFocus[" + i + "]");
+        }
+        this.location_hoveredCells = new int[200];
+        for (int i = 0; i < 200; i++) {
+            this.location_hoveredCells[i] = getUniformLocation("hoveredCells[" + i + "]");
         }
 
         this.location_lightPosition = new int[MAX_LIGHTS];
@@ -97,14 +96,25 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         for (int i = 0; i < MAX_BIOMES; i++) {
             this.location_biomes[i] = new BiomeStruct(this.programID, "biomes[" + i + "]");
         }
+
     }
 
     public void connectTextureUnits() {
         loadInt(this.location_heightMap, 0);
     }
 
-    public void loadHoveredCell(TerrainPosition cell) {
-        loadVector(this.location_hoveredCell, new Vector2f(cell.getX(), cell.getZ()));
+
+    public void loadHoveredCells(List<TerrainPosition> cells) {
+        Iterator<TerrainPosition> iterator = cells.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            TerrainPosition cell = iterator.next();
+            loadVector(this.location_hoveredCells[i], new Vector2f(cell.getX(), cell.getZ()));
+            i++;
+        }
+        for (; i < 200; i++) {
+            loadVector(this.location_hoveredCells[i], new Vector2f(-1, -1));
+        }
     }
 
     public void loadClipPlane(Vector4f plane) {
@@ -112,17 +122,12 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
     }
 
     public void loadTerrainSize(Vector2f terrainSize, float maxHeight) {
-        loadVector(this.location_terrainSize, terrainSize);
+        loadIntVector(this.location_terrainSize, terrainSize);
         loadFloat(this.location_maxHeight, maxHeight);
     }
 
     public void loadSkyColor(float r, float g, float b) {
         loadVector(this.location_skyColor, new Vector3f(r, g, b));
-    }
-
-    public void loadShineVariables(float damper, float reflectivity) {
-        loadFloat(this.location_shineDamper, damper);
-        loadFloat(this.location_reflectivity, reflectivity);
     }
 
     @Override

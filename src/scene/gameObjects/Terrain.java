@@ -14,7 +14,6 @@ import terrain.HeightMapSupplier;
 import textures.TerrainTexture;
 import util.ResourceFile;
 import util.math.Vector3f;
-import util.parsing.ModelType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,7 @@ public class Terrain extends GameObject {
                 Game.TERRAIN_WIDTH, Game.TERRAIN_DEPTH, heightMapSupplier);
         addComponent(heightMapComponent);
         TerrainMeshData modelData = generateTerrain();
-        Vao terrainVao = Vao.createVao(modelData, ModelType.DEFAULT);
+        Vao terrainVao = Vao.createVao(modelData);
         Model model = new Model(terrainVao);
         addComponent(new TerrainComponent());
         addComponent(new SingleModelComponent(model));
@@ -53,17 +52,23 @@ public class Terrain extends GameObject {
 
     private TerrainMeshData generateTerrain() {
         System.out.println("Generating Terrain...");
-        int width = Game.TERRAIN_WIDTH;
-        int depth = Game.TERRAIN_DEPTH;
+        int width = Game.TERRAIN_WIDTH + 2;
+        int depth = Game.TERRAIN_DEPTH + 2;
         int count = width * depth;
         int[] vertices = new int[count * 2];
         int[] indices = new int[6 * (width - 1) * (depth - 1)];
         int vertexPointer = 0;
         System.out.println("Calculating positions...");
+
+        int[] isEdge = new int[count];
+
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < depth; j++) {
-                vertices[vertexPointer * 2] = j;
-                vertices[vertexPointer * 2 + 1] = i;
+                vertices[vertexPointer * 2] = j -1;
+                vertices[vertexPointer * 2 + 1] = i -1;
+                boolean isEdgeB = i == 0 || j == 0 || i == width - 1 || j == depth - 1;
+                isEdge[vertexPointer] = isEdgeB ? 1 : -1;
+
                 vertexPointer++;
             }
         }
@@ -82,9 +87,24 @@ public class Terrain extends GameObject {
                 indices[pointer++] = bottomRight;
             }
         }
-
+//        for (int i = 0; i < width - 1; i++) {
+//            indices[pointer++] = i;
+//            indices[pointer++] = i + 1;
+//            indices[pointer++] = i;
+//            indices[pointer++] = i + 1;
+//            indices[pointer++] = i;
+//            indices[pointer++] = i + 1;
+//        }
+//        for (int j = 0; j < depth - 1; j++) {
+//            indices[pointer++] = width * j;
+//            indices[pointer++] = width * (j + 1);
+//            indices[pointer++] = width * j;
+//            indices[pointer++] = width * (j + 1);
+//            indices[pointer++] = width * j;
+//            indices[pointer++] = width * (j + 1);
+//        }
         System.out.println("Done with indices!");
-        return new TerrainMeshData(vertices, indices);
+        return new TerrainMeshData(vertices, isEdge, indices);
     }
 
 

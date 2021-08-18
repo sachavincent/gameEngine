@@ -5,15 +5,15 @@ import scene.Scene;
 
 public class RendererComponent extends Component {
 
-    private final GameObjectRenderer gameObjectRenderer;
+    private final GameObjectRenderer<?> gameObjectRenderer;
 
-    public RendererComponent(GameObjectRenderer gameObjectRenderer) {
+    public RendererComponent(GameObjectRenderer<?> gameObjectRenderer) {
         super((gameObject, position) -> Scene.getInstance().addRenderableGameObject(gameObjectRenderer, gameObject));
 
         this.gameObjectRenderer = gameObjectRenderer;
     }
 
-    public GameObjectRenderer getRenderer() {
+    public GameObjectRenderer<?> getRenderer() {
         return this.gameObjectRenderer;
     }
 }

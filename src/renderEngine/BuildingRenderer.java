@@ -34,7 +34,7 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
         super(new GameObjectShader(), s -> {
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
             s.connectTextureUnits();
-            s.loadClipPlane(MasterRenderer.getClipPlane());
+            s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
             s.loadOffset(0, 0);
         });

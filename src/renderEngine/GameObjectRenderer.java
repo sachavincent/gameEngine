@@ -97,5 +97,4 @@ public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends R
         this.renderedGameObjects.remove(id);
         this.renderedModels.forEach((key, value) -> value.removeIf(modelEntity -> modelEntity.getGameObjectId() == id));
     }
-
 }

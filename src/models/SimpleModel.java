@@ -22,12 +22,16 @@ public class SimpleModel extends AbstractModel {
 
     public void setModelTexture(ModelTexture modelTexture) {
         Map.Entry<Material, Vbo> vboEntry = this.vao.getIndexVbos().entrySet().stream().findFirst().orElse(null);
+        Material material = Material.DEFAULT;
+        Vbo vbo = null;
         if (vboEntry != null) {
-            Material material = new Material(vboEntry.getKey().getName());
-            material.setDiffuseMap(modelTexture);
-            this.vao.getIndexVbos().clear();
-            this.vao.getIndexVbos().put(material, vboEntry.getValue());
+            vbo = vboEntry.getValue();
+            material = new Material(vboEntry.getKey().getName());
         }
+
+        material.setDiffuseMap(modelTexture);
+        this.vao.getIndexVbos().clear();
+        this.vao.getIndexVbos().put(material, vbo);
     }
 
     @Override

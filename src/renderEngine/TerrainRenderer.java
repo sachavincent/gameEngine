@@ -41,6 +41,9 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
         super(new TerrainShader(), s -> {
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
             s.connectTextureUnits();
+            s.loadClipPlane(CLIP_PLANE);
+            s.loadSkyColor(RED, GREEN, BLUE);
+            s.loadTerrainSize(new Vector2f(Game.TERRAIN_WIDTH, Game.TERRAIN_DEPTH), Game.TERRAIN_MAX_HEIGHT);
         });
     }
 
@@ -54,38 +57,32 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         this.shader.loadLights();
         this.shader.loadViewMatrix();
-        this.shader.loadClipPlane(MasterRenderer.getClipPlane());
-        this.shader.loadSkyColor(RED, GREEN, BLUE);
-        this.shader.loadTerrainSize(new Vector2f(Game.TERRAIN_WIDTH, Game.TERRAIN_DEPTH), Game.TERRAIN_MAX_HEIGHT);
         GL11.glLineWidth(2);
     }
 
     @Override
     protected void doRender(Set<Map.Entry<AbstractModel, List<ModelEntity>>> entrySet) {
-        TerrainPosition hoveredCell = MousePicker.getInstance().getHoveredCell();
+//        TerrainPosition hoveredCell = MousePicker.getInstance().getHoveredCell();
         Terrain terrain = Scene.getInstance().getTerrain();
         if (terrain == null)
             return;
-//        for (var entry : entrySet) {
-//            AbstractModel abstractModel = entry.getKey();
-//            List<ModelEntity> modelEntities = entry.getValue();
+
         Vao vao = prepareTerrain(terrain);
         if (vao == null)
             return;
-//            Vao vao = abstractModel.getVao();
         vao.bind();
-        if (hoveredCell != null) {
-            this.shader.loadHoveredCell(hoveredCell);
-        } else
-            this.shader.loadHoveredCell(new TerrainPosition(0, 0, 0));
+//        if (hoveredCell != null) {
+            this.shader.loadHoveredCells(MousePicker.getInstance().hoveredCells);
+//        } else
+//            this.shader.loadHoveredCells(new ArrayList<>());
+//
+//        this.shader.loadHoveredCells(Camera.getInstance().getPosition(), MousePicker.getInstance().getCurrentRay());
         vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
         GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
         //TODO: Triangle strip
         vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
         vao.unbind();
         unbindTexturedModel();
-//        }
-
 
         MasterRenderer.enableCulling();
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);

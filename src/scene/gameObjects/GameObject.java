@@ -101,12 +101,6 @@ public abstract class GameObject {
         return this.scene;
     }
 
-    public void prepareRender() {
-        RendererComponent renderer = getComponent(RendererComponent.class);
-        if (renderer != null)
-            renderer.getRenderer().addToRender(this);
-    }
-
     public static <X extends GameObject> X getObjectFromClass(Class<X> objectClass) {
         try {
             return objectClass.getDeclaredConstructor().newInstance();

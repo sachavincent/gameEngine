@@ -20,6 +20,10 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         this.z = z;
     }
 
+    public TerrainPosition(Vector3f vector) {
+        this((int) vector.getX(), vector.getY(), (int) vector.getZ());
+    }
+
     public int getX() {
         return this.x;
     }

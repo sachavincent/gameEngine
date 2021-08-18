@@ -33,7 +33,7 @@ public class Scene {
 
     private final Map<Integer, GameObject> previewedGameObjects = new HashMap<>();
 
-    private final Map<GameObjectRenderer, Set<GameObject>> renderableGameObjects = new HashMap<>();
+    private final Map<GameObjectRenderer<?>, Set<GameObject>> renderableGameObjects = new HashMap<>();
 
     private int[][] positions = new int[Game.TERRAIN_WIDTH][Game.TERRAIN_DEPTH];
 
@@ -108,14 +108,14 @@ public class Scene {
         return this.positions;
     }
 
-    public void addRenderableGameObject(GameObjectRenderer gameObjectRenderer, GameObject gameObject) {
+    public void addRenderableGameObject(GameObjectRenderer<?> gameObjectRenderer, GameObject gameObject) {
         if (!this.renderableGameObjects.containsKey(gameObjectRenderer))
             this.renderableGameObjects.put(gameObjectRenderer, new HashSet<>());
 
         boolean added = this.renderableGameObjects.get(gameObjectRenderer).add(gameObject);
     }
 
-    public void removeRenderableGameObject(GameObjectRenderer gameObjectRenderer, GameObject gameObject) {
+    public void removeRenderableGameObject(GameObjectRenderer<?> gameObjectRenderer, GameObject gameObject) {
         if (this.renderableGameObjects.containsKey(gameObjectRenderer))
             this.renderableGameObjects.get(gameObjectRenderer).remove(gameObject);
     }
@@ -124,7 +124,7 @@ public class Scene {
         MasterRenderer.getInstance().prepare();
         SkyboxRenderer.getInstance().render();
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
-            lGameObjects.forEach(GameObject::prepareRender);
+            lGameObjects.forEach(renderer::addToRender);
             renderer.render();
         });
         DayNightCycle.incrementCycleTime();

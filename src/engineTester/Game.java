@@ -9,7 +9,6 @@ import people.Person;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
 import renderEngine.GuiRenderer;
-import renderEngine.MasterRenderer;
 import renderEngine.fontRendering.TextMaster;
 import scene.Scene;
 import scene.components.Component;
@@ -28,13 +27,13 @@ import java.util.stream.Collectors;
 
 public class Game {
 
-    public final static TimeSystem COOLDOWN_BEFORE_SETTLEMENT      = new TimeSystem(
+    public final static TimeSystem COOLDOWN_BEFORE_SETTLEMENT = new TimeSystem(
             TimeSystem.TICK_RATE * 60); // 1 Minute
     public final static TimeSystem MAX_TIME_BEFORE_FULL_SETTLEMENT = new TimeSystem(
             TimeSystem.TICK_RATE * 60 * 5); // 5 Minutes
-    public final static TimeSystem TIME_BETWEEN_SETTLEMENTS        = new TimeSystem(
+    public final static TimeSystem TIME_BETWEEN_SETTLEMENTS = new TimeSystem(
             TimeSystem.TICK_RATE * 20); // 20 seconds
-    public final static int        COOLDOWN_GLOBAL_MOVE_AWAY       = TimeSystem.TICK_RATE * 10; // 10 seconds
+    public final static int COOLDOWN_GLOBAL_MOVE_AWAY = TimeSystem.TICK_RATE * 10; // 10 seconds
 
     public final static int TERRAIN_WIDTH = 128;
     public final static int TERRAIN_DEPTH = 128;
@@ -44,12 +43,12 @@ public class Game {
 
     private GameState gameState;
 
-    private final List<Gui>          guis          = new ArrayList<>();
+    private final List<Gui> guis = new ArrayList<>();
     private final List<GuiTextInput> guiTextInputs = new ArrayList<>();
-    private final List<Gui>          displayedGuis = new ArrayList<>();
+    private final List<Gui> displayedGuis = new ArrayList<>();
 
     private int lastSettlementAttemptTime = TimeSystem.getCurrentTimeTicks();
-    private int lastGlobalMovingAwayTime  = TimeSystem.getCurrentTimeTicks();
+    private int lastGlobalMovingAwayTime = TimeSystem.getCurrentTimeTicks();
 
     private Game() {
         this.gameState = GameState.NOT_STARTED;
@@ -335,18 +334,25 @@ public class Game {
 
     public float prev = TimeSystem.getTimeMillis();
 
+//    static ModelTexture texture = ModelTexture.createTexture(new ResourceFile("sun.png"));
+//    static SunRenderer sunRenderer = new SunRenderer();
+//    static Sun sun = new Sun(texture, 55);
+//    static {
+//        Vector3f lightDir = new Vector3f(0.55f, -0.34f, 1);
+//        sun.setDirection(lightDir.x, lightDir.y, lightDir.z);
+//    }
     public void processRendering(Fbo fbo) {
         if (Game.getInstance().getGameState() == GameState.STARTED) {
             Camera.getInstance().move();
-            MasterRenderer.getInstance().prepare();
             Scene.getInstance().render();
+//            sunRenderer.render(sun, Camera.getInstance());
 
             Scene.getInstance().getGameObjects()
                     .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::render));
         } else {
             fbo.bindFrameBuffer();
-            MasterRenderer.getInstance().prepare();
             Scene.getInstance().render();
+//            sunRenderer.render(sun, Camera.getInstance());
 
             fbo.unbindFrameBuffer();
             PostProcessing.doPostProcessing(fbo.getColourTexture());
