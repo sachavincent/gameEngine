@@ -41,6 +41,7 @@ uniform Biome biomes[MAX_BIOMES];
 uniform float maxHeight = DEFAULT_MAX_HEIGHT;
 uniform vec3 skyColor;
 uniform vec2 hoveredCells[200];
+uniform vec2 hoveredCell;
 
 bool isPosInCell(vec2 cell, vec2 position) {
     return position.x >= cell.x && position.x < cell.x + 1 && position.y >= cell.y && position.y < cell.y + 1;
@@ -115,6 +116,11 @@ void main() {
     //        out_Color = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), yLevel / 32.0);
     //    out_Color = vec4(1, 0, 0, 1);
 
+    if (pass_pos.x >= hoveredCell.x && pass_pos.x < hoveredCell.x + 1
+    && pass_pos.z >= hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
+        out_Color = vec4(1, 0, 1, 1);
+        return;
+    }
     vec2 p = vec2(pass_pos.x, pass_pos.z);
     for (int i = 0; i < 200; i++) {
         vec2 cell = hoveredCells[i];

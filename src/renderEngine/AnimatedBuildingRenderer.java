@@ -1,7 +1,23 @@
 package renderEngine;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
+import static org.lwjgl.opengl.GL15.glBufferData;
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.CLIP_PLANE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
 import entities.Camera;
 import entities.ModelEntity;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import models.AbstractModel;
 import models.AnimatedModel;
 import org.lwjgl.opengl.GL11;
@@ -11,14 +27,6 @@ import renderEngine.shaders.AnimatedGameObjectShader;
 import renderEngine.shaders.structs.Material;
 import textures.ModelTexture;
 import util.math.Matrix4f;
-
-import java.nio.FloatBuffer;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static renderEngine.MasterRenderer.*;
 
 public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
@@ -35,7 +43,7 @@ public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObj
         super(new AnimatedGameObjectShader(), s -> {
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());
             s.connectTextureUnits();
-            s.loadClipPlane(MasterRenderer.getClipPlane());
+            s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
         });
     }

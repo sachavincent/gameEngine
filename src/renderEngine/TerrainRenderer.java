@@ -1,7 +1,21 @@
 package renderEngine;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.CLIP_PLANE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
 import engineTester.Game;
 import entities.ModelEntity;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import models.AbstractModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -18,16 +32,8 @@ import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
 import util.MousePicker;
 import util.math.Vector2f;
+import util.math.Vector3f;
 import util.parsing.SimpleMaterialColor;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.lwjgl.opengl.GL11.*;
-import static renderEngine.MasterRenderer.*;
 
 public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
 
@@ -72,7 +78,9 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
             return;
         vao.bind();
 //        if (hoveredCell != null) {
-            this.shader.loadHoveredCells(MousePicker.getInstance().hoveredCells);
+        Vector3f intersectionPoint = MousePicker.getInstance().getIntersectionPoint();
+        this.shader.loadHoveredCells(MousePicker.getInstance().hoveredCells,
+                intersectionPoint == null ? null : intersectionPoint.toTerrainPosition());
 //        } else
 //            this.shader.loadHoveredCells(new ArrayList<>());
 //

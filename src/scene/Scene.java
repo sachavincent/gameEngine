@@ -1,11 +1,19 @@
 package scene;
 
+import static pathfinding.RoadGraph.FILTER;
+
 import engineTester.Game;
 import entities.Camera.Direction;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import models.Model;
 import pathfinding.NodeRoad;
 import pathfinding.RoadGraph;
-import renderEngine.*;
+import renderEngine.GameObjectRenderer;
+import renderEngine.MasterRenderer;
+import renderEngine.PathRenderer;
+import renderEngine.Vao;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.*;
 import scene.components.requirements.ResourceRequirementComponent;
@@ -18,12 +26,6 @@ import services.ServiceManager;
 import terrain.TerrainPosition;
 import util.DayNightCycle;
 import util.math.Vector3f;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import static pathfinding.RoadGraph.FILTER;
 
 public class Scene {
 
@@ -122,7 +124,7 @@ public class Scene {
 
     public void render() {
         MasterRenderer.getInstance().prepare();
-        SkyboxRenderer.getInstance().render();
+//        SkyboxRenderer.getInstance().render();
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
             lGameObjects.forEach(renderer::addToRender);
             renderer.render();

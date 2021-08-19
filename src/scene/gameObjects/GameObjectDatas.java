@@ -1,5 +1,8 @@
 package scene.gameObjects;
 
+import static util.Utils.MODELS_PATH;
+
+import java.io.File;
 import models.BoundingBox;
 import models.SimpleModel;
 import renderEngine.MeshData;
@@ -10,13 +13,9 @@ import util.exceptions.MissingFileException;
 import util.parsing.ModelType;
 import util.parsing.objParser.ModelLoader;
 
-import java.io.File;
-
-import static util.Utils.MODELS_PATH;
-
 public class GameObjectDatas {
 
-    public static final GameObjectData INSULA = ModelLoader.loadModel("Insula", ModelType.INSTANCED_WITH_NORMAL_MAP);
+    public static final GameObjectData INSULA = ModelLoader.loadModel("Insula", ModelType.DEFAULT);
 
     public static final GameObjectData MARKET = ModelLoader.loadModel("Market", ModelType.INSTANCED_WITH_NORMAL_MAP);
 

@@ -6,18 +6,19 @@ import util.math.Vector4f;
 
 public class MasterRenderer {
 
-    private static final float FOV = 70;//TODO:Config
-    public static final float NEAR_PLANE = 0.5f;
-    public static final float FAR_PLANE = 1000;
+    private static final float FOV        = 70;//TODO:Config
+    public static final  float NEAR_PLANE = 0.5f;
+    public static final  float FAR_PLANE  = 1000;
 
-    public static final float RED = 0.5f;
+    public static final float RED   = 0.5f;
     public static final float GREEN = 0.5f;
-    public static final float BLUE = 0.5f;
+    public static final float BLUE  = 0.5f;
 
     private Matrix4f projectionMatrix;
 
     private static MasterRenderer instance;
-    public final static Vector4f CLIP_PLANE =  new Vector4f(0, -1, 0, 1000000);
+
+    public final static Vector4f CLIP_PLANE = new Vector4f(0, -1, 0, 1000000);
 
     public static MasterRenderer getInstance() {
         return instance == null ? (instance = new MasterRenderer()) : instance;

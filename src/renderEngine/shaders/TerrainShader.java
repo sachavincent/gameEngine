@@ -1,6 +1,11 @@
 package renderEngine.shaders;
 
 import entities.Camera;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import renderEngine.shaders.structs.Biome;
 import renderEngine.shaders.structs.BiomeStruct;
 import renderEngine.shaders.structs.Material;
@@ -15,38 +20,33 @@ import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 public class TerrainShader extends ShaderProgram implements IGameObjectShader {
 
-    private static final int MAX_LIGHTS = 10;
-    private static final int MAX_BIOMES = 30;
+    private static final int MAX_LIGHTS       = 10;
+    private static final int MAX_BIOMES       = 30;
     private static final int MAX_FOCUS_POINTS = 100;
 
-    private static final String VERTEX_FILE = "terrainVertexShader.glsl";
+    private static final String VERTEX_FILE   = "terrainVertexShader.glsl";
     private static final String FRAGMENT_FILE = "terrainFragmentShader.glsl";
 
     private int nbBiomes;
 
-    private int location_transformationMatrix;
-    private int location_projectionMatrix;
-    private int location_viewMatrix;
-    private int[] location_lightPosition;
-    private int[] location_lightColor;
-    private int[] location_attenuation;
-    private int location_skyColor;
-    private int location_plane;
-    private int location_terrainSize;
-    private int location_focusBuildingPlacement;
-    private int[] location_hoveredCells;
-    private int location_heightMap;
-    private int location_maxHeight;
-    private int[] location_centerFocus;
-    private int[] location_radiusFocus;
+    private   int              location_transformationMatrix;
+    private   int              location_projectionMatrix;
+    private   int              location_viewMatrix;
+    private   int[]            location_lightPosition;
+    private   int[]            location_lightColor;
+    private   int[]            location_attenuation;
+    private   int              location_skyColor;
+    private   int              location_plane;
+    private   int              location_terrainSize;
+    private   int              location_focusBuildingPlacement;
+    private   int[]            location_hoveredCells;
+    private   int              location_hoveredCell;
+    private   int              location_heightMap;
+    private   int              location_maxHeight;
+    private   int[]            location_centerFocus;
+    private   int[]            location_radiusFocus;
     protected StructLocation[] location_biomes;
 
     public TerrainShader() {
@@ -81,6 +81,7 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         for (int i = 0; i < 200; i++) {
             this.location_hoveredCells[i] = getUniformLocation("hoveredCells[" + i + "]");
         }
+        this.location_hoveredCell = getUniformLocation("hoveredCell");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
@@ -104,10 +105,10 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
     }
 
 
-    public void loadHoveredCells(List<TerrainPosition> cells) {
+    public void loadHoveredCells(List<TerrainPosition> cells, TerrainPosition c) {
         Iterator<TerrainPosition> iterator = cells.iterator();
         int i = 0;
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && i < 200) {
             TerrainPosition cell = iterator.next();
             loadVector(this.location_hoveredCells[i], new Vector2f(cell.getX(), cell.getZ()));
             i++;
@@ -115,6 +116,7 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         for (; i < 200; i++) {
             loadVector(this.location_hoveredCells[i], new Vector2f(-1, -1));
         }
+        loadVector(this.location_hoveredCell, new Vector2f(c == null ? -1 : c.getX(), c == null ? -1 : c.getZ()));
     }
 
     public void loadClipPlane(Vector4f plane) {

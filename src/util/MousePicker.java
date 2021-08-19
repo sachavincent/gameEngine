@@ -3,6 +3,14 @@ package util;
 import engineTester.Game;
 import entities.Camera;
 import inputs.MouseUtils;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import models.BoundingBox;
 import renderEngine.DisplayManager;
 import renderEngine.MasterRenderer;
@@ -14,11 +22,11 @@ import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
-import util.math.*;
-
-import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
-import java.util.Map.Entry;
+import util.math.Matrix4f;
+import util.math.Plane3D;
+import util.math.Vector2f;
+import util.math.Vector3f;
+import util.math.Vector4f;
 
 public class MousePicker {
 
@@ -225,7 +233,8 @@ public class MousePicker {
             if (p1.y >= height || p2.y >= height || p3.y >= height || p4.y >= height) {
                 TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.x), p1.y,
                         (int) Math.floor(p1.z));
-                this.intersectionPoint = terrainPosition.toVector3f();
+                if (this.intersectionPoint == null || this.intersectionPoint.y < height)
+                    this.intersectionPoint = terrainPosition.toVector3f();
             }
             hoveredCells.add(new TerrainPosition(p1));
             Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
