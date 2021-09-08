@@ -1,12 +1,11 @@
 package models;
 
 import entities.ModelEntity;
-import renderEngine.Vao;
-import renderEngine.shaders.structs.Material;
-import util.math.Vector3f;
-
 import java.util.List;
 import java.util.Objects;
+import renderEngine.shaders.structs.Material;
+import renderEngine.structures.Vao;
+import util.math.Vector3f;
 
 public abstract class AbstractModel {
 

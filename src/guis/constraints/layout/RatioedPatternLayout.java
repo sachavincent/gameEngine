@@ -1,5 +1,6 @@
 package guis.constraints.layout;
 
+import display.Display;
 import guis.constraints.CenterConstraint;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.GuiConstraintsManager.Constraints;
@@ -10,7 +11,6 @@ import guis.constraints.SideConstraint;
 import guis.constraints.StickyConstraint;
 import java.util.Arrays;
 import java.util.stream.Stream;
-import renderEngine.DisplayManager;
 
 public class RatioedPatternLayout extends GuiLayout {
 
@@ -77,8 +77,8 @@ public class RatioedPatternLayout extends GuiLayout {
         float itemWidth;
         if (xPercentage < 0) { // Aspect Needed
             itemHeight = itemSizeHeight;
-            itemWidth = (-xPercentage * 100 * DisplayManager.HEIGHT / DisplayManager.WIDTH * itemHeight *
-                    this.parent.getHeight()) / this.parent.getWidth();
+            itemWidth = (-xPercentage * 100 * Display.getWindow().getHeight() / Display.getWindow().getWidth() *
+                    itemHeight * this.parent.getHeight()) / this.parent.getWidth();
 
             lostWidth = itemSizeWidth - itemWidth;
             if (itemWidth > 1) {
@@ -89,8 +89,9 @@ public class RatioedPatternLayout extends GuiLayout {
             xPercentage = itemWidth; //TODO not sure this works
         } else if (yPercentage < 0) { // Aspect Needed
             itemWidth = itemSizeWidth;
-            itemHeight = (-yPercentage * 100 * DisplayManager.WIDTH / DisplayManager.HEIGHT * itemWidth *
-                    this.parent.getWidth()) / this.parent.getHeight();
+            itemHeight =
+                    (-yPercentage * 100 * Display.getWindow().getWidth() / Display.getWindow().getHeight() * itemWidth *
+                            this.parent.getWidth()) / this.parent.getHeight();
 
             lostHeight = itemSizeHeight - itemHeight;
             if (itemHeight > 1) {
@@ -120,8 +121,8 @@ public class RatioedPatternLayout extends GuiLayout {
         if (distanceFromSideX == 0 && itemWidth < 1 && maxHorizontalElements == 1)
             distanceFromSideX = (1 - itemWidth) / 2;
 
-//        float distanceFromSideX = Math.max(0, distance + lostHeight * DisplayManager.WIDTH / DisplayManager.HEIGHT / 2);
-//        float distanceFromSideY = Math.max(0, distance + lostWidth * DisplayManager.HEIGHT / DisplayManager.WIDTH / 2);
+//        float distanceFromSideX = Math.max(0, distance + lostHeight *  Display.getWindow().getWidth() /  Display.getWindow().getHeight() / 2);
+//        float distanceFromSideY = Math.max(0, distance + lostWidth *  Display.getWindow().getHeight() /  Display.getWindow().getWidth() / 2);
 
         if (this.xPercentageTaken == 0) {
             float percentage = xPercentage;

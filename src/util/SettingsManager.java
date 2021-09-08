@@ -1,8 +1,12 @@
 package util;
 
-import static renderEngine.DisplayManager.FRAMERATE_INFINITE;
+import static display.DisplayManager.FRAMERATE_INFINITE;
 import static util.Utils.ASSETS_PATH;
 
+import display.Display;
+import display.DisplayManager;
+import display.DisplayMode;
+import display.Resolution;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -12,13 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import language.Language;
 import language.TextConverter;
-import renderEngine.DisplayManager;
-import renderEngine.DisplayManager.DisplayMode;
-import renderEngine.DisplayManager.Resolution;
 
 public class SettingsManager {
 
-    public final static String SETTINGS_FILE = "settings.conf";
+    public static final String SETTINGS_FILE = "settings.conf";
 
     public static void loadSettings() {
         try (BufferedReader reader = new BufferedReader(new FileReader(ASSETS_PATH + "/" + SETTINGS_FILE))) {
@@ -37,8 +38,6 @@ public class SettingsManager {
         } catch (IOException | IndexOutOfBoundsException e) {
             e.printStackTrace();
             resetSettings();
-        } finally {
-            DisplayManager.showWindow();
         }
     }
 
@@ -71,12 +70,12 @@ public class SettingsManager {
 
     static class Option<T> {
 
-        final static List<Option<?>> OPTIONS = new ArrayList<>();
+        static final List<Option<?>> OPTIONS = new ArrayList<>();
 
-        final static Option<Integer> DISPLAY = new Option<>("display", DisplayMode.defaultMode().ordinal(),
-                DisplayManager::setScreen, () -> DisplayManager.indexCurrentScreen);
+        static final Option<Integer> DISPLAY = new Option<>("display", DisplayMode.defaultMode().ordinal(),
+                Display::setMonitor, () -> Display.getCurrentMonitor().getIndex());
 
-        final static Option<String> FPS_CAP = new Option<>("fpscap",
+        static final Option<String> FPS_CAP = new Option<>("fpscap",
                 "60", DisplayManager::setFPS, () -> {
             if (DisplayManager.FRAMERATE_LIMIT == Integer.MAX_VALUE)
                 return FRAMERATE_INFINITE;
@@ -84,19 +83,18 @@ public class SettingsManager {
             return String.valueOf(DisplayManager.FRAMERATE_LIMIT);
         });
 
-        final static Option<Integer> FULLSCREEN = new Option<>("display_mode", DisplayMode.FULLSCREEN.ordinal(),
-                value -> DisplayManager.setDisplayMode(DisplayMode.values()[value]),
-                () -> DisplayManager.displayMode.ordinal());
+        static final Option<Integer> FULLSCREEN = new Option<>("display_mode", DisplayMode.FULLSCREEN.ordinal(),
+                value -> Display.setDisplayMode(DisplayMode.values()[value]),
+                () -> Display.getDisplayMode().ordinal());
 
-        final static Option<Boolean> VSYNC = new Option<>("vsync", true, DisplayManager::setVsync,
-                () -> DisplayManager.VSYNC_ENABLED);
+        static final Option<Boolean> VSYNC = new Option<>("vsync", true, Display::setVsync, Display::isVsyncEnabled);
 
-        final static Option<String> RESOLUTION = new Option<>("resolution", "1920x1080", value -> {
+        static final Option<String> RESOLUTION = new Option<>("resolution", "1920x1080", value -> {
             String[] dim = value.split("x");
-            DisplayManager.setWindowSize(new Resolution(Integer.parseInt(dim[0]), Integer.parseInt(dim[1])));
-        }, () -> DisplayManager.currentScreen.resolution.toString().replaceAll("\\s", ""));
+            Display.getWindow().setResolution(new Resolution(Integer.parseInt(dim[0]), Integer.parseInt(dim[1])));
+        }, () -> Display.getCurrentMonitor().getResolution().toString().replaceAll("\\s", ""));
 
-        final static Option<String> LANGUAGE = new Option<>("language", Language.ENGLISH.getLang(),
+        static final Option<String> LANGUAGE = new Option<>("language", Language.ENGLISH.getLang(),
                 value -> TextConverter.loadLanguage(Language.getLanguage(value)),
                 () -> TextConverter.getNewLanguage() == null ? TextConverter.getLanguage().getLang()
                         : TextConverter.getNewLanguage().getLang());

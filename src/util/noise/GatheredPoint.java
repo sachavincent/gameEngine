@@ -11,7 +11,7 @@ public class GatheredPoint<TTag> {
     private TTag tag;
 
     public GatheredPoint(double x, double z, int hash) {
-        this.x = x;
+        this.x =x;
         this.z = z;
         this.hash = hash;
     }

@@ -1,9 +1,9 @@
 package scene.components;
 
+import display.DisplayManager;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import renderEngine.DisplayManager;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 

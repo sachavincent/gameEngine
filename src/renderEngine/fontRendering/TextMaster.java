@@ -2,13 +2,13 @@ package renderEngine.fontRendering;
 
 import fontMeshCreator.FontType;
 import fontMeshCreator.Text;
-import fontMeshCreator.TextMeshData;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import renderEngine.Loader;
+import renderEngine.structures.Data;
+import renderEngine.structures.Vao;
 
 public class TextMaster {
 
@@ -52,12 +52,12 @@ public class TextMaster {
         FontType font = text.getFont();
         if (text.isStringChanged()) {
             text.setStringChanged(false);
-
-            TextMeshData data = font.loadText(text);
-            final int vao = Loader.getInstance()
-                    .loadToVAO(data.getVertexPositions(), data.getTextureCoords(), data.getColors());
-            final int vertexCount = data.getVertexCount();
-            text.setMeshInfo(vao, vertexCount);
+            text.setVao(null);
+            if (!text.getTextString().isEmpty()) {
+                Data data = font.loadText(text);
+                if (data != null)
+                    text.setVao(Vao.createVao(data, data.getVaoType()));
+            }
         }
 
         Set<Text> textBatch = texts.computeIfAbsent(font, k -> new HashSet<>());

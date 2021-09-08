@@ -3,6 +3,7 @@ package guis.presets;
 import static guis.Gui.DEFAULT_FONT;
 import static org.lwjgl.glfw.GLFW.*;
 
+import display.Display;
 import fontMeshCreator.Line;
 import fontMeshCreator.Text;
 import guis.GuiInterface;
@@ -30,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
 public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
@@ -114,7 +114,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
         this.minCursorXPosition = (float) (this.outline.getX() - this.outline.getWidth() + this.spaceWidth * 2);
         this.guiText.getText().setCenteredHorizontally(false);
         this.guiText.setOnUpdate(() -> this.guiText.getText().setPosition(
-                new Vector2f(this.minCursorXPosition, (this.guiText.getText().getPosition().y - 0.5) * 2)));
+                new Vector2f(this.minCursorXPosition, (this.guiText.getText().getPosition().getY()- 0.5) * 2)));
 
         this.cursor.setCornerRadius(0);
 
@@ -193,7 +193,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
                 this.cursor.setX(this.minCursorXPosition + this.textSize);
             } else if (action == GLFW_PRESS && (key == GLFW_KEY_X || key == GLFW_KEY_C) && KeyboardUtils.isControl &&
                     this.textSelected) {
-                glfwSetClipboardString(DisplayManager.getWindow(), content);
+                Display.getWindow().setClipboardString(content);
                 if (key == GLFW_KEY_X) {
                     unselectText();
                     clearText();
@@ -203,7 +203,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
                     unselectText();
                     clearText();
                 }
-                String clipBoardContent = glfwGetClipboardString(DisplayManager.getWindow());
+                CharSequence clipBoardContent = Display.getWindow().getClipboardString();
                 if (clipBoardContent != null) {
                     long nbLines = clipBoardContent.codePoints().filter(value -> value == 13).count();
                     if (text.getMaxLines() > nbLines) {
@@ -445,7 +445,7 @@ public class GuiTextInput extends GuiPreset implements GuiClickablePreset {
         if (this.textSelected)
             unselectText();
 
-        float xCursor = MouseUtils.getCursorPos().x;
+        float xCursor = MouseUtils.getCursorPos().getX();
         if (xCursor > this.minCursorXPosition) {
             Text text = this.guiText.getText();
             if (xCursor > getCursorMaxPosition()) {

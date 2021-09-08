@@ -1,9 +1,9 @@
 package renderEngine.shaders;
 
+import display.Display;
 import java.awt.Color;
 import java.util.List;
 import java.util.Set;
-import renderEngine.DisplayManager;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -82,11 +82,11 @@ public class GuiShader extends ShaderProgram {
     }
 
     public void loadWidth(float width) {
-        loadFloat(this.location_guiWidth, width * DisplayManager.WIDTH);
+        loadFloat(this.location_guiWidth, width * Display.getWindow().getWidth());
     }
 
     public void loadHeight(float height) {
-        loadFloat(this.location_guiHeight, height * DisplayManager.HEIGHT);
+        loadFloat(this.location_guiHeight, height * Display.getWindow().getHeight());
     }
 
     public void loadFilled(boolean filled) {

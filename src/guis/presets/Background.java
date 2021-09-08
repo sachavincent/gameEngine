@@ -5,9 +5,9 @@ import java.util.Objects;
 
 public class Background<E> {
 
-    public final static Background<?> NO_BACKGROUND    = new Background<>(new Color(0, 0, 0, 0));
-    public final static Background<?> WHITE_BACKGROUND = new Background<>(Color.WHITE);
-    public final static Background<?> BLACK_BACKGROUND = new Background<>(Color.BLACK);
+    public static final Background<?> NO_BACKGROUND    = new Background<>(new Color(0, 0, 0, 0));
+    public static final Background<?> WHITE_BACKGROUND = new Background<>(Color.WHITE);
+    public static final Background<?> BLACK_BACKGROUND = new Background<>(Color.BLACK);
     public static final Background<?> RED_BACKGROUND   = new Background<>(Color.RED);
 
     private final E background;

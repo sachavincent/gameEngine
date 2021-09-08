@@ -1,5 +1,7 @@
 package renderEngine.shaders;
 
+import java.util.Iterator;
+import java.util.Set;
 import renderEngine.shaders.structs.Material;
 import renderEngine.shaders.structs.MaterialStruct;
 import renderEngine.shaders.structs.StructLocation;
@@ -8,12 +10,8 @@ import scene.components.LightComponent;
 import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import util.math.Matrix4f;
-import util.math.Vector2f;
 import util.math.Vector3f;
 import util.math.Vector4f;
-
-import java.util.Iterator;
-import java.util.Set;
 
 public class GameObjectShader extends ShaderProgram implements IGameObjectShader {
 
@@ -28,16 +26,12 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
     protected int[] location_lightPosition;
     protected int[] location_lightColor;
     protected int[] location_attenuation;
-    protected int location_shineDamper;
-    protected int location_reflectivity;
     protected int location_useFakeLighting;
     protected int location_skyColor;
-    protected int location_numberOfRows;
-    protected int location_offset;
     protected int location_plane;
     protected int location_useNormalMap;
-    protected int location_isInstanced;
-    protected int location_alpha;
+    protected int            location_isInstanced;
+    protected int            location_transparency;
     protected StructLocation location_material;
 
     public GameObjectShader() {
@@ -62,24 +56,20 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
         this.location_transformationMatrix = getUniformLocation("transformationMatrix");
         this.location_projectionMatrix = getUniformLocation("projectionMatrix");
         this.location_viewMatrix = getUniformLocation("viewMatrix");
-        this.location_shineDamper = getUniformLocation("shineDamper");
-        this.location_reflectivity = getUniformLocation("reflectivity");
         this.location_useFakeLighting = getUniformLocation("useFakeLighting");
         this.location_skyColor = getUniformLocation("skyColor");
-        this.location_numberOfRows = getUniformLocation("numberOfRows");
-        this.location_offset = getUniformLocation("offset");
         this.location_plane = getUniformLocation("plane");
         this.location_isInstanced = getUniformLocation("isInstanced");
-        this.location_alpha = getUniformLocation("alpha");
+        this.location_transparency = getUniformLocation("transparency");
         this.location_useNormalMap = getUniformLocation("useNormalMap");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
         this.location_lightColor = new int[MAX_LIGHTS];
         this.location_attenuation = new int[MAX_LIGHTS];
         for (int i = 0; i < MAX_LIGHTS; i++) {
-            this.location_lightPosition[i] = getUniformLocation("lightPosition[" + i + "]");
-            this.location_lightColor[i] = getUniformLocation("lightColor[" + i + "]");
-            this.location_attenuation[i] = getUniformLocation("attenuation[" + i + "]");
+            this.location_lightPosition[i] = getUniformLocation("lightsPosition[" + i + "]");
+            this.location_lightColor[i] = getUniformLocation("lightsColor[" + i + "]");
+            this.location_attenuation[i] = getUniformLocation("attenuations[" + i + "]");
         }
 
         createMaterialLocation();
@@ -93,20 +83,12 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
         loadVector(this.location_plane, plane);
     }
 
-    public void loadAlpha(float alpha) {
-        loadFloat(this.location_alpha, alpha);
-    }
-
-    public void loadNumberOfRows(int numberofRows) {
-        loadInt(this.location_numberOfRows, numberofRows);
+    public void loadTransparency(float alpha) {
+        loadFloat(this.location_transparency, alpha);
     }
 
     public void loadMaterial(Material material) {
         this.location_material.load(material);
-    }
-
-    public void loadOffset(float x, float y) {
-        loadVector(this.location_offset, new Vector2f(x, y));
     }
 
     public void loadSkyColor(float r, float g, float b) {
@@ -115,11 +97,6 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
 
     public void loadUseFakeLighting(boolean useFakeLighting) {
         loadBoolean(this.location_useFakeLighting, useFakeLighting);
-    }
-
-    public void loadShineVariables(float damper, float reflectivity) {
-        loadFloat(this.location_shineDamper, damper);
-        loadFloat(this.location_reflectivity, reflectivity);
     }
 
     @Override
@@ -165,7 +142,7 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
     }
 
     private Vector3f getEyeSpacePosition(Vector3f position, Matrix4f viewMatrix) {
-        Vector4f eyeSpacePos = new Vector4f(position.x, position.y, position.z, 1f);
+        Vector4f eyeSpacePos = new Vector4f(position.getX(), position.getY(), position.getZ(), 1f);
         Matrix4f.transform(viewMatrix, eyeSpacePos, eyeSpacePos);
         return new Vector3f(eyeSpacePos);
     }

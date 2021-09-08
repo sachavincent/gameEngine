@@ -9,10 +9,10 @@ import renderEngine.Loader;
 
 public class GuiTriangle extends GuiShape {
 
-    public final static int[] POSITIONS_0   = {-1, -1, 1, -1, 0, 1};
-    public final static int[] POSITIONS_90  = {-1, 1, -1, -1, 1, 0};
-    public final static int[] POSITIONS_180 = {1, 1, -1, 1, 0, -1};
-    public final static int[] POSITIONS_270 = {1, 1, -1, 0, 1, -1};
+    public static final int[] POSITIONS_0   = {-1, -1, 1, -1, 0, 1};
+    public static final int[] POSITIONS_90  = {-1, 1, -1, -1, 1, 0};
+    public static final int[] POSITIONS_180 = {1, 1, -1, 1, 0, -1};
+    public static final int[] POSITIONS_270 = {1, 1, -1, 0, 1, -1};
 
     public static RawModel[] TRIANGLES = new RawModel[]{
             Loader.getInstance().loadToVAO(POSITIONS_0, 2),

@@ -6,10 +6,10 @@ import java.nio.FloatBuffer;
 public class Vector4f extends Vector implements Serializable, ReadableVector4f, WritableVector4f {
 
     private static final long  serialVersionUID = 1L;
-    public               float x;
-    public               float y;
-    public               float z;
-    public               float w;
+    private              float x;
+    private              float y;
+    private              float z;
+    private              float w;
 
     public Vector4f() {
     }
@@ -146,7 +146,7 @@ public class Vector4f extends Vector implements Serializable, ReadableVector4f, 
 
     public Vector store(FloatBuffer buf) {
         buf.put(this.x);
-        buf.put(this.y);
+        buf.put(this.getY());
         buf.put(this.z);
         buf.put(this.w);
         return this;

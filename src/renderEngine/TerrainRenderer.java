@@ -23,6 +23,8 @@ import org.lwjgl.opengl.GL31;
 import renderEngine.shaders.TerrainShader;
 import renderEngine.shaders.structs.Biome;
 import renderEngine.shaders.structs.Material;
+import renderEngine.structures.IndexBufferVao;
+import renderEngine.structures.Vao;
 import scene.Scene;
 import scene.components.HeightMapComponent;
 import scene.components.SingleModelComponent;
@@ -32,7 +34,6 @@ import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
 import util.MousePicker;
 import util.math.Vector2f;
-import util.math.Vector3f;
 import util.parsing.SimpleMaterialColor;
 
 public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
@@ -73,22 +74,23 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
         if (terrain == null)
             return;
 
-        Vao vao = prepareTerrain(terrain);
+        IndexBufferVao vao = (IndexBufferVao) prepareTerrain(terrain);
         if (vao == null)
             return;
         vao.bind();
 //        if (hoveredCell != null) {
-        Vector3f intersectionPoint = MousePicker.getInstance().getIntersectionPoint();
-        this.shader.loadHoveredCells(MousePicker.getInstance().hoveredCells,
-                intersectionPoint == null ? null : intersectionPoint.toTerrainPosition());
+        this.shader.loadHoveredCell(MousePicker.getInstance().getIntersectionPoint());
 //        } else
 //            this.shader.loadHoveredCells(new ArrayList<>());
 //
 //        this.shader.loadHoveredCells(Camera.getInstance().getPosition(), MousePicker.getInstance().getCurrentRay());
-        vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-        GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-        //TODO: Triangle strip
-        vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+
+        vao.getIndexVbos().forEach(indexVbo -> {
+            indexVbo.bind();
+            GL11.glDrawElements(GL_TRIANGLES, indexVbo.getDataLength(), GL11.GL_UNSIGNED_INT, 0);
+            //TODO: Triangle strip
+            indexVbo.unbind();
+        });
         vao.unbind();
         unbindTexturedModel();
 
@@ -109,7 +111,6 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
             return null;
 
         Vao vao = model.getVao();
-        vao.bind();
 
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
         if (heightMapComponent != null) {
@@ -122,15 +123,15 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
 
         Material dirtBiomeMaterial = new Material("DirtBiome");
         dirtBiomeMaterial.setDiffuse(new SimpleMaterialColor(Color.decode("#4E342E")));
-        Biome dirtBiome = new Biome(dirtBiomeMaterial, 0, 6.84f);
+        Biome dirtBiome = new Biome(dirtBiomeMaterial, 0, 1.1f);
 
         Material grassBiomeMaterial = new Material("GrassBiome");
         grassBiomeMaterial.setDiffuse(new SimpleMaterialColor(Color.decode("#4CAF50")));
-        Biome grassBiome = new Biome(grassBiomeMaterial, 8.47f, 11.85f);
+        Biome grassBiome = new Biome(grassBiomeMaterial, 2.4f, 5.15f);
 
         Material mountainBiomeMaterial = new Material("MountainBiome");
         mountainBiomeMaterial.setDiffuse(new SimpleMaterialColor(Color.decode("#616161")));
-        Biome mountainBiome = new Biome(mountainBiomeMaterial, 12.2f, 24);
+        Biome mountainBiome = new Biome(mountainBiomeMaterial, 7.2f, 24);
 
         Material snowBiomeMaterial = new Material("SnowBiome");
         snowBiomeMaterial.setDiffuse(new SimpleMaterialColor(new Color(255, 255, 255)));

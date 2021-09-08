@@ -7,8 +7,8 @@ import guis.presets.Background;
 
 public class GuiRectangle extends GuiShape {
 
-    public final static int[] POSITIONS_FILLED   = {-1, 1, -1, -1, 1, 1, 1, -1};
-    public final static int[] POSITIONS_UNFILLED = {-1, -1, -1, 1, 1, 1, 1, -1};
+    public static final int[] POSITIONS_FILLED   = {-1, 1, -1, -1, 1, 1, 1, -1};
+    public static final int[] POSITIONS_UNFILLED = {-1, -1, -1, 1, 1, 1, 1, -1};
 
     public GuiRectangle(GuiInterface parent, Background<?> background, GuiConstraints width, GuiConstraints height) {
         this(parent, background, width, height, true);

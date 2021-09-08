@@ -9,8 +9,8 @@ import util.math.Matrix4f;
 
 public class WaterShader extends ShaderProgram {
 
-    private final static String VERTEX_FILE = "waterVertexShader.glsl";
-    private final static String FRAGMENT_FILE = "waterFragmentShader.glsl";
+    private static final String VERTEX_FILE = "waterVertexShader.glsl";
+    private static final String FRAGMENT_FILE = "waterFragmentShader.glsl";
 
     private int location_modelMatrix;
     private int location_viewMatrix;

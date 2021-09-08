@@ -1,18 +1,12 @@
 package fontMeshCreator;
 
 import java.io.File;
+import renderEngine.structures.Data;
 
-/**
- * Represents a font. It holds the font's texture atlas as well as having the
- * ability to create the quad vertices for any text using this font.
- * 
- * @author Karl
- *
- */
 public class FontType {
 
-	private int textureAtlas;
-	private TextMeshCreator loader;
+	private final int             textureAtlas;
+	private final TextMeshCreator loader;
 
 	/**
 	 * Creates a new font and loads up the data about each character from the
@@ -49,8 +43,7 @@ public class FontType {
 	 *            - the unloaded text.
 	 * @return Information about the vertices of all the quads.
 	 */
-	public TextMeshData loadText(Text text) {
+	public Data loadText(Text text) {
 		return loader.createTextMesh(text);
 	}
-
 }

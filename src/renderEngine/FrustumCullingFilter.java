@@ -31,7 +31,7 @@ public class FrustumCullingFilter {
             return false;
         for (int i = 0; i < NUM_PLANES; i++) {
             Vector4f plane = frustumPlanes[i];
-            if (plane.x * pos.getX() + plane.y * pos.getY() + plane.z * pos.getZ() + plane.w <= -boundingRadius) {
+            if (plane.getX() * pos.getX() + plane.getY() * pos.getY() + plane.getZ() * pos.getZ() + plane.getW() <= -boundingRadius) {
                 return false;
             }
         }

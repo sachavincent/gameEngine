@@ -2,25 +2,25 @@ package renderEngine;
 
 public class TerrainMeshData {
 
-    private final int[] vertices;
-    private final int[] indices;
-    private final int[] isEdge;
+    private final Integer[] vertices;
+    private final Integer[] indices;
+    private final Integer[] isEdge;
 
-    public TerrainMeshData(int[] vertices, int[] isEdge, int[] indices) {
+    public TerrainMeshData(Integer[] vertices, Integer[] isEdge, Integer[] indices) {
         this.vertices = vertices;
         this.indices = indices;
         this.isEdge = isEdge;
     }
 
-    public int[] getIsEdge() {
+    public Integer[] getIsEdge() {
         return this.isEdge;
     }
 
-    public int[] getVertices() {
+    public Integer[] getVertices() {
         return this.vertices;
     }
 
-    public int[] getIndices() {
+    public Integer[] getIndices() {
         return this.indices;
     }
 }

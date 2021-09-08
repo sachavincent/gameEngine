@@ -1,10 +1,9 @@
 package util.math;
 
 import entities.Camera;
-import terrain.TerrainPosition;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import terrain.TerrainPosition;
 
 public class Maths {
 
@@ -29,12 +28,12 @@ public class Maths {
     }
 
     public static float barryCentric(Vector3f p1, Vector3f p2, Vector3f p3, Vector2f pos) {
-        float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
-        float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
-        float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;
+        float det = (p2.getZ() - p3.getZ()) * (p1.getX() - p3.getX()) + (p3.getX() - p2.getX()) * (p1.getZ() - p3.getZ());
+        float l1 = ((p2.getZ() - p3.getZ()) * (pos.getX() - p3.getX()) + (p3.getX() - p2.getX()) * (pos.getY() - p3.getZ())) / det;
+        float l2 = ((p3.getZ() - p1.getZ()) * (pos.getX() - p3.getX()) + (p1.getX() - p3.getX()) * (pos.getY() - p3.getZ())) / det;
         float l3 = 1.0f - l1 - l2;
 
-        return l1 * p1.y + l2 * p2.y + l3 * p3.y;
+        return l1 * p1.getY() + l2 * p2.getY() + l3 * p3.getY();
     }
 
     public static Matrix4f createTransformationMatrix(Vector3f translation, Vector3f rotation, float scale) {
@@ -46,9 +45,9 @@ public class Maths {
 
         Matrix4f.translate(translation, matrix, matrix);
 
-        Matrix4f.rotate((float) Math.toRadians(rotation.x), new Vector3f(1, 0, 0), matrix, matrix);
-        Matrix4f.rotate((float) Math.toRadians(rotation.y), new Vector3f(0, 1, 0), matrix, matrix);
-        Matrix4f.rotate((float) Math.toRadians(rotation.z), new Vector3f(0, 0, 1), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.getX()), new Vector3f(1, 0, 0), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.getY()), new Vector3f(0, 1, 0), matrix, matrix);
+        Matrix4f.rotate((float) Math.toRadians(rotation.getZ()), new Vector3f(0, 0, 1), matrix, matrix);
 
         Matrix4f.scale(new Vector3f(scale, scale, scale), matrix, matrix);
 
@@ -59,7 +58,7 @@ public class Maths {
         Matrix4f matrix = new Matrix4f();
         matrix.setIdentity();
         Matrix4f.translate(translation, matrix, matrix);
-        Matrix4f.scale(new Vector3f(scale.x, scale.y, 1f), matrix, matrix);
+        Matrix4f.scale(new Vector3f(scale.getX(), scale.getY(), 1f), matrix, matrix);
         return matrix;
     }
 
@@ -72,7 +71,7 @@ public class Maths {
 //        Matrix4f.rotate((float) Math.toRadians(camera.getRoll()), new Vector3f(0, 0, 1), matrix, matrix);
 
         Vector3f cameraPos = camera.getPosition();
-        Vector3f negativeCameraPos = new Vector3f(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+        Vector3f negativeCameraPos = new Vector3f(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
 
         Matrix4f.translate(negativeCameraPos, matrix, matrix);
 
@@ -80,15 +79,15 @@ public class Maths {
     }
 
     public static boolean isPointIn2DBounds(Vector2f point, float x, float y, float width, float height) {
-        return (x - width) <= point.x && point.x <= (x + width) &&
-                (y - height) <= point.y && point.y <= (y + height);
+        return (x - width) <= point.getX() && point.getX() <= (x + width) &&
+                (y - height) <= point.getY() && point.getY() <= (y + height);
     }
 
     public static boolean isPointIn3DBounds(Vector3f point, float x, float y, float z, float width, float height,
             float depth) { // x y z = left corner !!important
-        return (point.x >= x && point.x <= (x + width)) &&
-                (point.y >= y && point.y <= (y + height)) &&
-                (point.z >= z && point.z <= (z + depth));
+        return (point.getX() >= x && point.getX() <= (x + width)) &&
+                (point.getY() >= y && point.getY() <= (y + height)) &&
+                (point.getZ() >= z && point.getZ() <= (z + depth));
     }
 
     public static double roundDown(double value, int nbDecimals) {

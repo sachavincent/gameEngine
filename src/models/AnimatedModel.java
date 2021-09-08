@@ -3,22 +3,22 @@ package models;
 import animation.Animation;
 import animation.Animator;
 import animation.Joint;
-import renderEngine.Vao;
-import renderEngine.shaders.structs.Material;
-import util.math.Matrix4f;
-
 import java.util.List;
+import renderEngine.shaders.structs.Material;
+import renderEngine.structures.Vao;
+import util.math.Matrix4f;
 
 public class AnimatedModel extends AbstractModel {
 
     private final Joint rootJoint;
     private final int   jointCount;
 
-    private final Animator animator;
+    private final Animator       animator;
     private final List<Material> materials;
 
     public AnimatedModel(Vao vao, Joint rootJoint, int jointCount, List<Material> materials) {
         super(vao);
+
         this.materials = materials;
         this.rootJoint = rootJoint;
         this.jointCount = jointCount;
@@ -33,7 +33,9 @@ public class AnimatedModel extends AbstractModel {
 
     public Joint getRootJoint() {
         return this.rootJoint;
-    }    /**
+    }
+
+    /**
      * Instructs this entity to carry out a given animation. To do this it
      * basically sets the chosen animation as the current animation in the
      * {@link Animator} object.
@@ -51,6 +53,7 @@ public class AnimatedModel extends AbstractModel {
     public void update() {
         this.animator.update();
     }
+
     /**
      * Gets an array of the all important model-space transforms of all the
      * joints (with the current animation pose applied) in the entity. The

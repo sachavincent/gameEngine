@@ -1,5 +1,13 @@
 package inputs;
 
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static util.math.Maths.isPointIn2DBounds;
+
+import display.Display;
 import engineTester.Game;
 import engineTester.Game.GameState;
 import entities.Camera;
@@ -13,10 +21,11 @@ import guis.presets.GuiAbstractShapePreset;
 import guis.presets.GuiClickablePreset;
 import guis.presets.GuiPreset;
 import guis.presets.GuiTextInput;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.system.Callback;
-import renderEngine.DisplayManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import renderEngine.FrustumCullingFilter;
 import scene.Scene;
 import scene.components.SelectableComponent;
@@ -24,20 +33,8 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import terrain.TerrainPosition;
 import util.MousePicker;
-import util.math.Maths;
 import util.math.Vector2f;
 import util.math.Vector3f;
-
-import java.nio.DoubleBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.lwjgl.glfw.GLFW.*;
-import static renderEngine.DisplayManager.getWindow;
-import static util.math.Maths.isPointIn2DBounds;
 
 public class MouseUtils {
 
@@ -48,10 +45,6 @@ public class MouseUtils {
     public static double  previousXPos = -1;
     public static double  previousYPos = -1;
 
-    private static Callback callback1;
-    private static Callback callback2;
-    private static Callback callback3;
-
     private static State state = State.DEFAULT;
     private static State previousState;
 
@@ -61,27 +54,7 @@ public class MouseUtils {
     private static      List<GuiClickablePreset> clickables;
 
     public static Vector2f getCursorPos() {
-        long windowID = DisplayManager.getWindow();
-        DoubleBuffer posX = BufferUtils.createDoubleBuffer(1);
-        DoubleBuffer posY = BufferUtils.createDoubleBuffer(1);
-        glfwGetCursorPos(windowID, posX, posY);
-
-        Vector2f cursorPos = new Vector2f(posX.get(), posY.get());
-
-        posX.clear();
-        posY.clear();
-
-        cursorPos.x /= DisplayManager.WIDTH;
-        cursorPos.x *= 2;
-        cursorPos.x -= 1;
-        cursorPos.x = Maths.clamp(cursorPos.x, -1, 1);
-
-        cursorPos.y /= DisplayManager.HEIGHT;
-        cursorPos.y *= -2;
-        cursorPos.y += 1;
-        cursorPos.y = Maths.clamp(cursorPos.y, -1, 1);
-
-        return cursorPos;
+        return Display.getWindow().getCursorPos();
     }
 
     public static boolean isCursorInGui(Gui gui) {
@@ -105,8 +78,8 @@ public class MouseUtils {
     public static boolean isCursorInGuiComponent(GuiComponent guiComponent, boolean print) {
         Vector2f cursorPos = getCursorPos();
         if (guiComponent instanceof GuiEllipse) {
-            float x = cursorPos.x;
-            float y = cursorPos.y;
+            float x = cursorPos.getX();
+            float y = cursorPos.getY();
 
             float h = guiComponent.getX();
             float k = guiComponent.getY();
@@ -160,13 +133,13 @@ public class MouseUtils {
                 System.out.println(p1);
                 System.out.println(p2);
             }
-            var dX = cursorPos.x - p2.x;
-            var dY = cursorPos.y - p2.y;
-            var dX21 = p2.x - p1.x;
-            var dY12 = p1.y - p2.y;
-            var D = dY12 * (p0.x - p2.x) + dX21 * (p0.y - p2.y);
+            var dX = cursorPos.getX() - p2.getX();
+            var dY = cursorPos.getY() - p2.getY();
+            var dX21 = p2.getX() - p1.getX();
+            var dY12 = p1.getY()- p2.getY();
+            var D = dY12 * (p0.getX() - p2.getX()) + dX21 * (p0.getY() - p2.getY());
             var s = dY12 * dX + dX21 * dY;
-            var t = (p2.y - p0.y) * dX + (p0.x - p2.x) * dY;
+            var t = (p2.getY() - p0.getY()) * dX + (p0.getX() - p2.getX()) * dY;
             if (D < 0)
                 return s <= 0 && t <= 0 && s + t >= D;
             return s >= 0 && t >= 0 && s + t <= D;
@@ -177,7 +150,6 @@ public class MouseUtils {
     }
 
     public static void setupListeners() {
-        long window = getWindow();
         clickables = new ArrayList<>(Game.getInstance().getAllGuis()).stream()
                 .map(gui -> gui.getAllComponents().stream()
                         .filter(GuiClickablePreset.class::isInstance)
@@ -185,7 +157,7 @@ public class MouseUtils {
                         .map(GuiClickablePreset.class::cast).collect(Collectors.toList())).flatMap(
                         Collection::stream).collect(Collectors.toList());
 
-        callback1 = GLFW.glfwSetMouseButtonCallback(getWindow(), (w, button, action, mods) -> {
+        Display.getWindow().setMouseButtonCallback((w, button, action, mods) -> {
             boolean inDebugGui =
                     MouseUtils.isCursorInGui(GuiDebug.getInstance()) && GuiDebug.getInstance().isDisplayed();
             boolean inGui = Game.getInstance().getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
@@ -215,9 +187,9 @@ public class MouseUtils {
                             Game.getInstance().getGuiTextInputs().stream()
                                     .filter(GuiComponent::isFocused)
                                     .filter(GuiTextInput::isUnfocusOnClick).forEach(guiTextInput -> {
-                                if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
-                                    guiTextInput.unfocus();
-                            });
+                                        if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
+                                            guiTextInput.unfocus();
+                                    });
 
                             OnM1Pressed();
                             break;
@@ -299,7 +271,7 @@ public class MouseUtils {
             }
         });
 
-        callback2 = GLFW.glfwSetScrollCallback(window, (w, xoffset, yoffset) -> {
+        Display.getWindow().setScrollCallback((w, xoffset, yoffset) -> {
             Game.getInstance().getDisplayedGuis().forEach(
                     gui -> gui.getAllComponents().forEach(guiComponent -> guiComponent.onScroll(xoffset, yoffset)));
             if (Game.getInstance().getGameState() == GameState.STARTED) {
@@ -312,7 +284,7 @@ public class MouseUtils {
             }
         });
 
-        callback3 = GLFW.glfwSetCursorPosCallback(window, (w, xPos, yPos) -> OnMouseMove(new Vector2f(xPos, yPos)));
+        Display.getWindow().setCursorPosCallback((w, xPos, yPos) -> OnMouseMove(new Vector2f(xPos, yPos)));
     }
 
     private static void updateGuis(List<Gui> enteredGuis) {
@@ -433,14 +405,14 @@ public class MouseUtils {
             if (middleMouseButtonPressed) {
                 Camera camera = Camera.getInstance();
                 if (previousXPos == -1 && previousYPos == -1) { // Premier mvt depuis que middle click a été appuyé
-                    previousXPos = pos.x;
-                    previousYPos = pos.y;
+                    previousXPos = pos.getX();
+                    previousYPos = pos.getY();
 
                     previousYaw = camera.getYaw();
                     previousPitch = camera.getPitch();
                 } else {
-                    float xOffset = (float) (previousXPos - pos.x) / (float) DisplayManager.WIDTH * 360;
-                    float yOffset = (float) (previousYPos - pos.y) / (float) DisplayManager.HEIGHT * 360;
+                    float xOffset = (float) (previousXPos - pos.getX()) / (float) Display.getWindow().getWidth() * 360;
+                    float yOffset = (float) (previousYPos - pos.getY()) / (float) Display.getWindow().getHeight() * 360;
                     //TODO: Sensitivity
 
                     camera.setYaw((int) (previousYaw - xOffset));
@@ -518,7 +490,7 @@ public class MouseUtils {
                     scene.resetPreviewedPositions(true);
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
                         (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
-                    if (!scene.getPreviewItemPositions().contains(terrainPos)) {
+                    if (!scene.getPreviewPositions().contains(terrainPos)) {
                         scene.addToPreview(terrainPos);
                     }
                 } else {
@@ -708,16 +680,6 @@ public class MouseUtils {
                 break;
         }
     }
-
-    public static void freeCallbacks() {
-        if (callback1 != null)
-            callback1.free();
-        if (callback2 != null)
-            callback2.free();
-        if (callback3 != null)
-            callback3.free();
-    }
-
 
     private enum State {
         DEFAULT,

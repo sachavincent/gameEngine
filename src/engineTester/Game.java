@@ -4,6 +4,15 @@ import entities.Camera;
 import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.presets.GuiTextInput;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import people.Farmer;
 import people.Person;
 import postProcessing.Fbo;
@@ -20,24 +29,19 @@ import scene.gameObjects.GameObject;
 import util.TimeSystem;
 import util.Utils;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 public class Game {
 
-    public final static TimeSystem COOLDOWN_BEFORE_SETTLEMENT = new TimeSystem(
+    public static final TimeSystem COOLDOWN_BEFORE_SETTLEMENT = new TimeSystem(
             TimeSystem.TICK_RATE * 60); // 1 Minute
-    public final static TimeSystem MAX_TIME_BEFORE_FULL_SETTLEMENT = new TimeSystem(
+    public static final TimeSystem MAX_TIME_BEFORE_FULL_SETTLEMENT = new TimeSystem(
             TimeSystem.TICK_RATE * 60 * 5); // 5 Minutes
-    public final static TimeSystem TIME_BETWEEN_SETTLEMENTS = new TimeSystem(
+    public static final TimeSystem TIME_BETWEEN_SETTLEMENTS = new TimeSystem(
             TimeSystem.TICK_RATE * 20); // 20 seconds
-    public final static int COOLDOWN_GLOBAL_MOVE_AWAY = TimeSystem.TICK_RATE * 10; // 10 seconds
+    public static final int COOLDOWN_GLOBAL_MOVE_AWAY = TimeSystem.TICK_RATE * 10; // 10 seconds
 
-    public final static int TERRAIN_WIDTH = 128;
-    public final static int TERRAIN_DEPTH = 128;
-    public final static int TERRAIN_MAX_HEIGHT = 32;
+    public static final int TERRAIN_WIDTH = 128;
+    public static final int TERRAIN_DEPTH = 128;
+    public static final float TERRAIN_MAX_HEIGHT = 32;
 
     private static Game instance;
 
@@ -339,7 +343,7 @@ public class Game {
 //    static Sun sun = new Sun(texture, 55);
 //    static {
 //        Vector3f lightDir = new Vector3f(0.55f, -0.34f, 1);
-//        sun.setDirection(lightDir.x, lightDir.y, lightDir.z);
+//        sun.setDirection(lightDir.getX(), lightDir.y, lightDir.getZ());
 //    }
     public void processRendering(Fbo fbo) {
         if (Game.getInstance().getGameState() == GameState.STARTED) {

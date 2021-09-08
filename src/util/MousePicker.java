@@ -1,18 +1,16 @@
 package util;
 
+import display.Display;
 import engineTester.Game;
 import entities.Camera;
 import inputs.MouseUtils;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import models.BoundingBox;
-import renderEngine.DisplayManager;
 import renderEngine.MasterRenderer;
 import scene.Scene;
 import scene.components.BoundingBoxComponent;
@@ -36,8 +34,6 @@ public class MousePicker {
 
     private Vector3f intersectionPoint;
 
-    public List<TerrainPosition> hoveredCells = new ArrayList<>();
-
     private static MousePicker instance;
 
     private GameObject gameObject;
@@ -55,7 +51,7 @@ public class MousePicker {
     }
 
     public boolean isPointOnTerrain() {
-        return getHoveredCell() != null;
+        return this.intersectionPoint != null;
     }
 
     public Vector3f getCurrentRay() {
@@ -68,13 +64,8 @@ public class MousePicker {
         this.currentRay = calculateMouseRay();
         this.gameObject = null;
         this.intersectionPoint = null;
-//
-//        Map<GameObject, Vector3f> map = new HashMap<>();
-//        Entry<GameObject, Vector3f> intersectionWithGameObject = getIntersectionWithGameObject(
-//                Scene.getInstance().getGameObjectsOfType(Terrain.class, false).stream().findFirst().orElse(null));
-//        if (intersectionWithGameObject != null)
-//            map.put(intersectionWithGameObject.getKey(), intersectionWithGameObject.getValue());
-//        calculateIntersectionPoint(map);
+
+        getHoveredCell();
     }
 
     public void updateIntersectionOnClick() {
@@ -112,7 +103,7 @@ public class MousePicker {
         Vector3f position = positionComponent.getPosition();
         OffsetComponent offsetComponent = gameObject.getComponent(OffsetComponent.class);
         if (offsetComponent != null)
-            position = position.add(offsetComponent.getOffset());
+            position.add(offsetComponent.getOffset());
 
         BoundingBox boundingBox = boundingBoxComponent.getBoundingBox();
         Vector3f finalPosition = position;
@@ -158,10 +149,10 @@ public class MousePicker {
 
     private Vector3f calculateMouseRay() {
         Vector2f mousePos = MouseUtils.getCursorPos();
-        float mouseX = mousePos.x * DisplayManager.WIDTH / 2f + DisplayManager.WIDTH / 2f;
-        float mouseY = mousePos.y * DisplayManager.HEIGHT / 2f + DisplayManager.HEIGHT / 2f;
+        float mouseX = mousePos.getX() * Display.getWindow().getWidth() / 2f + Display.getWindow().getWidth() / 2f;
+        float mouseY = mousePos.getY() * Display.getWindow().getHeight() / 2f + Display.getWindow().getHeight() / 2f;
         Vector2f normalizedCoords = getNormalisedDeviceCoordinates(mouseX, mouseY);
-        Vector4f clipCoords = new Vector4f(normalizedCoords.x, normalizedCoords.y, -1.0f, 1.0f);
+        Vector4f clipCoords = new Vector4f(normalizedCoords.getX(), normalizedCoords.getY(), -1.0f, 1.0f);
         Vector4f eyeCoords = toEyeCoords(clipCoords);
 
         return toWorldCoords(eyeCoords);
@@ -170,7 +161,7 @@ public class MousePicker {
     private Vector3f toWorldCoords(Vector4f eyeCoords) {
         Matrix4f invertedView = Matrix4f.invert(this.viewMatrix, null);
         Vector4f rayWorld = Matrix4f.transform(invertedView, eyeCoords, null);
-        Vector3f mouseRay = new Vector3f(rayWorld.x, rayWorld.y, rayWorld.z);
+        Vector3f mouseRay = new Vector3f(rayWorld.getX(), rayWorld.getY(), rayWorld.getZ());
         mouseRay.normalise();
 
         return mouseRay;
@@ -181,12 +172,12 @@ public class MousePicker {
         //TODO: Attribute?
         Vector4f eyeCoords = Matrix4f.transform(invertedProjection, clipCoords, null);
 
-        return new Vector4f(eyeCoords.x, eyeCoords.y, -1f, 0f);
+        return new Vector4f(eyeCoords.getX(), eyeCoords.getY(), -1f, 0f);
     }
 
     private Vector2f getNormalisedDeviceCoordinates(float mouseX, float mouseY) {
-        float x = (2.0f * mouseX) / DisplayManager.WIDTH - 1f;
-        float y = (2.0f * mouseY) / DisplayManager.HEIGHT - 1f;
+        float x = (2.0f * mouseX) / Display.getWindow().getWidth() - 1f;
+        float y = (2.0f * mouseY) / Display.getWindow().getHeight() - 1f;
 
         return new Vector2f(x, y);
     }
@@ -195,31 +186,18 @@ public class MousePicker {
         return this.gameObject;
     }
 
-    public TerrainPosition getHoveredCell() {
-        if (!MouseUtils.rightClickPressed)
-            return this.intersectionPoint == null ? null : this.intersectionPoint.toTerrainPosition();
-//        if (this.needRayUpdate)
-//            update();
+    public void getHoveredCell() {
         Terrain terrain = Scene.getInstance().getTerrain();
         if (terrain == null)
-            return null;
-        this.hoveredCells.clear();
+            return;
         this.intersectionPoint = null;
         float slopeSpeed = 1.0f;
         Vector3f currPos = new Vector3f(Camera.getInstance().getPosition());
-        // First, check if mouseRay intersects with Terrain:
-//        if (!terrainPlane.doesLineIntersect(this.currentRay))
-//            return null;//TODO:Use full BB (minHeight to maxHeight Box)
-        while (!isPosOnTerrain(currPos)) {//Dangerous for now if not clicked on terrain@see TODO-Above
-            // Camera not above the Terrain
-            Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
-                    this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
-            currPos = Vector3f.add(currPos, tmp, null);
-        }
+
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
-        while (isPosOnTerrain(currPos)) {
-            int minX = (int) Math.floor(currPos.x);
-            int minZ = (int) Math.floor(currPos.z);
+        while (Scene.getInstance().isPositionOnTerrain((int) currPos.getX(), (int) currPos.getZ())) {
+            int minX = (int) Math.floor(currPos.getX());
+            int minZ = (int) Math.floor(currPos.getZ());
             int maxX = minX + 1;
             int maxZ = minZ + 1;
 
@@ -228,42 +206,22 @@ public class MousePicker {
             Vector3f p3 = new Vector3f(minX, heightMapComponent.getHeight(minX, maxZ), maxZ);
             Vector3f p4 = new Vector3f(maxX, heightMapComponent.getHeight(maxX, maxZ), maxZ);
 
-            float height = currPos.y;
+            float height = currPos.getY();
 
-            if (p1.y >= height || p2.y >= height || p3.y >= height || p4.y >= height) {
-                TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.x), p1.y,
-                        (int) Math.floor(p1.z));
-                if (this.intersectionPoint == null || this.intersectionPoint.y < height)
+            if (p1.getY() >= height || p2.getY() >= height || p3.getY() >= height || p4.getY() >= height) {
+                if (Scene.getInstance().isPositionOnTerrain(p1.getX(), p1.getZ())) {
+                    TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.getX()), p1.getY(),
+                            (int) Math.floor(p1.getZ()));
                     this.intersectionPoint = terrainPosition.toVector3f();
+                    return;
+                }
             }
-            hoveredCells.add(new TerrainPosition(p1));
-            Vector3f tmp = new Vector3f(this.currentRay.x * slopeSpeed,
-                    this.currentRay.y * slopeSpeed, this.currentRay.z * slopeSpeed);
-            currPos = Vector3f.add(currPos, tmp, null);
+            Vector3f.add(currPos, this.currentRay, currPos);
         }
-        return this.intersectionPoint == null ? null : this.intersectionPoint.toTerrainPosition();
     }
 
     private boolean isPosOnTerrain(Vector3f pos) {
-        return pos.x >= 0 && pos.z >= 0 && pos.x < Game.TERRAIN_WIDTH - 1
-                && pos.z < Game.TERRAIN_DEPTH - 1;
-    }
-
-    float sign(Vector2f p1, Vector2f p2, Vector2f p3) {
-        return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-    }
-
-    boolean isPointInTriangle(Vector2f pt, Vector2f v1, Vector2f v2, Vector2f v3) {
-        float d1, d2, d3;
-        boolean has_neg, has_pos;
-
-        d1 = sign(pt, v1, v2);
-        d2 = sign(pt, v2, v3);
-        d3 = sign(pt, v3, v1);
-
-        has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-        has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-        return !(has_neg && has_pos);
+        return pos.getX() >= 0 && pos.getZ() >= 0 && pos.getX() < Game.TERRAIN_WIDTH - 1
+                && pos.getZ() < Game.TERRAIN_DEPTH - 1;
     }
 }

@@ -23,12 +23,4 @@ public class GuiSettingsMenu extends GuiMultiTab {
         GuiLanguageSettings guiLanguageSettings = new GuiLanguageSettings(this);
         guiLanguageSettings.setDisplayed(false);
     }
-
-
-    enum State {
-        GRAPHICS,
-        CONTROLS,
-        LANGUAGES,
-        SOUND
-    }
 }

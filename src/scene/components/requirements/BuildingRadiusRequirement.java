@@ -9,6 +9,7 @@ import scene.components.PositionComponent;
 import scene.components.PreviewComponent;
 import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
+import terrain.TerrainPosition;
 import util.math.Vector3f;
 
 public class BuildingRadiusRequirement extends Requirement<Class<? extends GameObject>, Integer> {
@@ -28,11 +29,11 @@ public class BuildingRadiusRequirement extends Requirement<Class<? extends GameO
         if (gameObjects.isEmpty() || gameObject == null)
             return false;
 
-        Vector3f position = null;
+        TerrainPosition position = null;
         if (gameObject.hasComponent(PreviewComponent.class))
             position = gameObject.getComponent(PreviewComponent.class).getPreviewPosition();
         if (position == null && gameObject.hasComponent(PositionComponent.class))
-            position = gameObject.getComponent(PositionComponent.class).getPosition();
+            position = gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition();
 
         if (position == null)
             return false;
@@ -47,7 +48,7 @@ public class BuildingRadiusRequirement extends Requirement<Class<? extends GameO
                     });
                 });
 
-        Vector3f finalPosition = position;
+        final Vector3f finalPosition = position.toVector3f();
         this.building = gameObjects.stream()
                 .collect(Collectors.toMap(gObj -> gObj,
                         gObj -> gObj.getComponent(PositionComponent.class).getPosition().distance(finalPosition)))

@@ -1,10 +1,10 @@
 package guis.constraints;
 
+import display.Display;
 import guis.Gui;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintsManager.Constraints;
 import guis.exceptions.IllegalGuiConstraintException;
-import renderEngine.DisplayManager;
 
 public class GuiConstraintHandler {
 
@@ -68,10 +68,11 @@ public class GuiConstraintHandler {
                 width = (constraint - xConstraintValue) * relativeTo.getWidth();
                 break;
             case ASPECT:
-                width = constraint * DisplayManager.HEIGHT / DisplayManager.WIDTH * this.toHandle.getHeight();
+                width = constraint * Display.getWindow().getHeight() / Display.getWindow().getWidth() *
+                        this.toHandle.getHeight();
                 break;
             case PIXEL:
-                width = constraint / DisplayManager.WIDTH;
+                width = constraint / Display.getWindow().getWidth();
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -104,10 +105,11 @@ public class GuiConstraintHandler {
                 height = (constraint - yConstraintValue) * relativeTo.getHeight();
                 break;
             case ASPECT:
-                height = constraint * DisplayManager.WIDTH / DisplayManager.HEIGHT * this.toHandle.getWidth();
+                height = constraint * Display.getWindow().getWidth() / Display.getWindow().getHeight() *
+                        this.toHandle.getWidth();
                 break;
             case PIXEL:
-                height = constraint / DisplayManager.HEIGHT;
+                height = constraint / Display.getWindow().getHeight();
                 break;
             default:
                 throw new IllegalGuiConstraintException("This constraint cannot be handled");
@@ -152,7 +154,7 @@ public class GuiConstraintHandler {
                 SideConstraint sideConstraint = (SideConstraint) yConstraint;
                 Constraints distanceType = sideConstraint.getDistanceType();
                 if (distanceType == Constraints.PIXEL)
-                    constraint /= DisplayManager.HEIGHT;
+                    constraint /= Display.getWindow().getHeight();
 
                 switch (sideConstraint.getSide()) {
                     case BOTTOM:
@@ -175,11 +177,11 @@ public class GuiConstraintHandler {
 
                 break;
             case PIXEL:
-                if (constraint < -DisplayManager.HEIGHT || constraint > DisplayManager.HEIGHT)
+                if (constraint < -Display.getWindow().getHeight() || constraint > Display.getWindow().getHeight())
                     throw new IllegalGuiConstraintException(
                             "Component y = " + constraint + " coordinate doesn't belong in window");
 
-                y = constraint / DisplayManager.HEIGHT;
+                y = constraint / Display.getWindow().getHeight();
                 break;
             case CENTER:
                 if (relativeTo == null)
@@ -193,7 +195,7 @@ public class GuiConstraintHandler {
 
                 StickyConstraint stickyConstraint = (StickyConstraint) yConstraint;
                 if (stickyConstraint.getDistanceType() == Constraints.PIXEL)
-                    constraint /= DisplayManager.HEIGHT;
+                    constraint /= Display.getWindow().getHeight();
 
                 switch (stickyConstraint.getSide()) {
                     case TOP:
@@ -249,7 +251,7 @@ public class GuiConstraintHandler {
                 SideConstraint sideConstraint = (SideConstraint) xConstraint;
                 distanceType = sideConstraint.getDistanceType();
                 if (distanceType == Constraints.PIXEL)
-                    constraint /= DisplayManager.WIDTH;
+                    constraint /= Display.getWindow().getWidth();
 
                 switch (sideConstraint.getSide()) {
                     case LEFT:
@@ -271,10 +273,10 @@ public class GuiConstraintHandler {
                 }
                 break;
             case PIXEL:
-                if (constraint < -DisplayManager.WIDTH || constraint > DisplayManager.WIDTH)
+                if (constraint < -Display.getWindow().getWidth() || constraint > Display.getWindow().getWidth())
                     throw new IllegalGuiConstraintException("Component x coordinate doesn't belong in window");
 
-                x = constraint / DisplayManager.WIDTH;
+                x = constraint / Display.getWindow().getWidth();
                 break;
             case CENTER:
                 if (relativeTo == null)
@@ -289,7 +291,7 @@ public class GuiConstraintHandler {
                 StickyConstraint stickyConstraint = (StickyConstraint) xConstraint;
                 distanceType = stickyConstraint.getDistanceType();
                 if (distanceType == Constraints.PIXEL)
-                    constraint /= DisplayManager.WIDTH;
+                    constraint /= Display.getWindow().getWidth();
                 switch (stickyConstraint.getSide()) {
                     case LEFT:
                         x = relativeTo.getX() - relativeTo.getWidth() - width -

@@ -1,5 +1,6 @@
 package guis.prefabs;
 
+import display.DisplayManager;
 import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshCreator;
 import guis.Gui;
@@ -15,7 +16,16 @@ import guis.presets.checkbox.GuiRectangleCheckbox;
 import guis.presets.sliders.GuiTextScrollable;
 import guis.presets.sliders.ScrollBar;
 import inputs.Key;
-import renderEngine.DisplayManager;
+import java.awt.Color;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
@@ -26,20 +36,9 @@ import util.commands.Command;
 import util.commands.CommandManager;
 import util.math.Maths;
 
-import java.awt.*;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 public class GuiDebug extends Gui {
 
-    private final static Background<File> CHECK = Utils.importResourceTexture("check");
+    private static final Background<File> CHECK = Utils.importResourceTexture("check");
 
     private static GuiDebug instance;
 

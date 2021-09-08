@@ -2,6 +2,7 @@ package inputs;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+import display.Display;
 import inputs.requests.Request;
 import inputs.requests.Request.RequestType;
 import inputs.requests.RequestManager;
@@ -9,12 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import org.lwjgl.system.Callback;
-import renderEngine.DisplayManager;
 
 public class KeyboardUtils {
-
-    private static Callback callback;
 
     private static final Map<RequestType, Queue<Request>> requests = new HashMap<>();
 
@@ -32,12 +29,12 @@ public class KeyboardUtils {
 
     private static KeyModifiers keyModifier = KeyModifiers.NONE; // Used out of requests
 
-
     public static void setupListeners() {
-        glfwSetCharCallback(DisplayManager.getWindow(), (window, codepoint) -> {
+        Display.getWindow().setCharCallback((window, codepoint) -> {
             RequestManager.getInstance().handleRequests(RequestType.CHAR, GLFW_PRESS, (char) codepoint, 0);
         });
-        callback = glfwSetKeyCallback(DisplayManager.getWindow(), (w, key, scancode, action, mods) -> {
+
+        Display.getWindow().setKeyCallback((w, key, scancode, action, mods) -> {
             // Caps lock & Num lock handling
             {
                 int numLock = (mods & GLFW_MOD_NUM_LOCK);
@@ -54,7 +51,8 @@ public class KeyboardUtils {
                 isControl = ctrlPressed == GLFW_MOD_CONTROL;
                 isShift = shiftPressed == GLFW_MOD_SHIFT;
             }
-            boolean handled = RequestManager.getInstance().handleRequests(RequestType.KEY, action, (char) key, scancode);
+            boolean handled = RequestManager.getInstance()
+                    .handleRequests(RequestType.KEY, action, (char) key, scancode);
             if (handled)
                 return;
 
@@ -69,10 +67,5 @@ public class KeyboardUtils {
             if (keyFromInput != null)
                 keyFromInput.on(action);
         });
-    }
-
-    public static void freeCallbacks() {
-        if (callback != null)
-            callback.free();
     }
 }

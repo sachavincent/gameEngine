@@ -10,10 +10,10 @@ import util.math.Vector3f;
 
 public class Market extends GameObject {
 
-    public final static int X_POSITIVE_OFFSET = 5;
-    public final static int X_NEGATIVE_OFFSET = 5;
-    public final static int Z_POSITIVE_OFFSET = 5;
-    public final static int Z_NEGATIVE_OFFSET = 5;
+    public static final int X_POSITIVE_OFFSET = 4;
+    public static final int X_NEGATIVE_OFFSET = 4;
+    public static final int Z_POSITIVE_OFFSET = 4;
+    public static final int Z_NEGATIVE_OFFSET = 4;
 
     public Market() {
         addComponent(new IconComponent(GameObjectPreviews.MARKET));

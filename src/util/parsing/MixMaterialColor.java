@@ -1,9 +1,8 @@
 package util.parsing;
 
+import java.util.Random;
 import util.Mix;
 import util.math.Vector3f;
-
-import java.util.Random;
 
 public class MixMaterialColor extends MaterialColor {
 
@@ -19,9 +18,9 @@ public class MixMaterialColor extends MaterialColor {
     }
 
     public MixMaterialColor(Vector3f firstColor, Vector3f secondColor, Random random) {
-        this.mixR = new Mix(firstColor.x, secondColor.x);
-        this.mixG = new Mix(firstColor.y, secondColor.y);
-        this.mixB = new Mix(firstColor.z, secondColor.z);
+        this.mixR = new Mix(firstColor.getX(), secondColor.getX());
+        this.mixG = new Mix(firstColor.getY(), secondColor.getY());
+        this.mixB = new Mix(firstColor.getZ(), secondColor.getZ());
 
         this.random = random;
         this.color = interpolate(this.random.nextDouble());

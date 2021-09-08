@@ -1,12 +1,12 @@
 package util;
 
-import renderEngine.DisplayManager;
+import display.DisplayManager;
 
 public class DayNightCycle {
 
-    public final static double NOON = Math.PI * 2.0;
+    public static final double NOON = Math.PI * 2.0;
 
-    public static final int DAY_NIGHT_CYCLE_DURATION = 60; // In seconds
+    public static final int DAY_NIGHT_CYCLE_DURATION = 6000; // In seconds
 
     private static int nbFramesCycle;
 

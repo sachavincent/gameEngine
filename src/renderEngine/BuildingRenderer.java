@@ -1,23 +1,35 @@
 package renderEngine;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW;
+import static org.lwjgl.opengl.GL15.glBufferData;
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.CLIP_PLANE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
 import entities.Camera;
 import entities.ModelEntity;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import models.AbstractModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46;
 import org.lwjgl.system.MemoryUtil;
 import renderEngine.shaders.GameObjectShader;
 import renderEngine.shaders.structs.Material;
-import textures.ModelTexture;
+import renderEngine.structures.IndexBufferVao;
+import renderEngine.structures.IndexVbo;
+import renderEngine.structures.MaterialIndexVbo;
+import renderEngine.structures.Vao;
+import renderEngine.structures.Vbo;
 import util.math.Matrix4f;
-
-import java.nio.FloatBuffer;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static renderEngine.MasterRenderer.*;
 
 public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
 
@@ -36,7 +48,6 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
             s.connectTextureUnits();
             s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
-            s.loadOffset(0, 0);
         });
     }
 
@@ -45,42 +56,50 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
         glEnable(GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         this.shader.loadViewMatrix(Camera.getInstance().getViewMatrix());
+        this.shader.loadClipPlane(CLIP_PLANE);
+        this.shader.loadSkyColor(RED, GREEN, BLUE);
     }
 
     @Override
     protected void doRender(Set<Entry<AbstractModel, List<ModelEntity>>> entrySet) {
         Map<Material, List<Vao>> vaoMaterials = new HashMap<>();
+        Map<Vao, Map<Material, Vbo>> vboMaterials = new HashMap<>();
         Map<Vao, List<ModelEntity>> vaoModels = new HashMap<>();
         for (var entry : entrySet) {
             AbstractModel abstractModel = entry.getKey();
             List<ModelEntity> modelEntities = entry.getValue();
 
-            List<Material> materials = new ArrayList<>(abstractModel.getVao().getIndexVbos().keySet());
-            final Vao vao = abstractModel.getVao();
+            final IndexBufferVao vao = (IndexBufferVao) abstractModel.getVao();
+            if (!vboMaterials.containsKey(vao))
+                vboMaterials.put(vao, new HashMap<>());
+
+            List<IndexVbo> indexVbos = vao.getIndexVbos();
             vao.bind();
 
             if (vao.isInstanced()) {
-                for (Material material : materials) {
-                    Vbo vbo = vao.getIndexVbos().get(material);
-                    if (vbo != null) {
+                for (IndexVbo indexVbo : indexVbos) {
+                    if (indexVbo instanceof MaterialIndexVbo) {
+                        Material material = ((MaterialIndexVbo) indexVbo).getMaterial();
                         if (!vaoMaterials.containsKey(material))
                             vaoMaterials.put(material, new ArrayList<>());
-                        if (!vaoModels.containsKey(vao))
-                            vaoModels.put(vao, new ArrayList<>());
                         vaoMaterials.get(material).add(vao);
-                        vaoModels.get(vao).addAll(modelEntities);
+
+                        Map<Material, Vbo> materialVboMap = vboMaterials.get(vao);
+                        materialVboMap.put(material, indexVbo);
                     }
+                    if (!vaoModels.containsKey(vao))
+                        vaoModels.put(vao, new ArrayList<>());
+                    vaoModels.get(vao).addAll(modelEntities);
                 }
             } else {
                 modelEntities.forEach(modelEntity -> {
                     prepareInstance(modelEntity);
-
-                    for (Material material : materials) {
-                        Vbo vbo = vao.getIndexVbos().get(material);
+                    for (Vbo vbo : indexVbos) {
                         vbo.bind();
-                        int indicesCount = vbo.getDataLength();
-                        prepareMaterial(material, false);
-                        glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
+                        if (vbo instanceof MaterialIndexVbo)
+                            prepareMaterial(((MaterialIndexVbo) vbo).getMaterial(), false);
+
+                        glDrawElements(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0);
                         vbo.unbind();
                     }
                 });
@@ -100,6 +119,8 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
                 int k = 0;
                 for (ModelEntity modelEntity : modelEntities) {
                     Matrix4f transformationMatrix = modelEntity.getTransformationMatrix();
+
+                    this.shader.loadTransparency(modelEntity.getTransparency()); //TODO: Add transparency in floatbuffer
                     try {
                         floatBuffer = transformationMatrix.store(k++ * 16, floatBuffer);
                     } catch (IndexOutOfBoundsException ignored) {
@@ -107,13 +128,13 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
                     }
                 }
 
-                vao.getInstanceVbo().bind();
+                Vbo instanceVbo = vao.getInstanceVbo();
+                instanceVbo.bind();
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                Vbo vbo = vao.getIndexVbos().get(material);
+                Vbo vbo = vboMaterials.get(vao).get(material);
                 vbo.bind();
-                int indicesCount = vbo.getDataLength();
-                GL46.glDrawElementsInstanced(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0, modelEntities.size());
-                vao.getInstanceVbo().unbind();
+                GL46.glDrawElementsInstanced(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0, modelEntities.size());
+                instanceVbo.unbind();
                 vbo.unbind();
                 vao.unbind();
             });
@@ -124,29 +145,35 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
     }
 
     void prepareMaterial(Material material, boolean instanced) {
-        ModelTexture texture;
-        if (material.hasDiffuseMap())
-            texture = material.getDiffuseMap();
-        else
-            texture = ModelTexture.DEFAULT_MODEL;
-
-        this.shader.loadNumberOfRows(1);
-        if (texture.isTransparent())
-            MasterRenderer.disableCulling();
+//        if (texture.isTransparent())
+//            MasterRenderer.disableCulling();
 
         this.shader.loadUseFakeLighting(false);
         this.shader.loadLights(material.hasNormalMap(), Camera.getInstance().getViewMatrix());
-        this.shader.loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
         this.shader.loadIsInstanced(instanced);
-        this.shader.loadAlpha(1);
+        this.shader.loadTransparency(1);
 
         this.shader.loadMaterial(material);
 
-        if (texture.isTransparent())
-            MasterRenderer.enableCulling(); // Reenable culling
+//        if (texture.isTransparent())
+//            MasterRenderer.enableCulling(); // Reenable culling
+    }
+
+    @Override
+    protected void prepareInstance(ModelEntity modelEntity) {
+        super.prepareInstance(modelEntity);
+
+        this.shader.loadTransparency(modelEntity.getTransparency());
     }
 
     private void unbindTexturedModel() {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+    }
+
+    @Override
+    protected void cleanUp() {
+        super.cleanUp();
+
+        MemoryUtil.memFree(floatBuffer);
     }
 }

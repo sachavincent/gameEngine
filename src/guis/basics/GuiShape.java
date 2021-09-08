@@ -2,6 +2,7 @@ package guis.basics;
 
 import static renderEngine.GuiRenderer.filledQuad;
 
+import display.Display;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraints;
 import guis.constraints.GuiConstraintsManager;
@@ -11,14 +12,13 @@ import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import util.math.Maths;
 
 public abstract class GuiShape extends GuiBasics {
 
     protected boolean filled;
-    protected int     outlineWidth = 2;
+    protected int     outlineWidth  = 2;
     protected Color   borderColor;
     protected boolean borderEnabled = false;
 
@@ -69,7 +69,7 @@ public abstract class GuiShape extends GuiBasics {
     }
 
     public void setOutlineWidth(int outlineWidth) {
-        this.outlineWidth = (int) Maths.clamp(outlineWidth, 0, (int) (this.width * DisplayManager.WIDTH));
+        this.outlineWidth = Maths.clamp(outlineWidth, 0, (int) (this.width * Display.getWindow().getWidth()));
     }
 
     @Override

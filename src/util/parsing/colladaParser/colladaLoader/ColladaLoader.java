@@ -1,16 +1,20 @@
 package util.parsing.colladaParser.colladaLoader;
 
-import renderEngine.MeshData;
-import util.parsing.colladaParser.dataStructures.*;
+import java.io.File;
+import java.util.List;
+import renderEngine.structures.IndexData;
+import util.parsing.ModelType;
+import util.parsing.colladaParser.dataStructures.AnimatedModelData;
+import util.parsing.colladaParser.dataStructures.AnimationData;
+import util.parsing.colladaParser.dataStructures.MaterialData;
+import util.parsing.colladaParser.dataStructures.SkeletonData;
+import util.parsing.colladaParser.dataStructures.SkinningData;
 import util.parsing.colladaParser.xmlParser.XmlNode;
 import util.parsing.colladaParser.xmlParser.XmlParser;
 
-import java.io.File;
-import java.util.List;
-
 public class ColladaLoader {
 
-    public static AnimatedModelData loadColladaModel(File colladaFile, int maxWeights) {
+    public static AnimatedModelData loadColladaModel(File colladaFile, int maxWeights, ModelType modelType) {
         XmlNode node = XmlParser.loadXmlFile(colladaFile);
 
         SkinLoader skinLoader = new SkinLoader(node.getChild("library_controllers"), maxWeights);
@@ -23,9 +27,9 @@ public class ColladaLoader {
         MaterialLoader materialLoader = new MaterialLoader(colladaFile.getParentFile(), node.getChild("library_materials"), node.getChild("library_effects"), node.getChild("library_images"));
         List<MaterialData> materialsData = materialLoader.extractMaterialsData();
         GeometryLoader g = new GeometryLoader(node.getChild("library_geometries"), skinningData.verticesSkinData, materialsData);
-        MeshData meshData = g.extractModelData();
+        IndexData meshData = g.extractModelData(modelType);
 
-        return new AnimatedModelData(meshData, jointsData);
+        return new AnimatedModelData(meshData, jointsData, g.getMaterials());
     }
 
     public static AnimationData loadColladaAnimation(File colladaFile) {

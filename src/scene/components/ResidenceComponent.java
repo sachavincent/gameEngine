@@ -10,9 +10,9 @@ import util.TimeSystem;
 
 public class ResidenceComponent extends Component {
 
-    public final static int MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_2 = TimeSystem.TICK_RATE * 60;
-    public final static int MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_1 = TimeSystem.TICK_RATE * 30;
-    public final static int COOLDOWN_LOCAL_MOVE_AWAY                            = (int) (TimeSystem.TICK_RATE * 22.5);
+    public static final int MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_2 = TimeSystem.TICK_RATE * 60;
+    public static final int MIN_TICKS_BETWEEN_SETTLEMENT_AND_MOVING_AWAY_TIER_1 = TimeSystem.TICK_RATE * 30;
+    public static final int COOLDOWN_LOCAL_MOVE_AWAY                            = (int) (TimeSystem.TICK_RATE * 22.5);
 
     protected final EnumMap<SocialClass, List<Person>> persons;
     protected final int                                maxPeopleCapacity;

@@ -10,7 +10,7 @@ import util.math.Vector3f;
 
 public class Camera {
 
-    public final static  double MOVING_STEP = .3;
+    public static final  double MOVING_STEP = .3;
     private static final int    MAX_ZOOM    = 10;
 
     private final Vector3f position = new Vector3f(1, 10, 1);
@@ -72,9 +72,7 @@ public class Camera {
     }
 
     public void move() {
-        this.position.x += movingFactor.x;
-        this.position.y += movingFactor.y;
-        this.position.z += movingFactor.z;
+        this.position.add(this.movingFactor);
         if (!movingFactor.equals(new Vector3f(0, 0, 0))) {
             focusPoint = MousePicker.getInstance().getIntersectionPoint();
             FrustumCullingFilter.updateFrustum();
@@ -90,9 +88,9 @@ public class Camera {
         if (focusPoint != null && distanceFromTerrainPointChanged) {
             float offsetX = (float) (horizontalDistance * Math.sin(Math.toRadians(angleAroundTerrainPoint)));
             float offsetZ = (float) (horizontalDistance * Math.cos(Math.toRadians(angleAroundTerrainPoint)));
-            position.x = focusPoint.x - offsetX;
-            position.z = focusPoint.z + offsetZ;
-            position.y = focusPoint.y + verticalDistance;
+            position.setX(focusPoint.getX() - offsetX);
+            position.setZ(focusPoint.getZ() + offsetZ);
+            position.setY(focusPoint.getY() + verticalDistance);
             distanceFromTerrainPointChanged = false;
         }
     }
@@ -161,8 +159,8 @@ public class Camera {
                 zFactor = (float) (MOVING_STEP * -Math.cos(Math.toRadians(degree)));
                 break;
         }
-        this.movingFactor.x = xFactor;
-        this.movingFactor.z = zFactor;
+        this.movingFactor.setX(xFactor);
+        this.movingFactor.setZ(zFactor);
     }
 
     public void resetMovement() {
@@ -193,9 +191,9 @@ public class Camera {
 ////                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
 ////                    Math.sin(Math.toRadians(pitch)),
 ////                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)));
-////            position.x += (float) (newDistance * dir.x);
+////            position.getX() += (float) (newDistance * dir.getX());
 ////            position.y += (float) (newDistance * dir.y);
-////            position.z += (float) (newDistance * dir.z);
+////            position.getZ() += (float) (newDistance * dir.getZ());
 ////
 ////            System.out.println("New position: " + position);
 //
@@ -206,8 +204,8 @@ public class Camera {
 //            float offsetX = (float) (horizontalDistance * Math.sin(Math.toRadians(yaw)));
 //            float offsetZ = (float) (horizontalDistance * Math.cos(Math.toRadians(yaw)));
 //
-//            position.x = terrainPoint.x - offsetX;
-//            position.z = terrainPoint.z - offsetZ;
+//            position.setX(terrainPoint.getX() - offsetX;
+//            position.setZ(terrainPoint.getZ() - offsetZ;
 //            position.y = terrainPoint.y + verticalDistance;
 //        }
         setDistanceFromTerrainPoint(distanceFromTerrainPoint - 1);
@@ -234,9 +232,9 @@ public class Camera {
 ////                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)),
 ////                    Math.sin(Math.toRadians(pitch)),
 ////                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)));
-////            position.x += (float) (newDistance * dir.x);
+////            position.getX() += (float) (newDistance * dir.getX());
 ////            position.y += (float) (newDistance * dir.y);
-////            position.z += (float) (newDistance * dir.z);
+////            position.getZ() += (float) (newDistance * dir.getZ());
 ////
 ////            System.out.println("New position: " + position);
 //
@@ -254,8 +252,8 @@ public class Camera {
 //            float offsetX = (float) (horizontalDistance * Math.cos(Math.toRadians(yaw)));
 //            float offsetZ = (float) (horizontalDistance * Math.sin(Math.toRadians(yaw)));
 //
-//            position.x = position.x  + offsetX;
-//            position.z =  position.z  + offsetZ;
+//            position.setX(position.getX()  + offsetX;
+//            position.setZ( position.getZ()  + offsetZ;
 //            position.y = (float) (position.y + verticalDistance);
 //        }
         setDistanceFromTerrainPoint(distanceFromTerrainPoint + 1);
@@ -322,16 +320,16 @@ public class Camera {
         }
 
         public static Direction getDirectionFromVector(Vector2f vector) {
-            if (Math.signum(vector.x) == Math.signum(vector.y) ||
-                    (Math.signum(vector.x) != 0 && Math.signum(vector.y) != 0 &&
-                            Math.signum(vector.x) != Math.signum(vector.y)))
+            if (Math.signum(vector.getX()) == Math.signum(vector.getY()) ||
+                    (Math.signum(vector.getX()) != 0 && Math.signum(vector.getY()) != 0 &&
+                            Math.signum(vector.getX()) != Math.signum(vector.getY())))
                 return null;
 
-            if (vector.x < 0)
+            if (vector.getX() < 0)
                 return SOUTH;
-            if (vector.x > 0)
+            if (vector.getX() > 0)
                 return NORTH;
-            if (vector.y < 0)
+            if (vector.getY() < 0)
                 return WEST;
 
             return EAST;

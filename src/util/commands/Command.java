@@ -11,12 +11,12 @@ public abstract class Command {
 
     public static final Set<Command> COMMANDS = new HashSet<>();
 
-    public final static char   COMMAND_SYMBOL             = '/';
-    public final static char   COMMAND_DELIMITER          = ' ';
-    public final static char   COMMAND_OPTIONAL_OPEN      = '[';
-    public final static char   COMMAND_OPTIONAL_CLOSE     = ']';
-    public final static char   COMMAND_OPTIONAL_SEPARATOR = ',';
-    public final static String COMMAND_POSITION_REGEX     = "^\\([0-9]+,\\s*[0-9]+\\)$";
+    public static final char   COMMAND_SYMBOL             = '/';
+    public static final char   COMMAND_DELIMITER          = ' ';
+    public static final char   COMMAND_OPTIONAL_OPEN      = '[';
+    public static final char   COMMAND_OPTIONAL_CLOSE     = ']';
+    public static final char   COMMAND_OPTIONAL_SEPARATOR = ',';
+    public static final String COMMAND_POSITION_REGEX     = "^\\([0-9]+,\\s*[0-9]+\\)$";
 
     protected final List<String> alias;
 

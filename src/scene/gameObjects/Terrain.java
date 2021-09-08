@@ -2,9 +2,13 @@ package scene.gameObjects;
 
 import engineTester.Game;
 import models.Model;
-import renderEngine.TerrainMeshData;
 import renderEngine.TerrainRenderer;
-import renderEngine.Vao;
+import renderEngine.structures.AttributeData;
+import renderEngine.structures.AttributeData.DataType;
+import renderEngine.structures.IndexBufferVao;
+import renderEngine.structures.IndexData;
+import renderEngine.structures.IndicesAttribute;
+import renderEngine.structures.Vao;
 import scene.components.HeightMapComponent;
 import scene.components.RendererComponent;
 import scene.components.SingleModelComponent;
@@ -13,16 +17,12 @@ import terrain.HeightMapGenerator;
 import terrain.HeightMapSupplier;
 import textures.TerrainTexture;
 import util.ResourceFile;
-import util.math.Vector3f;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Terrain extends GameObject {
 
     public Terrain() {
         ResourceFile heightMap = new ResourceFile("hihi.png");
-        long seed = 4815162342L;
+        long seed = (long) (Math.random() * 100000L);
 //                (long) (Math.random() * Long.MAX_VALUE);
         HeightMapSupplier<TerrainTexture, Exception> heightMapSupplier =
 //                new HeightMapReader(heightMap);
@@ -32,8 +32,8 @@ public class Terrain extends GameObject {
         HeightMapComponent heightMapComponent = new HeightMapComponent(Game.TERRAIN_MAX_HEIGHT,
                 Game.TERRAIN_WIDTH, Game.TERRAIN_DEPTH, heightMapSupplier);
         addComponent(heightMapComponent);
-        TerrainMeshData modelData = generateTerrain();
-        Vao terrainVao = Vao.createVao(modelData);
+        IndexData modelData = generateTerrain();
+        IndexBufferVao terrainVao = Vao.createVao(modelData, modelData.getVaoType());
         Model model = new Model(terrainVao);
         addComponent(new TerrainComponent());
         addComponent(new SingleModelComponent(model));
@@ -50,24 +50,20 @@ public class Terrain extends GameObject {
         addComponent(component);
     }
 
-    private TerrainMeshData generateTerrain() {
+    private IndexData generateTerrain() {
         System.out.println("Generating Terrain...");
         int width = Game.TERRAIN_WIDTH + 2;
         int depth = Game.TERRAIN_DEPTH + 2;
         int count = width * depth;
-        int[] vertices = new int[count * 2];
-        int[] indices = new int[6 * (width - 1) * (depth - 1)];
+        Integer[] vertices = new Integer[count * 2];
+        Integer[] indices = new Integer[6 * (width - 1) * (depth - 1)];
         int vertexPointer = 0;
         System.out.println("Calculating positions...");
 
-        int[] isEdge = new int[count];
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < depth; j++) {
-                vertices[vertexPointer * 2] = j -1;
-                vertices[vertexPointer * 2 + 1] = i -1;
-                boolean isEdgeB = i == 0 || j == 0 || i == width - 1 || j == depth - 1;
-                isEdge[vertexPointer] = isEdgeB ? 1 : -1;
+        for (int x = 0; x < width; x++) {
+            for (int z = 0; z < depth; z++) {
+                vertices[vertexPointer * 2] = z - 1;
+                vertices[vertexPointer * 2 + 1] = x - 1;
 
                 vertexPointer++;
             }
@@ -87,99 +83,8 @@ public class Terrain extends GameObject {
                 indices[pointer++] = bottomRight;
             }
         }
-//        for (int i = 0; i < width - 1; i++) {
-//            indices[pointer++] = i;
-//            indices[pointer++] = i + 1;
-//            indices[pointer++] = i;
-//            indices[pointer++] = i + 1;
-//            indices[pointer++] = i;
-//            indices[pointer++] = i + 1;
-//        }
-//        for (int j = 0; j < depth - 1; j++) {
-//            indices[pointer++] = width * j;
-//            indices[pointer++] = width * (j + 1);
-//            indices[pointer++] = width * j;
-//            indices[pointer++] = width * (j + 1);
-//            indices[pointer++] = width * j;
-//            indices[pointer++] = width * (j + 1);
-//        }
-        System.out.println("Done with indices!");
-        return new TerrainMeshData(vertices, isEdge, indices);
-    }
-
-
-    private float[] calcNormals(float[] posArr, int width, int height) {
-        Vector3f v0 = new Vector3f();
-        Vector3f v1 = new Vector3f();
-        Vector3f v2 = new Vector3f();
-        Vector3f v3 = new Vector3f();
-        Vector3f v4 = new Vector3f();
-        Vector3f v12 = new Vector3f();
-        Vector3f v23 = new Vector3f();
-        Vector3f v34 = new Vector3f();
-        Vector3f v41 = new Vector3f();
-        List<Float> normals = new ArrayList<>();
-        Vector3f normal = new Vector3f();
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                if (row > 0 && row < height - 1 && col > 0 && col < width - 1) {
-                    int i0 = row * width * 3 + col * 3;
-                    v0.x = posArr[i0];
-                    v0.y = posArr[i0 + 1];
-                    v0.z = posArr[i0 + 2];
-
-                    int i1 = row * width * 3 + (col - 1) * 3;
-                    v1.x = posArr[i1];
-                    v1.y = posArr[i1 + 1];
-                    v1.z = posArr[i1 + 2];
-                    v1 = v1.sub(v0);
-
-                    int i2 = (row + 1) * width * 3 + col * 3;
-                    v2.x = posArr[i2];
-                    v2.y = posArr[i2 + 1];
-                    v2.z = posArr[i2 + 2];
-                    v2 = v2.sub(v0);
-
-                    int i3 = (row) * width * 3 + (col + 1) * 3;
-                    v3.x = posArr[i3];
-                    v3.y = posArr[i3 + 1];
-                    v3.z = posArr[i3 + 2];
-                    v3 = v3.sub(v0);
-
-                    int i4 = (row - 1) * width * 3 + col * 3;
-                    v4.x = posArr[i4];
-                    v4.y = posArr[i4 + 1];
-                    v4.z = posArr[i4 + 2];
-                    v4 = v4.sub(v0);
-
-                    Vector3f.cross(v1, v2, v12);
-                    v12.normalize();
-
-                    Vector3f.cross(v2, v3, v23);
-                    v23.normalize();
-
-                    Vector3f.cross(v3, v4, v34);
-                    v34.normalize();
-
-                    Vector3f.cross(v4, v1, v41);
-                    v41.normalize();
-
-                    normal = v12.add(v23).add(v34).add(v41);
-                    normal.normalize();
-                } else {
-                    normal.x = 0;
-                    normal.y = 1;
-                    normal.z = 0;
-                }
-                normal.normalize();
-                normals.add(normal.x);
-                normals.add(normal.y);
-                normals.add(normal.z);
-            }
-        }
-        float[] normalsArray = new float[normals.size()];
-        for (int i = 0; i < normals.size(); i++)
-            normalsArray[i] = normals.get(i);
-        return normalsArray;
+        AttributeData<Integer> verticesAttribute = new AttributeData<>(0, 2, vertices, DataType.INT);
+        IndicesAttribute indicesAttribute = new IndicesAttribute(indices);
+        return IndexData.createData(verticesAttribute, indicesAttribute);
     }
 }

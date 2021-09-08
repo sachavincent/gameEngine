@@ -13,7 +13,8 @@ import pathfinding.RoadGraph;
 import renderEngine.GameObjectRenderer;
 import renderEngine.MasterRenderer;
 import renderEngine.PathRenderer;
-import renderEngine.Vao;
+import renderEngine.SkyboxRenderer;
+import renderEngine.structures.Vao;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.*;
 import scene.components.requirements.ResourceRequirementComponent;
@@ -28,6 +29,8 @@ import util.DayNightCycle;
 import util.math.Vector3f;
 
 public class Scene {
+
+    private static final float MAX_SLOPE = 0.05f; // Max slope on which a GameObject can be placed
 
     private final Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = new HashMap<>();
 
@@ -94,16 +97,13 @@ public class Scene {
                     OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
                     Direction direction = gameObject.hasComponent(DirectionComponent.class) ? gameObject
                             .getComponent(DirectionComponent.class).getDirection() : Direction.defaultDirection();
-                    Arrays.stream(offsetsComponent.getOffsetPositions(direction))
+                    Arrays.stream(offsetsComponent.getLocalOffsetPositions(direction))
                             .map(pos -> pos.add(position.toTerrainPosition()))
                             .forEach(pos -> addPosition(pos.getX(), pos.getZ(), 0));
                 }
             }
         }
-        if (gameObject.hasComponent(RendererComponent.class)) {
-            RendererComponent rendererComponent = gameObject.getComponent(RendererComponent.class);
-            removeRenderableGameObject(rendererComponent.getRenderer(), gameObject);
-        }
+        removeGameObjectFromRender(gameObject);
     }
 
     public int[][] getPositions() {
@@ -117,14 +117,20 @@ public class Scene {
         boolean added = this.renderableGameObjects.get(gameObjectRenderer).add(gameObject);
     }
 
-    public void removeRenderableGameObject(GameObjectRenderer<?> gameObjectRenderer, GameObject gameObject) {
-        if (this.renderableGameObjects.containsKey(gameObjectRenderer))
-            this.renderableGameObjects.get(gameObjectRenderer).remove(gameObject);
+    public void removeGameObjectFromRender(GameObject gameObject) {
+        if (gameObject.hasComponent(RendererComponent.class)) {
+            RendererComponent gameObjectRenderer = gameObject.getComponent(RendererComponent.class);
+
+            GameObjectRenderer<?> renderer = gameObjectRenderer.getRenderer();
+            renderer.removeGameObject(gameObject);
+            if (this.renderableGameObjects.containsKey(renderer))
+                this.renderableGameObjects.get(renderer).remove(gameObject);
+        }
     }
 
     public void render() {
         MasterRenderer.getInstance().prepare();
-//        SkyboxRenderer.getInstance().render();
+        SkyboxRenderer.getInstance().render();
         this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
             lGameObjects.forEach(renderer::addToRender);
             renderer.render();
@@ -136,8 +142,8 @@ public class Scene {
         return new HashSet<>(this.gameObjects.values());
     }
 
-    public GameObject getGameObjectAtPosition(TerrainPosition terrainPoint) {
-        int id = getIdFromPosition(terrainPoint);
+    public GameObject getGameObjectAtPosition(int x, int z) {
+        int id = getIdFromPosition(x, z);
         if (id == -1)
             return null;
 
@@ -163,7 +169,7 @@ public class Scene {
             return;
         gameObject.addComponent(new DirectionComponent(Player.getDirection()));
         if (gameObject.hasComponent(PreviewComponent.class))
-            gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint.toVector3f());
+            gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint);
         addRenderableGameObject(gameObject.getComponent(RendererComponent.class).getRenderer(), gameObject);
         this.previewedGameObjects.put(gameObject.getId(), gameObject);
     }
@@ -182,25 +188,25 @@ public class Scene {
 //        addRenderableGameObject(previewedGameObject.getComponent(RendererComponent.class).getRenderer(), previewedGameObject);
         if (!previewedGameObject.hasComponent(PreviewComponent.class))
             return;
-        previewedGameObject.getComponent(PreviewComponent.class).setPreviewPosition(newTerrainPoint.toVector3f());
+        previewedGameObject.getComponent(PreviewComponent.class).setPreviewPosition(newTerrainPoint);
     }
 
     /**
      * Resets all the positions that were previously previewed
      */
     public void resetPreviewedPositions(boolean purge) {
+        this.previewedGameObjects.values().forEach(this::removeGameObjectFromRender);
         if (purge)
             this.previewedGameObjects.values().forEach(GameObject::destroy);
         this.previewedGameObjects.clear();
     }
 
     /**
-     * Returns the previewed positions
+     * @return the unmodifiable previewed positions
      */
-    public Set<TerrainPosition> getPreviewItemPositions() {
+    public Set<TerrainPosition> getPreviewPositions() {
         return this.previewedGameObjects.values().stream()
-                .map(gameObject -> gameObject.getComponent(PreviewComponent.class).getPreviewPosition()
-                        .toTerrainPosition())
+                .map(gameObject -> gameObject.getComponent(PreviewComponent.class).getPreviewPosition())
                 .collect(Collectors.toUnmodifiableSet());
     }
 
@@ -211,7 +217,6 @@ public class Scene {
     public Map<Class<? extends Component>, Set<Integer>> getIdGameObjectsForComponents() {
         return this.idGameObjectsForComponents;
     }
-
 
     public Set<Integer> getIdGameObjectsForComponentClass(Class<? extends Component> clazz, boolean includePreviews) {
         if (!this.idGameObjectsForComponents.containsKey(clazz))
@@ -229,8 +234,8 @@ public class Scene {
                 .map(this::getGameObjectFromId).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
-    public boolean isPositionOccupied(TerrainPosition pos) {
-        int idFound = getIdFromPosition(pos);
+    public boolean isPositionOccupied(int x, int z) {
+        int idFound = getIdFromPosition(x, z);
         if (idFound < 0)
             return true;
         if (idFound == 0)
@@ -252,7 +257,7 @@ public class Scene {
         TerrainPosition pos = null;
         for (GameObject gameObject : this.previewedGameObjects.values()) {
             PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
-            Vector3f previewPosition = previewComponent.getPreviewPosition();
+            TerrainPosition previewPosition = previewComponent.getPreviewPosition();
             previewComponent.setPreviewPosition(null);
             if (previewPosition != null) { // = Was previewed
                 gameObject.destroy();
@@ -260,10 +265,9 @@ public class Scene {
                 Direction direction = Direction.defaultDirection();
                 if (gameObject.hasComponent(DirectionComponent.class))
                     direction = gameObject.getComponent(DirectionComponent.class).getDirection();
-                obj = GameObject
-                        .newInstance(gameObject.getClass(), previewPosition.toTerrainPosition(), direction, true);
+                obj = GameObject.newInstance(gameObject.getClass(), previewPosition, direction, true);
 
-                pos = previewPosition.toTerrainPosition();
+                pos = previewPosition;
             }
         }
         if (obj != null)
@@ -281,15 +285,15 @@ public class Scene {
         return new HashSet<>(getGameObjectsForComponent(RoadComponent.class, false));
     }
 
-    public boolean canGameObjectClassBePlaced(Class<? extends GameObject> gameObjectClass, TerrainPosition pos,
-                                              Direction direction) {
+    public boolean canGameObjectClassBePlaced(Class<? extends GameObject> gameObjectClass,
+            TerrainPosition pos, Direction direction) {
         if (gameObjectClass == null)
             return false;
 
         GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
         objectFromClass.addComponent(new DirectionComponent(direction));
         if (objectFromClass.hasComponent(PreviewComponent.class))
-            objectFromClass.getComponent(PreviewComponent.class).setPreviewPosition(pos.toVector3f());
+            objectFromClass.getComponent(PreviewComponent.class).setPreviewPosition(pos);
         boolean res = canGameObjectBePlaced(objectFromClass, pos);
         objectFromClass.destroy();
 
@@ -311,29 +315,32 @@ public class Scene {
         OffsetsComponent offsetsComponent = objectToPlace.getComponent(OffsetsComponent.class);
         if (offsetsComponent == null) { // Only one wide
             if (!objectToPlace.hasComponent(LayerableComponent.class))
-                return !isPositionOccupied(pos);
-            GameObject gameObjectAtPosition = getGameObjectAtPosition(pos);
+                return !isPositionOccupied(pos.getX(), pos.getZ());
+            GameObject gameObjectAtPosition = getGameObjectAtPosition(pos.getX(), pos.getZ());
             if (gameObjectAtPosition == null)
                 return false;
             return layerableComponent.getLayerableGameObjectsClasses()
-                    .contains(gameObjectAtPosition.getClass()) || !isPositionOccupied(pos);
+                    .contains(gameObjectAtPosition.getClass()) || !isPositionOccupied(pos.getX(), pos.getZ());
         }
 
         Direction direction = objectToPlace.hasComponent(DirectionComponent.class) ? objectToPlace
                 .getComponent(DirectionComponent.class).getDirection() : Direction.defaultDirection();
 
-        List<TerrainPosition> relativePositions = Arrays.asList(offsetsComponent.getOffsetPositions(direction));
+        if (!isTerrainFitForGameObject(objectToPlace, pos.getX(), pos.getZ()))
+            return false;
+
+        List<TerrainPosition> relativePositions = Arrays.asList(offsetsComponent.getLocalOffsetPositions(direction));
         List<TerrainPosition> positions = relativePositions.stream().map(p -> p.add(pos))
                 .collect(Collectors.toList());
 
         if (!objectToPlace.hasComponent(LayerableComponent.class))
-            return positions.stream().noneMatch(this::isPositionOccupied);
+            return positions.stream().noneMatch(p -> isPositionOccupied(p.getX(), p.getZ()));
 
         return positions.stream().noneMatch(position -> {
-            GameObject gameObjectAtPosition = getGameObjectAtPosition(position);
+            GameObject gameObjectAtPosition = getGameObjectAtPosition(position.getX(), position.getZ());
             if (gameObjectAtPosition != null)
                 return !layerableComponent.getLayerableGameObjectsClasses()
-                        .contains(gameObjectAtPosition.getClass()) && isPositionOccupied(pos);
+                        .contains(gameObjectAtPosition.getClass()) && isPositionOccupied(pos.getX(), pos.getZ());
             return false;
         });
     }
@@ -358,15 +365,15 @@ public class Scene {
 
         Direction direction = gameObject.hasComponent(DirectionComponent.class) ? gameObject
                 .getComponent(DirectionComponent.class).getDirection() : Direction.defaultDirection();
-        List<TerrainPosition> relativePositions = Arrays.asList(offsetsComponent.getOffsetPositions(direction));
-        List<TerrainPosition> positions = relativePositions.stream().map(p -> p.add(pos))
-                .collect(Collectors.toList());
+        List<TerrainPosition> offsetPositions = Arrays.asList(
+                offsetsComponent.getOffsetPositions(direction, pos.getX(), pos.getZ()));
 
         if (checkIfSpace && !canGameObjectBePlaced(gameObject, pos))
             return false;
 
-        positions.forEach(p -> {
-            int idFromPosition = getIdFromPosition(p);
+        // Now placing...
+        offsetPositions.forEach(p -> {
+            int idFromPosition = getIdFromPosition(p.getX(), p.getZ());
             if (this.gameObjects.containsKey(idFromPosition)) { // If something already here
                 GameObject gameObj = this.gameObjects.get(idFromPosition);
                 if (gameObj.hasComponent(RepleacableComponent.class) &&
@@ -383,6 +390,21 @@ public class Scene {
             ResourceRequirementComponent component = gameObject.getComponent(ResourceRequirementComponent.class);
             component.getPlacingRequirements().keySet().forEach(component::meetRequirement);
         }
+
+        float totalHeights = 0.0f;
+        for (TerrainPosition offsetPosition : offsetPositions) {
+            if (!isPositionOnTerrain(offsetPosition.getX(), offsetPosition.getZ()))
+                return false;
+
+            totalHeights += offsetPosition.getY();
+        }
+
+        float avgHeight = totalHeights / (float) offsetPositions.size();
+        //TODO: Lisser le terrain
+        HeightMapComponent heightMapComponent = this.terrain.getComponent(HeightMapComponent.class);
+        for (TerrainPosition offsetPosition : offsetPositions) {
+            heightMapComponent.setHeight(offsetPosition.getX(), offsetPosition.getZ(), avgHeight);
+        }
         return true;
     }
 
@@ -390,9 +412,9 @@ public class Scene {
      * Get id of GameObject at given position
      * returns -1 if the position is wrong and 0 if the position is empty
      */
-    public int getIdFromPosition(TerrainPosition position) {
+    public int getIdFromPosition(int x, int z) {
         try {
-            return this.positions[position.getX()][position.getZ()];
+            return this.positions[x][z];
         } catch (IndexOutOfBoundsException ignored) {
         }
         return -1;
@@ -427,11 +449,11 @@ public class Scene {
 
     /**
      * @param gameObjectPosition position of the GameObject
-     * @param filter             filter on connections
+     * @param filter filter on connections
      * @return the directions in which the GameObject is connected
      */
     public Direction[] getConnectedDirections(TerrainPosition gameObjectPosition, FilterGameObjectCallback filter) {
-        GameObject gameObjectAtPosition = getGameObjectAtPosition(gameObjectPosition);
+        GameObject gameObjectAtPosition = getGameObjectAtPosition(gameObjectPosition.getX(), gameObjectPosition.getZ());
 
         if (gameObjectAtPosition == null || !gameObjectAtPosition.hasComponent(ConnectionsComponent.class))
             return new Direction[0];
@@ -453,7 +475,7 @@ public class Scene {
 
     /**
      * @param gameObject GameObject of which we want the neighbors
-     * @param filter     filter on neighbors
+     * @param filter filter on neighbors
      * @return set of neighbors : 0 <= size <= 4
      */
     public Set<GameObject> getNeighbors(GameObject gameObject, FilterGameObjectCallback filter) {
@@ -477,8 +499,8 @@ public class Scene {
      * Get Neighbor in chosen direction
      *
      * @param gameObject GameObject reference
-     * @param direction  direction in which to search for neighbor
-     * @param filter     filter on neighbor
+     * @param direction direction in which to search for neighbor
+     * @param filter filter on neighbor
      * @return neighbor
      */
     public GameObject getNeighbor(GameObject gameObject, Direction direction, FilterGameObjectCallback filter) {
@@ -606,5 +628,53 @@ public class Scene {
 
     public boolean isPreviewed(int idGameObject) {
         return this.previewedGameObjects.containsKey(idGameObject);
+    }
+
+    /**
+     * Calculates the height difference on the Terrain at given coordinate and for the GameObject offset positions
+     *
+     * @param gameObject GameObject
+     * @param x coordinate on Terrain
+     * @param z coordinate on Terrain
+     * @return true if the maximum slope under the GameObject is inferior to {@link Scene#MAX_SLOPE}
+     * If any of the offset positions goes beyond the Terrain, return false
+     */
+    public boolean isTerrainFitForGameObject(GameObject gameObject, int x, int z) {
+        if (!isPositionOnTerrain(x, z))
+            return false;
+
+        if (!gameObject.hasComponent(OffsetsComponent.class))
+            return true;
+
+        OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
+        Direction direction = Direction.defaultDirection();
+        if (gameObject.hasComponent(DirectionComponent.class))
+            direction = gameObject.getComponent(DirectionComponent.class).getDirection();
+
+        // First, check if any of the positions goes beyond the Terrain
+        TerrainPosition[] offsetPositions = offsetsComponent.getOffsetPositions(direction, x, z);
+        float minHeight = Float.MAX_VALUE;
+        float maxHeight = Float.MIN_VALUE;
+
+        for (TerrainPosition pos : offsetPositions) {
+            if (!isPositionOnTerrain(pos.getX(), pos.getZ()))
+                return false;
+
+            float y = pos.getY();
+            if (y < minHeight)
+                minHeight = y;
+            if (y > maxHeight)
+                maxHeight = y;
+        }
+
+        // Terrain too steep to place GameObject?
+        return maxHeight - minHeight <= MAX_SLOPE;
+    }
+
+    /**
+     * @return true if position is on Terrain
+     */
+    public boolean isPositionOnTerrain(double x, double z) {
+        return x >= 0 && z >= 0 && x < Game.TERRAIN_WIDTH - 1 && z < Game.TERRAIN_DEPTH - 1;
     }
 }

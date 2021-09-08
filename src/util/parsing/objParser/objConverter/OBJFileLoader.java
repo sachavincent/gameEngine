@@ -1,15 +1,18 @@
 package util.parsing.objParser.objConverter;
 
-import util.math.Vector2f;
-import util.math.Vector3f;
-import util.parsing.Vertex;
+import static util.Utils.RES_PATH;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static util.Utils.RES_PATH;
+import util.math.Vector2f;
+import util.math.Vector3f;
+import util.parsing.Vertex;
 
 public class OBJFileLoader {
 
@@ -111,14 +114,14 @@ public class OBJFileLoader {
             Vector3f position = currentVertex.getPosition();
             Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
             Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
-            verticesArray[i * 3] = position.x;
-            verticesArray[i * 3 + 1] = position.y;
-            verticesArray[i * 3 + 2] = position.z;
-            texturesArray[i * 2] = textureCoord.x;
-            texturesArray[i * 2 + 1] = 1 - textureCoord.y;
-            normalsArray[i * 3] = normalVector.x;
-            normalsArray[i * 3 + 1] = normalVector.y;
-            normalsArray[i * 3 + 2] = normalVector.z;
+            verticesArray[i * 3] = position.getX();
+            verticesArray[i * 3 + 1] = position.getY();
+            verticesArray[i * 3 + 2] = position.getZ();
+            texturesArray[i * 2] = textureCoord.getX();
+            texturesArray[i * 2 + 1] = 1 - textureCoord.getY();
+            normalsArray[i * 3] = normalVector.getX();
+            normalsArray[i * 3 + 1] = normalVector.getY();
+            normalsArray[i * 3 + 2] = normalVector.getZ();
         }
         return furthestPoint;
     }

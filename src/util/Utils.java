@@ -1,29 +1,37 @@
 package util;
 
 import guis.presets.Background;
-import scene.Scene;
-import scene.components.HeightMapComponent;
-import scene.gameObjects.*;
-import terrain.TerrainPosition;
-import util.exceptions.MissingFileException;
-import util.math.Maths;
-import util.math.Vector;
-
-import java.awt.*;
-import java.io.*;
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import scene.Scene;
+import scene.components.HeightMapComponent;
+import scene.gameObjects.DirtRoad;
+import scene.gameObjects.GameObject;
+import scene.gameObjects.Insula;
+import scene.gameObjects.Market;
+import scene.gameObjects.Terrain;
+import terrain.TerrainPosition;
+import util.exceptions.MissingFileException;
+import util.math.Maths;
+import util.math.Vector;
 
 public class Utils {
 
-    public final static String RES_PATH = "res";
-    public final static String ASSETS_PATH = "assets";
-    public final static String MODELS_PATH = "models";
+    public static final String RES_PATH    = "res";
+    public static final String ASSETS_PATH = "assets";
+    public static final String MODELS_PATH = "models";
 
     public static void main(String[] args) {
         cleanOBJFile(new File(MODELS_PATH + "/Windmill/boundingbox.obj"));
@@ -189,7 +197,8 @@ public class Utils {
     /**
      * Parses values as string and creates a vector
      */
-    public static <V extends Vector> V parseVector(Class<V> vectorClass, String[] values) throws ReflectiveOperationException {
+    public static <V extends Vector> V parseVector(Class<V> vectorClass, String[] values)
+            throws ReflectiveOperationException {
         Object[] floatValues = new Object[values.length];
         Class<?>[] floatClasses = new Class[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -321,7 +330,7 @@ public class Utils {
      * BAD      amount : > 10% of maxAmount => RED
      * MEDIOCRE amount : < 10% of maxAmount => DARK RED
      *
-     * @param amount    current amount for the given resource
+     * @param amount current amount for the given resource
      * @param maxAmount max amount possible
      * @return resulting Color
      * if maxAmount = Integer.MAX_VALUE, return WHITE
@@ -369,5 +378,22 @@ public class Utils {
             return 0;
 
         return Maths.log(n, 2) + 1;
+    }
+
+    public static <T extends Number> T[] toArray(Collection<T> coll) {
+        if (coll == null)
+            return null;
+        T firstElem = coll.stream().findFirst().orElse(null);
+        if (firstElem == null)
+            return null;
+
+        T[] toR = (T[]) Array.newInstance(firstElem.getClass(), coll.size());
+        Iterator<T> iterator = coll.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            toR[i++] = iterator.next();
+        }
+
+        return toR;
     }
 }

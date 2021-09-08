@@ -4,7 +4,7 @@ import guis.GuiInterface;
 
 public class SlidingTransition extends Transition {
 
-    private final static float DISTANCE = 0.25f;
+    private static final float DISTANCE = 0.25f;
 
     private final SlidingDirection direction;
 

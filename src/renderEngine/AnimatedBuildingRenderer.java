@@ -25,7 +25,11 @@ import org.lwjgl.opengl.GL46;
 import org.lwjgl.system.MemoryUtil;
 import renderEngine.shaders.AnimatedGameObjectShader;
 import renderEngine.shaders.structs.Material;
-import textures.ModelTexture;
+import renderEngine.structures.IndexBufferVao;
+import renderEngine.structures.IndexVbo;
+import renderEngine.structures.MaterialIndexVbo;
+import renderEngine.structures.Vao;
+import renderEngine.structures.Vbo;
 import util.math.Matrix4f;
 
 public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
@@ -58,37 +62,43 @@ public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObj
     @Override
     protected void doRender(Set<Entry<AbstractModel, List<ModelEntity>>> entrySet) {
         Map<Material, List<Vao>> vaoMaterials = new HashMap<>();
+        Map<Vao, Map<Material, Vbo>> vboMaterials = new HashMap<>();
         Map<Vao, List<ModelEntity>> vaoModels = new HashMap<>();
         for(var entry : entrySet) {
             AnimatedModel animatedModel = (AnimatedModel) entry.getKey();
             List<ModelEntity> modelEntities = entry.getValue();
 
-            List<Material> materials = animatedModel.getMaterials();
-            final Vao vao = animatedModel.getVao();
+            IndexBufferVao vao = (IndexBufferVao) animatedModel.getVao();
+            if (!vboMaterials.containsKey(vao))
+                vboMaterials.put(vao, new HashMap<>());
+
+            List<IndexVbo> indexVbos = vao.getIndexVbos();
             vao.bind();
 
             if (vao.isInstanced()) {
-                for (Material material : materials) {
-                    Vbo vbo = vao.getIndexVbos().get(material);
-                    if (vbo != null) {
+                for (IndexVbo indexVbo : indexVbos) {
+                    if (indexVbo instanceof MaterialIndexVbo) {
+                        Material material = ((MaterialIndexVbo) indexVbo).getMaterial();
                         if (!vaoMaterials.containsKey(material))
                             vaoMaterials.put(material, new ArrayList<>());
-                        if (!vaoModels.containsKey(vao))
-                            vaoModels.put(vao, new ArrayList<>());
                         vaoMaterials.get(material).add(vao);
-                        vaoModels.get(vao).addAll(modelEntities);
+
+                        Map<Material, Vbo> materialVboMap = vboMaterials.get(vao);
+                        materialVboMap.put(material, indexVbo);
                     }
+                    if (!vaoModels.containsKey(vao))
+                        vaoModels.put(vao, new ArrayList<>());
+                    vaoModels.get(vao).addAll(modelEntities);
                 }
             } else {
                 modelEntities.forEach(modelEntity -> {
                     prepareInstance(modelEntity);
-
-                    for (Material material : materials) {
-                        Vbo vbo = vao.getIndexVbos().get(material);
+                    for (Vbo vbo : indexVbos) {
                         vbo.bind();
-                        int indicesCount = vbo.getDataLength();
-                        prepareMaterial(material, false);
-                        glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
+                        if (vbo instanceof MaterialIndexVbo)
+                            prepareMaterial(((MaterialIndexVbo) vbo).getMaterial(), false);
+
+                        glDrawElements(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0);
                         vbo.unbind();
                     }
                 });
@@ -119,7 +129,7 @@ public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObj
 
                 vao.getInstanceVbo().bind();
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
-                Vbo vbo = vao.getIndexVbos().get(material);
+                Vbo vbo = vboMaterials.get(vao).get(material);
                 vbo.bind();
                 int indicesCount = vbo.getDataLength();
                 GL46.glDrawElementsInstanced(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0, modelEntities.size());
@@ -134,26 +144,17 @@ public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObj
     }
 
     private void prepareMaterial(Material material, boolean instanced) {
-        ModelTexture texture;
-        if (material.hasDiffuseMap())
-            texture = material.getDiffuseMap();
-        else
-            texture = ModelTexture.DEFAULT_MODEL;
-
-        this.shader.loadNumberOfRows(1);
-        if (texture.isTransparent())
-            MasterRenderer.disableCulling();
+//        if (texture.isTransparent())
+//            MasterRenderer.disableCulling();
 
         this.shader.loadUseFakeLighting(false);
         this.shader.loadLights(material.hasNormalMap(), Camera.getInstance().getViewMatrix());
-        this.shader.loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
         this.shader.loadIsInstanced(instanced);
-        this.shader.loadAlpha(1);
 
         this.shader.loadMaterial(material);
 
-        if (texture.isTransparent())
-            MasterRenderer.enableCulling(); // Reenable culling
+//        if (texture.isTransparent())
+//            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     private void unbindTexturedModel() {
@@ -165,5 +166,13 @@ public class AnimatedBuildingRenderer extends GameObjectRenderer<AnimatedGameObj
         super.prepareInstance(modelEntity);
 
         this.shader.loadJointTransforms(((AnimatedModel) modelEntity.getModel()).getJointTransforms());
+        this.shader.loadTransparency(modelEntity.getTransparency());
+    }
+
+    @Override
+    protected void cleanUp() {
+        super.cleanUp();
+
+        MemoryUtil.memFree(floatBuffer);
     }
 }

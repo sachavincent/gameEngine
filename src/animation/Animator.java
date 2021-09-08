@@ -40,9 +40,9 @@ public class Animator {
      * joints by setting the joint transforms.
      */
     public void update() {
-        if (currentAnimation == null) {
+        if (currentAnimation == null)
             return;
-        }
+
         increaseAnimationTime();
         Map<String, Matrix4f> currentPose = calculateCurrentAnimationPose();
         applyPoseToJoints(currentPose, entity.getRootJoint(), new Matrix4f());

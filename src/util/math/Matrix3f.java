@@ -158,12 +158,12 @@ public class Matrix3f extends Matrix implements Serializable {
             dest = new Vector3f();
         }
 
-        float x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z;
-        float y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z;
-        float z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z;
-        dest.x = x;
-        dest.y = y;
-        dest.z = z;
+        float x = left.m00 * right.getX() + left.m10 * right.getY() + left.m20 * right.getZ();
+        float y = left.m01 * right.getX() + left.m11 * right.getY() + left.m21 * right.getZ();
+        float z = left.m02 * right.getX() + left.m12 * right.getY() + left.m22 * right.getZ();
+        dest.setX(x);
+        dest.setY(y);
+        dest.setZ(z);
         return dest;
     }
 
@@ -311,9 +311,9 @@ public class Matrix3f extends Matrix implements Serializable {
     }
 
     public static Vector3f mul(Matrix3f matrix, Vector3f vec) {
-        float x = matrix.m00 * vec.x + matrix.m10 * vec.y + matrix.m20 * vec.z;
-        float y = matrix.m01 * vec.x + matrix.m11 * vec.y + matrix.m21 * vec.z;
-        float z = matrix.m02 * vec.x + matrix.m12 * vec.y + matrix.m22 * vec.z;
+        float x = matrix.m00 * vec.getX() + matrix.m10 * vec.getY() + matrix.m20 * vec.getZ();
+        float y = matrix.m01 * vec.getX() + matrix.m11 * vec.getY() + matrix.m21 * vec.getZ();
+        float z = matrix.m02 * vec.getX() + matrix.m12 * vec.getY() + matrix.m22 * vec.getZ();
 
         return new Vector3f(x, y, z);
     }

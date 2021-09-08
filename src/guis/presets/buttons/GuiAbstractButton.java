@@ -25,8 +25,8 @@ import models.RawModel;
 
 public abstract class GuiAbstractButton extends GuiPreset implements GuiAbstractShapePreset, GuiClickablePreset {
 
-    private final static float FILTER_TRANSPARENCY = 0.2f;
-    private final static float SCALE_FACTOR        = 0.05f;
+    private static final float FILTER_TRANSPARENCY = 0.2f;
+    private static final float SCALE_FACTOR        = 0.05f;
 
     protected GuiBasics filterLayout;
     protected GuiShape  shape;

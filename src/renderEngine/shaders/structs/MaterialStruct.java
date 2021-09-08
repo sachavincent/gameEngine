@@ -5,21 +5,21 @@ import util.parsing.MaterialColor;
 
 public class MaterialStruct extends StructLocation {
 
-    public final static String NAME = "Material";
+    public static final String NAME = "Material";
 
-    private final static String EMISSION = "Emission";
-    private final static String AMBIENT = "Ambient";
-    private final static String DIFFUSE = "Diffuse";
-    private final static String SPECULAR = "Specular";
-    private final static String SHININESS = "Shininess";
-    private final static String AMBIENT_MAP = "ambientMap";
-    private final static String DIFFUSE_MAP = "diffuseMap";
-    private final static String NORMAL_MAP = "normalMap";
-    private final static String SPECULAR_MAP = "specularMap";
-    private final static String USE_AMBIENT_MAP = "UseAmbientMap";
-    private final static String USE_DIFFUSE_MAP = "UseDiffuseMap";
-    private final static String USE_NORMAL_MAP = "UseNormalMap";
-    private final static String USE_SPECULAR_MAP = "UseSpecularMap";
+    private static final String EMISSION = "Emission";
+    private static final String AMBIENT = "Ambient";
+    private static final String DIFFUSE = "Diffuse";
+    private static final String SPECULAR = "Specular";
+    private static final String SHININESS = "Shininess";
+    private static final String AMBIENT_MAP = "ambientMap";
+    private static final String DIFFUSE_MAP = "diffuseMap";
+    private static final String NORMAL_MAP = "normalMap";
+    private static final String SPECULAR_MAP = "specularMap";
+    private static final String USE_AMBIENT_MAP = "UseAmbientMap";
+    private static final String USE_DIFFUSE_MAP = "UseDiffuseMap";
+    private static final String USE_NORMAL_MAP = "UseNormalMap";
+    private static final String USE_SPECULAR_MAP = "UseSpecularMap";
 
     public MaterialStruct(Integer programID) {
         this(programID, NAME);

@@ -1,17 +1,14 @@
 package renderEngine;
 
 import animation.Joint;
+import java.io.File;
 import models.AnimatedModel;
-import renderEngine.shaders.structs.Material;
+import renderEngine.structures.Vao;
 import util.parsing.ModelType;
 import util.parsing.colladaParser.colladaLoader.ColladaLoader;
 import util.parsing.colladaParser.dataStructures.AnimatedModelData;
 import util.parsing.colladaParser.dataStructures.JointData;
 import util.parsing.colladaParser.dataStructures.SkeletonData;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AnimatedModelLoader {
 
@@ -23,12 +20,12 @@ public class AnimatedModelLoader {
      * @return The animated model (no animation applied though)
      */
     public static AnimatedModel loadAnimatedModel(File colladaFile, ModelType modelType) {
-        AnimatedModelData modelData = ColladaLoader.loadColladaModel(colladaFile, 3);
-        Vao modelVao = Vao.createVao(modelData.getMeshData(), modelType);
+        AnimatedModelData modelData = ColladaLoader.loadColladaModel(colladaFile, 3, modelType);
+        Vao vao = Vao.createVao(modelData.getMeshData(), modelData.getMeshData().getVaoType());
+
         SkeletonData skeletonData = modelData.getJointsData();
         Joint headJoint = createJoints(skeletonData.headJoint);
-        List<Material> materials = new ArrayList<>(modelData.getMeshData().getIndicesList().keySet());
-        return new AnimatedModel(modelVao, headJoint, skeletonData.jointCount, materials);
+        return new AnimatedModel(vao, headJoint, skeletonData.jointCount, modelData.getMaterials());
     }
 
 

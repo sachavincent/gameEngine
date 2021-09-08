@@ -1,6 +1,6 @@
 package guis.transitions;
 
-import static renderEngine.DisplayManager.FRAMERATE_LIMIT;
+import static display.DisplayManager.FRAMERATE_LIMIT;
 
 import guis.GuiInterface;
 

@@ -38,8 +38,8 @@ import util.KeybindingsManager.KeyboardLayout;
 
 public class GuiControlsSettings extends GuiTab {
 
-    private final static Text PRESS_TO_ASSIGN = new Text(Words.PRESS_TO_ASSIGN, .8f, DEFAULT_FONT, Color.BLACK);
-    private final static Text PRESS_KEY_TEXT  = new Text(Words.PRESS_KEY, .8f, DEFAULT_FONT, Color.BLACK);
+    private static final Text PRESS_TO_ASSIGN = new Text(Words.PRESS_TO_ASSIGN, .8f, DEFAULT_FONT, Color.BLACK);
+    private static final Text PRESS_KEY_TEXT  = new Text(Words.PRESS_KEY, .8f, DEFAULT_FONT, Color.BLACK);
 
     private GuiMultiOption<String> layoutMultiOption;
     private List<GuiText>          bindings;

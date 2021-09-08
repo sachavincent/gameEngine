@@ -1,5 +1,6 @@
 package guis.prefabs.GuiMainMenu;
 
+import display.Display;
 import engineTester.Game;
 import fontMeshCreator.Text;
 import guis.Gui;
@@ -16,14 +17,13 @@ import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.DisplayManager;
 
 public class GuiMainMenu extends Gui {
 
-    private final static GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
             new SideConstraint(Side.LEFT), new SideConstraint(Side.TOP)};
 
-    private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.4f), new RelativeConstraint(.5f)};
 
     private static GuiMainMenu instance;
@@ -128,7 +128,7 @@ public class GuiMainMenu extends Gui {
         quitButton.enableFilter();
         quitButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
-                DisplayManager.closeDisplay();
+                Display.getWindow().close();
                 return true;
             }
             return false;

@@ -1,6 +1,6 @@
 package scene.components;
 
-import renderEngine.DisplayManager;
+import display.DisplayManager;
 import scene.gameObjects.Light;
 import util.DayNightCycle;
 import util.math.Vector3f;
@@ -31,8 +31,8 @@ public class SunComponent extends Component {
         double angle = (-2.0 * Math.PI / ((double) DisplayManager.CURRENT_FPS *
                 (double) DayNightCycle.DAY_NIGHT_CYCLE_DURATION));
         this.movingAngle = (this.movingAngle + angle) % (2.0 * Math.PI);
-        position.y = (float) (this.center.y + Math.cos(this.movingAngle) * this.distance);
-        position.z = (float) (this.center.z + Math.sin(this.movingAngle) * this.distance);
+        position.setY((float) (this.center.getY() + Math.cos(this.movingAngle) * this.distance));
+        position.setZ((float) (this.center.getZ() + Math.sin(this.movingAngle) * this.distance));
         positionComponent.setPosition(position);
     }
 

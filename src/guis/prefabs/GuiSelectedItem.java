@@ -1,5 +1,6 @@
 package guis.prefabs;
 
+import display.Display;
 import guis.Gui;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraints;
@@ -8,7 +9,6 @@ import guis.constraints.PixelConstraint;
 import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
-import renderEngine.DisplayManager;
 import scene.Scene;
 import scene.components.IconComponent;
 import scene.components.TerrainComponent;
@@ -18,10 +18,10 @@ import util.math.Vector2f;
 
 public class GuiSelectedItem extends Gui {
 
-    private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new PixelConstraint(100), new PixelConstraint(100)};
 
-    private final static Background<?> DEFAULT_BACKGROUND = new Background<>(new Color(255, 255, 255));
+    private static final Background<?> DEFAULT_BACKGROUND = new Background<>(new Color(255, 255, 255));
 
     private static GuiSelectedItem instance;
 
@@ -78,9 +78,9 @@ public class GuiSelectedItem extends Gui {
     public void updatePosition() {
         Vector2f cursorPos = MouseUtils.getCursorPos();
         GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this);
-        int xPixels = (int) (cursorPos.x * DisplayManager.WIDTH) - 70;
-        int yPixels = (int) (cursorPos.y * DisplayManager.HEIGHT) - 70;
-        if (xPixels < -DisplayManager.WIDTH || yPixels < -DisplayManager.HEIGHT) {
+        int xPixels = (int) (cursorPos.getX() * Display.getWindow().getWidth()) - 70;
+        int yPixels = (int) (cursorPos.getY() * Display.getWindow().getHeight()) - 70;
+        if (xPixels < -Display.getWindow().getWidth() || yPixels < -Display.getWindow().getHeight()) {
             setDisplayed(false); // GUI is too far left and/or too far low to be rendered fully
         } else {
             setX(guiConstraintHandler.handleXConstraint(new PixelConstraint(xPixels)));

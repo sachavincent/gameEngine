@@ -1,5 +1,6 @@
 package guis.prefabs;
 
+import display.Display;
 import engineTester.Game;
 import fontMeshCreator.Text;
 import guis.Gui;
@@ -14,11 +15,10 @@ import guis.presets.buttons.GuiRectangleButton;
 import java.awt.Color;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.DisplayManager;
 
 public class GuiEscapeMenu extends Gui {
 
-    private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.9f)};
 
     private static GuiEscapeMenu instance;
@@ -125,6 +125,6 @@ public class GuiEscapeMenu extends Gui {
     }
 
     private void quitFunction() {
-        DisplayManager.closeDisplay();
+        Display.getWindow().close();
     }
 }

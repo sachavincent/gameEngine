@@ -8,8 +8,8 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     private static final long serialVersionUID = 1L;
 
-    public float x;
-    public float y;
+    private float x;
+    private float y;
 
     public Vector2f() {
     }
@@ -42,9 +42,9 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
     }
 
     public void invertPosition() {
-        float temp = x;
-        x = y;
-        y = temp;
+        float temp = this.x;
+        this.x = this.y;
+        this.y = temp;
     }
 
     public Vector2f translate(float x, float y) {
@@ -106,23 +106,23 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         if (vec == null)
             return this;
 
-        return new Vector2f(x + vec.x, y + vec.y);
+        return new Vector2f(x + vec.x, y + vec.getY());
     }
 
     public static Vector2f add(Vector2f left, Vector2f right, Vector2f dest) {
         if (dest == null) {
-            return new Vector2f(left.x + right.x, left.y + right.y);
+            return new Vector2f(left.x + right.x, left.y + right.getY());
         } else {
-            dest.set(left.x + right.x, left.y + right.y);
+            dest.set(left.x + right.x, left.y + right.getY());
             return dest;
         }
     }
 
     public static Vector2f sub(Vector2f left, Vector2f right, Vector2f dest) {
         if (dest == null) {
-            return new Vector2f(left.x - right.x, left.y - right.y);
+            return new Vector2f(left.x - right.x, left.y - right.getY());
         } else {
-            dest.set(left.x - right.x, left.y - right.y);
+            dest.set(left.x - right.x, left.y - right.getY());
             return dest;
         }
     }
@@ -133,7 +133,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     public Vector store(FloatBuffer buf) {
         buf.put(this.x);
-        buf.put(this.y);
+        buf.put(this.getY());
         return this;
     }
 
@@ -154,7 +154,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         sb.append("Vector2f[");
         sb.append(this.x);
         sb.append(", ");
-        sb.append(this.y);
+        sb.append(this.getY());
         sb.append(']');
         return sb.toString();
     }
@@ -190,7 +190,7 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.x, this.y);
+        return Objects.hash(this.x, this.getY());
     }
 
     public double distanceSquared(Vector2f v) {
@@ -209,6 +209,6 @@ public class Vector2f extends Vector implements Serializable, ReadableVector2f, 
         if (i != 0)
             return i;
 
-        return Float.compare(this.y, o.y);
+        return Float.compare(this.y, o.getY());
     }
 }

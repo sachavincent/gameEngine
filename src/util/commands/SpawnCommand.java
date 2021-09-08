@@ -1,6 +1,15 @@
 package util.commands;
 
+import static entities.Camera.Direction.NORTH;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
+
 import entities.Camera.Direction;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import pathfinding.Path;
 import pathfinding.PathFinder;
 import renderEngine.PathRenderer;
@@ -13,23 +22,16 @@ import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
 import util.Utils;
 
-import java.awt.*;
-import java.util.List;
-import java.util.*;
-
-import static entities.Camera.Direction.NORTH;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-
 public class SpawnCommand extends Command {
 
-    private final static String[] VALID_GAMEOBJECTS = new String[]{"NPC", "Insula", "Market"};
+    private static final String[] VALID_GAMEOBJECTS = new String[]{"NPC", "Insula", "Market"};
 
-    private final static String[] LOCAL_ALIAS = new String[]{"spawn"};
-    private final static String[] LOCAL_PARAMETERS = new String[]{"GameObject", "x", "y"};
-    private final static String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{"direction", "start",
+    private static final String[] LOCAL_ALIAS = new String[]{"spawn"};
+    private static final String[] LOCAL_PARAMETERS = new String[]{"GameObject", "x", "y"};
+    private static final String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{"direction", "start",
             "destination", "show"};
 
-    private final static LocalExecuteCommandCallback LOCAL_CALLBACK = (gameObjectName, x, z, dir, start, dest, show) -> {
+    private static final LocalExecuteCommandCallback LOCAL_CALLBACK = (gameObjectName, x, z, dir, start, dest, show) -> {
         if (!isGameObjectValid(gameObjectName))
             return 1;
 

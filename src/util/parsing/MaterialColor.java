@@ -1,8 +1,7 @@
 package util.parsing;
 
+import java.awt.Color;
 import util.math.Vector3f;
-
-import java.awt.*;
 
 public abstract class MaterialColor {
 
@@ -15,6 +14,6 @@ public abstract class MaterialColor {
     }
 
     public final Color getAWTColor() {
-        return new Color(this.color.x, this.color.y, this.color.z);
+        return new Color(this.color.getX(), this.color.getY(), this.color.getZ());
     }
 }

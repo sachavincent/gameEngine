@@ -3,6 +3,7 @@ package guis;
 import static renderEngine.GuiRenderer.DEFAULT;
 import static renderEngine.GuiRenderer.unfilledQuad;
 
+import display.Display;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
 import guis.constraints.layout.GuiLayout;
@@ -18,7 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import models.RawModel;
-import renderEngine.DisplayManager;
 import util.math.Vector2f;
 
 public abstract class GuiComponent implements GuiInterface {
@@ -164,17 +164,18 @@ public abstract class GuiComponent implements GuiInterface {
         updateTexturePosition();
     }
 
-    public void setOnUpdate(UpdateCallback updateCallback) {
+    @Override
+    public final void setOnUpdate(UpdateCallback updateCallback) {
         this.onUpdateCallback = updateCallback;
     }
 
     @Override
-    public void setOnClose(CloseCallback closeCallback) {
+    public final void setOnClose(CloseCallback closeCallback) {
         this.onCloseCallback = closeCallback;
     }
 
     @Override
-    public void setOnOpen(OpenCallback openCallback) {
+    public final void setOnOpen(OpenCallback openCallback) {
         this.onOpenCallback = openCallback;
     }
 
@@ -185,41 +186,42 @@ public abstract class GuiComponent implements GuiInterface {
         return true;
     }
 
-    public int getType() {
+    public final int getType() {
         return this.type;
     }
 
-    public void setType(int type) {
+    public final void setType(int type) {
         this.type = type;
     }
 
-    public void updateTexturePosition() {
+    public final void updateTexturePosition() {
         for (GuiTexture guiTexture : this.textures) {
-            guiTexture.getScale().x = this.width;
+            guiTexture.getScale().setX(this.width);
             float height = this.height;
             if (guiTexture.dokeepAspectRatio())
                 height = Math.min(this.height,
-                        this.width * ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) *
+                        this.width *
+                                ((float) Display.getWindow().getWidth() / (float) Display.getWindow().getHeight()) *
                                 ((float) guiTexture.getHeight() / (float) guiTexture.getWidth()));
 
-            guiTexture.getScale().y = height;
-            guiTexture.getPosition().x = this.x;
-            guiTexture.getPosition().y = this.y;
+            guiTexture.getScale().setY(height);
+            guiTexture.getPosition().setX(this.x);
+            guiTexture.getPosition().setY(this.y);
         }
 
-        this.debugOutline.getScale().x = this.width;
-        this.debugOutline.getScale().y = this.height;
-        this.debugOutline.getPosition().x = this.x;
-        this.debugOutline.getPosition().y = this.y;
+        this.debugOutline.getScale().setX(this.width);
+        this.debugOutline.getScale().setY(this.height);
+        this.debugOutline.getPosition().setX(this.x);
+        this.debugOutline.getPosition().setY(this.y);
     }
 
     @Override
-    public GuiTexture getDebugOutline() {
+    public final GuiTexture getDebugOutline() {
         return this.debugOutline;
     }
 
     @Override
-    public boolean displayDebugOutline() {
+    public final boolean displayDebugOutline() {
         return this.displayDebugOutline;
     }
 
@@ -227,24 +229,23 @@ public abstract class GuiComponent implements GuiInterface {
         this.displayDebugOutline = displayDebugOutline;
     }
 
-    public void onEnter() {
+    public final void onEnter() {
         this.onEnterCallback.onEnter();
     }
 
-    public void onLeave() {
+    public final void onLeave() {
         this.onLeaveCallback.onLeave();
     }
 
-
-    public void onHover() {
+    public final void onHover() {
         this.onHoverCallback.onHover();
     }
 
-    public void onScroll(double xOffset, double yOffset) {
+    public final void onScroll(double xOffset, double yOffset) {
         this.onScrollCallback.onScroll(xOffset, yOffset);
     }
 
-    public void setOnHover(HoverCallback onHoverCallback) {
+    public final void setOnHover(HoverCallback onHoverCallback) {
         this.onHoverCallback = onHoverCallback;
     }
 
@@ -261,22 +262,22 @@ public abstract class GuiComponent implements GuiInterface {
     }
 
     @Override
-    public float getX() {
+    public final float getX() {
         return this.x;
     }
 
     @Override
-    public float getY() {
+    public final float getY() {
         return this.y;
     }
 
     @Override
-    public float getWidth() {
+    public final float getWidth() {
         return this.width;
     }
 
     @Override
-    public float getHeight() {
+    public final float getHeight() {
         return this.height;
     }
 

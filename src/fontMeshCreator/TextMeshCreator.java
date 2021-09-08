@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import renderEngine.structures.AttributeData;
+import renderEngine.structures.AttributeData.DataType;
+import renderEngine.structures.Data;
 
 public class TextMeshCreator {
 
@@ -17,7 +20,7 @@ public class TextMeshCreator {
         metaData = new MetaFile(metaFile);
     }
 
-    protected TextMeshData createTextMesh(Text text) {
+    protected Data createTextMesh(Text text) {
         List<Line> lines = createStructure(text);
         return createQuadVertices(text, lines);
     }
@@ -102,7 +105,7 @@ public class TextMeshCreator {
         lines.add(currentLine);
     }
 
-    private TextMeshData createQuadVertices(Text text, List<Line> lines) {
+    private Data createQuadVertices(Text text, List<Line> lines) {
         double xCursor;
         double yCursor = -text.getyOffset() * text.getLineTextHeight() / 2;
         List<Float> vertices = new ArrayList<>();
@@ -127,7 +130,13 @@ public class TextMeshCreator {
             }
             yCursor += text.getLineTextHeight() / 2;
         }
-        return new TextMeshData(listToArray(vertices), listToArray(textureCoords), listToArray(colors));
+        if (vertices.isEmpty())
+            return null;
+
+        AttributeData<Float> verticesAttribute = new AttributeData<>(0, 2, vertices, DataType.FLOAT);
+        AttributeData<Float> textureCoordsAttribute = new AttributeData<>(1, 2, textureCoords, DataType.FLOAT);
+        AttributeData<Float> colorsAttribute = new AttributeData<>(2, 3, colors, DataType.FLOAT);
+        return Data.createData(verticesAttribute, textureCoordsAttribute, colorsAttribute);
     }
 
     private void addColors(Color value, List<Float> colors) {
@@ -194,14 +203,6 @@ public class TextMeshCreator {
         texCoords.add((float) y);
     }
 
-
-    private static float[] listToArray(List<Float> listOfFloats) {
-        float[] array = new float[listOfFloats.size()];
-        for (int i = 0; i < array.length; i++) {
-            array[i] = listOfFloats.get(i);
-        }
-        return array;
-    }
 
     public MetaFile getMetaData() {
         return this.metaData;

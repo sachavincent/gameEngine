@@ -1,56 +1,71 @@
 package util.parsing.colladaParser.colladaLoader;
 
-import renderEngine.MeshData;
-import renderEngine.shaders.structs.Material;
-import util.math.Matrix4f;
-import util.math.Vector2f;
-import util.math.Vector3f;
-import util.math.Vector4f;
-import util.parsing.Vertex;
-import util.parsing.colladaParser.dataStructures.MaterialData;
-import util.parsing.colladaParser.dataStructures.VertexSkinData;
-import util.parsing.colladaParser.xmlParser.XmlNode;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import renderEngine.shaders.structs.Material;
+import renderEngine.structures.AttributeData;
+import renderEngine.structures.AttributeData.DataType;
+import renderEngine.structures.IndexData;
+import renderEngine.structures.MaterialIndicesAttribute;
+import util.math.Matrix4f;
+import util.math.Vector2f;
+import util.math.Vector3f;
+import util.math.Vector4f;
+import util.parsing.ModelType;
+import util.parsing.Vertex;
+import util.parsing.colladaParser.dataStructures.MaterialData;
+import util.parsing.colladaParser.dataStructures.VertexSkinData;
+import util.parsing.colladaParser.xmlParser.XmlNode;
 
 public class GeometryLoader {
 
     private static final Matrix4f CORRECTION = new Matrix4f()
             .rotate((float) Math.toRadians(-90), new Vector3f(1, 0, 0));
 
-    private final XmlNode meshData;
+    private final XmlNode              meshDataNode;
     private final List<VertexSkinData> vertexWeights;
-    private final List<MaterialData> materialsData;
+    private final List<MaterialData>   materialsData;
 
-    private float[] verticesArray;
-    private float[] normalsArray;
-    private float[] texturesArray;
-    private int[] jointIdsArray;
-    private float[] weightsArray;
+    private Float[]   verticesArray;
+    private Float[]   normalsArray;
+    private Float[]   texturesArray;
+    private Integer[] jointIdsArray;
+    private Float[]   weightsArray;
 
-    private final Map<Material, int[]> materialIndices = new HashMap<>();
+    private final Map<Material, Integer[]> materialIndices = new HashMap<>();
 
-    private final List<Vertex> vertices = new ArrayList<>();
+    private final List<Vertex>   vertices = new ArrayList<>();
     private final List<Vector2f> textures = new ArrayList<>();
-    private final List<Vector3f> normals = new ArrayList<>();
+    private final List<Vector3f> normals  = new ArrayList<>();
 
     public GeometryLoader(XmlNode geometryNode, List<VertexSkinData> vertexWeights, List<MaterialData> materialsData) {
         this.vertexWeights = vertexWeights;
-        this.meshData = geometryNode.getChild("geometry").getChild("mesh");
+        this.meshDataNode = geometryNode.getChild("geometry").getChild("mesh");
         this.materialsData = materialsData;
     }
 
-    public MeshData extractModelData() {
+    public IndexData extractModelData(ModelType modelType) {
         readRawData();
         assembleVertices();
         removeUnusedVertices();
         initArrays();
         convertDataToArrays();
-        return new MeshData(this.verticesArray, this.texturesArray, this.normalsArray, this.materialIndices,
-                this.jointIdsArray, this.weightsArray);
+
+        List<AttributeData<?>> attributes = new ArrayList<>();
+        attributes.add(new AttributeData<>(0, 3, this.verticesArray, DataType.FLOAT));
+        attributes.add(new AttributeData<>(1, 2, this.texturesArray, DataType.FLOAT));
+        attributes.add(new AttributeData<>(2, 3, this.normalsArray, DataType.FLOAT));
+        if (modelType.isNormalMap()) {
+            //TODO
+        }
+        for (var entry : this.materialIndices.entrySet())
+            attributes.add(new MaterialIndicesAttribute(entry.getKey(), entry.getValue()));
+        attributes.add(new AttributeData<>(4, 3, this.jointIdsArray, DataType.INT));
+        attributes.add(new AttributeData<>(5, 3, this.weightsArray, DataType.FLOAT));
+
+        return IndexData.createData(attributes);
     }
 
     private void readRawData() {
@@ -60,8 +75,9 @@ public class GeometryLoader {
     }
 
     private void readPositions() {
-        String positionsId = this.meshData.getChild("vertices").getChild("input").getAttribute("source").substring(1);
-        XmlNode positionsData = this.meshData.getChildWithAttribute("source", "id", positionsId)
+        String positionsId = this.meshDataNode.getChild("vertices").getChild("input").getAttribute("source")
+                .substring(1);
+        XmlNode positionsData = this.meshDataNode.getChildWithAttribute("source", "id", positionsId)
                 .getChild("float_array");
         int count = Integer.parseInt(positionsData.getAttribute("count"));
         String[] posData = positionsData.getData().split(" ");
@@ -71,16 +87,16 @@ public class GeometryLoader {
             float z = Float.parseFloat(posData[i * 3 + 2]);
             Vector4f position = new Vector4f(x, y, z, 1);
             Matrix4f.transform(CORRECTION, position, position);
-            this.vertices.add(new Vertex(this.vertices.size(), new Vector3f(position.x, position.y, position.z),
+            this.vertices.add(new Vertex(this.vertices.size(), new Vector3f(position.getX(), position.getY(), position.getZ()),
                     this.vertexWeights.get(this.vertices.size())));
         }
     }
 
     private void readNormals() {
-        this.meshData.getChildren("triangles").forEach(triangleNode -> {
+        this.meshDataNode.getChildren("triangles").forEach(triangleNode -> {
             String normalsId = triangleNode.getChildWithAttribute("input", "semantic", "NORMAL")
                     .getAttribute("source").substring(1);
-            XmlNode normalsData = this.meshData.getChildWithAttribute("source", "id", normalsId)
+            XmlNode normalsData = this.meshDataNode.getChildWithAttribute("source", "id", normalsId)
                     .getChild("float_array");
             int count = Integer.parseInt(normalsData.getAttribute("count"));
             String[] normData = normalsData.getData().split(" ");
@@ -90,17 +106,17 @@ public class GeometryLoader {
                 float z = Float.parseFloat(normData[i * 3 + 2]);
                 Vector4f norm = new Vector4f(x, y, z, 0f);
                 Matrix4f.transform(CORRECTION, norm, norm);
-                this.normals.add(new Vector3f(norm.x, norm.y, norm.z));
+                this.normals.add(new Vector3f(norm.getX(), norm.getY(), norm.getZ()));
             }
         });
     }
 
     private void readTextureCoords() {
-        List<XmlNode> triangles = this.meshData.getChildren("triangles");
+        List<XmlNode> triangles = this.meshDataNode.getChildren("triangles");
         triangles.forEach(triangleNode -> {
             String texCoordsId = triangleNode.getChildWithAttribute("input", "semantic", "TEXCOORD")
                     .getAttribute("source").substring(1);
-            XmlNode texCoordsData = this.meshData.getChildWithAttribute("source", "id", texCoordsId)
+            XmlNode texCoordsData = this.meshDataNode.getChildWithAttribute("source", "id", texCoordsId)
                     .getChild("float_array");
             int count = Integer.parseInt(texCoordsData.getAttribute("count"));
             String[] texData = texCoordsData.getData().split(" ");
@@ -114,7 +130,10 @@ public class GeometryLoader {
 
     private void assembleVertices() {
         this.materialsData.forEach(materialData -> {
-            XmlNode materialNode = this.meshData.getChildWithAttribute("triangles", "material", materialData.getId());
+            XmlNode materialNode = this.meshDataNode.getChildWithAttribute("triangles", "material",
+                    materialData.getId());
+            if (materialNode == null)
+                return;
             List<Integer> indices = new ArrayList<>();
             Material material = new Material(materialData);
             int typeCount = materialNode.getChildren("input").size();
@@ -125,10 +144,9 @@ public class GeometryLoader {
                 int texCoordIndex = Integer.parseInt(indexData[i * typeCount + 2]);
                 processVertex(indices, positionIndex, normalIndex, texCoordIndex);
             }
-            this.materialIndices.put(material, indices.stream().mapToInt(i -> i).toArray());
+            this.materialIndices.put(material, indices.toArray(new Integer[0]));
         });
     }
-
 
     private Vertex processVertex(List<Integer> indices, int posIndex, int normIndex, int texIndex) {
         Vertex currentVertex = this.vertices.get(posIndex);
@@ -152,14 +170,14 @@ public class GeometryLoader {
             Vector3f position = currentVertex.getPosition();
             Vector2f textureCoord = this.textures.get(currentVertex.getTextureIndex());
             Vector3f normalVector = this.normals.get(currentVertex.getNormalIndex());
-            this.verticesArray[i * 3] = position.x;
-            this.verticesArray[i * 3 + 1] = position.y;
-            this.verticesArray[i * 3 + 2] = position.z;
-            this.texturesArray[i * 2] = textureCoord.x;
-            this.texturesArray[i * 2 + 1] = 1 - textureCoord.y;
-            this.normalsArray[i * 3] = normalVector.x;
-            this.normalsArray[i * 3 + 1] = normalVector.y;
-            this.normalsArray[i * 3 + 2] = normalVector.z;
+            this.verticesArray[i * 3] = position.getX();
+            this.verticesArray[i * 3 + 1] = position.getY();
+            this.verticesArray[i * 3 + 2] = position.getZ();
+            this.texturesArray[i * 2] = textureCoord.getX();
+            this.texturesArray[i * 2 + 1] = 1 - textureCoord.getY();
+            this.normalsArray[i * 3] = normalVector.getX();
+            this.normalsArray[i * 3 + 1] = normalVector.getY();
+            this.normalsArray[i * 3 + 2] = normalVector.getZ();
             VertexSkinData weights = currentVertex.getWeightsData();
             this.jointIdsArray[i * 3] = weights.jointIds.get(0);
             this.jointIdsArray[i * 3 + 1] = weights.jointIds.get(1);
@@ -167,12 +185,13 @@ public class GeometryLoader {
             this.weightsArray[i * 3] = weights.weights.get(0);
             this.weightsArray[i * 3 + 1] = weights.weights.get(1);
             this.weightsArray[i * 3 + 2] = weights.weights.get(2);
-
         }
+
         return furthestPoint;
     }
 
-    private Vertex dealWithAlreadyProcessedVertex(List<Integer> indices, Vertex previousVertex, int newTextureIndex, int newNormalIndex) {
+    private Vertex dealWithAlreadyProcessedVertex(List<Integer> indices, Vertex previousVertex, int newTextureIndex,
+            int newNormalIndex) {
         if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
             indices.add(previousVertex.getIndex());
             return previousVertex;
@@ -195,11 +214,11 @@ public class GeometryLoader {
     }
 
     private void initArrays() {
-        this.verticesArray = new float[this.vertices.size() * 3];
-        this.texturesArray = new float[this.vertices.size() * 2];
-        this.normalsArray = new float[this.vertices.size() * 3];
-        this.jointIdsArray = new int[this.vertices.size() * 3];
-        this.weightsArray = new float[this.vertices.size() * 3];
+        this.verticesArray = new Float[this.vertices.size() * 3];
+        this.texturesArray = new Float[this.vertices.size() * 2];
+        this.normalsArray = new Float[this.vertices.size() * 3];
+        this.jointIdsArray = new Integer[this.vertices.size() * 3];
+        this.weightsArray = new Float[this.vertices.size() * 3];
     }
 
     private void removeUnusedVertices() {
@@ -210,5 +229,9 @@ public class GeometryLoader {
                 vertex.setNormalIndex(0);
             }
         }
+    }
+
+    public List<Material> getMaterials() {
+        return new ArrayList<>(this.materialIndices.keySet());
     }
 }

@@ -1,10 +1,9 @@
 package models;
 
-import renderEngine.Vao;
-import renderEngine.shaders.structs.Material;
-import util.parsing.objParser.OBJFile;
-
 import java.util.List;
+import renderEngine.shaders.structs.Material;
+import renderEngine.structures.Vao;
+import util.parsing.objParser.OBJFile;
 
 public class Model extends AbstractModel {
 

@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class GuiOnOffOption extends GuiMultiOption<OnOff> {
 
-    private final static OnOff[] OPTIONS = new OnOff[]{OnOff.ON, OnOff.OFF};
+    private static final OnOff[] OPTIONS = new OnOff[]{OnOff.ON, OnOff.OFF};
 
     public GuiOnOffOption(GuiInterface parent, Background<?> background, OnOff defaultValue,
             GuiConstraintsManager constraintsManager, Color arrowsColor) {

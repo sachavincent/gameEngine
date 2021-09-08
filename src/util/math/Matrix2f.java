@@ -112,10 +112,10 @@ public class Matrix2f extends Matrix implements Serializable {
             dest = new Vector2f();
         }
 
-        float x = left.m00 * right.x + left.m10 * right.y;
-        float y = left.m01 * right.x + left.m11 * right.y;
-        dest.x = x;
-        dest.y = y;
+        float x = left.m00 * right.getX() + left.m10 * right.getY();
+        float y = left.m01 * right.getX() + left.m11 * right.getY();
+        dest.setX(x);
+        dest.setY(y);
         return dest;
     }
 

@@ -1,11 +1,12 @@
 package water;
 
+import display.DisplayManager;
+import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import renderEngine.DisplayManager;
 import renderEngine.Loader;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
@@ -14,8 +15,6 @@ import textures.ModelTexture;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector3f;
-
-import java.util.List;
 
 public class WaterRenderer {
 

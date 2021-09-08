@@ -1,6 +1,16 @@
 package scene.gameObjects;
 
+import static java.util.Map.Entry;
+import static scene.components.MultipleModelsComponent.Offset;
+
 import entities.Camera.Direction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import models.AbstractModel;
 import org.lwjgl.glfw.GLFW;
 import renderEngine.BuildingRenderer;
@@ -13,30 +23,24 @@ import util.ShiftingList;
 import util.Utils;
 import util.math.Vector3f;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.util.Map.Entry;
-import static scene.components.MultipleModelsComponent.Offset;
-
 public class WheatField extends GameObject {
 
-    public final static int X_POSITIVE_OFFSET = 1;
-    public final static int X_NEGATIVE_OFFSET = 1;
-    public final static int Z_POSITIVE_OFFSET = 1;
-    public final static int Z_NEGATIVE_OFFSET = 1;
+    public static final int X_POSITIVE_OFFSET = 1;
+    public static final int X_NEGATIVE_OFFSET = 1;
+    public static final int Z_POSITIVE_OFFSET = 1;
+    public static final int Z_NEGATIVE_OFFSET = 1;
 
-    private final static String LAND = "LAND";
-    private final static String FENCE = "FENCE";
-    private final static String FENCEPOLEC = "FENCEPOLEC";
-    private final static String FENCEPOLE1 = "FENCEPOLE1";
-    private final static String FENCEPOLE2 = "FENCEPOLE2";
-    private final static String FENCEPOLE3 = "FENCEPOLE3";
-    private final static String FENCEPOLE4 = "FENCEPOLE4";
+    private static final String LAND = "LAND";
+    private static final String FENCE = "FENCE";
+    private static final String FENCEPOLEC = "FENCEPOLEC";
+    private static final String FENCEPOLE1 = "FENCEPOLE1";
+    private static final String FENCEPOLE2 = "FENCEPOLE2";
+    private static final String FENCEPOLE3 = "FENCEPOLE3";
+    private static final String FENCEPOLE4 = "FENCEPOLE4";
 
-    private final static String[] FENCEPOLES = new String[]{FENCEPOLE1, FENCEPOLE2, FENCEPOLE3, FENCEPOLE4};
+    private static final String[] FENCEPOLES = new String[]{FENCEPOLE1, FENCEPOLE2, FENCEPOLE3, FENCEPOLE4};
 
-    public final static List<AbstractModel> TEXTURES = new ArrayList<>();
+    public static final List<AbstractModel> TEXTURES = new ArrayList<>();
 
     private final Random random = new Random();
 

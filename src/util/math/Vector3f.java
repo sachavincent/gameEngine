@@ -1,21 +1,21 @@
 package util.math;
 
+import java.io.Serializable;
+import java.nio.FloatBuffer;
+import java.util.Locale;
+import java.util.Objects;
 import scene.Scene;
 import scene.components.HeightMapComponent;
 import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
 
-import java.io.Serializable;
-import java.nio.FloatBuffer;
-import java.util.Locale;
-import java.util.Objects;
-
 public class Vector3f extends Vector implements Serializable, ReadableVector3f, WritableVector3f {
 
     private static final long serialVersionUID = 1L;
-    public float x;
-    public float y;
-    public float z;
+
+    private float x;
+    private float y;
+    private float z;
 
     public Vector3f() {
     }
@@ -144,6 +144,14 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         this.z *= scale;
         return this;
     }
+    
+    public Vector3f add(Vector3f vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+
+        return this;
+    }
 
     public Vector3f sub(Vector3f vec) {
         this.x -= vec.x;
@@ -194,14 +202,6 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
         double dz = z - v.z;
         return dx * dx + dy * dy + dz * dz;
     }
-
-    public Vector3f add(Vector3f vec) {
-        if (vec == null)
-            return this;
-
-        return new Vector3f(x + vec.x, y + vec.y, z + vec.z);
-    }
-
     public double distance(Vector3f v) {
         return Math.sqrt(distanceSquared(v));
     }
@@ -233,21 +233,14 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     public boolean isTerrainPosition() {
         Terrain terrain = Scene.getInstance().getTerrain();
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
-        TerrainPosition pos = toTerrainPosition();
-        if (pos.getX() < 0 || pos.getX() > heightMapComponent.getHeights().length ||
-                pos.getZ() < 0 || pos.getZ() > heightMapComponent.getHeights()[0].length)
+        if (!Scene.getInstance().isPositionOnTerrain(this.x, this.z))
             return false;
 
+        TerrainPosition pos = toTerrainPosition();
         return this.y == heightMapComponent.getHeight(pos.getX(), pos.getZ());
     }
 
     public TerrainPosition toTerrainPosition() {
         return new TerrainPosition((int) Math.rint(this.x), this.y, (int) Math.rint(this.z));
     }
-
-//    public TerrainPosition toTerrainPositionForPlacing() {
-//        Vector2f point = new Vector2f(x, z);
-//        point = point.add(new Vector2f(-.5f, -.5f));
-//        return point.toTerrainPosition();
-//    }
 }

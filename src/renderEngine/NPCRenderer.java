@@ -1,25 +1,32 @@
 package renderEngine;
 
-import entities.Camera;
-import entities.ModelEntity;
-import models.AbstractModel;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.system.MemoryUtil;
-import renderEngine.shaders.AnimatedGameObjectShader;
-import util.math.Matrix4f;
-
-import java.nio.FloatBuffer;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL15C.*;
-import static renderEngine.MasterRenderer.*;
+import static org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW;
+import static org.lwjgl.opengl.GL15C.glBindBuffer;
+import static org.lwjgl.opengl.GL15C.glBufferData;
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.CLIP_PLANE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
+import entities.Camera;
+import entities.ModelEntity;
+import java.nio.FloatBuffer;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import models.AbstractModel;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryUtil;
+import renderEngine.shaders.AnimatedGameObjectShader;
+import renderEngine.structures.IndexBufferVao;
+import renderEngine.structures.Vbo;
+import util.math.Matrix4f;
 
 public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
@@ -56,7 +63,7 @@ public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
             AbstractModel model = entry.getKey();
 
-            final Vao vao = model.getVao();
+            final IndexBufferVao vao = (IndexBufferVao) model.getVao();
             vao.bind();
 
             if (vao.isInstanced()) {
@@ -86,9 +93,11 @@ public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
                 prepareTexturedModel(model, false);
                 entry.getValue().forEach(modelEntity -> {
                     prepareInstance(modelEntity);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::bind);//TEMP TODO
-                    GL11.glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
-                    vao.getIndexVbos().values().stream().findFirst().ifPresent(Vbo::unbind);//TEMP TODO
+                    vao.getIndexVbos().forEach(indexVbo -> {
+                        indexVbo.bind();
+                        GL11.glDrawElements(GL_TRIANGLES, indexVbo.getDataLength(), GL_UNSIGNED_INT, 0);
+                        indexVbo.unbind();
+                    });
                 });
                 vao.unbind();
             }
@@ -113,7 +122,6 @@ public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 //
 //            ((GameObjectShader) this.shader).loadUseFakeLighting(texture.doesUseFakeLighting());
 //            ((GameObjectShader) this.shader).loadUseNormalMap(false);
-//            ((GameObjectShader) this.shader).loadShineVariables(texture.getShineDamper(), texture.getReflectivity());
 //            ((GameObjectShader) this.shader).loadIsInstanced(isInstanced);
 //            ((GameObjectShader) this.shader).loadAlpha(texture.getAlpha());
 //            ((GameObjectShader) this.shader).loadColor(texture.getColor());
@@ -132,5 +140,12 @@ public class NPCRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
     private void unbindTexturedModel() {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+    }
+
+    @Override
+    protected void cleanUp() {
+        super.cleanUp();
+
+        MemoryUtil.memFree(floatBuffer);
     }
 }

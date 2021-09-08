@@ -9,7 +9,7 @@ layout (location=3) in vec3 tangent;
 layout (location=6) in mat4 globalTransformationMatrix;
 
 out vec2 pass_textureCoords;
-out vec3 toLightVector[MAX_LIGHTS];
+out vec3 toLightVectors[MAX_LIGHTS];
 out vec3 toCameraVector;
 out vec3 surfaceNormal;
 out float visibility;
@@ -17,14 +17,11 @@ out float visibility;
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 lightPosition[MAX_LIGHTS];
+uniform vec3 lightsPosition[MAX_LIGHTS];
 uniform bool useFakeLighting;
 uniform bool useNormalMap;
 uniform bool isInstanced;
 uniform bool areTangentsOn;
-
-uniform int numberOfRows;
-uniform vec2 offset;
 
 uniform vec4 plane;
 
@@ -61,7 +58,7 @@ void main(void) {
     }
     gl_Position = projectionMatrix * positionRelativeToCam;
 
-    pass_textureCoords = (textureCoords / numberOfRows) + offset;
+    pass_textureCoords = textureCoords;
 
     if (useNormalMap) {
         vec3 norm = normalize(surfaceNormal);
@@ -73,12 +70,12 @@ void main(void) {
         tang.z, bitang.z, norm.z);
 
         for (int i = 0; i < MAX_LIGHTS; i++){
-            toLightVector[i] = toTangentSpace * (lightPosition[i] - positionRelativeToCam.xyz);
+            toLightVectors[i] = toTangentSpace * (lightsPosition[i] - positionRelativeToCam.xyz);
         }
         toCameraVector = toTangentSpace * (-positionRelativeToCam.xyz);
     } else {
         for (int i = 0; i < MAX_LIGHTS; i++) {
-            toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+            toLightVectors[i] = lightsPosition[i] - worldPosition.xyz;
         }
         toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
     }

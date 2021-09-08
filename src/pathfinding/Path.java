@@ -1,16 +1,17 @@
 package pathfinding;
 
-import renderEngine.MeshData;
-import renderEngine.Vao;
-import terrain.TerrainPosition;
-import util.math.Vector2f;
-import util.math.Vector3f;
-import util.parsing.ModelType;
+import static util.math.Maths.manhattanDistance;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static util.math.Maths.manhattanDistance;
+import renderEngine.structures.AttributeData;
+import renderEngine.structures.AttributeData.DataType;
+import renderEngine.structures.IndexData;
+import renderEngine.structures.IndicesAttribute;
+import renderEngine.structures.Vao;
+import terrain.TerrainPosition;
+import util.math.Vector2f;
+import util.math.Vector3f;
 
 public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Path> {
 
@@ -117,13 +118,13 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
 
     public NodeRoad getClosestNodeRoad(TerrainPosition terrainPosition) {
         return getAllRoads().stream().filter(NodeRoad.class::isInstance).map(NodeRoad.class::cast).min(
-                Comparator.comparingInt(nodeRoad -> manhattanDistance(nodeRoad.getPosition(), terrainPosition)))
+                        Comparator.comparingInt(nodeRoad -> manhattanDistance(nodeRoad.getPosition(), terrainPosition)))
                 .orElse(null);
     }
 
     public Road getClosestRoad(TerrainPosition terrainPosition) {
         return getAllRoads().stream().min(
-                Comparator.comparingInt(road -> manhattanDistance(road.getPosition(), terrainPosition)))
+                        Comparator.comparingInt(road -> manhattanDistance(road.getPosition(), terrainPosition)))
                 .orElse(null);
     }
 
@@ -211,14 +212,14 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
         if (positions.isEmpty())
             return;
 
-        float[] positionsFloat = new float[positions.size() * 3];
+        Float[] positionsFloat = new Float[positions.size() * 3];
         int i = 0;
         for (Vector2f pos : positions) {
-            positionsFloat[i++] = pos.x;
+            positionsFloat[i++] = pos.getX();
             positionsFloat[i++] = .5f;
-            positionsFloat[i++] = pos.y;
+            positionsFloat[i++] = pos.getY();
         }
-        int[] indicesTab = new int[positions.size() * 2 - 2];
+        Integer[] indicesTab = new Integer[positions.size() * 2 - 2];
         int j = 0;
         for (i = 0; i < indicesTab.length; i++) {
             indicesTab[i++] = j++;
@@ -230,8 +231,11 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
 
     public Vao createVao() {
         if (this.pathCoordinates != null) {
-            return Vao.createVao(new MeshData(this.pathCoordinates.getPositions(), new float[]{0}, new float[]{0, 1, 0},
-                    this.pathCoordinates.getIndices()), ModelType.DEFAULT);
+            AttributeData<Float> posAttribute = new AttributeData<>(0, 3,
+                    this.pathCoordinates.getPositions(), DataType.FLOAT);
+            IndicesAttribute indicesAttribute = new IndicesAttribute(this.pathCoordinates.getIndices());
+            IndexData data = IndexData.createData(posAttribute, indicesAttribute);
+            return Vao.createVao(data, data.getVaoType());
         }
         return null;
     }
@@ -253,19 +257,19 @@ public class Path extends LinkedHashSet<NodeConnection> implements Comparable<Pa
 
     public static class PathCoordinates {
 
-        final private float[] positions;
-        final private int[]   indices;
+        final private Float[]   positions;
+        final private Integer[] indices;
 
-        public PathCoordinates(float[] positions, int[] indices) {
+        public PathCoordinates(Float[] positions, Integer[] indices) {
             this.positions = positions;
             this.indices = indices;
         }
 
-        public float[] getPositions() {
+        public Float[] getPositions() {
             return this.positions;
         }
 
-        public int[] getIndices() {
+        public Integer[] getIndices() {
             return this.indices;
         }
     }

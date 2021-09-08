@@ -41,7 +41,6 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
     private   int              location_plane;
     private   int              location_terrainSize;
     private   int              location_focusBuildingPlacement;
-    private   int[]            location_hoveredCells;
     private   int              location_hoveredCell;
     private   int              location_heightMap;
     private   int              location_maxHeight;
@@ -77,10 +76,6 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
             this.location_centerFocus[i] = getUniformLocation("centerFocus[" + i + "]");
             this.location_radiusFocus[i] = getUniformLocation("radiusFocus[" + i + "]");
         }
-        this.location_hoveredCells = new int[200];
-        for (int i = 0; i < 200; i++) {
-            this.location_hoveredCells[i] = getUniformLocation("hoveredCells[" + i + "]");
-        }
         this.location_hoveredCell = getUniformLocation("hoveredCell");
 
         this.location_lightPosition = new int[MAX_LIGHTS];
@@ -104,18 +99,7 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
         loadInt(this.location_heightMap, 0);
     }
 
-
-    public void loadHoveredCells(List<TerrainPosition> cells, TerrainPosition c) {
-        Iterator<TerrainPosition> iterator = cells.iterator();
-        int i = 0;
-        while (iterator.hasNext() && i < 200) {
-            TerrainPosition cell = iterator.next();
-            loadVector(this.location_hoveredCells[i], new Vector2f(cell.getX(), cell.getZ()));
-            i++;
-        }
-        for (; i < 200; i++) {
-            loadVector(this.location_hoveredCells[i], new Vector2f(-1, -1));
-        }
+    public void loadHoveredCell(Vector3f c) {
         loadVector(this.location_hoveredCell, new Vector2f(c == null ? -1 : c.getX(), c == null ? -1 : c.getZ()));
     }
 

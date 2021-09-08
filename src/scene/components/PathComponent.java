@@ -1,18 +1,22 @@
 package scene.components;
 
+import display.DisplayManager;
 import entities.Camera.Direction;
-import pathfinding.*;
-import renderEngine.DisplayManager;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import pathfinding.NodeRoad;
+import pathfinding.NormalRoad;
+import pathfinding.Path;
+import pathfinding.PathFinder;
+import pathfinding.Road;
+import pathfinding.RoadGraph;
 import scene.Scene;
 import scene.components.PedestrianComponent.Behavior;
 import scene.gameObjects.GameObject;
 import terrain.TerrainPosition;
 import util.math.Vector2f;
 import util.math.Vector3f;
-
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 public class PathComponent extends Component {
 
@@ -146,13 +150,13 @@ public class PathComponent extends Component {
                 }
             }
             Vector3f diff = nextRoad.getPosition().toVector3f().sub(this.positionComponent.position);
-            if (diff.x < 0.5f && diff.z < 0.5f)
+            if (diff.getX() < 0.5f && diff.getZ() < 0.5f)
                 this.pedestrianComponent.setBehavior(Behavior.WALKING); // Approches building
         } else {
             nextRoad = roadList.get(index + 1);
 
             Vector3f vector3f = nextRoad.getPosition().toVector3f().sub(this.positionComponent.position);
-            Direction newDirection = Direction.getDirectionFromVector(new Vector2f(vector3f.x, vector3f.z));
+            Direction newDirection = Direction.getDirectionFromVector(new Vector2f(vector3f.getX(), vector3f.getZ()));
             if (this.direction == null)
                 this.direction = newDirection;
             else if (newDirection == this.direction.toOppositeDirection()) {
@@ -174,11 +178,11 @@ public class PathComponent extends Component {
         else
             distance = Direction.toRelativeDistance(this.direction, speed / DisplayManager.TPS);
 
-        distance.x = Math.min(distance.x, totalDistanceLeft.x);
-        distance.z = Math.min(distance.z, totalDistanceLeft.z);
+        distance.setX(Math.min(distance.getX(), totalDistanceLeft.getX()));
+        distance.setZ(Math.min(distance.getZ(), totalDistanceLeft.getZ()));
 
-        if (Direction.getDirectionFromVector(new Vector2f(distance.x, distance.z)) == this.direction)
-            this.positionComponent.position = this.positionComponent.position.add(distance);
+        if (Direction.getDirectionFromVector(new Vector2f(distance.getX(), distance.getZ())) == this.direction)
+            this.positionComponent.position.add(distance);
     }
 
     public enum PathType {

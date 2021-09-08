@@ -1,5 +1,6 @@
 package renderEngine;
 
+import display.Display;
 import org.lwjgl.opengl.GL11;
 import util.math.Matrix4f;
 import util.math.Vector4f;
@@ -18,7 +19,7 @@ public class MasterRenderer {
 
     private static MasterRenderer instance;
 
-    public final static Vector4f CLIP_PLANE = new Vector4f(0, -1, 0, 1000000);
+    public static final Vector4f CLIP_PLANE = new Vector4f(0, -1, 0, 1000000);
 
     public static MasterRenderer getInstance() {
         return instance == null ? (instance = new MasterRenderer()) : instance;
@@ -59,7 +60,7 @@ public class MasterRenderer {
     }
 
     private void createProjectionMatrix() {
-        float aspectRatio = (float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT;
+        float aspectRatio = (float) Display.getWindow().getWidth() / (float) Display.getWindow().getHeight();
         float y_scale = (float) ((1f / Math.tan(Math.toRadians(FOV / 2f))) * aspectRatio);
         float x_scale = y_scale / aspectRatio;
         float frustum_length = FAR_PLANE - NEAR_PLANE;

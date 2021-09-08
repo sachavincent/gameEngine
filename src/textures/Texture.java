@@ -1,25 +1,24 @@
 package textures;
 
-import guis.presets.Background;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL41;
-import org.lwjgl.stb.STBImage;
-import util.exceptions.MissingFileException;
-
-import java.awt.*;
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.Objects;
-
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL31.GL_TEXTURE_RECTANGLE;
 import static org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE;
 import static org.lwjgl.opengl.GL41.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL41.glTexParameteri;
+
+import guis.presets.Background;
+import java.awt.Color;
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Objects;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL41;
+import org.lwjgl.stb.STBImage;
+import util.exceptions.MissingFileException;
 
 public abstract class Texture {
 
@@ -265,7 +264,7 @@ public abstract class Texture {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Texture texture = (Texture) o;
@@ -273,7 +272,7 @@ public abstract class Texture {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(this.ID);
     }
 }

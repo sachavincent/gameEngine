@@ -1,5 +1,9 @@
 package guis;
 
+import static renderEngine.GuiRenderer.filledQuad;
+import static util.Utils.RES_PATH;
+
+import display.Display;
 import engineTester.Game;
 import fontMeshCreator.FontType;
 import guis.constraints.GuiConstraintHandler;
@@ -12,28 +16,23 @@ import inputs.MouseUtils;
 import inputs.callbacks.CloseCallback;
 import inputs.callbacks.OpenCallback;
 import inputs.callbacks.UpdateCallback;
+import java.awt.Color;
+import java.io.File;
+import java.util.*;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import textures.FontTexture;
 import util.math.Vector2f;
 
-import java.awt.*;
-import java.io.File;
-import java.util.List;
-import java.util.*;
-
-import static renderEngine.GuiRenderer.filledQuad;
-import static util.Utils.RES_PATH;
-
 public class Gui implements GuiInterface {
 
-    public final static float CORNER_RADIUS = 8f;
+    public static final float CORNER_RADIUS = 8f;
 
-    public final static FontType DEFAULT_FONT = new FontType(
-            new FontTexture(new File(RES_PATH + "/roboto.png")).getID(), new File(RES_PATH + "/roboto.fnt")); //TODO System-wide font
+    public static final FontType DEFAULT_FONT = new FontType(
+            new FontTexture(new File(RES_PATH + "/roboto.png")).getID(),
+            new File(RES_PATH + "/roboto.fnt")); //TODO System-wide font
 
     private final Map<GuiComponent, Set<Transition>> components;
 
@@ -86,22 +85,22 @@ public class Gui implements GuiInterface {
     }
 
     public void updateTexturePosition() {
-        this.background.getPosition().x = this.x;
-        this.background.getPosition().y = this.y;
+        this.background.getPosition().setX(this.x);
+        this.background.getPosition().setY(this.y);
 
-        this.background.getScale().x = this.width;
+        this.background.getScale().setX(this.width);
         float height = this.height;
         if (this.background.dokeepAspectRatio())
             height = Math.min(this.height,
-                    this.width * ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) *
+                    this.width * ((float) Display.getWindow().getWidth() / (float) Display.getWindow().getHeight()) *
                             ((float) this.background.getHeight() / (float) this.background.getWidth()));
 
-        this.background.getScale().y = height;
+        this.background.getScale().setY(height);
 
-        this.debugOutline.getScale().x = this.width;
-        this.debugOutline.getScale().y = this.height;
-        this.debugOutline.getPosition().x = this.x;
-        this.debugOutline.getPosition().y = this.y;
+        this.debugOutline.getScale().setX(this.width);
+        this.debugOutline.getScale().setY(this.height);
+        this.debugOutline.getPosition().setX(this.x);
+        this.debugOutline.getPosition().setY(this.y);
     }
 
     public int getType() {

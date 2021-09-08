@@ -17,14 +17,13 @@ public abstract class Renderer<Shader extends ShaderProgram> {
 
     public abstract void render();
 
-    protected final void cleanUp() {
+    protected void cleanUp() {
         this.shader.cleanUp();
     }
 
     public final ShaderProgram getShader() {
         return this.shader;
     }
-
 
     @FunctionalInterface
     public interface LoadShaderCallback<S extends ShaderProgram> {

@@ -354,18 +354,18 @@ public class Matrix4f extends Matrix implements Serializable {
     }
 
     public static Vector4f transform(Matrix4f left, Vector4f right, Vector4f dest) {
-        if (dest == null) {
+        if (dest == null)
             dest = new Vector4f();
-        }
 
-        float x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * right.w;
-        float y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * right.w;
-        float z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * right.w;
-        float w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * right.w;
-        dest.x = x;
-        dest.y = y;
-        dest.z = z;
-        dest.w = w;
+        float x = left.m00 * right.getX() + left.m10 * right.getY() + left.m20 * right.getZ() + left.m30 * right.getW();
+        float y = left.m01 * right.getX() + left.m11 * right.getY() + left.m21 * right.getZ() + left.m31 * right.getW();
+        float z = left.m02 * right.getX() + left.m12 * right.getY() + left.m22 * right.getZ() + left.m32 * right.getW();
+        float w = left.m03 * right.getX() + left.m13 * right.getY() + left.m23 * right.getZ() + left.m33 * right.getW();
+        dest.setX(x);
+        dest.setY(y);
+        dest.setZ(z);
+        dest.setW(w);
+
         return dest;
     }
 
@@ -390,18 +390,18 @@ public class Matrix4f extends Matrix implements Serializable {
             dest = new Matrix4f();
         }
 
-        dest.m00 = src.m00 * vec.x;
-        dest.m01 = src.m01 * vec.x;
-        dest.m02 = src.m02 * vec.x;
-        dest.m03 = src.m03 * vec.x;
-        dest.m10 = src.m10 * vec.y;
-        dest.m11 = src.m11 * vec.y;
-        dest.m12 = src.m12 * vec.y;
-        dest.m13 = src.m13 * vec.y;
-        dest.m20 = src.m20 * vec.z;
-        dest.m21 = src.m21 * vec.z;
-        dest.m22 = src.m22 * vec.z;
-        dest.m23 = src.m23 * vec.z;
+        dest.m00 = src.m00 * vec.getX();
+        dest.m01 = src.m01 * vec.getX();
+        dest.m02 = src.m02 * vec.getX();
+        dest.m03 = src.m03 * vec.getX();
+        dest.m10 = src.m10 * vec.getY();
+        dest.m11 = src.m11 * vec.getY();
+        dest.m12 = src.m12 * vec.getY();
+        dest.m13 = src.m13 * vec.getY();
+        dest.m20 = src.m20 * vec.getZ();
+        dest.m21 = src.m21 * vec.getZ();
+        dest.m22 = src.m22 * vec.getZ();
+        dest.m23 = src.m23 * vec.getZ();
         return dest;
     }
 
@@ -421,21 +421,21 @@ public class Matrix4f extends Matrix implements Serializable {
         float c = (float) Math.cos(angle);
         float s = (float) Math.sin(angle);
         float oneminusc = 1.0F - c;
-        float xy = axis.x * axis.y;
-        float yz = axis.y * axis.z;
-        float xz = axis.x * axis.z;
-        float xs = axis.x * s;
-        float ys = axis.y * s;
-        float zs = axis.z * s;
-        float f00 = axis.x * axis.x * oneminusc + c;
+        float xy = axis.getX() * axis.getY();
+        float yz = axis.getY() * axis.getZ();
+        float xz = axis.getX() * axis.getZ();
+        float xs = axis.getX() * s;
+        float ys = axis.getY() * s;
+        float zs = axis.getZ() * s;
+        float f00 = axis.getX() * axis.getX() * oneminusc + c;
         float f01 = xy * oneminusc + zs;
         float f02 = xz * oneminusc - ys;
         float f10 = xy * oneminusc - zs;
-        float f11 = axis.y * axis.y * oneminusc + c;
+        float f11 = axis.getY() * axis.getY() * oneminusc + c;
         float f12 = yz * oneminusc + xs;
         float f20 = xz * oneminusc + ys;
         float f21 = yz * oneminusc - xs;
-        float f22 = axis.z * axis.z * oneminusc + c;
+        float f22 = axis.getZ() * axis.getZ() * oneminusc + c;
         float t00 = src.m00 * f00 + src.m10 * f01 + src.m20 * f02;
         float t01 = src.m01 * f00 + src.m11 * f01 + src.m21 * f02;
         float t02 = src.m02 * f00 + src.m12 * f01 + src.m22 * f02;
@@ -471,10 +471,10 @@ public class Matrix4f extends Matrix implements Serializable {
             dest = new Matrix4f();
         }
 
-        dest.m30 += src.m00 * vec.x + src.m10 * vec.y + src.m20 * vec.z;
-        dest.m31 += src.m01 * vec.x + src.m11 * vec.y + src.m21 * vec.z;
-        dest.m32 += src.m02 * vec.x + src.m12 * vec.y + src.m22 * vec.z;
-        dest.m33 += src.m03 * vec.x + src.m13 * vec.y + src.m23 * vec.z;
+        dest.m30 += src.m00 * vec.getX() + src.m10 * vec.getY() + src.m20 * vec.getZ();
+        dest.m31 += src.m01 * vec.getX() + src.m11 * vec.getY() + src.m21 * vec.getZ();
+        dest.m32 += src.m02 * vec.getX() + src.m12 * vec.getY() + src.m22 * vec.getZ();
+        dest.m33 += src.m03 * vec.getX() + src.m13 * vec.getY() + src.m23 * vec.getZ();
         return dest;
     }
 
@@ -487,10 +487,10 @@ public class Matrix4f extends Matrix implements Serializable {
             dest = new Matrix4f();
         }
 
-        dest.m30 += src.m00 * vec.x + src.m10 * vec.y;
-        dest.m31 += src.m01 * vec.x + src.m11 * vec.y;
-        dest.m32 += src.m02 * vec.x + src.m12 * vec.y;
-        dest.m33 += src.m03 * vec.x + src.m13 * vec.y;
+        dest.m30 += src.m00 * vec.getX() + src.m10 * vec.getY();
+        dest.m31 += src.m01 * vec.getX() + src.m11 * vec.getY();
+        dest.m32 += src.m02 * vec.getX() + src.m12 * vec.getY();
+        dest.m33 += src.m03 * vec.getX() + src.m13 * vec.getY();
         return dest;
     }
 

@@ -11,10 +11,10 @@ import util.math.Vector3f;
 
 public class Windmill extends GameObject {
 
-    public final static int X_POSITIVE_OFFSET = 2;
-    public final static int X_NEGATIVE_OFFSET = 2;
-    public final static int Z_POSITIVE_OFFSET = 2;
-    public final static int Z_NEGATIVE_OFFSET = 2;
+    public static final int X_POSITIVE_OFFSET = 2;
+    public static final int X_NEGATIVE_OFFSET = 2;
+    public static final int Z_POSITIVE_OFFSET = 2;
+    public static final int Z_NEGATIVE_OFFSET = 2;
 
     public Windmill() {
         addComponent(new IconComponent(GameObjectPreviews.WINDMILL));

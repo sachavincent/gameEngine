@@ -1,6 +1,13 @@
 package scene.gameObjects;
 
+import static scene.components.MultipleModelsComponent.Offset;
+import static scene.gameObjects.WheatField.TEXTURES;
+
 import entities.Camera.Direction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import models.AbstractModel;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager.Resource;
@@ -8,22 +15,14 @@ import scene.components.*;
 import util.ShiftingList;
 import util.math.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static scene.components.MultipleModelsComponent.Offset;
-import static scene.gameObjects.WheatField.TEXTURES;
-
 public class WheatFarm extends GameObject {
 
-    public final static int X_POSITIVE_OFFSET = 3;
-    public final static int X_NEGATIVE_OFFSET = 3;
-    public final static int Z_POSITIVE_OFFSET = 3;
-    public final static int Z_NEGATIVE_OFFSET = 3;
+    public static final int X_POSITIVE_OFFSET = 3;
+    public static final int X_NEGATIVE_OFFSET = 3;
+    public static final int Z_POSITIVE_OFFSET = 3;
+    public static final int Z_NEGATIVE_OFFSET = 3;
 
-    public final static double WHEAT_PRODUCTION_PER_WHEATFIELD = 0.01;
+    public static final double WHEAT_PRODUCTION_PER_WHEATFIELD = 0.01;
 
     private final Random random = new Random();
 

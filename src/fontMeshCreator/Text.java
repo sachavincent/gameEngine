@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import language.TextConverter;
 import language.Words;
 import renderEngine.fontRendering.TextMaster;
+import renderEngine.structures.BasicVao;
 import util.math.Vector2f;
 
 public class Text {
@@ -17,8 +18,7 @@ public class Text {
     private String textString;
     private float  fontSize;
 
-    private int textMeshVao;
-    private int vertexCount;
+    private BasicVao vao;
 
     private Vector2f position;
     private float    maxLineLength;
@@ -220,24 +220,12 @@ public class Text {
         return this.position;
     }
 
-    /**
-     * @return the ID of the text's VAO, which contains all the vertex data for
-     * the quads on which the text will be rendered.
-     */
-    public int getMesh() {
-        return this.textMeshVao;
+    public BasicVao getVao() {
+        return this.vao;
     }
 
-    /**
-     * Set the VAO and vertex count for this text.
-     *
-     * @param vao - the VAO containing all the vertex data for the quads on
-     * which the text will be rendered.
-     * @param verticesCount - the total number of vertices in all of the quads.
-     */
-    public void setMeshInfo(int vao, int verticesCount) {
-        this.textMeshVao = vao;
-        this.vertexCount = verticesCount;
+    public void setVao(BasicVao vao) {
+        this.vao = vao;
     }
 
     /**
@@ -255,16 +243,9 @@ public class Text {
      * @param position - the position
      */
     public void setPosition(Vector2f position) {
-        this.position = new Vector2f((position.x / 2 + 0.5), (position.y / 2 + 0.5));
+        this.position = new Vector2f((position.getX() / 2 + 0.5), (position.getY() / 2 + 0.5));
 
         this.stringChanged = true;
-    }
-
-    /**
-     * @return The total number of vertices of all the text's quads.
-     */
-    public int getVertexCount() {
-        return this.vertexCount;
     }
 
     /**
@@ -386,13 +367,16 @@ public class Text {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
+        if (this.vao == null)
+            return false;
+
         Text text = (Text) o;
-        return this.textMeshVao == text.textMeshVao;
+        return this.vao.equals(text.vao);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.textMeshVao);
+        return Objects.hash(this.vao);
     }
 
     public List<Line> getLines() {

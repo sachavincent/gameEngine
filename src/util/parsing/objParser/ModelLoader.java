@@ -1,43 +1,39 @@
 package util.parsing.objParser;
 
+import static util.Utils.MODELS_PATH;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.stream.Collectors;
 import models.AnimatedModel;
 import models.BoundingBox;
 import models.Model;
 import renderEngine.AnimatedModelLoader;
-import renderEngine.MeshData;
-import renderEngine.Vao;
 import renderEngine.shaders.structs.Material;
+import renderEngine.structures.*;
+import renderEngine.structures.AttributeData.DataType;
 import scene.gameObjects.GameObjectData;
 import util.Utils;
 import util.exceptions.MTLFileException;
 import util.exceptions.MissingFileException;
 import util.math.Vector2f;
 import util.math.Vector3f;
-import util.parsing.*;
+import util.parsing.MaterialColor;
+import util.parsing.MixMaterialColor;
+import util.parsing.ModelType;
+import util.parsing.SimpleMaterialColor;
+import util.parsing.Vertex;
 import util.parsing.colladaParser.colladaLoader.AnimationLoader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static util.Utils.MODELS_PATH;
-
 public class ModelLoader {
-
-    public static MeshData loadRoadModel() {
-        float[] vertices = new float[]{-1, 0, 1, 1, 0, 1, -1, 0, -1, 1, 0, -1};
-        float[] textureCoords = new float[]{0, 0, 1, 0, 0, 1, 1, 1};
-        float[] normals = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
-//        float[] tangents = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
-        int[] indices = new int[]{1, 2, 0, 1, 3, 2};
-        Vector3f min = new Vector3f(-1, 0, -1);
-        Vector3f max = new Vector3f(1, 0, 1);
-
-        return new MeshData(vertices, textureCoords, normals, indices);
-    }
 
     public static GameObjectData loadModel(String folder, ModelType modelType) {
         return loadModel(folder, "vertices", modelType);
@@ -53,9 +49,7 @@ public class ModelLoader {
         if (!modelFile.exists())
             throw new MissingFileException(modelFile);
 
-        if (modelType == ModelType.ANIMATED || modelType == ModelType.ANIMATED_INSTANCED ||
-                modelType == ModelType.ANIMATED_WITH_NORMAL_MAP ||
-                modelType == ModelType.ANIMATED_INSTANCED_WITH_NORMAL_MAP) {
+        if (modelType.isAnimated()) {
             AnimatedModel animatedTexturedModel = AnimatedModelLoader.loadAnimatedModel(modelFile, modelType);
             animatedTexturedModel.doAnimation(AnimationLoader.loadAnimation(modelFile));
 //            animatedTexturedModel.getModelTexture().setUseFakeLighting(true);
@@ -66,10 +60,10 @@ public class ModelLoader {
             return gameObjectData;
         }
 
-        OBJFile OBJFile = parseOBJFile(modelFile);
+        OBJFile OBJFile = parseOBJFile(modelFile, modelType);
         MTLFile MTLFile = OBJFile.getMTLFile();
         if (MTLFile != null) {
-            Vao vao = Vao.createVao(MTLFile.getMeshData(), modelType);
+            Vao vao = Vao.createVao(MTLFile.getMeshData(), MTLFile.getMeshData().getVaoType());
 
             gameObjectData.setTexture(new Model(vao, OBJFile));
         }
@@ -107,16 +101,18 @@ public class ModelLoader {
                 line = reader.readLine();
             } while (line != null);
 
-            float[] verticesArray = new float[vertices.size() * 3];
-            int[] indicesArray = indices.stream().mapToInt(i -> i).toArray();
+            Float[] verticesArray = new Float[vertices.size() * 3];
+            Integer[] indicesArray = indices.toArray(new Integer[0]);
             for (int i = 0; i < vertices.size(); i++) {
                 Vertex vertex = vertices.get(i);
-                verticesArray[i * 3] = vertex.getPosition().x;
-                verticesArray[i * 3 + 1] = vertex.getPosition().y;
-                verticesArray[i * 3 + 2] = vertex.getPosition().z;
+                verticesArray[i * 3] = vertex.getPosition().getX();
+                verticesArray[i * 3 + 1] = vertex.getPosition().getY();
+                verticesArray[i * 3 + 2] = vertex.getPosition().getZ();
             }
-            MeshData meshData = new MeshData(verticesArray, indicesArray);
-            Vao vao = Vao.createVao(meshData, ModelType.DEFAULT);
+            AttributeData<Float> verticesAttribute = new AttributeData<>(0, 3, verticesArray, DataType.FLOAT);
+            IndicesAttribute indicesAttribute = new IndicesAttribute(indicesArray);
+            IndexData data = IndexData.createData(verticesAttribute, indicesAttribute);
+            IndexBufferVao vao = Vao.createVao(data, data.getVaoType());
             boundingBox = new BoundingBox(vao, vertices, indices, file.getName().toLowerCase());
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,9 +130,9 @@ public class ModelLoader {
         Vector2f deltaUv1 = Vector2f.sub(uv1, uv0, null);
         Vector2f deltaUv2 = Vector2f.sub(uv2, uv0, null);
 
-        float r = 1.0f / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
-        delatPos1.scale(deltaUv2.y);
-        delatPos2.scale(deltaUv1.y);
+        float r = 1.0f / (deltaUv1.getX() * deltaUv2.getY() - deltaUv1.getY() * deltaUv2.getX());
+        delatPos1.scale(deltaUv2.getY());
+        delatPos2.scale(deltaUv1.getY());
         Vector3f tangent = Vector3f.sub(delatPos1, delatPos2, null);
         tangent.scale(r);
         v0.addTangent(tangent);
@@ -160,7 +156,7 @@ public class ModelLoader {
     }
 
     private static Vertex dealWithAlreadyProcessedVertex(Vertex previousVertex, int newTextureIndex,
-                                                         int newNormalIndex, List<Integer> indices, List<Vertex> vertices) {
+            int newNormalIndex, List<Integer> indices, List<Vertex> vertices) {
         if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
             indices.add(previousVertex.getIndex());
             return previousVertex;
@@ -193,8 +189,8 @@ public class ModelLoader {
     }
 
     private static float convertDataToArrays(List<Vertex> vertices, List<Vector2f> textures, List<Vector3f> normals,
-                                             float[] verticesArray, float[] texturesArray, float[] normalsArray, float[] tangentsArray,
-                                             Vector3f[] minMax) {
+            Float[] verticesArray, Float[] texturesArray, Float[] normalsArray, Float[] tangentsArray,
+            Vector3f[] minMax) {
         float furthestPoint = 0;
         float minX = Integer.MAX_VALUE;
         float minY = Integer.MAX_VALUE;
@@ -211,32 +207,32 @@ public class ModelLoader {
             Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
             Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
             Vector3f tangent = currentVertex.getAverageTangent();
-            verticesArray[i * 3] = position.x;
-            verticesArray[i * 3 + 1] = position.y;
-            verticesArray[i * 3 + 2] = position.z;
-            texturesArray[i * 2] = textureCoord.x;
-            texturesArray[i * 2 + 1] = 1 - textureCoord.y;
-            normalsArray[i * 3] = normalVector.x;
-            normalsArray[i * 3 + 1] = normalVector.y;
-            normalsArray[i * 3 + 2] = normalVector.z;
-            tangentsArray[i * 3] = tangent.x;
-            tangentsArray[i * 3 + 1] = tangent.y;
-            tangentsArray[i * 3 + 2] = tangent.z;
+            verticesArray[i * 3] = position.getX();
+            verticesArray[i * 3 + 1] = position.getY();
+            verticesArray[i * 3 + 2] = position.getZ();
+            texturesArray[i * 2] = textureCoord.getX();
+            texturesArray[i * 2 + 1] = 1 - textureCoord.getY();
+            normalsArray[i * 3] = normalVector.getX();
+            normalsArray[i * 3 + 1] = normalVector.getY();
+            normalsArray[i * 3 + 2] = normalVector.getZ();
+            tangentsArray[i * 3] = tangent.getX();
+            tangentsArray[i * 3 + 1] = tangent.getY();
+            tangentsArray[i * 3 + 2] = tangent.getZ();
 
-            if (position.x < minX)
-                minX = position.x;
-            else if (position.x > maxX)
-                maxX = position.x;
+            if (position.getX() < minX)
+                minX = position.getX();
+            else if (position.getX() > maxX)
+                maxX = position.getX();
 
-            if (position.y < minY)
-                minY = position.y;
-            else if (position.y > maxY)
-                maxY = position.y;
+            if (position.getY() < minY)
+                minY = position.getY();
+            else if (position.getY() > maxY)
+                maxY = position.getY();
 
-            if (position.z < minZ)
-                minZ = position.z;
-            else if (position.z > maxZ)
-                maxZ = position.z;
+            if (position.getZ() < minZ)
+                minZ = position.getZ();
+            else if (position.getZ() > maxZ)
+                maxZ = position.getZ();
         }
         minMax[0] = new Vector3f(minX, minY, minZ);
         minMax[1] = new Vector3f(maxX, maxY, maxZ);
@@ -291,8 +287,6 @@ public class ModelLoader {
                     material.setOpticalDensity(Float.parseFloat(line.substring(3)));
                 if (line.startsWith("d"))
                     material.setDissolve(Float.parseFloat(line.substring(2)));
-                if (line.startsWith("illum"))
-                    material.setIllumination(Float.parseFloat(line.substring(6)));
 
                 if (line.startsWith("map_Ka")) {
                     String ambientFileName = line.substring(7);
@@ -326,7 +320,7 @@ public class ModelLoader {
         return MTLFile;
     }
 
-    private static OBJFile parseOBJFile(File file) {
+    private static OBJFile parseOBJFile(File file, ModelType modelType) {
         OBJFile OBJFile = new OBJFile(file);
         MTLFile MTLFile = null;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -383,7 +377,7 @@ public class ModelLoader {
 
                         material = MTLFile.getMaterial(line.substring(7).
 //                                split("::")[0].
-                                trim());
+        trim());
                         if (!indicesList.containsKey(material))
                             indicesList.put(material, new ArrayList<>());
                     } else if (line.startsWith("f ")) {
@@ -406,20 +400,31 @@ public class ModelLoader {
                 indicesList.get(material).addAll(new ArrayList<>(indices));
 
                 removeUnusedVertices(vertices);
-                float[] verticesArray = new float[vertices.size() * 3];
-                float[] texturesArray = new float[vertices.size() * 2];
-                float[] normalsArray = new float[vertices.size() * 3];
-                float[] tangentsArray = new float[vertices.size() * 3];
+                Float[] verticesArray = new Float[vertices.size() * 3];
+                Float[] texturesArray = new Float[vertices.size() * 2];
+                Float[] normalsArray = new Float[vertices.size() * 3];
+                Float[] tangentsArray = new Float[vertices.size() * 3];
                 Vector3f[] minMax = new Vector3f[2];
                 float furthest = convertDataToArrays(vertices, textures, normals, verticesArray, texturesArray,
                         normalsArray, tangentsArray, minMax);
 
-                Map<Material, int[]> indicesArray = indicesList.entrySet().stream().collect(
-                        Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream().mapToInt(i -> i).toArray()));
+                Map<Material, Integer[]> indicesArray = indicesList.entrySet().stream().collect(
+                        Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toArray(new Integer[0])));
 
-                MeshData meshData = new MeshData(verticesArray, texturesArray, normalsArray, indicesArray, tangentsArray);
+                List<AttributeData<?>> attributes = new ArrayList<>();
+                attributes.add(new AttributeData<>(0, 3, verticesArray, DataType.FLOAT));
+                attributes.add(new AttributeData<>(1, 2, texturesArray, DataType.FLOAT));
+                attributes.add(new AttributeData<>(2, 3, normalsArray, DataType.FLOAT));
+                if (modelType.isNormalMap())
+                    attributes.add(new AttributeData<>(3, 3, tangentsArray, DataType.FLOAT));
 
-                MTLFile.setMeshData(meshData);
+                for (var entry : indicesArray.entrySet())
+                    attributes.add(new MaterialIndicesAttribute(entry.getKey(), entry.getValue()));
+
+                if (modelType.isInstanced())
+                    attributes.add(new InstancedAttribute(6, 4, DataType.FLOAT, 4));
+                IndexData data = IndexData.createData(attributes);
+                MTLFile.setMeshData(data);
                 OBJFile.setMTLFile(MTLFile);
             }
         } catch (IOException e) {

@@ -1,5 +1,9 @@
 package engineTester;
 
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+
+import display.Display;
+import display.DisplayManager;
 import guis.prefabs.GuiDebug;
 import guis.prefabs.GuiEscapeMenu;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
@@ -8,15 +12,25 @@ import guis.prefabs.GuiMainMenu.GuiMainMenu;
 import guis.prefabs.GuiSelectedItem;
 import inputs.KeyboardUtils;
 import inputs.MouseUtils;
-import org.lwjgl.opengl.GL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import postProcessing.Fbo;
 import postProcessing.PostProcessing;
-import renderEngine.*;
+import renderEngine.FrustumCullingFilter;
+import renderEngine.GuiRenderer;
+import renderEngine.Loader;
+import renderEngine.MasterRenderer;
+import renderEngine.PathRenderer;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.WaterShader;
 import scene.Scene;
 import scene.components.PositionComponent;
-import scene.gameObjects.*;
+import scene.gameObjects.GameObjectData;
+import scene.gameObjects.GameObjectDatas;
+import scene.gameObjects.Light;
+import scene.gameObjects.NPC;
+import scene.gameObjects.Terrain;
 import util.KeybindingsManager;
 import util.SettingsManager;
 import util.TimeSystem;
@@ -24,20 +38,12 @@ import util.Utils;
 import util.math.Vector3f;
 import water.WaterFrameBuffers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.lwjgl.glfw.GLFW.*;
-import static renderEngine.DisplayManager.getWindow;
-
 public class MainGameLoop {
 
     public static void main(String[] args) {
 //        Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
-        glfwInit();
 //        if (!isDebug) {
-        DisplayManager.createDisplay();
+        Display.createDisplay();
         SettingsManager.loadSettings();
         KeybindingsManager.loadKeyBindings();
         GuiDebug.getInstance();
@@ -140,6 +146,10 @@ public class MainGameLoop {
         TextMaster textMaster = TextMaster.getInstance();
 
         {
+//            new Light(new Vector3f(0, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(150, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(150, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(0, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
         }
 
         Scene.getInstance();
@@ -150,7 +160,7 @@ public class MainGameLoop {
         KeyboardUtils.setupListeners();
         Game.getInstance().updateGuis();
 
-        Fbo fbo = new Fbo(DisplayManager.WIDTH, DisplayManager.HEIGHT, Fbo.DEPTH_RENDER_BUFFER);
+        Fbo fbo = new Fbo(Display.getWindow().getWidth(), Display.getWindow().getHeight(), Fbo.DEPTH_RENDER_BUFFER);
 
         long lastUpdate = System.nanoTime();
         int nbFrames = 0;
@@ -159,8 +169,8 @@ public class MainGameLoop {
         long startTime = TimeSystem.getTimeMillis();
 
         List<Integer> tpsList = new ArrayList<>();
-        while (!glfwWindowShouldClose(getWindow())) {
-            if (DisplayManager.isFramerateLimited()) {
+        while (!Display.getWindow().shouldClose()) {
+            if (Display.isFramerateLimited()) {
                 while (System.nanoTime() < lastUpdate + DisplayManager.getFramerateLimitNS()) {
                     try {
                         Thread.sleep(0);
@@ -186,7 +196,7 @@ public class MainGameLoop {
 
 
             glfwPollEvents();
-            glfwSwapBuffers(DisplayManager.getWindow());
+            Display.getWindow().swapBuffers();
             glfwPollEvents();
 
             while (TimeSystem.getTimeMillis() >= startTime + 1000L) {
@@ -219,14 +229,7 @@ public class MainGameLoop {
         loader.cleanUp();
         textMaster.cleanUp();
 
-        MouseUtils.freeCallbacks();
-        KeyboardUtils.freeCallbacks();
-        DisplayManager.freeCallbacks();
-
-        GL.setCapabilities(null);
-        DisplayManager.closeDisplay();
-
-        glfwTerminate();
+        Display.stop();
     }
 
 }

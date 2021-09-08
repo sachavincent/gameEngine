@@ -57,6 +57,9 @@ public class Loader {
     }
 
     public int loadToVAO(float[] positions, float[] textureCoords, float[] colors) {
+        if (positions.length == 0 || textureCoords.length == 0)
+            return -1;
+
         int vaoID = createVAO();
 
         storeDataInAttributeList(0, 2, positions);

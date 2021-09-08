@@ -2,18 +2,18 @@ package renderEngine;
 
 import entities.Camera;
 import entities.ModelEntity;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import models.AbstractModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL31;
 import renderEngine.shaders.SunShader;
 import renderEngine.shaders.structs.Material;
+import renderEngine.structures.Vao;
 import util.math.Matrix4f;
 import util.math.Vector3f;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class SunRenderer extends GameObjectRenderer<SunShader> {
 
@@ -22,6 +22,7 @@ public class SunRenderer extends GameObjectRenderer<SunShader> {
     public static SunRenderer getInstance() {
         return instance == null ? (instance = new SunRenderer()) : instance;
     }
+
     private SunRenderer() {
         super(new SunShader(), SunShader::connectTextureUnits);
     }
@@ -39,10 +40,11 @@ public class SunRenderer extends GameObjectRenderer<SunShader> {
             AbstractModel model = entry.getKey();
             List<ModelEntity> modelEntities = entry.getValue();
             for (ModelEntity modelEntity : modelEntities) {
-                if (model.getMaterials().isEmpty())
+                List<Material> materials = model.getMaterials();
+                if (materials.isEmpty())
                     continue;
 
-                Material material = model.getMaterials().get(0);
+                Material material = materials.get(0);
                 if (!material.hasDiffuseMap())
                     continue;
 
@@ -55,7 +57,7 @@ public class SunRenderer extends GameObjectRenderer<SunShader> {
                 GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
                 vao.unbind();
             }
-            GL13.glActiveTexture(0);
+            GL11.glBindTexture(GL31.GL_TEXTURE_2D, 0);
             GL11.glDisable(GL11.GL_BLEND);
         }
     }
@@ -76,8 +78,6 @@ public class SunRenderer extends GameObjectRenderer<SunShader> {
      * the rotation effect of the view matrix, so that the sun quad is always
      * facing the camera.
      *
-     * @param modelMatrix
-     * @param viewMatrix
      * @return The model-view matrix.
      */
     private Matrix4f applyViewMatrix(Matrix4f modelMatrix, Matrix4f viewMatrix) {

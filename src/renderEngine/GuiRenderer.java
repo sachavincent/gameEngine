@@ -1,5 +1,9 @@
 package renderEngine;
 
+import static guis.basics.GuiRectangle.POSITIONS_FILLED;
+import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
+import static org.lwjgl.opengl.GL11.*;
+
 import engineTester.Game;
 import guis.GuiInterface;
 import guis.GuiTexture;
@@ -7,32 +11,31 @@ import guis.basics.GuiShape;
 import guis.presets.Background;
 import guis.presets.GuiTextInput;
 import guis.presets.graphs.GuiDonutGraph;
+import java.awt.Color;
+import java.util.List;
+import java.util.Set;
 import models.RawModel;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL33;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.GuiShader;
 import util.math.Maths;
 import util.math.Vector2f;
 
-import java.awt.*;
-import java.util.List;
-import java.util.Set;
-
-import static guis.basics.GuiRectangle.POSITIONS_FILLED;
-import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
-import static org.lwjgl.opengl.GL11.*;
-
 public class GuiRenderer {
 
-    public final static int DEFAULT       = 0;
-    public final static int DONUT         = 1;
-    public final static int PROGRESS_ICON = 2;
-    public final static int CIRCLE        = 3;
+    public static final int DEFAULT       = 0;
+    public static final int DONUT         = 1;
+    public static final int PROGRESS_ICON = 2;
+    public static final int CIRCLE        = 3;
 
-    public final static RawModel filledQuad     = Loader.getInstance().loadToVAO(POSITIONS_FILLED, 2);
-    public final static RawModel unfilledQuad   = Loader.getInstance().loadToVAO(POSITIONS_UNFILLED, 2);
-    public final static RawModel unfilledCircle = drawUnfilledCircle();
-    public final static RawModel filledCircle   = drawFilledCircle();
+    public static final RawModel filledQuad     = Loader.getInstance().loadToVAO(POSITIONS_FILLED, 2);
+    public static final RawModel unfilledQuad   = Loader.getInstance().loadToVAO(POSITIONS_UNFILLED, 2);
+    public static final RawModel unfilledCircle = drawUnfilledCircle();
+    public static final RawModel filledCircle   = drawFilledCircle();
 
     private static final GuiShader shader = new GuiShader();
 
@@ -162,8 +165,8 @@ public class GuiRenderer {
         bindTexture(guiTexture);
 
         shader.loadTransformationMatrix(Maths.createTransformationMatrix(guiTexture.getPosition(), guiTexture.getScale()));
-        shader.loadWidth(guiTexture.getScale().x);
-        shader.loadHeight(guiTexture.getScale().y);
+        shader.loadWidth(guiTexture.getScale().getX());
+        shader.loadHeight(guiTexture.getScale().getY());
         shader.loadAlpha(guiTexture.getAlpha());
         shader.loadColor(guiTexture.getColor());
     }

@@ -1,18 +1,17 @@
 package renderEngine.shaders.structs;
 
+import java.awt.Color;
+import java.io.File;
+import java.util.Objects;
 import textures.ModelTexture;
 import util.math.Vector3f;
 import util.parsing.MaterialColor;
 import util.parsing.SimpleMaterialColor;
 import util.parsing.colladaParser.dataStructures.MaterialData;
 
-import java.awt.*;
-import java.io.File;
-import java.util.Objects;
-
 public class Material implements StructElement {
 
-    public final static Material DEFAULT = new Material("DEFAULT");
+    public static final Material DEFAULT = new Material("DEFAULT");
 
     private final String name;
 
@@ -23,7 +22,6 @@ public class Material implements StructElement {
     private MaterialColor specular;
     private float opticalDensity;
     private float dissolve;
-    private float illumination;
 
     private ModelTexture ambientMap;
     private ModelTexture diffuseMap;
@@ -78,10 +76,6 @@ public class Material implements StructElement {
 
     public final void setDissolve(float dissolve) {
         this.dissolve = dissolve;
-    }
-
-    public final void setIllumination(float illumination) {
-        this.illumination = illumination;
     }
 
     public final void setAmbientMap(File ambientMap) {
@@ -146,10 +140,6 @@ public class Material implements StructElement {
 
     public final float getDissolve() {
         return this.dissolve;
-    }
-
-    public final float getIllumination() {
-        return this.illumination;
     }
 
     public final ModelTexture getAmbientMap() {
@@ -221,7 +211,6 @@ public class Material implements StructElement {
         material.setOpticalDensity(this.opticalDensity);
         material.setShininessExponent(this.shininessExponent);
         material.setDissolve(this.dissolve);
-        material.setIllumination(this.illumination);
 
         return material;
     }

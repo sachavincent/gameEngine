@@ -1,9 +1,23 @@
 package guis.prefabs.GuiMainMenu;
 
+import static display.DisplayManager.FRAMERATE_INFINITE;
+import static display.DisplayManager.MAX_FRAMERATE;
+import static display.DisplayManager.MIN_FRAMERATE;
+
+import display.Display;
+import display.DisplayManager;
+import display.DisplayMode;
+import display.Resolution;
 import fontMeshCreator.Text;
 import guis.basics.GuiRectangle;
 import guis.basics.GuiText;
-import guis.constraints.*;
+import guis.constraints.CenterConstraint;
+import guis.constraints.GuiConstraintsManager;
+import guis.constraints.GuiConstraintsManager.Builder;
+import guis.constraints.RelativeConstraint;
+import guis.constraints.Side;
+import guis.constraints.SideConstraint;
+import guis.constraints.StickyConstraint;
 import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.GuiMultiOption;
@@ -12,29 +26,24 @@ import guis.presets.GuiOnOffOption.OnOff;
 import guis.presets.sliders.GuiHorizontalSlider;
 import guis.presets.sliders.GuiSlider;
 import guis.presets.sliders.Interval;
-import language.Words;
-import renderEngine.DisplayManager;
-import renderEngine.DisplayManager.DisplayMode;
-import renderEngine.DisplayManager.*;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
-import static renderEngine.DisplayManager.*;
+import language.Words;
 
 public class GuiDisplaySettings extends GuiTab {
 
-    public final static Color LIGHT_GRAY = Color.decode("#BDBDBD");
+    public static final Color LIGHT_GRAY = Color.decode("#BDBDBD");
 
     public  GuiSlider                  fpsSlider;
     private GuiMultiOption<Resolution> resolutionOptions;
+    private GuiMultiOption<String>     displayMultiOptions;
 
     public GuiDisplaySettings(GuiMultiTab parent) {
         super(Background.NO_BACKGROUND, parent, Words.DISPLAY);
 
-        setConstraints(new GuiConstraintsManager.Builder()
+        setConstraints(new Builder()
                 .setWidthConstraint(new RelativeConstraint(1, parent.content))
                 .setHeightConstraint(new RelativeConstraint(1, parent.content))
                 .setxConstraint(new CenterConstraint(parent.content))
@@ -48,8 +57,14 @@ public class GuiDisplaySettings extends GuiTab {
         createResolutionOption();
         createFPSOption();
         createVSyncOption();
-    }
 
+        Display.onMonitorChanged(monitor -> {
+            this.displayMultiOptions.setSelectedOption(
+                    Words.MONITOR + " " + (Display.getCurrentMonitor().getIndex() + 1));
+            this.resolutionOptions.setOptions(new ArrayList<>(monitor.getResolutions()));
+            this.resolutionOptions.selectOption(monitor.getResolution());
+        });
+    }
 
     private void createResolutionOption() {
         Text text = new Text(Words.RESOLUTION, .8f, DEFAULT_FONT, Color.BLACK);
@@ -63,15 +78,15 @@ public class GuiDisplaySettings extends GuiTab {
                         .create());
 
         this.resolutionOptions = new GuiMultiOption<>(resolutionArea, Background.NO_BACKGROUND,
-                DisplayManager.currentScreen.resolution, new GuiConstraintsManager.Builder()
+                Display.getCurrentMonitor().getResolution(), new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
                 .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
-                .create(), LIGHT_GRAY, new ArrayList<>(DisplayManager.currentScreen.resolutions));
+                .create(), LIGHT_GRAY, new ArrayList<>(Display.getCurrentMonitor().getResolutions()));
 
         //TODO: Native Option by default "NATIVE"
-        this.resolutionOptions.setOptionSelectedCallback(DisplayManager::setWindowSize);
+        this.resolutionOptions.setOptionSelectedCallback(res -> Display.getWindow().setResolution(res));
     }
 
     private void createDisplayOption() {
@@ -85,24 +100,17 @@ public class GuiDisplaySettings extends GuiTab {
                         .setxConstraint(new SideConstraint(Side.LEFT, 0f))
                         .create());
 
-        GuiMultiOption<String> displayMultiOptions = new GuiMultiOption<>(displayArea, Background.NO_BACKGROUND,
-                Words.MONITOR + " " + (DisplayManager.indexCurrentScreen + 1), new GuiConstraintsManager.Builder()
-                .setDefault()
-                .setWidthConstraint(new RelativeConstraint(.5f))
-                .setHeightConstraint(new RelativeConstraint(1))
-                .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText)).create(), LIGHT_GRAY,
-                DisplayManager.screens.stream().map(screen -> DisplayManager.screens.indexOf(screen))
+        this.displayMultiOptions = new GuiMultiOption<>(displayArea, Background.NO_BACKGROUND,
+                Words.MONITOR + " " + (Display.getCurrentMonitor().getIndex() + 1),
+                new GuiConstraintsManager.Builder().setDefault()
+                        .setWidthConstraint(new RelativeConstraint(.5f))
+                        .setHeightConstraint(new RelativeConstraint(1))
+                        .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText)).create(), LIGHT_GRAY,
+                Display.MONITORS.stream().map(Display.MONITORS::indexOf)
                         .map(nb -> Words.MONITOR + " " + (nb + 1)).collect(Collectors.toList()));
 
-        displayMultiOptions.setOptionSelectedCallback(
-                screenName -> {
-                    DisplayManager.setScreen(Integer.parseInt(screenName.split(" ")[1]) - 1);
-                    DisplayManager.setDisplayMode(DisplayManager.displayMode);
-                    DisplayManager.setWindowSize(DisplayManager.currentScreen.resolution);
-
-                    this.resolutionOptions.setOptions(new ArrayList<>(DisplayManager.currentScreen.resolutions));
-                    this.resolutionOptions.setSelectedOption(DisplayManager.currentScreen.resolution);
-                });
+        this.displayMultiOptions.setOptionSelectedCallback(
+                screenName -> Display.setMonitor(Integer.parseInt(screenName.split(" ")[1]) - 1));
     }
 
     private void createDisplayModeOption() {
@@ -117,7 +125,7 @@ public class GuiDisplaySettings extends GuiTab {
                         .create());
 
         GuiMultiOption<DisplayMode> guiMultiOption = new GuiMultiOption<>(displayModeArea, Background.NO_BACKGROUND,
-                DisplayManager.displayMode, new GuiConstraintsManager.Builder()
+                Display.getDisplayMode(), new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
@@ -125,8 +133,8 @@ public class GuiDisplaySettings extends GuiTab {
                 .create(), LIGHT_GRAY, Arrays.asList(DisplayMode.values()));
 
         guiMultiOption.setOptionSelectedCallback(displayMode -> {
-            DisplayManager.setDisplayMode(displayMode);
-            DisplayManager.setWindowSize(DisplayManager.currentScreen.resolution);
+            Display.setDisplayMode(displayMode);
+            Display.getWindow().setResolution(Display.getCurrentMonitor().getResolution());
         });
     }
 
@@ -143,16 +151,14 @@ public class GuiDisplaySettings extends GuiTab {
 
 
         GuiOnOffOption guiOnOffOption = new GuiOnOffOption(vsyncArea, Background.NO_BACKGROUND,
-                OnOff.getType(DisplayManager.VSYNC_ENABLED), new GuiConstraintsManager.Builder()
+                OnOff.getType(Display.isVsyncEnabled()), new GuiConstraintsManager.Builder()
                 .setDefault()
                 .setWidthConstraint(new RelativeConstraint(.5f))
                 .setHeightConstraint(new RelativeConstraint(1))
                 .setxConstraint(new StickyConstraint(Side.RIGHT, 0, guiText))
                 .create(), LIGHT_GRAY);
 
-        guiOnOffOption.setOptionSelectedCallback(res -> {
-            DisplayManager.setVsync(res.getValue());
-        });
+        guiOnOffOption.setOptionSelectedCallback(res -> Display.setVsync(res.getValue()));
     }
 
     private void createFPSOption() {
@@ -167,7 +173,8 @@ public class GuiDisplaySettings extends GuiTab {
                         .create());
 
 
-        this.fpsSlider = new GuiHorizontalSlider(FPSArea, new Interval(DisplayManager.FRAMERATE_LIMIT, MIN_FRAMERATE, MAX_FRAMERATE, 1),
+        this.fpsSlider = new GuiHorizontalSlider(FPSArea,
+                new Interval(DisplayManager.FRAMERATE_LIMIT, MIN_FRAMERATE, MAX_FRAMERATE, 1),
                 LIGHT_GRAY, Color.BLACK,
                 new GuiConstraintsManager.Builder()
                         .setDefault()

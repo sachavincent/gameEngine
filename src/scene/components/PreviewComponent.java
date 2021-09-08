@@ -2,13 +2,13 @@ package scene.components;
 
 import entities.ModelEntity;
 import models.AbstractModel;
-import util.math.Vector3f;
+import terrain.TerrainPosition;
 
 public class PreviewComponent extends Component {
 
     private final ModelEntity previewTexture;
 
-    private Vector3f previewPosition;
+    private TerrainPosition previewPosition;
 
     public PreviewComponent(AbstractModel previewTexture) {
         this(previewTexture.toModelEntity());
@@ -22,11 +22,11 @@ public class PreviewComponent extends Component {
         return this.previewTexture;
     }
 
-    public Vector3f getPreviewPosition() {
+    public TerrainPosition getPreviewPosition() {
         return this.previewPosition;
     }
 
-    public void setPreviewPosition(Vector3f previewPosition) {
+    public void setPreviewPosition(TerrainPosition previewPosition) {
 //        System.out.println("setting preview position: " + previewPosition);
         this.previewPosition = previewPosition;
         update();

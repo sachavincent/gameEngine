@@ -1,11 +1,27 @@
 package tests;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static pathfinding.RoadGraph.FILTER;
+
+import display.Display;
 import entities.Camera.Direction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pathfinding.*;
-import renderEngine.DisplayManager;
+import pathfinding.NodeConnection;
+import pathfinding.NodeRoad;
+import pathfinding.NormalRoad;
+import pathfinding.Path;
+import pathfinding.PathFinder;
+import pathfinding.RoadGraph;
 import renderEngine.PathRenderer;
 import scene.Scene;
 import scene.components.PositionComponent;
@@ -16,16 +32,6 @@ import scene.gameObjects.Market;
 import terrain.TerrainPosition;
 import util.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static pathfinding.RoadGraph.FILTER;
-
 class TerrainTest {
 
     private final Scene scene = Scene.getInstance();
@@ -33,7 +39,7 @@ class TerrainTest {
     @BeforeAll
     public static void init() {
         glfwInit();
-        DisplayManager.createDisplayForTests();
+        Display.createDisplayForTests();
         PathRenderer.getInstance();
     }
 
@@ -2485,7 +2491,7 @@ class TerrainTest {
 
         for (TerrainPosition roadPos : connectedRoads) {
             GameObject.newInstance(DirtRoad.class, roadPos);
-            expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
+            expectedRoads.add(scene.getGameObjectAtPosition(roadPos.getX(), roadPos.getZ()));
         }
 
         assertTrue(Utils.listContentEquals(scene.getNeighbors(market, FILTER), expectedRoads));
@@ -2524,7 +2530,7 @@ class TerrainTest {
 
         for (TerrainPosition roadPos : connectedRoads) {
             GameObject.newInstance(DirtRoad.class, roadPos);
-            expectedRoads.add(scene.getGameObjectAtPosition(roadPos));
+            expectedRoads.add(scene.getGameObjectAtPosition(roadPos.getX(), roadPos.getZ()));
         }
         assertTrue(Utils.listContentEquals(scene.getNeighbors(insula, FILTER), expectedRoads));
     }
@@ -2991,8 +2997,10 @@ class TerrainTest {
         NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 0, 74)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 57)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 56)));
-        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
-        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
+        IntStream.rangeClosed(32, 50)
+                .forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
+        IntStream.rangeClosed(56, 74)
+                .forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
 
         expectedPath.add(nodeConnection2);
 
@@ -3033,8 +3041,10 @@ class TerrainTest {
         NodeConnection nodeConnection2 = new NodeConnection(node, new NormalRoad(new TerrainPosition(50, 0, 74)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 57)));
         nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(32, 0, 56)));
-        IntStream.rangeClosed(32, 50).forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
-        IntStream.rangeClosed(56, 74).forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
+        IntStream.rangeClosed(32, 50)
+                .forEach(x -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(x, 0, 55))));
+        IntStream.rangeClosed(56, 74)
+                .forEach(z -> nodeConnection2.addRoad(new NormalRoad(new TerrainPosition(50, 0, z))));
 
         expectedPath.add(nodeConnection2);
 

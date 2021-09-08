@@ -1,7 +1,6 @@
 package util.math;
 
 import entities.Camera;
-
 import java.util.Objects;
 
 public class Plane3D {
@@ -117,18 +116,18 @@ public class Plane3D {
     }
 
     public boolean isCoplanar() {
-        float x1 = pointA.x;
-        float x2 = pointB.x;
-        float x3 = pointC.x;
-        float x4 = pointD.x;
-        float y1 = pointA.y;
-        float y2 = pointB.y;
-        float y3 = pointC.y;
-        float y4 = pointD.y;
-        float z1 = pointA.z;
-        float z2 = pointB.z;
-        float z3 = pointC.z;
-        float z4 = pointD.z;
+        float x1 = pointA.getX();
+        float x2 = pointB.getX();
+        float x3 = pointC.getX();
+        float x4 = pointD.getX();
+        float y1 = pointA.getY();
+        float y2 = pointB.getY();
+        float y3 = pointC.getY();
+        float y4 = pointD.getY();
+        float z1 = pointA.getZ();
+        float z2 = pointB.getZ();
+        float z3 = pointC.getZ();
+        float z4 = pointD.getZ();
 
         float a1 = x2 - x1;
         float b1 = y2 - y1;
@@ -212,7 +211,7 @@ public class Plane3D {
 //        Vector3f normal = getNormal();
 
 //        boolean equationChecks =
-//                (normal.x * (point.x - pointA.x) + normal.y * (point.y - pointA.y) + normal.z * (point.z - pointA.z)) == 0;
+//                (normal.getX() * (point.getX() - pointA.getX()) + normal.getY() * (point.getY() - pointA.getY()) + normal.getZ() * (point.getZ() - pointA.getZ())) == 0;
 
         float anglesum = 0;
         Vector3f[] points = new Vector3f[4];
@@ -225,12 +224,12 @@ public class Plane3D {
         Vector3f p2 = new Vector3f();
 
         for (int i = 0; i < 4; i++) {
-            p1.x = points[i].x - point.x;
-            p1.y = points[i].y - point.y;
-            p1.z = points[i].z - point.z;
-            p2.x = points[(i + 1) % 4].x - point.x;
-            p2.y = points[(i + 1) % 4].y - point.y;
-            p2.z = points[(i + 1) % 4].z - point.z;
+            p1.setX(points[i].getX() - point.getX());
+            p1.setY(points[i].getY() - point.getY());
+            p1.setZ(points[i].getZ() - point.getZ());
+            p2.setX(points[(i + 1) % 4].getX() - point.getX());
+            p2.setY(points[(i + 1) % 4].getY() - point.getY());
+            p2.setZ(points[(i + 1) % 4].getZ() - point.getZ());
 
             float m1 = p1.length();
             float m2 = p2.length();
@@ -245,10 +244,10 @@ public class Plane3D {
 
     public Plane3D add(Vector3f vector) {
         Plane3D newPlane = new Plane3D(this);
-        newPlane.pointA = newPlane.pointA.add(vector);
-        newPlane.pointB = newPlane.pointB.add(vector);
-        newPlane.pointC = newPlane.pointC.add(vector);
-        newPlane.pointD = newPlane.pointD.add(vector);
+        newPlane.pointA.add(vector);
+        newPlane.pointB.add(vector);
+        newPlane.pointC.add(vector);
+        newPlane.pointD.add(vector);
 
         return newPlane;
     }
@@ -262,30 +261,30 @@ public class Plane3D {
         float c = (float) Math.round(Math.cos(Math.toRadians(degree)));
         float s = (float) Math.round(Math.sin(Math.toRadians(degree)));
 //
-//        N.x = c * M.x - s * M.z;
-//        N.y = M.y;
-//        N.z = s * M.x + c * M.z;
+//        N.setX(c * M.getX() - s * M.getZ();
+//        N.setY(M.getY();
+//        N.setZ(s * M.getX() + c * M.getZ();
 //        if (M.equals(N)) {
         Vector3f newPointA = new Vector3f();
         Vector3f newPointB = new Vector3f();
         Vector3f newPointC = new Vector3f();
         Vector3f newPointD = new Vector3f();
 
-        newPointA.x = c * pointA.x - s * pointA.z;
-        newPointA.y = pointA.y;
-        newPointA.z = s * pointA.x + c * pointA.z;
+        newPointA.setX(c * pointA.getX() - s * pointA.getZ());
+        newPointA.setY(pointA.getY());
+        newPointA.setZ(s * pointA.getX() + c * pointA.getZ());
 
-        newPointB.x = c * pointB.x - s * pointB.z;
-        newPointB.y = pointB.y;
-        newPointB.z = s * pointB.x + c * pointB.z;
+        newPointB.setX(c * pointB.getX() - s * pointB.getZ());
+        newPointB.setY(pointB.getY());
+        newPointB.setZ(s * pointB.getX() + c * pointB.getZ());
 
-        newPointC.x = c * pointC.x - s * pointC.z;
-        newPointC.y = pointC.y;
-        newPointC.z = s * pointC.x + c * pointC.z;
+        newPointC.setX(c * pointC.getX() - s * pointC.getZ());
+        newPointC.setY(pointC.getY());
+        newPointC.setZ(s * pointC.getX() + c * pointC.getZ());
 
-        newPointD.x = c * pointD.x - s * pointD.z;
-        newPointD.y = pointD.y;
-        newPointD.z = s * pointD.x + c * pointD.z;
+        newPointD.setX(c * pointD.getX() - s * pointD.getZ());
+        newPointD.setY(pointD.getY());
+        newPointD.setZ(s * pointD.getX() + c * pointD.getZ());
         setPointA(newPointA);
         setPointB(newPointB);
         setPointC(newPointC);
@@ -297,38 +296,38 @@ public class Plane3D {
 //        float sqrt = (float) Math.sqrt(1 - costheta * costheta);
 //        Matrix3f rotationMatrix = new Matrix3f();
 //        float v = 1 - costheta;
-//        rotationMatrix.m00 = axis.x * axis.x * v + costheta;
-//        rotationMatrix.m10 = axis.x * axis.y * v - axis.z * sqrt;
-//        rotationMatrix.m20 = axis.x * axis.z * v + axis.y * sqrt;
+//        rotationMatrix.m00 = axis.getX() * axis.getX() * v + costheta;
+//        rotationMatrix.m10 = axis.getX() * axis.getY() * v - axis.getZ() * sqrt;
+//        rotationMatrix.m20 = axis.getX() * axis.getZ() * v + axis.getY() * sqrt;
 //
-//        rotationMatrix.m01 = axis.y * axis.x * v + axis.z * sqrt;
-//        rotationMatrix.m11 = axis.y * axis.y * v + costheta;
-//        rotationMatrix.m21 = axis.y * axis.z * v - axis.x * sqrt;
+//        rotationMatrix.m01 = axis.getY() * axis.getX() * v + axis.getZ() * sqrt;
+//        rotationMatrix.m11 = axis.getY() * axis.getY() * v + costheta;
+//        rotationMatrix.m21 = axis.getY() * axis.getZ() * v - axis.getX() * sqrt;
 //
-//        rotationMatrix.m02 = axis.z * axis.x * v - axis.y * sqrt;
-//        rotationMatrix.m12 = axis.z * axis.y * v + axis.x * sqrt;
-//        rotationMatrix.m22 = axis.z * axis.z * v + costheta;
+//        rotationMatrix.m02 = axis.getZ() * axis.getX() * v - axis.getY() * sqrt;
+//        rotationMatrix.m12 = axis.getZ() * axis.getY() * v + axis.getX() * sqrt;
+//        rotationMatrix.m22 = axis.getZ() * axis.getZ() * v + costheta;
 //
 //        pointA = Matrix3f.mul(rotationMatrix, pointA);
 //        pointB = Matrix3f.mul(rotationMatrix, pointB);
 //        pointC = Matrix3f.mul(rotationMatrix, pointC);
 //        pointD = Matrix3f.mul(rotationMatrix, pointD);
 //
-//        newPointA.x = c * pointA.x - s * pointA.z;
-//        newPointA.y = pointA.y;
-//        newPointA.z = s * pointA.x + c * pointA.z;
+//        newPointA.setX(c * pointA.getX() - s * pointA.getZ();
+//        newPointA.setY(pointA.getY();
+//        newPointA.setZ(s * pointA.getX() + c * pointA.getZ();
 //
-//        newPointB.x = c * pointB.x - s * pointB.z;
-//        newPointB.y = pointB.y;
-//        newPointB.z = s * pointB.x + c * pointB.z;
+//        newPointB.setX(c * pointB.getX() - s * pointB.getZ();
+//        newPointB.setY(pointB.getY();
+//        newPointB.setZ(s * pointB.getX() + c * pointB.getZ();
 //
-//        newPointC.x = c * pointC.x - s * pointC.z;
-//        newPointC.y = pointC.y;
-//        newPointC.z = s * pointC.x + c * pointC.z;
+//        newPointC.setX(c * pointC.getX() - s * pointC.getZ();
+//        newPointC.setY(pointC.getY();
+//        newPointC.setZ(s * pointC.getX() + c * pointC.getZ();
 //
-//        newPointD.x = c * pointD.x - s * pointD.z;
-//        newPointD.y = pointD.y;
-//        newPointD.z = s * pointD.x + c * pointD.z;
+//        newPointD.setX(c * pointD.getX() - s * pointD.getZ();
+//        newPointD.setY(pointD.getY();
+//        newPointD.setZ(s * pointD.getX() + c * pointD.getZ();
 //
 //        setPointA(newPointA);
 //        setPointB(newPointB);

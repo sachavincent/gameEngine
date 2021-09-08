@@ -1,5 +1,7 @@
 #version 400 core
 
+#define MAX_LIGHTS 10
+
 const int MAX_JOINTS = 50;//max joints allowed in a skeleton
 const int MAX_WEIGHTS = 3;//max number of joints that can affect a vertex
 
@@ -12,7 +14,7 @@ layout (location=5) in vec3 weights;
 layout (location=6) in mat4 globalTransformationMatrix;
 
 out vec2 pass_textureCoords;
-out vec3 toLightVector[10];
+out vec3 toLightVectors[MAX_LIGHTS];
 out vec3 toCameraVector;
 out vec3 surfaceNormal;
 out float visibility;
@@ -21,7 +23,7 @@ uniform mat4 jointTransforms[MAX_JOINTS];
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 lightPosition[10];
+uniform vec3 lightsPosition[MAX_LIGHTS];
 uniform bool useFakeLighting;
 uniform bool useNormalMap;
 uniform bool isInstanced;
@@ -103,13 +105,13 @@ void main(void) {
         tang.y, bitang.y, norm.y,
         tang.z, bitang.z, norm.z);
 
-        for (int i = 0; i < 10; i++){
-            toLightVector[i] = toTangentSpace * (lightPosition[i] - positionRelativeToCam.xyz);
+        for (int i = 0; i < MAX_LIGHTS; i++){
+            toLightVectors[i] = toTangentSpace * (lightsPosition[i] - positionRelativeToCam.xyz);
         }
         toCameraVector = toTangentSpace * (-positionRelativeToCam.xyz);
     } else {
-        for (int i = 0; i < 10; i++) {
-            toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            toLightVectors[i] = lightsPosition[i] - worldPosition.xyz;
         }
         toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
     }

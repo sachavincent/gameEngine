@@ -1,14 +1,17 @@
 package renderEngine.shaders;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import util.math.*;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import util.math.Matrix4f;
+import util.math.Vector;
+import util.math.Vector2f;
+import util.math.Vector3f;
+import util.math.Vector4f;
 
 public abstract class ShaderProgram {
 
@@ -17,8 +20,8 @@ public abstract class ShaderProgram {
     private static final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     protected final int programID;
-    private final int vertexShaderID;
-    private final int fragmentShaderID;
+    private final   int vertexShaderID;
+    private final   int fragmentShaderID;
 
     private boolean started;
 
@@ -54,22 +57,26 @@ public abstract class ShaderProgram {
 
     public static void loadVector(int location, Vector vector) {
         if (vector instanceof Vector2f)
-            GL20.glUniform2f(location, ((Vector2f) vector).x, ((Vector2f) vector).y);
+            GL20.glUniform2f(location, ((Vector2f) vector).getX(), ((Vector2f) vector).getY());
         else if (vector instanceof Vector3f)
-            GL20.glUniform3f(location, ((Vector3f) vector).x, ((Vector3f) vector).y, ((Vector3f) vector).z);
+            GL20.glUniform3f(location, ((Vector3f) vector).getX(), ((Vector3f) vector).getY(),
+                    ((Vector3f) vector).getZ());
         else if (vector instanceof Vector4f)
-            GL20.glUniform4f(location, ((Vector4f) vector).x, ((Vector4f) vector).y, ((Vector4f) vector).z,
-                    ((Vector4f) vector).w);
+            GL20.glUniform4f(location, ((Vector4f) vector).getX(), ((Vector4f) vector).getY(),
+                    ((Vector4f) vector).getZ(),
+                    ((Vector4f) vector).getW());
     }
 
     public static void loadIntVector(int location, Vector vector) {
         if (vector instanceof Vector2f)
-            GL20.glUniform2i(location, (int) ((Vector2f) vector).x, (int) ((Vector2f) vector).y);
+            GL20.glUniform2i(location, (int) ((Vector2f) vector).getX(), (int) ((Vector2f) vector).getY());
         else if (vector instanceof Vector3f)
-            GL20.glUniform3i(location, (int) ((Vector3f) vector).x, (int) ((Vector3f) vector).y, (int) ((Vector3f) vector).z);
+            GL20.glUniform3i(location, (int) ((Vector3f) vector).getX(), (int) ((Vector3f) vector).getY(),
+                    (int) ((Vector3f) vector).getZ());
         else if (vector instanceof Vector4f)
-            GL20.glUniform4i(location, (int) ((Vector4f) vector).x, (int) ((Vector4f) vector).y, (int) ((Vector4f) vector).z,
-                    (int) ((Vector4f) vector).w);
+            GL20.glUniform4i(location, (int) ((Vector4f) vector).getX(), (int) ((Vector4f) vector).getY(),
+                    (int) ((Vector4f) vector).getZ(),
+                    (int) ((Vector4f) vector).getW());
     }
 
     public static void loadInt(int location, Integer value) {

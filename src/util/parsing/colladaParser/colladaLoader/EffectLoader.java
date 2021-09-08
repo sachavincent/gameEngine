@@ -1,13 +1,12 @@
 package util.parsing.colladaParser.colladaLoader;
 
+import java.io.File;
 import util.Utils;
 import util.math.Vector3f;
 import util.math.Vector4f;
 import util.parsing.SimpleMaterialColor;
 import util.parsing.colladaParser.dataStructures.MaterialData;
 import util.parsing.colladaParser.xmlParser.XmlNode;
-
-import java.io.File;
 
 public class EffectLoader {
 
@@ -35,7 +34,7 @@ public class EffectLoader {
             loadEmission(materialData, emissionNode, common);
             XmlNode diffuseNode = lambert.getChild("diffuse");
             loadDiffuse(materialData, diffuseNode, common);
-            XmlNode reflectivityNode = lambert.getChild("reflecticity");
+            XmlNode reflectivityNode = lambert.getChild("reflectivity");
             loadReflectivity(materialData, reflectivityNode, common);
         }
         return materialData;

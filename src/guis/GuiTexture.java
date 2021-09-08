@@ -1,9 +1,9 @@
 package guis;
 
+import display.Display;
 import guis.presets.Background;
 import java.awt.Color;
 import java.io.File;
-import renderEngine.DisplayManager;
 import textures.Texture;
 import util.math.Vector2f;
 
@@ -23,8 +23,8 @@ public class GuiTexture extends Texture {
 
         this.position = position;
         if (this.keepAspectRatio)
-            scale.y = ((float) DisplayManager.WIDTH / (float) DisplayManager.HEIGHT) * scale.x *
-                    ((float) this.height / (float) this.width);
+            scale.setY((float) Display.getWindow().getWidth() / (float) Display.getWindow().getHeight() * scale.getX() *
+                    ((float) this.height / (float) this.width));
 
         this.scale = scale;
         if (background.getBackground() instanceof String)

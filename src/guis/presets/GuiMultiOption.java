@@ -59,14 +59,30 @@ public class GuiMultiOption<T> extends GuiPreset {
         this.options = options;
     }
 
+    /**
+     * This method sets the selected option to given parameter
+     * and triggers the callback
+     *
+     * @param selectedOption new selected option
+     */
+    public void selectOption(T selectedOption) {
+        setSelectedOption(selectedOption);
+
+        if (this.optionSelectedCallback != null)
+            this.optionSelectedCallback.onOptionSelected(this.selectedOption);
+    }
+
+    /**
+     * This method sets the selected option to given parameter
+     * but does not trigger the callback
+     *
+     * @param selectedOption new selected option
+     */
     public void setSelectedOption(T selectedOption) {
         this.selectedOption = selectedOption;
 
         this.guiText.setText(
                 new Text(this.selectedOption.toString(), .8f, DEFAULT_FONT, Color.BLACK));
-
-        if (this.optionSelectedCallback != null)
-            this.optionSelectedCallback.onOptionSelected(this.selectedOption);
     }
 
     private void selectPrevious() {
@@ -81,7 +97,7 @@ public class GuiMultiOption<T> extends GuiPreset {
         else
             newOption = this.options.get(index - 1);
 
-        setSelectedOption(newOption);
+        selectOption(newOption);
     }
 
     private void selectNext() {
@@ -96,13 +112,14 @@ public class GuiMultiOption<T> extends GuiPreset {
         else
             newOption = this.options.get(index + 1);
 
-        setSelectedOption(newOption);
+        selectOption(newOption);
     }
 
     public void setOptionSelectedCallback(OptionSelectedCallback<T> optionSelectedCallback) {
         this.optionSelectedCallback = optionSelectedCallback;
     }
 
+    @FunctionalInterface
     public interface OptionSelectedCallback<T> {
 
         void onOptionSelected(T res);

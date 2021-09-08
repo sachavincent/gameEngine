@@ -14,13 +14,16 @@ import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL44;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.APIUtil;
+import org.lwjgl.system.Callback;
 
 public class DisplayUtils {
+
+    private static Callback callback;
 
     public static void enableDebugging() {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        GLUtil.setupDebugMessageCallback(APIUtil.DEBUG_STREAM);
+        callback = GLUtil.setupDebugMessageCallback(APIUtil.DEBUG_STREAM);
     }
 
     public static boolean isDebuggingEnabled() {
@@ -43,5 +46,10 @@ public class DisplayUtils {
         if (isDebuggingEnabled()) {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, type, (IntBuffer) null, false);
         }
+    }
+
+    public static void freeCallback() {
+        if (callback != null)
+            callback.free();
     }
 }

@@ -25,19 +25,19 @@ import renderEngine.NPCRenderer;
 
 public class Key {
 
-    public final static String    TEMP = "TEMP";
-    public final static List<Key> KEYS = new ArrayList<>();
+    public static final String    TEMP = "TEMP";
+    public static final List<Key> KEYS = new ArrayList<>();
 
-    public final static Key DISPLAY_BOUNDING_BOXES = new Key("display_BB", new KeyInput('K'));
-    public final static Key SHOW_BORDERS           = new Key("show_borders", new KeyInput(';'));
-    public final static Key FORWARD                = new Key(Words.FORWARD.name(), new KeyInput('W'));
-    public final static Key LEFT                   = new Key(Words.LEFT.name(), new KeyInput('A'));
-    public final static Key BACKWARD               = new Key(Words.BACKWARD.name(), new KeyInput('S'));
-    public final static Key RIGHT                  = new Key(Words.RIGHT.name(), new KeyInput('D'));
-    public final static Key DEBUG                  = new Key("debug", new KeyInput('`'));
-    public final static Key ESCAPE                 = new Key("escape", new KeyInput((char) GLFW.GLFW_KEY_ESCAPE));
+    public static final Key DISPLAY_BOUNDING_BOXES = new Key("display_BB", new KeyInput('K'));
+    public static final Key SHOW_BORDERS           = new Key("show_borders", new KeyInput(';'));
+    public static final Key FORWARD                = new Key(Words.FORWARD.name(), new KeyInput('W'));
+    public static final Key LEFT                   = new Key(Words.LEFT.name(), new KeyInput('A'));
+    public static final Key BACKWARD               = new Key(Words.BACKWARD.name(), new KeyInput('S'));
+    public static final Key RIGHT                  = new Key(Words.RIGHT.name(), new KeyInput('D'));
+    public static final Key DEBUG                  = new Key("debug", new KeyInput('`'));
+    public static final Key ESCAPE                 = new Key("escape", new KeyInput((char) GLFW.GLFW_KEY_ESCAPE));
 
-    public final static Key ITEM_SELECTION = new Key("item selection", new KeyInput('M'));
+    public static final Key ITEM_SELECTION = new Key("item selection", new KeyInput('M'));
 
     final KeyInput defaultKeyInput; // Default value in the QWERTY layout
     final String   name;

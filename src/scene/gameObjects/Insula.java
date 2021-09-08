@@ -2,6 +2,11 @@ package scene.gameObjects;
 
 import entities.Camera;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.lwjgl.glfw.GLFW;
 import pathfinding.Road;
 import people.Person;
@@ -16,20 +21,14 @@ import scene.components.requirements.ResourceRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
 import util.math.Vector3f;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class Insula extends GameObject {
 
-    private final static int MAX_PEOPLE_CAPACITY = 10;
+    private static final int MAX_PEOPLE_CAPACITY = 10;
 
-    public final static int X_POSITIVE_OFFSET = 3;
-    public final static int X_NEGATIVE_OFFSET = 3;
-    public final static int Z_POSITIVE_OFFSET = 3;
-    public final static int Z_NEGATIVE_OFFSET = 3;
+    public static final int X_POSITIVE_OFFSET = 3;
+    public static final int X_NEGATIVE_OFFSET = 3;
+    public static final int Z_POSITIVE_OFFSET = 3;
+    public static final int Z_NEGATIVE_OFFSET = 3;
 
     public Insula() {
         addComponent(new IconComponent(GameObjectPreviews.INSULA));

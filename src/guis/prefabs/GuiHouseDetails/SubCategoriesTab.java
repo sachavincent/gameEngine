@@ -12,7 +12,7 @@ import guis.constraints.SideConstraint;
  */
 public class SubCategoriesTab extends GuiRectangle {
 
-    private final static GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
+    private static final GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
             .setWidthConstraint(new RelativeConstraint(1))
             .setHeightConstraint(new RelativeConstraint(.2f))
             .setxConstraint(new CenterConstraint())

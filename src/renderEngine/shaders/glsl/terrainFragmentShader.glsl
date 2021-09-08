@@ -40,21 +40,10 @@ uniform vec3 attenuation[MAX_LIGHTS];
 uniform Biome biomes[MAX_BIOMES];
 uniform float maxHeight = DEFAULT_MAX_HEIGHT;
 uniform vec3 skyColor;
-uniform vec2 hoveredCells[200];
 uniform vec2 hoveredCell;
 
 bool isPosInCell(vec2 cell, vec2 position) {
     return position.x >= cell.x && position.x < cell.x + 1 && position.y >= cell.y && position.y < cell.y + 1;
-}
-float manhattanDistance(float p1, float p2) {
-    float d1 = abs(p1 - p2);
-    return d1;
-}
-
-float manhattanDistance(vec2 p1, vec2 p2) {
-    float d1 = abs(p1.x - p2.x);
-    float d2 = abs(p1.y - p2.y);
-    return d1 + d2;
 }
 
 float far = 400.0;
@@ -63,12 +52,6 @@ float near = 1.0;
 float LinearizeDepth(float depth) {
     float z = depth * 2.0 - 1.0;// back to NDC
     return (2.0 * near * far) / (far + near - z * (far - near));
-}
-float manhattanDistance(vec3 p1, vec3 p2) {
-    float d1 = abs(p1.x - p2.x);
-    float d2 = abs(p1.y - p2.y);
-    float d3 = abs(p1.z - p2.z);
-    return d1 + d2 + d3;
 }
 void main() {
     //    pass_pos.y = clamp(pass_pos.y, 0, maxHeight); // Correcting for bad interpolation between shaders
@@ -116,26 +99,11 @@ void main() {
     //        out_Color = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), yLevel / 32.0);
     //    out_Color = vec4(1, 0, 0, 1);
 
-    if (pass_pos.x >= hoveredCell.x && pass_pos.x < hoveredCell.x + 1
-    && pass_pos.z >= hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
-        out_Color = vec4(1, 0, 1, 1);
-        return;
-    }
-    vec2 p = vec2(pass_pos.x, pass_pos.z);
-    for (int i = 0; i < 200; i++) {
-        vec2 cell = hoveredCells[i];
-        if (cell.x < 0 || cell.y < 0) {
-            break;
-        }
-        if (isPosInCell(cell, p)) {
-            out_Color = vec4(0, 1, 1, 1);
-            return;
-        }
-    }
-    //    if (pass_pos.x >= hoveredCell.x && pass_pos.x < hoveredCell.x + 1
-    //    && pass_pos.z >= hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
-    //        out_Color = vec4(0, 1, 1, 1);
-    //    } else {
+//    if (pass_pos.x >= hoveredCell.x && pass_pos.x < hoveredCell.x + 1
+//    && pass_pos.z >= hoveredCell.y && pass_pos.z < hoveredCell.y + 1) {
+//        out_Color = vec4(1, 0, 1, 1);
+//        return;
+//    }
     Biome biomeBelow;
     biomeBelow.MinHeight = -1;
     Biome biomeAbove;

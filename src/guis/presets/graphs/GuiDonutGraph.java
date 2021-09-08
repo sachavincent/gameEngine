@@ -8,6 +8,7 @@ import static renderEngine.GuiRenderer.DONUT;
 import static util.math.Vector2f.cross_product;
 import static util.math.Vector2f.dot;
 
+import display.Display;
 import fontMeshCreator.Text;
 import guis.GuiInterface;
 import guis.basics.GuiEllipse;
@@ -29,7 +30,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import renderEngine.DisplayManager;
 import renderEngine.GuiRenderer;
 import util.math.Maths;
 import util.math.Vector2f;
@@ -119,9 +119,9 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         float preY = this.hoverSectorGui.getY();
         GuiConstraintHandler guiConstraintHandler = new GuiConstraintHandler(this.parent, this);
         this.hoverSectorGui.setX(guiConstraintHandler
-                .handleXConstraint(new PixelConstraint((int) (cursorPos.x * DisplayManager.WIDTH) - 70)));
+                .handleXConstraint(new PixelConstraint((int) (cursorPos.getX() * Display.getWindow().getWidth()) - 70)));
         this.hoverSectorGui.setY(guiConstraintHandler
-                .handleYConstraint(new PixelConstraint((int) (cursorPos.y * DisplayManager.HEIGHT) - 70)));
+                .handleYConstraint(new PixelConstraint((int) (cursorPos.getY() * Display.getWindow().getHeight()) - 70)));
         float postX = this.hoverSectorGui.getX();
         float postY = this.hoverSectorGui.getY();
 
@@ -173,9 +173,9 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
                     break;
 
                 double alpha = 2 * PI * sector.getValue() / total;
-                double x = BigDecimal.valueOf(prevLine.x * Math.cos(alpha) + prevLine.y * Math.sin(alpha))
+                double x = BigDecimal.valueOf(prevLine.getX() * Math.cos(alpha) + prevLine.getY() * Math.sin(alpha))
                         /*.setScale(3, RoundingMode.HALF_UP)*/.doubleValue();
-                double y = BigDecimal.valueOf(-prevLine.x * Math.sin(alpha) + prevLine.y * Math.cos(alpha))
+                double y = BigDecimal.valueOf(-prevLine.getX() * Math.sin(alpha) + prevLine.getY() * Math.cos(alpha))
                         /*.setScale(3, RoundingMode.HALF_UP)*/.doubleValue();
                 this.renderPoints.add(prevLine = new Vector2f(x, y));
             }
@@ -209,8 +209,8 @@ public class GuiDonutGraph<ValueType> extends GuiGraph {
         Vector2f.sub(normalizedVector, new Vector2f(getX(), getY()), normalizedVector);
         double width = this.innerCircle.getWidth() / this.outerCircle.getWidth();
         double height = this.innerCircle.getWidth() / this.outerCircle.getWidth();
-        normalizedVector.x = (float) Maths.scale(normalizedVector.x, -getWidth(), getWidth(), -width, width);
-        normalizedVector.y = (float) Maths.scale(normalizedVector.y, -getHeight(), getHeight(), -height, height);
+        normalizedVector.setX((float) Maths.scale(normalizedVector.getX(), -getWidth(), getWidth(), -width, width));
+        normalizedVector.setY((float) Maths.scale(normalizedVector.getY(), -getHeight(), getHeight(), -height, height));
 
         Sector<?>[] sectors = this.sectors.toArray(new Sector<?>[0]);
         Sector<?> lastSector = sectors[sectors.length - 1];

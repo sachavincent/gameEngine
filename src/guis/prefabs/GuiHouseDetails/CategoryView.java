@@ -25,7 +25,7 @@ public class CategoryView extends GuiRectangle {
     public final GuiProgressIcon categoryIcon;
     public final GuiText         categoryPercentage;
 
-    private final static GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
+    private static final GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
             .setWidthConstraint(new RelativeConstraint(1))
             .setHeightConstraint(new RelativeConstraint(.6f))
             .setxConstraint(new CenterConstraint())

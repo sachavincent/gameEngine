@@ -5,10 +5,10 @@ import scene.components.*;
 
 public class Test extends GameObject {
 
-    public final static int X_POSITIVE_OFFSET = 1;
-    public final static int X_NEGATIVE_OFFSET = 6;
-    public final static int Z_POSITIVE_OFFSET = 1;
-    public final static int Z_NEGATIVE_OFFSET = 1;
+    public static final int X_POSITIVE_OFFSET = 1;
+    public static final int X_NEGATIVE_OFFSET = 6;
+    public static final int Z_POSITIVE_OFFSET = 1;
+    public static final int Z_NEGATIVE_OFFSET = 1;
 
     public Test() {
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));

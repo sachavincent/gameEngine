@@ -2,20 +2,19 @@ package renderEngine;
 
 import entities.Entity;
 import entities.ModelEntity;
+import java.util.*;
 import models.AbstractModel;
 import renderEngine.shaders.IGameObjectShader;
 import renderEngine.shaders.ShaderProgram;
 import scene.gameObjects.GameObject;
 
-import java.util.*;
-
 public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends Renderer<Shader> {
 
     private final Map<AbstractModel, List<ModelEntity>> renderedModels;
-    private final Set<Integer> renderedGameObjects;
+    private final Set<Integer>                          renderedGameObjects;
 
-    private final int id;
-    protected boolean displayBoundingBoxes;
+    private final int     id;
+    protected     boolean displayBoundingBoxes;
 
     private static int ID;
 
@@ -95,6 +94,9 @@ public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends R
     public void removeGameObject(GameObject gameObject) {
         int id = gameObject.getId();
         this.renderedGameObjects.remove(id);
-        this.renderedModels.forEach((key, value) -> value.removeIf(modelEntity -> modelEntity.getGameObjectId() == id));
+        this.renderedModels.forEach((key, value) -> {
+            value.removeIf(modelEntity -> modelEntity.getGameObjectId() == id);
+        });
+        this.renderedModels.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 }

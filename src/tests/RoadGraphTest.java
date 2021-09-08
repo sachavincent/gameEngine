@@ -1,5 +1,16 @@
 package tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+
+import display.Display;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,27 +18,20 @@ import pathfinding.NodeConnection;
 import pathfinding.NodeRoad;
 import pathfinding.NormalRoad;
 import pathfinding.RoadGraph;
-import renderEngine.DisplayManager;
 import renderEngine.PathRenderer;
 import scene.Scene;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import terrain.TerrainPosition;
 
-import java.util.*;
-import java.util.stream.IntStream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-
 public class RoadGraphTest {
 
-    private final static Scene scene = Scene.getInstance();
+    private static final Scene scene = Scene.getInstance();
 
     @BeforeAll
     public static void init() {
         glfwInit();
-        DisplayManager.createDisplayForTests();
+        Display.createDisplayForTests();
         PathRenderer.getInstance();
     }
 

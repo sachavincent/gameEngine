@@ -23,7 +23,7 @@ public class CategoriesTab extends GuiRectangle {
     public GuiAbstractButton drinksCatButton;
     public GuiAbstractButton socialCatButton;
 
-    private final static GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
+    private static final GuiConstraintsManager CONSTRAINTS = new GuiConstraintsManager.Builder()
             .setWidthConstraint(new RelativeConstraint(.47f))
             .setHeightConstraint(new RelativeConstraint(.6f))
             .setxConstraint(new StickyConstraint(Side.LEFT).setDistanceFromSide(0))

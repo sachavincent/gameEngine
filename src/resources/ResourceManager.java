@@ -130,44 +130,44 @@ public class ResourceManager {
 
     public static class WheatResource {
 
-        final static Words            NAME    = Words.WHEAT;
-        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+        static final Words            NAME    = Words.WHEAT;
+        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class FishResource {
 
-        final static Words            NAME    = Words.FISH;
-        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+        static final Words            NAME    = Words.FISH;
+        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class BreadResource {
 
-        final static Words            NAME    = Words.BREAD;
-        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+        static final Words            NAME    = Words.BREAD;
+        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
 //    public static class FruitResource {
 //
-//        final static Words            NAME    = Words.FRUIT;
-//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//        static final Words            NAME    = Words.FRUIT;
+//        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
 //    }
 
 //    public static class VegetableResource {
 //
-//        final static Words            NAME    = Words.VEGETABLE;
-//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//        static final Words            NAME    = Words.VEGETABLE;
+//        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
 //    }
 //
 //    public static class MeatResource {
 //
-//        final static Words            NAME    = Words.MEAT;
-//        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+//        static final Words            NAME    = Words.MEAT;
+//        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
 //    }
 
     public static class GoldResource {
 
-        final static Words            NAME    = Words.GOLD;
-        final static Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
+        static final Words            NAME    = Words.GOLD;
+        static final Background<File> TEXTURE = new Background<>(new File(RES_PATH + "/" + NAME.getString() + ".png"));
     }
 
     public static class Stock {

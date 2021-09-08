@@ -86,9 +86,9 @@ public class JointTransform {
      * between the two translations.
      */
     private static Vector3f interpolate(Vector3f start, Vector3f end, float progression) {
-        float x = start.x + (end.x - start.x) * progression;
-        float y = start.y + (end.y - start.y) * progression;
-        float z = start.z + (end.z - start.z) * progression;
+        float x = start.getX() + (end.getX() - start.getX()) * progression;
+        float y = start.getY() + (end.getY() - start.getY()) * progression;
+        float z = start.getZ() + (end.getZ() - start.getZ()) * progression;
         return new Vector3f(x, y, z);
     }
 

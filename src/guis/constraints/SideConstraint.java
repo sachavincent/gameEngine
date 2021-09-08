@@ -8,7 +8,7 @@ public class SideConstraint extends GuiConstraints {
 
     private final Side side;
 
-    public final static float DISTANCE_FROM_SIDE = 0.01f;
+    public static final float DISTANCE_FROM_SIDE = 0.01f;
 
     private final Constraints distanceType; // Distance can be given in pixels or relative to parent
 

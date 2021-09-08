@@ -1,10 +1,17 @@
 package tests;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+
+import display.Display;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pathfinding.*;
-import renderEngine.DisplayManager;
+import pathfinding.NodeConnection;
+import pathfinding.NodeRoad;
+import pathfinding.NormalRoad;
+import pathfinding.Path;
+import pathfinding.PathFinder;
 import renderEngine.PathRenderer;
 import scene.Scene;
 import scene.components.PathComponent;
@@ -17,19 +24,16 @@ import scene.gameObjects.NPC;
 import terrain.TerrainPosition;
 import util.math.Vector3f;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-
 public class NPCTest {
 
-    private final static Scene scene = Scene.getInstance();
+    private static final Scene scene = Scene.getInstance();
 
     private static NPC NPC;
 
     @BeforeAll
     public static void init() {
         glfwInit();
-        DisplayManager.createDisplayForTests();
+        Display.createDisplayForTests();
         PathRenderer.getInstance();
     }
 

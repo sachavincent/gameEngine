@@ -1,16 +1,15 @@
 package models;
 
-import renderEngine.Vao;
-import textures.ModelTexture;
-import util.math.Plane3D;
-import util.math.Triangle3D;
-import util.parsing.Vertex;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import renderEngine.structures.Vao;
+import textures.ModelTexture;
+import util.math.Plane3D;
+import util.math.Triangle3D;
+import util.parsing.Vertex;
 
 public class BoundingBox extends SimpleModel {
 

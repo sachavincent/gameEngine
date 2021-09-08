@@ -2,11 +2,11 @@ package renderEngine.shaders.structs;
 
 public class BiomeStruct extends StructLocation {
 
-    public final static String NAME = "Biome";
+    public static final String NAME = "Biome";
 
-    private final static String MATERIAL = "Material";
-    private final static String MIN_HEIGHT = "MinHeight";
-    private final static String MAX_HEIGHT = "MaxHeight";
+    private static final String MATERIAL = "Material";
+    private static final String MIN_HEIGHT = "MinHeight";
+    private static final String MAX_HEIGHT = "MaxHeight";
 
     public BiomeStruct(Integer programID) {
         this(programID, NAME);

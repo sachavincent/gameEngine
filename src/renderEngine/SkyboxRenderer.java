@@ -3,13 +3,16 @@ package renderEngine;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import renderEngine.shaders.SkyboxShader;
-import util.parsing.ModelType;
+import renderEngine.structures.AttributeData;
+import renderEngine.structures.AttributeData.DataType;
+import renderEngine.structures.Data;
+import renderEngine.structures.Vao;
 
 public class SkyboxRenderer extends Renderer<SkyboxShader> {
 
     private static final float SIZE = 500f;
 
-    private static final float[] VERTICES = {
+    private static final Float[] VERTICES = {
             -SIZE, SIZE, -SIZE,
             -SIZE, -SIZE, -SIZE,
             SIZE, -SIZE, -SIZE,
@@ -68,7 +71,9 @@ public class SkyboxRenderer extends Renderer<SkyboxShader> {
         super(new SkyboxShader(), s ->
                 s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix()));
 
-        this.vao = Vao.createVao(new MeshData(VERTICES), ModelType.DEFAULT);
+        AttributeData<Float> verticesAttribute = new AttributeData<>(0, 3, VERTICES, DataType.FLOAT);
+        Data data = Data.createData(verticesAttribute);
+        this.vao = Vao.createVao(data, data.getVaoType());
         this.texture = Loader.getInstance().loadCubeMap(TEXTURE_FILES);
     }
 

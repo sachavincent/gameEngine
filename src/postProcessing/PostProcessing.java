@@ -1,10 +1,10 @@
 package postProcessing;
 
+import display.Display;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import renderEngine.DisplayManager;
 import renderEngine.Loader;
 
 public class PostProcessing {
@@ -25,8 +25,8 @@ public class PostProcessing {
         monochromaticFilter = new MonochromaticFilter();
         passthroughFilter = new PassthroughFilter();
 
-        horizontalBlur = new HorizontalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
-        verticalBlur = new VerticalBlur(DisplayManager.WIDTH, DisplayManager.HEIGHT);
+        horizontalBlur = new HorizontalBlur(Display.getWindow().getWidth(), Display.getWindow().getHeight());
+        verticalBlur = new VerticalBlur(Display.getWindow().getWidth(), Display.getWindow().getHeight());
     }
 
     public static void doPostProcessing(int colourTexture) {

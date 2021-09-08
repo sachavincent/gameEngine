@@ -6,7 +6,7 @@ import textures.Texture;
 
 public class HeightMapComponent extends Component {
 
-    private final int maxHeight;
+    private final float maxHeight;
     private final int width;
     private final int depth;
 
@@ -14,8 +14,8 @@ public class HeightMapComponent extends Component {
 
     private Float[][] heights;
 
-    public HeightMapComponent(int maxHeight, int width, int depth,
-                              HeightMapSupplier<TerrainTexture, Exception> heightMapSupplier) {
+    public HeightMapComponent(float maxHeight, int width, int depth,
+            HeightMapSupplier<TerrainTexture, Exception> heightMapSupplier) {
         this.maxHeight = maxHeight;
         this.width = width;
         this.depth = depth;
@@ -23,19 +23,10 @@ public class HeightMapComponent extends Component {
         heightMapSupplier.create(width, depth).onSuccess(texture -> {
             this.texture = texture;
             this.heights = texture.getHeights();
-        }).onFailure(e -> {
-            e.printStackTrace();
-//            try {
-//                throw e.getClass().getDeclaredConstructor(String.class).newInstance("Error while generating HeightMap: \n\t" +
-//                        Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).
-//                                collect(Collectors.joining("\n\t")));
-//            } catch (Exception e2) {
-//                e2.printStackTrace();
-//            }
-        });
+        }).onFailure(Throwable::printStackTrace);
     }
 
-    public int getMaxHeight() {
+    public float getMaxHeight() {
         return this.maxHeight;
     }
 
@@ -51,12 +42,34 @@ public class HeightMapComponent extends Component {
         return this.texture;
     }
 
-    public Float[][] getHeights() {
-        return this.heights;
-    }
-
+    /**
+     * Returns the height at given coordinate
+     *
+     * @param x coordinate
+     * @param z coordinate
+     * @return height between 0 and {@link HeightMapComponent#maxHeight}
+     */
     public float getHeight(int x, int z) {
+        if (x >= this.heights.length || z >= this.heights[0].length || x < 0 || z < 0)
+            return 0;
+
         return this.heights[x][z] * this.maxHeight;
     }
 
+    /**
+     * Sets the new height at given coordinate
+     *
+     * @param x coordinate
+     * @param z coordinate
+     * @param height between 0 and {@link HeightMapComponent#maxHeight}
+     */
+    public void setHeight(int x, int z, float height) {
+        if (x >= this.heights.length || z >= this.heights[0].length ||
+                x < 0 || z < 0 || height < 0 || height > this.maxHeight)
+            return;
+
+        this.heights[x][z] = height / this.maxHeight;
+
+        this.texture = new TerrainTexture(this.heights);
+    }
 }

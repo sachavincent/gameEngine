@@ -1,10 +1,8 @@
 #version 400 core
 
 #define MAX_LIGHTS 10
-#define MIN_HEIGHT_EDGE -10 // Lowest height of edges
+#define MIN_HEIGHT_EDGE -10// Lowest height of edges
 #define DEFAULT_MAX_HEIGHT 32.0
-
-invariant gl_Position;
 
 layout (location = 0) in ivec2 position;
 
@@ -34,7 +32,7 @@ float getHeight(int x, int z) {
         return 0;
     }
 
-    vec4 texel = texelFetch(heightMap, ivec2(x, z));
+    vec4 texel = texelFetch(heightMap, ivec2(z, x));
 
     return texel.r;
 }
@@ -64,7 +62,7 @@ void main(void) {
         finalPosition.y = clamp(position.y, 0, 127);
     }
 
-    if(!edge) {
+    if (!edge) {
         height = getHeight(position.x, position.y) * maxHeight;
     }
 

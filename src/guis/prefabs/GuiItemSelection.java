@@ -12,7 +12,6 @@ import guis.constraints.layout.PatternLayout;
 import guis.presets.Background;
 import guis.presets.buttons.GuiRectangleButton;
 import inputs.MouseUtils;
-import scene.gameObjects.GameObjectPreviews;
 import java.awt.Color;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
@@ -20,10 +19,10 @@ import scene.gameObjects.*;
 
 public class GuiItemSelection extends Gui {
 
-    private final static GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_COORDINATES = new GuiConstraints[]{
             new SideConstraint(Side.RIGHT), new CenterConstraint()};
 
-    private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(0.2f), new RelativeConstraint(0.25f)};
 
     private static GuiItemSelection instance;
@@ -67,7 +66,8 @@ public class GuiItemSelection extends Gui {
 
     private void createWheatFarmButton() {
         Text text = new Text("WheatFarm", .55f, DEFAULT_FONT, Color.DARK_GRAY);
-        GuiRectangleButton wheatFarmButton = new GuiRectangleButton(this, GameObjectPreviews.WHEAT_FARM, null, null, text);
+        GuiRectangleButton wheatFarmButton = new GuiRectangleButton(this, GameObjectPreviews.WHEAT_FARM, null, null,
+                text);
         wheatFarmButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 System.out.println("WheatFarm selected");
@@ -116,7 +116,7 @@ public class GuiItemSelection extends Gui {
                 System.out.println("Insula selected");
 
 
-                selectOrUnselect(Test.class, MouseUtils::SelectBuilding);
+                selectOrUnselect(Insula.class, MouseUtils::SelectBuilding);
                 return true;
             }
             return false;

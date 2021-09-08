@@ -8,7 +8,7 @@ public class StickyConstraint extends GuiConstraints {
 
     private final Side side;
 
-    private final static float DISTANCE_FROM_SIDE = 0.01f;
+    private static final float DISTANCE_FROM_SIDE = 0.01f;
 
     private final Constraints distanceType; // Distance can be given in pixels or relative to parent
 

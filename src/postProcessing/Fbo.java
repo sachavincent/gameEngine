@@ -1,20 +1,19 @@
 
 package postProcessing;
 
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
+
+import display.Display;
+import java.nio.ByteBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
-import renderEngine.DisplayManager;
-
-import java.nio.ByteBuffer;
-
-import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 public class Fbo {
 
-    public static final int NONE = 0;
-    public static final int DEPTH_TEXTURE = 1;
+    public static final int NONE                = 0;
+    public static final int DEPTH_TEXTURE       = 1;
     public static final int DEPTH_RENDER_BUFFER = 2;
 
     private final int width;
@@ -32,10 +31,10 @@ public class Fbo {
      * Creates an FBO of a specified width and height, with the desired type of
      * depth buffer attachment.
      *
-     * @param width           - the width of the FBO.
-     * @param height          - the height of the FBO.
+     * @param width - the width of the FBO.
+     * @param height - the height of the FBO.
      * @param depthBufferType - an int indicating the type of depth buffer attachment that
-     *                        this FBO should use.
+     * this FBO should use.
      */
     public Fbo(int width, int height, int depthBufferType) {
         this.width = width;
@@ -70,7 +69,7 @@ public class Fbo {
      */
     public void unbindFrameBuffer() {
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
-        GL11.glViewport(0, 0, DisplayManager.WIDTH, DisplayManager.HEIGHT);
+        GL11.glViewport(0, 0, Display.getWindow().getWidth(), Display.getWindow().getHeight());
     }
 
     /**
@@ -101,7 +100,7 @@ public class Fbo {
      * possibly a depth buffer.
      *
      * @param type - the type of depth buffer attachment to be attached to the
-     *             FBO.
+     * FBO.
      */
     private void initialiseFrameBuffer(int type) {
         createFrameBuffer();
@@ -169,5 +168,4 @@ public class Fbo {
         GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER,
                 depthBuffer);
     }
-
 }

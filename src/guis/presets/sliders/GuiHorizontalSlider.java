@@ -1,5 +1,6 @@
 package guis.presets.sliders;
 
+import display.Display;
 import guis.GuiInterface;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraints;
@@ -7,7 +8,6 @@ import guis.constraints.GuiConstraintsManager;
 import guis.constraints.PixelConstraint;
 import inputs.MouseUtils;
 import java.awt.Color;
-import renderEngine.DisplayManager;
 import util.math.Maths;
 
 public class GuiHorizontalSlider extends GuiSlider {
@@ -52,7 +52,7 @@ public class GuiHorizontalSlider extends GuiSlider {
                 .setDefault()
                 .setWidthConstraint(new PixelConstraint(8))
                 .setHeightConstraint(new PixelConstraint(
-                        (int) (Math.ceil(this.sliderBase.getHeight() * DisplayManager.HEIGHT)) + 10))
+                        (int) (Math.ceil(this.sliderBase.getHeight() * Display.getWindow().getHeight())) + 10))
                 .create();
     }
 
@@ -70,7 +70,7 @@ public class GuiHorizontalSlider extends GuiSlider {
         if (!this.slidingEnabled)
             return;
 
-        float cursorX = MouseUtils.getCursorPos().x;
+        float cursorX = MouseUtils.getCursorPos().getX();
 
         cursorX = Float.max(cursorX, this.minPosition);
         cursorX = Float.min(cursorX, this.maxPosition);

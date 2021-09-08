@@ -6,13 +6,13 @@ import java.util.List;
 
 public class AddPeopleCommand extends Command {
 
-    private final static int MAX_PEOPLE = 50;
+    private static final int MAX_PEOPLE = 50;
 
-    private final static String[] LOCAL_ALIAS               = new String[]{"addpeople", "ap"};
-    private final static String[] LOCAL_PARAMETERS          = new String[]{"amount of people"};
-    private final static String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{ };
+    private static final String[] LOCAL_ALIAS               = new String[]{"addpeople", "ap"};
+    private static final String[] LOCAL_PARAMETERS          = new String[]{"amount of people"};
+    private static final String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{ };
 
-    private final static LocalExecuteCommandCallback LOCAL_CALLBACK = amount -> {
+    private static final LocalExecuteCommandCallback LOCAL_CALLBACK = amount -> {
         if (!amount.matches("^\\d+$"))
             return 1;
 

@@ -1,11 +1,10 @@
 package util.parsing.objParser;
 
-import renderEngine.MeshData;
-import renderEngine.shaders.structs.Material;
-
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import renderEngine.shaders.structs.Material;
+import renderEngine.structures.IndexData;
 
 public class MTLFile extends File {
 
@@ -15,7 +14,7 @@ public class MTLFile extends File {
 
     private final List<Material> materials;
 
-    private MeshData meshData;
+    private IndexData meshData;
 
     public MTLFile(File parent, String name, String objFileName, int nbMaterials,
                    List<Material> materials) {
@@ -44,7 +43,7 @@ public class MTLFile extends File {
         return this.nbMaterials;
     }
 
-    public MeshData getMeshData() {
+    public IndexData getMeshData() {
         return this.meshData;
     }
 
@@ -56,7 +55,7 @@ public class MTLFile extends File {
         return this.objFile;
     }
 
-    public void setMeshData(MeshData meshData) {
+    public void setMeshData(IndexData meshData) {
         this.meshData = meshData;
     }
 

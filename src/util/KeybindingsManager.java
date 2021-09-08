@@ -13,11 +13,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import renderEngine.DisplayManager;
 
 public class KeybindingsManager {
 
-    public final static String SETTINGS_FILE = "keybindings.conf";
+    public static final String SETTINGS_FILE = "keybindings.conf";
 
     public static void loadKeyBindings() {
         try (BufferedReader reader = new BufferedReader(new FileReader(ASSETS_PATH + "/" + SETTINGS_FILE))) {
@@ -49,8 +48,6 @@ public class KeybindingsManager {
         } catch (Exception e) {
             e.printStackTrace();
             resetKeyBindings();
-        } finally {
-            DisplayManager.showWindow();
         }
     }
 

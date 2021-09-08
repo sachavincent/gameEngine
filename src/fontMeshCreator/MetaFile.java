@@ -1,12 +1,12 @@
 package fontMeshCreator;
 
+import display.Display;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import renderEngine.DisplayManager;
 
 /**
  * Provides functionality for getting the values from a font file.
@@ -46,7 +46,7 @@ public class MetaFile {
      * @param file - the font file.
      */
     protected MetaFile(File file) {
-        this.aspectRatio = (double) DisplayManager.WIDTH / (double) DisplayManager.HEIGHT;
+        this.aspectRatio = (double) Display.getWindow().getWidth() / (double) Display.getWindow().getHeight();
         //TODO: Update aspect ratio with window?
         openFile(file);
         loadPaddingData();

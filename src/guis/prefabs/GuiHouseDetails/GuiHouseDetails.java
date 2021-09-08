@@ -40,15 +40,15 @@ import util.math.Maths;
 
 public class GuiHouseDetails extends Gui {
 
-    private final static GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
+    private static final GuiConstraints[] DEFAULT_DIMENSIONS = new GuiConstraints[]{
             new RelativeConstraint(.22f), new AspectConstraint(1.3f)};
 
-    //    private final static GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(new Color(255, 255, 255, 0));
-    public final static Background<?> DEFAULT_BACKGROUND = new Background<>("#FFF9C4");
+    //    private static final GuiBackground<?> DEFAULT_BACKGROUND = new GuiBackground<>(new Color(255, 255, 255, 0));
+    public static final Background<?> DEFAULT_BACKGROUND = new Background<>("#FFF9C4");
 
-    private final static Background<File> stickyFigureImage = Utils.importResourceTexture("stick_figure");
+    private static final Background<File> stickyFigureImage = Utils.importResourceTexture("stick_figure");
 
-    private final static Background<File> coinsImage = Utils.importResourceTexture("coins");
+    private static final Background<File> coinsImage = Utils.importResourceTexture("coins");
 
     private static GuiHouseDetails instance;
 

@@ -1,6 +1,7 @@
 #version 400 core
 
-in vec2 position;
+layout (location = 0) in vec2 position;
+
 out vec2 textureCoords;
 
 uniform mat4 transformationMatrix;

@@ -1,9 +1,7 @@
 package util.parsing.colladaParser.dataStructures;
 
-import util.math.Vector3f;
-import util.parsing.MaterialColor;
-
 import java.io.File;
+import util.parsing.MaterialColor;
 
 public class MaterialData {
 

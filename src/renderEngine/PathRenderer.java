@@ -1,20 +1,26 @@
 package renderEngine;
 
+import static renderEngine.MasterRenderer.BLUE;
+import static renderEngine.MasterRenderer.CLIP_PLANE;
+import static renderEngine.MasterRenderer.GREEN;
+import static renderEngine.MasterRenderer.RED;
+
 import entities.Camera;
 import entities.ModelEntity;
+import java.awt.Color;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import models.AbstractModel;
 import org.lwjgl.opengl.GL11;
 import pathfinding.Path;
 import renderEngine.shaders.AnimatedGameObjectShader;
+import renderEngine.structures.Vao;
 import util.math.Maths;
 import util.math.Matrix4f;
 import util.math.Vector2f;
-
-import java.awt.*;
-import java.util.List;
-import java.util.*;
-
-import static renderEngine.MasterRenderer.*;
 
 public class PathRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
 
@@ -31,7 +37,6 @@ public class PathRenderer extends GameObjectRenderer<AnimatedGameObjectShader> {
         super(new AnimatedGameObjectShader(), s -> {
             s.loadTransformationMatrix(
                     Maths.createTransformationMatrix(new Vector2f(0, 0), new Vector2f(1, 1)));
-            s.loadOffset(0, 0);
             s.loadClipPlane(CLIP_PLANE);
             s.loadSkyColor(RED, GREEN, BLUE);
             s.loadProjectionMatrix(MasterRenderer.getInstance().getProjectionMatrix());

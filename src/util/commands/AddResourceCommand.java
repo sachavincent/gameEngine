@@ -8,13 +8,13 @@ import resources.ResourceManager.Resource;
 
 public class AddResourceCommand extends Command {
 
-    private final static String[] VALID_RESOURCE = new String[]{"FISH", "WHEAT", "BREAD", "GOLD"};
+    private static final String[] VALID_RESOURCE = new String[]{"FISH", "WHEAT", "BREAD", "GOLD"};
 
-    private final static String[] LOCAL_ALIAS               = new String[]{"addresource", "ar"};
-    private final static String[] LOCAL_PARAMETERS          = new String[]{"resource", "amount"};
-    private final static String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{ };
+    private static final String[] LOCAL_ALIAS               = new String[]{"addresource", "ar"};
+    private static final String[] LOCAL_PARAMETERS          = new String[]{"resource", "amount"};
+    private static final String[] LOCAL_OPTIONAL_PARAMETERS = new String[]{ };
 
-    private final static LocalExecuteCommandCallback LOCAL_CALLBACK = (resourceName, amount) -> {
+    private static final LocalExecuteCommandCallback LOCAL_CALLBACK = (resourceName, amount) -> {
         if (!isResourceValid(resourceName))
             return 1;
 
