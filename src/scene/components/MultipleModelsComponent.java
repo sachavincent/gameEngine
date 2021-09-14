@@ -1,11 +1,14 @@
 package scene.components;
 
+import static java.util.Map.Entry;
+
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import models.AbstractModel;
 import util.math.Vector3f;
-
-import java.util.*;
-
-import static java.util.Map.Entry;
 
 /**
  * Used if a GameObject has several models at the same time
@@ -107,9 +110,10 @@ public class MultipleModelsComponent extends Component {
     }
 
     public static class Offset {
+
         private Vector3f offsetPosition;
         private Vector3f offsetRotation;
-        private float offsetScale;
+        private float    offsetScale;
 
         private final boolean fixedRotation;
 
@@ -123,6 +127,14 @@ public class MultipleModelsComponent extends Component {
 
         public Offset(Vector3f offsetPosition, Vector3f offsetRotation, float offsetScale) {
             this(offsetPosition, offsetRotation, offsetScale, false);
+        }
+
+        public Offset(Vector3f offsetPosition, boolean fixedRotation) {
+            this(offsetPosition, new Vector3f(), 0, fixedRotation);
+        }
+
+        public Offset(Vector3f offsetPosition) {
+            this(offsetPosition, false);
         }
 
         public Offset(Vector3f offsetPosition, Vector3f offsetRotation, float offsetScale, boolean fixedRotation) {

@@ -534,7 +534,7 @@ public class MouseUtils {
             case HOVER_TERRAIN:
                 mousePicker.updateIntersectionOnClick();
                 GameObject objectAtPosition = mousePicker.getGameObject();
-                if (objectAtPosition != null && !mousePicker.isPointOnTerrain()) {
+                if (objectAtPosition != null) {
                     if (objectAtPosition.hasComponent(SelectableComponent.class))
                         objectAtPosition.getComponent(SelectableComponent.class).getPressCallback()
                                 .onPress(GLFW_MOUSE_BUTTON_1);

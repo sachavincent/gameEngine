@@ -55,8 +55,9 @@ public abstract class GameObject {
     }
 
     public final void addComponent(Component component) {
+        assert !hasComponent(component.getClass());
+
         component.setId(this.id);
-        removeComponent(component.getClass());
 
         this.components.put(component.getClass().getName(), component);
 
@@ -141,8 +142,14 @@ public abstract class GameObject {
             boolean ignoreAddCallback) {
         X gameObject = getObjectFromClass(objectClass);
         gameObject.setIgnoreAddCallback(ignoreAddCallback);
-        gameObject.addComponent(new DirectionComponent(direction));
-        gameObject.addComponent(new PositionComponent(position));
+        if (gameObject.hasComponent(DirectionComponent.class))
+            gameObject.getComponent(DirectionComponent.class).setDirection(direction);
+        else
+            gameObject.addComponent(new DirectionComponent(direction));
+        if (gameObject.hasComponent(PositionComponent.class))
+            gameObject.getComponent(PositionComponent.class).setPosition(position.toVector3f());
+        else
+            gameObject.addComponent(new PositionComponent(position));
         return gameObject;
     }
 

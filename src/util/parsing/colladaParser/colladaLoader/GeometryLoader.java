@@ -9,6 +9,7 @@ import renderEngine.structures.AttributeData;
 import renderEngine.structures.AttributeData.DataType;
 import renderEngine.structures.IndexData;
 import renderEngine.structures.MaterialIndicesAttribute;
+import util.Utils;
 import util.math.Matrix4f;
 import util.math.Vector2f;
 import util.math.Vector3f;
@@ -49,7 +50,7 @@ public class GeometryLoader {
     public IndexData extractModelData(ModelType modelType) {
         readRawData();
         assembleVertices();
-        removeUnusedVertices();
+        Utils.removeUnusedVertices(this.vertices);
         initArrays();
         convertDataToArrays();
 
@@ -87,8 +88,9 @@ public class GeometryLoader {
             float z = Float.parseFloat(posData[i * 3 + 2]);
             Vector4f position = new Vector4f(x, y, z, 1);
             Matrix4f.transform(CORRECTION, position, position);
-            this.vertices.add(new Vertex(this.vertices.size(), new Vector3f(position.getX(), position.getY(), position.getZ()),
-                    this.vertexWeights.get(this.vertices.size())));
+            this.vertices.add(
+                    new Vertex(this.vertices.size(), new Vector3f(position.getX(), position.getY(), position.getZ()),
+                            this.vertexWeights.get(this.vertices.size())));
         }
     }
 
@@ -142,22 +144,10 @@ public class GeometryLoader {
                 int positionIndex = Integer.parseInt(indexData[i * typeCount]);
                 int normalIndex = Integer.parseInt(indexData[i * typeCount + 1]);
                 int texCoordIndex = Integer.parseInt(indexData[i * typeCount + 2]);
-                processVertex(indices, positionIndex, normalIndex, texCoordIndex);
+                Utils.processVertex(this.vertices, indices, positionIndex, normalIndex, texCoordIndex);
             }
             this.materialIndices.put(material, indices.toArray(new Integer[0]));
         });
-    }
-
-    private Vertex processVertex(List<Integer> indices, int posIndex, int normIndex, int texIndex) {
-        Vertex currentVertex = this.vertices.get(posIndex);
-        if (!currentVertex.isSet()) {
-            currentVertex.setTextureIndex(texIndex);
-            currentVertex.setNormalIndex(normIndex);
-            indices.add(posIndex);
-            return currentVertex;
-        } else {
-            return dealWithAlreadyProcessedVertex(indices, currentVertex, texIndex, normIndex);
-        }
     }
 
     private float convertDataToArrays() {
@@ -190,45 +180,12 @@ public class GeometryLoader {
         return furthestPoint;
     }
 
-    private Vertex dealWithAlreadyProcessedVertex(List<Integer> indices, Vertex previousVertex, int newTextureIndex,
-            int newNormalIndex) {
-        if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
-            indices.add(previousVertex.getIndex());
-            return previousVertex;
-        } else {
-            Vertex anotherVertex = previousVertex.getDuplicateVertex();
-            if (anotherVertex != null) {
-                return dealWithAlreadyProcessedVertex(indices, anotherVertex, newTextureIndex, newNormalIndex);
-            } else {
-                Vertex duplicateVertex = new Vertex(this.vertices.size(), previousVertex.getPosition(),
-                        previousVertex.getWeightsData());
-                duplicateVertex.setTextureIndex(newTextureIndex);
-                duplicateVertex.setNormalIndex(newNormalIndex);
-                previousVertex.setDuplicateVertex(duplicateVertex);
-                this.vertices.add(duplicateVertex);
-                indices.add(duplicateVertex.getIndex());
-                return duplicateVertex;
-            }
-
-        }
-    }
-
     private void initArrays() {
         this.verticesArray = new Float[this.vertices.size() * 3];
         this.texturesArray = new Float[this.vertices.size() * 2];
         this.normalsArray = new Float[this.vertices.size() * 3];
         this.jointIdsArray = new Integer[this.vertices.size() * 3];
         this.weightsArray = new Float[this.vertices.size() * 3];
-    }
-
-    private void removeUnusedVertices() {
-        for (Vertex vertex : this.vertices) {
-            vertex.averageTangents();
-            if (!vertex.isSet()) {
-                vertex.setTextureIndex(0);
-                vertex.setNormalIndex(0);
-            }
-        }
     }
 
     public List<Material> getMaterials() {

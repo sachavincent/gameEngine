@@ -30,8 +30,8 @@ public class WheatField extends GameObject {
     public static final int Z_POSITIVE_OFFSET = 1;
     public static final int Z_NEGATIVE_OFFSET = 1;
 
-    private static final String LAND = "LAND";
-    private static final String FENCE = "FENCE";
+    private static final String LAND       = "LAND";
+    private static final String FENCE      = "FENCE";
     private static final String FENCEPOLEC = "FENCEPOLEC";
     private static final String FENCEPOLE1 = "FENCEPOLE1";
     private static final String FENCEPOLE2 = "FENCEPOLE2";
@@ -59,8 +59,10 @@ public class WheatField extends GameObject {
         ShiftingList<AbstractModel> shiftingTextures = new ShiftingList<>(TEXTURES);
 
         MultipleModelsComponent modelsComponent = new MultipleModelsComponent();
-        modelsComponent.addConcurrentModel(FENCE, GameObjectDatas.WHEATFIELD_FULL_FENCE.getTexture());
-        modelsComponent.addConcurrentModel(LAND, TEXTURES.get(0), new Offset(true));
+        modelsComponent.addConcurrentModel(FENCE, GameObjectDatas.WHEATFIELD_FULL_FENCE.getTexture(),
+                new Offset(new Vector3f(0, 0.04f, 0)));
+        modelsComponent.addConcurrentModel(LAND, TEXTURES.get(0), 
+                new Offset(new Vector3f(0, 0.04f, 0), true));
 
         modelsComponent.setOnAddComponentCallback((gameObject, position) -> {
             this.random.setSeed(System.currentTimeMillis());
@@ -235,14 +237,14 @@ public class WheatField extends GameObject {
     /**
      * Updates model at corner of centerGameObject
      *
-     * @param centerGameObject       GameObject at the center
-     * @param modelName              name of the model
-     * @param direction              direction in which to look for neighbor
+     * @param centerGameObject GameObject at the center
+     * @param modelName name of the model
+     * @param direction direction in which to look for neighbor
      * @param perpendicularDirection direction in which to look for corner from neighbor
-     * @param offsetDirection        direction of the model
+     * @param offsetDirection direction of the model
      */
     private void updateModelAtCorner(GameObject centerGameObject, String modelName, Direction direction,
-                                     Direction perpendicularDirection, Direction offsetDirection) {
+            Direction perpendicularDirection, Direction offsetDirection) {
         Scene scene = Scene.getInstance();
         MultipleModelsComponent multipleModelsComponent = centerGameObject.getComponent(MultipleModelsComponent.class);
         GameObject gameObjectAtCorner = scene

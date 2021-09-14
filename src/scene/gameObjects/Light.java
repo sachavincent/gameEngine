@@ -62,7 +62,7 @@ public class Light extends GameObject {
             addComponent(new SunComponent(center, distanceFromCenter));
             Vector3f defaultPosition = Vector3f.add(center, Direction.
                     toRelativeDistance(Direction.EAST, distanceFromCenter), null);
-            addComponent(new PositionComponent(defaultPosition));
+            getComponent(PositionComponent.class).setPosition(defaultPosition);
 
             addComponent(new SingleModelComponent(MODEL.getTexture()));
         }

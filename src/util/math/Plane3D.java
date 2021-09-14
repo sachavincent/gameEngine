@@ -255,16 +255,10 @@ public class Plane3D {
     public void rotate(int degree) {
         if (degree == 0)
             return;
-//        Vector3f M = getNormal();
-//        Vector3f N = new Vector3f();
 
         float c = (float) Math.round(Math.cos(Math.toRadians(degree)));
         float s = (float) Math.round(Math.sin(Math.toRadians(degree)));
-//
-//        N.setX(c * M.getX() - s * M.getZ();
-//        N.setY(M.getY();
-//        N.setZ(s * M.getX() + c * M.getZ();
-//        if (M.equals(N)) {
+
         Vector3f newPointA = new Vector3f();
         Vector3f newPointB = new Vector3f();
         Vector3f newPointC = new Vector3f();
@@ -289,50 +283,6 @@ public class Plane3D {
         setPointB(newPointB);
         setPointC(newPointC);
         setPointD(newPointD);
-
-        //        }
-//        float costheta = Vector3f.dot(M, N) / (M.length() * N.length());
-//        Vector3f axis = Vector3f.cross(M, N).normalize();
-//        float sqrt = (float) Math.sqrt(1 - costheta * costheta);
-//        Matrix3f rotationMatrix = new Matrix3f();
-//        float v = 1 - costheta;
-//        rotationMatrix.m00 = axis.getX() * axis.getX() * v + costheta;
-//        rotationMatrix.m10 = axis.getX() * axis.getY() * v - axis.getZ() * sqrt;
-//        rotationMatrix.m20 = axis.getX() * axis.getZ() * v + axis.getY() * sqrt;
-//
-//        rotationMatrix.m01 = axis.getY() * axis.getX() * v + axis.getZ() * sqrt;
-//        rotationMatrix.m11 = axis.getY() * axis.getY() * v + costheta;
-//        rotationMatrix.m21 = axis.getY() * axis.getZ() * v - axis.getX() * sqrt;
-//
-//        rotationMatrix.m02 = axis.getZ() * axis.getX() * v - axis.getY() * sqrt;
-//        rotationMatrix.m12 = axis.getZ() * axis.getY() * v + axis.getX() * sqrt;
-//        rotationMatrix.m22 = axis.getZ() * axis.getZ() * v + costheta;
-//
-//        pointA = Matrix3f.mul(rotationMatrix, pointA);
-//        pointB = Matrix3f.mul(rotationMatrix, pointB);
-//        pointC = Matrix3f.mul(rotationMatrix, pointC);
-//        pointD = Matrix3f.mul(rotationMatrix, pointD);
-//
-//        newPointA.setX(c * pointA.getX() - s * pointA.getZ();
-//        newPointA.setY(pointA.getY();
-//        newPointA.setZ(s * pointA.getX() + c * pointA.getZ();
-//
-//        newPointB.setX(c * pointB.getX() - s * pointB.getZ();
-//        newPointB.setY(pointB.getY();
-//        newPointB.setZ(s * pointB.getX() + c * pointB.getZ();
-//
-//        newPointC.setX(c * pointC.getX() - s * pointC.getZ();
-//        newPointC.setY(pointC.getY();
-//        newPointC.setZ(s * pointC.getX() + c * pointC.getZ();
-//
-//        newPointD.setX(c * pointD.getX() - s * pointD.getZ();
-//        newPointD.setY(pointD.getY();
-//        newPointD.setZ(s * pointD.getX() + c * pointD.getZ();
-//
-//        setPointA(newPointA);
-//        setPointB(newPointB);
-//        setPointC(newPointC);
-//        setPointD(newPointD);
     }
 
     public boolean doesLineIntersect(Vector3f line) {

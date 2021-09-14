@@ -26,6 +26,7 @@ import terrain.TerrainPosition;
 import util.exceptions.MissingFileException;
 import util.math.Maths;
 import util.math.Vector;
+import util.parsing.Vertex;
 
 public class Utils {
 
@@ -34,7 +35,7 @@ public class Utils {
     public static final String MODELS_PATH = "models";
 
     public static void main(String[] args) {
-        cleanOBJFile(new File(MODELS_PATH + "/Windmill/boundingbox.obj"));
+        cleanOBJFile(new File(MODELS_PATH + "/Insula/boundingbox.obj"));
     }
 
     public static Map<Class<? extends GameObject>, TerrainPosition[]> getPositionsFromConsoleLogs(String fileName) {
@@ -395,5 +396,52 @@ public class Utils {
         }
 
         return toR;
+    }
+
+    public static Vertex dealWithAlreadyProcessedVertex(Vertex previousVertex, int newTextureIndex,
+            int newNormalIndex, List<Integer> indices, List<Vertex> vertices) {
+        if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
+            indices.add(previousVertex.getIndex());
+            return previousVertex;
+        } else {
+            Vertex anotherVertex = previousVertex.getDuplicateVertex();
+            if (anotherVertex != null) {
+                return dealWithAlreadyProcessedVertex(anotherVertex,
+                        newTextureIndex, newNormalIndex, indices, vertices);
+            } else {
+                Vertex duplicateVertex = new Vertex(vertices.size(), previousVertex.getPosition(),
+                        previousVertex.getWeightsData());
+                duplicateVertex.setTextureIndex(newTextureIndex);
+                duplicateVertex.setNormalIndex(newNormalIndex);
+                previousVertex.setDuplicateVertex(duplicateVertex);
+                vertices.add(duplicateVertex);
+                indices.add(duplicateVertex.getIndex());
+                return duplicateVertex;
+            }
+
+        }
+    }
+
+    public static Vertex processVertex(List<Vertex> vertices, List<Integer> indices,
+            int posIndex, int normIndex, int texIndex) {
+        Vertex currentVertex = vertices.get(posIndex);
+        if (!currentVertex.isSet()) {
+            currentVertex.setTextureIndex(texIndex);
+            currentVertex.setNormalIndex(normIndex);
+            indices.add(posIndex);
+            return currentVertex;
+        } else {
+            return Utils.dealWithAlreadyProcessedVertex(currentVertex, texIndex, normIndex, indices, vertices);
+        }
+    }
+
+    public static void removeUnusedVertices(List<Vertex> vertices) {
+        for (Vertex vertex : vertices) {
+            vertex.averageTangents();
+            if (!vertex.isSet()) {
+                vertex.setTextureIndex(0);
+                vertex.setNormalIndex(0);
+            }
+        }
     }
 }

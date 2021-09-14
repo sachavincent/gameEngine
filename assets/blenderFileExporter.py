@@ -2,7 +2,7 @@ bl_info = {
     "name": "Custom File Exporter",
     "description": "",
     "author": "Alykas",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (2, 80, 0),
     "location": "3D View > Tools",
     "warning": "", # used for warning icon and text in addons panel
@@ -30,15 +30,15 @@ from bpy.types import (Panel,
                         AddonPreferences,
                         Operator,
                         PropertyGroup)
-                      
-MTL_FILENAME = "materials.mtl"
-MODEL_FILENAME = "vertices.obj"
+                        
+COLLADA_EXTENSION = ".dae"
+OBJ_EXTENSION = ".obj"
+MTL_EXTENSION = ".mtl"
 TEXTURE_FILENAME = "texture.png"
 NORMALS_FILENAME = "normals.png"
-COLLADA_FILENAME = "vertices.dae"
 
-def exportDAE(folder, selected):
-    daeFile = os.path.join(folder, COLLADA_FILENAME)
+def exportDAE(folder, fileName, selected):
+    daeFile = os.path.join(folder, fileName + COLLADA_EXTENSION)
     
     bpy.ops.wm.collada_export(
         filepath=daeFile, 
@@ -139,9 +139,9 @@ def exportDAE(folder, selected):
         
     return 0
 
-def exportOBJ(folder, selected):
-    mtlFile = os.path.join(folder, MTL_FILENAME)
-    objFile = os.path.join(folder, MODEL_FILENAME)
+def exportOBJ(folder, fileName, selected):
+    mtlFile = os.path.join(folder, fileName + MTL_EXTENSION)
+    objFile = os.path.join(folder, fileName + OBJ_EXTENSION)
     textureFile = os.path.join(folder, TEXTURE_FILENAME)
     normalsFile = os.path.join(folder, NORMALS_FILENAME)
     
@@ -282,7 +282,7 @@ def exportOBJ(folder, selected):
         
     for i in range(len(objFileData)):
         if "mtllib" in objFileData[i]: # Rename file
-            objFileData[i] = "mtllib " + MTL_FILENAME + "\n"
+            objFileData[i] = "mtllib " + fileName + MTL_EXTENSION + "\n"
         if line.startswith('usemtl'):
             currentMaterial = line.split(" ")[1][:-1] # new Material
             nbGroups = 1
@@ -316,7 +316,7 @@ def exportOBJ(folder, selected):
     
     return returnValue
 
-def export(type, merge, folder):
+def export(type, fileName, merge, folder):
     bpy.ops.wm.save_mainfile() 
     
     if not os.path.exists(folder):
@@ -352,9 +352,9 @@ def export(type, merge, folder):
     selectedObj = bpy.context.selected_objects[0]
         
     if type == "DAE":
-        returnValue = exportDAE(folder, selectedObj)
+        returnValue = exportDAE(folder, fileName, selectedObj)
     elif type == "OBJ":
-        returnValue = exportOBJ(folder, selectedObj)
+        returnValue = exportOBJ(folder, fileName, selectedObj)
     
     bpy.ops.object.delete() # Delete copies
     for obj in previousSelection: # Return to previous selection
@@ -412,6 +412,13 @@ class PG_MyProperties (PropertyGroup):
         description="If several objects are selected, they are merged",
         default = False)
 
+    file_name : StringProperty(
+        name="File name",
+        description="File name without the extension",
+        default="vertices",
+        maxlen=64,
+        subtype='NONE')
+
     string_path : StringProperty(
         name="File path",
         description="Export path",
@@ -435,9 +442,18 @@ class OT_Exporter(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         exporterTool = scene.my_tool
-
+        
+        fileName = exporterTool.file_name
+        if not fileName:
+            self.report({"ERROR"}, "Invalid file name, please specify file name")
+            return 1
+        
+        if "." in fileName:
+            self.report({"ERROR"}, "Invalid file name, please remove extension")
+            return 1
+        
         options = ['FINISHED', 'CANCELLED']
-        res = export(exporterTool.enum_fileFormat, exporterTool.merge_bool, bpy.path.abspath(exporterTool.string_path))
+        res = export(exporterTool.enum_fileFormat, fileName, exporterTool.merge_bool, bpy.path.abspath(exporterTool.string_path))
         if res == 0:
             self.report({"INFO"}, "Exported '" + bpy.context.selected_objects[0].name + "' successfully!")  
         elif res == 1:
@@ -460,6 +476,7 @@ class OT_Exporter(bpy.types.Operator):
             self.report({"WARNING"}, "Wrong Normals Color space!")
         elif res == 10:
             self.report({"ERROR"}, "No active object!")
+            
         return {options[min(1, res)]}
 
 # ------------------------------------------------------------------------
@@ -489,6 +506,7 @@ class OBJECT_PT_my_panel (Panel):
         exporterTool = scene.my_tool
 
         layout.prop(exporterTool, "merge_bool")
+        layout.prop(exporterTool, "file_name")
         layout.prop(exporterTool, "enum_fileFormat", text="") 
         layout.prop(exporterTool, "string_path")
         layout.operator("object.exporter")

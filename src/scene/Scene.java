@@ -167,7 +167,10 @@ public class Scene {
         GameObject gameObject = GameObject.getObjectFromClass(Player.getSelectedGameObject());
         if (gameObject == null)
             return;
-        gameObject.addComponent(new DirectionComponent(Player.getDirection()));
+        if (gameObject.hasComponent(DirectionComponent.class))
+            gameObject.getComponent(DirectionComponent.class).setDirection(Player.getDirection());
+        else
+            gameObject.addComponent(new DirectionComponent(Player.getDirection()));
         if (gameObject.hasComponent(PreviewComponent.class))
             gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint);
         addRenderableGameObject(gameObject.getComponent(RendererComponent.class).getRenderer(), gameObject);
@@ -291,7 +294,10 @@ public class Scene {
             return false;
 
         GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
-        objectFromClass.addComponent(new DirectionComponent(direction));
+        if (objectFromClass.hasComponent(DirectionComponent.class))
+            objectFromClass.getComponent(DirectionComponent.class).setDirection(direction);
+        else
+            objectFromClass.addComponent(new DirectionComponent(direction));
         if (objectFromClass.hasComponent(PreviewComponent.class))
             objectFromClass.getComponent(PreviewComponent.class).setPreviewPosition(pos);
         boolean res = canGameObjectBePlaced(objectFromClass, pos);

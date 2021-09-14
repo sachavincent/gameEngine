@@ -62,13 +62,14 @@ public class MousePicker {
         this.viewMatrix = Camera.getInstance().getViewMatrix();
 
         this.currentRay = calculateMouseRay();
-        this.gameObject = null;
         this.intersectionPoint = null;
 
         getHoveredCell();
     }
 
     public void updateIntersectionOnClick() {
+        this.gameObject = null;
+
         final Map<GameObject, Vector3f> gameObjectIntersections = new HashMap<>();
         // Distance intersection <-> camera
         Scene.getInstance().getGameObjects().forEach(gameObject -> {
@@ -87,7 +88,7 @@ public class MousePicker {
                 .orElse(null);
         if (gameObjectDoubleEntry != null) {
             this.gameObject = gameObjectDoubleEntry.getKey();
-            this.intersectionPoint = gameObjectDoubleEntry.getValue().sub(new Vector3f(.5f, 0, .5f));
+//            this.intersectionPoint = gameObjectDoubleEntry.getValue().sub(new Vector3f(.5f, 0, .5f));
         }
     }
 
@@ -110,8 +111,7 @@ public class MousePicker {
         Vector3f intersectionPoint = boundingBox.getPlanes().stream()
                 .map(plane3D -> {
                     plane3D = plane3D.add(finalPosition);
-//                    return intersectionWithPlane(plane3D, false);
-                    return new Vector3f();
+                    return intersectionWithPlane(plane3D, false);
                 }).filter(Objects::nonNull).findFirst().orElse(null);
         if (intersectionPoint == null)
             return null;
