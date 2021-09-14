@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.structures.AttributeData.DataType;
 import util.math.Vector3f;
-import util.parsing.ModelType;
 
 public abstract class Vao {
 
@@ -111,112 +110,6 @@ public abstract class Vao {
             attributeData.create(vao);
 
         vao.unbind();
-        return vao;
-    }
-
-    /**
-     * Stores the mesh data in a VAO.
-     *
-     * @param data - all the data about the mesh that needs to be stored in the
-     * VAO.
-     * @param modelType - type of model
-     * @return The VAO containing all the mesh data for the model.
-     */
-    @Deprecated
-    public static Vao createVao(IndexData data, ModelType modelType) {
-        Vao vao = new IndexBufferVao();
-//        vao.bind();
-//
-//        for (Entry<Material, Integer[]> materialIndices : data.getIndicesList().entrySet())
-//            vao.createIndexBuffer(materialIndices.getKey(), materialIndices.getValue());
-//
-//        vao.createFloatAttribute(0, data.getVertices(), 3);
-//        vao.createFloatAttribute(1, data.getTextureCoords(), 2);
-//        vao.createFloatAttribute(2, data.getNormals(), 3);
-//
-//        Vbo vbo;
-//        switch (modelType) {
-//            case DEFAULT:
-//                break;
-//            case ANIMATED:
-//                vao.createIntAttribute(4, data.getJointIds(), 3);
-//                vao.createFloatAttribute(5, data.getVertexWeights(), 3);
-//                break;
-//            case INSTANCED:
-//                vbo = new Vbo(GL_ARRAY_BUFFER);
-//                vbo.bind();
-//                vao.dataVbos.add(vbo);
-//                vao.instanced = true;
-//                vao.instanceVbo = vbo;
-//
-//                for (int i = 0; i < 4; i++) {
-//                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-//                    GL41.glVertexAttribDivisor(i + 6, 1);
-//                    glEnableVertexAttribArray(i + 6);
-//                }
-//                vbo.unbind();
-//                break;
-//            case WITH_NORMAL_MAP:
-//                vao.createFloatAttribute(3, data.getTangents(), 3);
-//                break;
-//            case ANIMATED_INSTANCED:
-//                vao.createIntAttribute(4, data.getJointIds(), 3);
-//                vao.createFloatAttribute(5, data.getVertexWeights(), 3);
-//
-//                vbo = new Vbo(GL_ARRAY_BUFFER);
-//                vbo.bind();
-//                vao.dataVbos.add(vbo);
-//                vao.instanced = true;
-//                vao.instanceVbo = vbo;
-//
-//                for (int i = 0; i < 4; i++) {
-//                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-//                    GL41.glVertexAttribDivisor(i + 6, 1);
-//                    glEnableVertexAttribArray(i + 6);
-//                }
-//                vbo.unbind();
-//                break;
-//            case ANIMATED_WITH_NORMAL_MAP:
-//                vao.createFloatAttribute(3, data.getTangents(), 3);
-//                vao.createIntAttribute(4, data.getJointIds(), 3);
-//                vao.createFloatAttribute(5, data.getVertexWeights(), 3);
-//                break;
-//            case INSTANCED_WITH_NORMAL_MAP:
-//                vao.createFloatAttribute(3, data.getTangents(), 3);
-//
-//                vbo = new Vbo(GL_ARRAY_BUFFER);
-//                vbo.bind();
-//                vao.dataVbos.add(vbo);
-//                vao.instanced = true;
-//                vao.instanceVbo = vbo;
-//
-//                for (int i = 0; i < 4; i++) {
-//                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-//                    GL41.glVertexAttribDivisor(i + 6, 1);
-//                    glEnableVertexAttribArray(i + 6);
-//                }
-//                vbo.unbind();
-//                break;
-//            case ANIMATED_INSTANCED_WITH_NORMAL_MAP:
-//                vao.createFloatAttribute(3, data.getTangents(), 3);
-//                vao.createIntAttribute(4, data.getJointIds(), 3);
-//                vao.createFloatAttribute(5, data.getVertexWeights(), 3);
-//
-//                vbo = new Vbo(GL_ARRAY_BUFFER);
-//                vbo.bind();
-//                vao.dataVbos.add(vbo);
-//                vao.instanced = true;
-//                vao.instanceVbo = vbo;
-//
-//                for (int i = 0; i < 4; i++) {
-//                    GL20.glVertexAttribPointer(i + 6, 4, GL_FLOAT, false, 64, i * 16);
-//                    GL41.glVertexAttribDivisor(i + 6, 1);
-//                    glEnableVertexAttribArray(i + 6);
-//                }
-//                vbo.unbind();
-//                break;
-//        }
-//        vao.unbind();
         return vao;
     }
 

@@ -1,6 +1,7 @@
 package renderEngine.structures;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractData<VaoType extends Vao> {
@@ -19,8 +20,11 @@ public abstract class AbstractData<VaoType extends Vao> {
         this.attributesData.add(attributeData);
     }
 
+    /**
+     * @return unmodifiable list containing the attributes
+     */
     public final List<AttributeData<?>> getAttributesData() {
-        return this.attributesData;
+        return Collections.unmodifiableList(this.attributesData);
     }
 
     public boolean isEmpty() {
@@ -36,5 +40,4 @@ public abstract class AbstractData<VaoType extends Vao> {
     public Class<VaoType> getVaoType() {
         return this.vaoType;
     }
-
 }

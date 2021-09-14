@@ -19,7 +19,6 @@ public class InstancedAttribute extends AttributeData<Float> {
     public <V extends Vao> void create(V vao) {
         Vbo vbo = new Vbo(GL_ARRAY_BUFFER);
         vbo.bind();
-//        vao.dataVbos.add(vbo);
         vao.setInstanceVbo(vbo);
 
         for (int i = 0; i < this.nbAttributes; i++) {

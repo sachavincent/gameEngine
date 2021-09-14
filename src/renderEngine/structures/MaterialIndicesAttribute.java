@@ -17,10 +17,6 @@ public class MaterialIndicesAttribute extends IndicesAttribute {
         this.material = material;
     }
 
-    public Material getMaterial() {
-        return this.material;
-    }
-
     @Override
     public <V extends Vao> void create(V vao) {
         ((IndexBufferVao) vao).createIndexBuffer(this.material, this.data);

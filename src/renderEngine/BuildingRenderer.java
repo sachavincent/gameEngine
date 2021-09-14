@@ -96,8 +96,10 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
                     prepareInstance(modelEntity);
                     for (Vbo vbo : indexVbos) {
                         vbo.bind();
+                        Material material = Material.DEFAULT;
                         if (vbo instanceof MaterialIndexVbo)
-                            prepareMaterial(((MaterialIndexVbo) vbo).getMaterial(), false);
+                            material = ((MaterialIndexVbo) vbo).getMaterial();
+                        prepareMaterial(material, false);
 
                         glDrawElements(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0);
                         vbo.unbind();
@@ -119,7 +121,6 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
                 int k = 0;
                 for (ModelEntity modelEntity : modelEntities) {
                     Matrix4f transformationMatrix = modelEntity.getTransformationMatrix();
-
                     this.shader.loadTransparency(modelEntity.getTransparency()); //TODO: Add transparency in floatbuffer
                     try {
                         floatBuffer = transformationMatrix.store(k++ * 16, floatBuffer);
@@ -133,7 +134,8 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
                 glBufferData(GL_ARRAY_BUFFER, floatBuffer, GL_DYNAMIC_DRAW);
                 Vbo vbo = vboMaterials.get(vao).get(material);
                 vbo.bind();
-                GL46.glDrawElementsInstanced(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0, modelEntities.size());
+                GL46.glDrawElementsInstanced(GL_TRIANGLES, vbo.getDataLength(), GL_UNSIGNED_INT, 0,
+                        modelEntities.size());
                 instanceVbo.unbind();
                 vbo.unbind();
                 vao.unbind();
@@ -145,18 +147,11 @@ public class BuildingRenderer extends GameObjectRenderer<GameObjectShader> {
     }
 
     void prepareMaterial(Material material, boolean instanced) {
-//        if (texture.isTransparent())
-//            MasterRenderer.disableCulling();
-
         this.shader.loadUseFakeLighting(false);
-        this.shader.loadLights(material.hasNormalMap(), Camera.getInstance().getViewMatrix());
         this.shader.loadIsInstanced(instanced);
-        this.shader.loadTransparency(1);
+        this.shader.loadLights(material.hasNormalMap(), Camera.getInstance().getViewMatrix());
 
         this.shader.loadMaterial(material);
-
-//        if (texture.isTransparent())
-//            MasterRenderer.enableCulling(); // Reenable culling
     }
 
     @Override

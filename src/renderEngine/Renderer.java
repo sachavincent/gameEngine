@@ -12,6 +12,7 @@ public abstract class Renderer<Shader extends ShaderProgram> {
 
     protected Renderer(Shader shader, GameObjectRenderer.LoadShaderCallback<Shader> loadShaderCallback) {
         this.shader = shader;
+
         loadShaderCallback.onLoadingShader(this.shader);
     }
 

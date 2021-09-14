@@ -6,6 +6,7 @@ import java.util.*;
 import models.AbstractModel;
 import renderEngine.shaders.IGameObjectShader;
 import renderEngine.shaders.ShaderProgram;
+import scene.Scene;
 import scene.gameObjects.GameObject;
 
 public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends Renderer<Shader> {
@@ -36,8 +37,7 @@ public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends R
 
     @Override
     public final void render() {
-        if (!this.shader.isStarted())
-            this.shader.start();
+        this.shader.start();
 
         doPreRender();
 
@@ -51,9 +51,6 @@ public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends R
     protected abstract void doRender(Set<Map.Entry<AbstractModel, List<ModelEntity>>> entrySet);
 
     public final void addToRender(GameObject gameObject) {
-        if (!this.shader.isStarted())
-            this.shader.start();
-
         if (!this.renderedGameObjects.contains(gameObject.getId())) {
             this.renderedGameObjects.add(gameObject.getId());
             Entity entityFromGameObject = GameObject.createEntityFromGameObject(gameObject, this.displayBoundingBoxes);
@@ -80,6 +77,13 @@ public abstract class GameObjectRenderer<Shader extends ShaderProgram> extends R
 
     public final void switchDisplayBoundingBoxes() {
         this.displayBoundingBoxes = !this.displayBoundingBoxes;
+        new ArrayList<>(this.renderedGameObjects).forEach(idObj -> {
+            GameObject gameObjectFromId = Scene.getInstance().getGameObjectFromId(idObj);
+            if (gameObjectFromId != null) {
+                removeGameObject(gameObjectFromId);
+                addToRender(gameObjectFromId);
+            }
+        });
     }
 
     @Override

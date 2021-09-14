@@ -52,7 +52,6 @@ vec4 calcLightColor(vec3 lightColor, float lightIntensity, vec3 toLightVec, vec3
     // Diffuse Light
     float diffuseFactor = max(dot(normal, toLightVec), 0.0);
     vec4 diffuseColor = diffuseValue * vec4(lightColor, 1.0) * lightIntensity * diffuseFactor;
-
     // Specular Light
     vec3 unitLightVector = normalize(toLightVec);
     vec3 lightDirection = -unitLightVector;
@@ -122,4 +121,5 @@ void main() {
     if (transparency >= 0) { // Set by user
         out_Color.a = transparency;
     }
+    out_Color = vec4(diffuseValue.rgb, 1.0);
 }

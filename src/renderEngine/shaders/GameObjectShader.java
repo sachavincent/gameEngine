@@ -17,19 +17,19 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
 
     private static final int MAX_LIGHTS = 10;
 
-    private static final String VERTEX_FILE = "gameObjectVertexShader.glsl";
+    private static final String VERTEX_FILE   = "gameObjectVertexShader.glsl";
     private static final String FRAGMENT_FILE = "gameObjectFragmentShader.glsl";
 
-    protected int location_transformationMatrix;
-    protected int location_projectionMatrix;
-    protected int location_viewMatrix;
-    protected int[] location_lightPosition;
-    protected int[] location_lightColor;
-    protected int[] location_attenuation;
-    protected int location_useFakeLighting;
-    protected int location_skyColor;
-    protected int location_plane;
-    protected int location_useNormalMap;
+    protected int            location_transformationMatrix;
+    protected int            location_projectionMatrix;
+    protected int            location_viewMatrix;
+    protected int[]          location_lightPosition;
+    protected int[]          location_lightColor;
+    protected int[]          location_attenuation;
+    protected int            location_useFakeLighting;
+    protected int            location_skyColor;
+    protected int            location_plane;
+    protected int            location_useNormalMap;
     protected int            location_isInstanced;
     protected int            location_transparency;
     protected StructLocation location_material;
@@ -127,8 +127,7 @@ public class GameObjectShader extends ShaderProgram implements IGameObjectShader
                 loadVector(this.location_lightPosition[i],
                         getEyeSpacePosition(light.getComponent(PositionComponent.class).getPosition(), viewMatrix));
             else
-                loadVector(this.location_lightPosition[i],
-                        light.getComponent(PositionComponent.class).getPosition());
+                loadVector(this.location_lightPosition[i], light.getComponent(PositionComponent.class).getPosition());
             LightComponent lightComponent = light.getComponent(LightComponent.class);
             loadVector(this.location_lightColor[i], lightComponent.getColor());
             loadVector(this.location_attenuation[i], lightComponent.getAttenuation());
