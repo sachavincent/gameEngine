@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 
 import display.Display;
+import engineTester.Rome;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import util.math.Vector3f;
 
 public class NPCTest {
 
-    private static final Scene scene = Scene.getInstance();
+    private static final Scene scene = Rome.getGame().getScene();
 
     private static NPC NPC;
 

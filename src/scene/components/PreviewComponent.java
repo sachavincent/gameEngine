@@ -1,25 +1,28 @@
 package scene.components;
 
-import entities.ModelEntity;
 import models.AbstractModel;
+import scene.preview.PreviewedModelsSupplier;
+import scene.preview.SinglePreviewsSupplier;
 import terrain.TerrainPosition;
 
 public class PreviewComponent extends Component {
 
-    private final ModelEntity previewTexture;
+    private final AbstractModel           previewModel;
+    private final PreviewedModelsSupplier previewSupplier;
 
     private TerrainPosition previewPosition;
 
-    public PreviewComponent(AbstractModel previewTexture) {
-        this(previewTexture.toModelEntity());
+    public PreviewComponent(AbstractModel previewModel) {
+        this(previewModel, SinglePreviewsSupplier.getInstance());
     }
 
-    public PreviewComponent(ModelEntity previewTexture) {
-        this.previewTexture = previewTexture;
+    public PreviewComponent(AbstractModel previewModel, PreviewedModelsSupplier previewedModelsSupplier) {
+        this.previewModel = previewModel;
+        this.previewSupplier = previewedModelsSupplier;
     }
 
-    public ModelEntity getTexture() {
-        return this.previewTexture;
+    public AbstractModel getModel() {
+        return this.previewModel;
     }
 
     public TerrainPosition getPreviewPosition() {
@@ -27,8 +30,11 @@ public class PreviewComponent extends Component {
     }
 
     public void setPreviewPosition(TerrainPosition previewPosition) {
-//        System.out.println("setting preview position: " + previewPosition);
         this.previewPosition = previewPosition;
         update();
+    }
+
+    public PreviewedModelsSupplier getPreviewSupplier() {
+        return this.previewSupplier;
     }
 }

@@ -1,5 +1,6 @@
 package scene.components;
 
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import scene.Scene;
-import scene.components.callbacks.AddComponentCallback;
+import scene.components.callbacks.ObjectPlacedCallback;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
@@ -21,23 +22,23 @@ public class ConnectionsComponent<ConnectionType> extends Component {
     private final Class<ConnectionType> connectionTypeClass;
 
     public ConnectionsComponent(Class<ConnectionType> clazz, boolean west, boolean north, boolean east, boolean south,
-            AddComponentCallback addComponentCallback) {
-        this(clazz, new boolean[]{west, north, east, south}, addComponentCallback);
+            ObjectPlacedCallback objectPlacedCallback) {
+        this(clazz, new boolean[]{west, north, east, south}, objectPlacedCallback);
     }
 
     public ConnectionsComponent(Class<ConnectionType> clazz, boolean[] accessPoints,
-            AddComponentCallback addComponentCallback) {
-        super((gameObject, position) -> {
+            ObjectPlacedCallback objectPlacedCallback) {
+        super((gameObject) -> {
             Set<ConnectionsComponent<?>> toUpdate = new HashSet<>();
-            TerrainPosition pos = position.toTerrainPosition();
-            Scene scene = Scene.getInstance();
+            TerrainPosition pos = gameObject.getPosition().toTerrainPosition();
+            Scene scene = Rome.getGame().getScene();
             int id = gameObject.getId();
             ConnectionsComponent<ConnectionType> connectionsComponent = gameObject
                     .getComponent(ConnectionsComponent.class);
             if (connectionsComponent == null)
                 return;
 
-            Terrain terrain = Scene.getInstance().getTerrain();
+            Terrain terrain = Rome.getGame().getScene().getTerrain();
             HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
             if (heightMapComponent == null)
                 return;
@@ -180,8 +181,8 @@ public class ConnectionsComponent<ConnectionType> extends Component {
             }
             if (!toUpdate.isEmpty()) {
                 toUpdate.add(connectionsComponent);
-                Scene.getInstance().getIdGameObjectsForComponentClass(ConnectionsComponent.class, false).stream()
-                        .map(idObj -> Scene.getInstance().getGameObjectFromId(idObj))
+                Rome.getGame().getScene().getIdGameObjectsForComponentClass(ConnectionsComponent.class).stream()
+                        .map(idObj -> Rome.getGame().getScene().getGameObjectFromId(idObj))
                         .filter(Objects::nonNull)
                         .map(gameObjectFromId -> gameObjectFromId.getComponent(ConnectionsComponent.class))
                         .filter(component -> component.getConnectionTypeClass() ==
@@ -191,7 +192,7 @@ public class ConnectionsComponent<ConnectionType> extends Component {
                 toUpdate.forEach(Component::update);
             }
 
-            addComponentCallback.onAddComponent(gameObject, position);
+            objectPlacedCallback.onObjPlaced(gameObject);
         });
 
         this.accessPoints[0] = accessPoints[0];
@@ -202,8 +203,8 @@ public class ConnectionsComponent<ConnectionType> extends Component {
         this.connectionTypeClass = clazz;
     }
 
-    public ConnectionsComponent(Class<ConnectionType> clazz, AddComponentCallback addComponentCallback) {
-        this(clazz, new boolean[]{true, true, true, true}, addComponentCallback);
+    public ConnectionsComponent(Class<ConnectionType> clazz, ObjectPlacedCallback objectPlacedCallback) {
+        this(clazz, new boolean[]{true, true, true, true}, objectPlacedCallback);
     }
 
     public boolean isConnected(Direction direction) {

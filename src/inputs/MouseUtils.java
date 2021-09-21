@@ -8,9 +8,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static util.math.Maths.isPointIn2DBounds;
 
 import display.Display;
-import engineTester.Game;
 import engineTester.Game.GameState;
+import engineTester.Rome;
 import entities.Camera;
+import entities.Camera.Direction;
 import guis.Gui;
 import guis.GuiComponent;
 import guis.basics.GuiEllipse;
@@ -33,6 +34,7 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import terrain.TerrainPosition;
 import util.MousePicker;
+import util.Offset;
 import util.math.Vector2f;
 import util.math.Vector3f;
 
@@ -47,8 +49,6 @@ public class MouseUtils {
 
     private static State state = State.DEFAULT;
     private static State previousState;
-
-    private static final Scene scene = Scene.getInstance();
 
     public static final List<GuiComponent>       ENTERED_GUI_COMPONENTS = new ArrayList<>();
     private static      List<GuiClickablePreset> clickables;
@@ -136,7 +136,7 @@ public class MouseUtils {
             var dX = cursorPos.getX() - p2.getX();
             var dY = cursorPos.getY() - p2.getY();
             var dX21 = p2.getX() - p1.getX();
-            var dY12 = p1.getY()- p2.getY();
+            var dY12 = p1.getY() - p2.getY();
             var D = dY12 * (p0.getX() - p2.getX()) + dX21 * (p0.getY() - p2.getY());
             var s = dY12 * dX + dX21 * dY;
             var t = (p2.getY() - p0.getY()) * dX + (p0.getX() - p2.getX()) * dY;
@@ -150,7 +150,7 @@ public class MouseUtils {
     }
 
     public static void setupListeners() {
-        clickables = new ArrayList<>(Game.getInstance().getAllGuis()).stream()
+        clickables = new ArrayList<>(Rome.getAllGuis()).stream()
                 .map(gui -> gui.getAllComponents().stream()
                         .filter(GuiClickablePreset.class::isInstance)
                         .filter(GuiAbstractShapePreset.class::isInstance)
@@ -160,10 +160,10 @@ public class MouseUtils {
         Display.getWindow().setMouseButtonCallback((w, button, action, mods) -> {
             boolean inDebugGui =
                     MouseUtils.isCursorInGui(GuiDebug.getInstance()) && GuiDebug.getInstance().isDisplayed();
-            boolean inGui = Game.getInstance().getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
+            boolean inGui = Rome.getDisplayedGuis().stream().anyMatch(MouseUtils::isCursorInGui);
             final List<GuiClickablePreset> clickableComponents = new ArrayList<>(
                     inDebugGui ? Collections.singletonList(GuiDebug.getInstance())
-                            : Game.getInstance().getDisplayedGuis())
+                            : Rome.getDisplayedGuis())
                     .stream().map(gui -> gui.getAllComponents().stream()
                             .filter(GuiComponent::isDisplayed)
                             .filter(GuiClickablePreset.class::isInstance)
@@ -176,7 +176,7 @@ public class MouseUtils {
 
             switch (button) {
                 case GLFW_MOUSE_BUTTON_1:
-//                    if (!inGui && Game.getInstance().getGameState() == GameState.STARTED)
+//                    if (!inGui && Rome.getGame().getGameState() == GameState.STARTED)
 //                        onM1OnTerrain(action);
 
                     switch (action) {
@@ -184,7 +184,7 @@ public class MouseUtils {
                             if (inGui)
                                 clickableComponents.forEach(component -> component.onMousePress(GLFW_MOUSE_BUTTON_1));
 
-                            Game.getInstance().getGuiTextInputs().stream()
+                            Rome.getGuiTextInputs().stream()
                                     .filter(GuiComponent::isFocused)
                                     .filter(GuiTextInput::isUnfocusOnClick).forEach(guiTextInput -> {
                                         if (!MouseUtils.isCursorInGuiComponent(guiTextInput.getOutline()))
@@ -272,9 +272,11 @@ public class MouseUtils {
         });
 
         Display.getWindow().setScrollCallback((w, xoffset, yoffset) -> {
-            Game.getInstance().getDisplayedGuis().forEach(
+            Rome.getDisplayedGuis().forEach(
                     gui -> gui.getAllComponents().forEach(guiComponent -> guiComponent.onScroll(xoffset, yoffset)));
-            if (Game.getInstance().getGameState() == GameState.STARTED) {
+            if (!Rome.isGameStarted())
+                return;
+            if (Rome.getGame().getGameState() == GameState.DEFAULT) {
                 if (yoffset > 0)
                     Camera.getInstance().moveCloser();
                 else if (yoffset < 0)
@@ -383,16 +385,14 @@ public class MouseUtils {
     public static void OnMouseMove(Vector2f pos) {
         GuiSelectedItem selectedItemGui = GuiSelectedItem.getInstance();
 
-        Game game = Game.getInstance();
-
-        List<Gui> enteredGuis = game.getDisplayedGuis().stream()
+        List<Gui> enteredGuis = Rome.getDisplayedGuis().stream()
                 .filter(MouseUtils::isCursorInGui).collect(Collectors.toList());
 
         boolean isMouseInGui = !enteredGuis.isEmpty();
         if (isMouseInGui)
             updateGuis(enteredGuis);
 
-        boolean gameStarted = game.getGameState() == GameState.STARTED;
+        boolean gameStarted = Rome.isGameStarted();
 
         if (!isMouseInGui && gameStarted)
             MousePicker.getInstance().update();
@@ -401,6 +401,8 @@ public class MouseUtils {
         boolean isMouseOnTerrain = MousePicker.getInstance().isPointOnTerrain();
         if (!gameStarted)
             return;
+        Scene scene = Rome.getGame().getScene();
+
         { //TEMP
             if (middleMouseButtonPressed) {
                 Camera camera = Camera.getInstance();
@@ -430,6 +432,7 @@ public class MouseUtils {
         TerrainPosition terrainPos;
         selectedItemGui.updatePosition();
         Vector3f intersectionPoint = MousePicker.getInstance().getIntersectionPoint();
+        Direction previewDirection = Rome.getGame().getScene().getPreviewDirection();
         switch (state) {
             case DEFAULT:
                 if (isMouseInGui) {
@@ -466,20 +469,19 @@ public class MouseUtils {
             case ROAD:
             case BUILDING:
                 if (isMouseInGui) {
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     previousState = state;
                     state = State.IN_GUI;
                     GuiSelectedItem.getInstance().setDisplayed(true);
-                } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
-                    GuiSelectedItem.getInstance().setDisplayed(false);
-                    if (scene.getPreviewedGameObjects().isEmpty())
-                        scene.addToPreview(terrainPos);
-                    else
-                        scene.changePreviewPosition(terrainPos);
                 } else {
-                    scene.resetPreviewedPositions(true);
-                    GuiSelectedItem.getInstance().setDisplayed(true);
+                    if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
+                            (terrainPos = intersectionPoint.toTerrainPosition()), previewDirection)) {
+                        GuiSelectedItem.getInstance().setDisplayed(false);
+                        scene.addToPreview(Player.getSelectedGameObject(), terrainPos, previewDirection);
+                    } else {
+                        scene.resetPreviewedPositions();
+                        GuiSelectedItem.getInstance().setDisplayed(true);
+                    }
                 }
                 break;
             case PRESSED_WITH_ROAD:
@@ -487,33 +489,28 @@ public class MouseUtils {
                     state = State.IN_GUI;
                     previousState = State.PRESSED_WITH_ROAD;
                     GuiSelectedItem.getInstance().setDisplayed(true);
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
-                    if (!scene.getPreviewPositions().contains(terrainPos)) {
-                        scene.addToPreview(terrainPos);
+                        (terrainPos = intersectionPoint.toTerrainPosition()), previewDirection)) {
+                    if (!scene.getPreviewedPositions().contains(terrainPos)) {
+                        scene.addToPreview(Player.getSelectedGameObject(), terrainPos, previewDirection);
                     }
                 } else {
                     GuiSelectedItem.getInstance().setDisplayed(true);
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                 }
                 break;
             case PRESSED_WITH_BUILDING:
-//                scene.resetPreviewedPositions(true);
-
                 if (isMouseInGui) {
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     state = State.IN_GUI;
                     previousState = State.PRESSED_WITH_BUILDING;
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 } else if (isMouseOnTerrain && scene.canGameObjectClassBePlaced(Player.getSelectedGameObject(),
-                        (terrainPos = intersectionPoint.toTerrainPosition()), Player.getDirection())) {
-                    if (scene.getPreviewedGameObjects().isEmpty())
-                        scene.addToPreview(terrainPos);
-                    else
-                        scene.changePreviewPosition(terrainPos);
+                        (terrainPos = intersectionPoint.toTerrainPosition()), previewDirection)) {
+                    scene.addToPreview(Player.getSelectedGameObject(), terrainPos, previewDirection);
                 } else {
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     GuiSelectedItem.getInstance().setDisplayed(true);
                 }
                 break;
@@ -553,6 +550,10 @@ public class MouseUtils {
     }
 
     private static void OnM1Released() {
+        if (!Rome.isGameStarted())
+            return;
+
+        Scene scene = Rome.getGame().getScene();
         switch (state) {
             case DEFAULT:
             case ROAD:
@@ -561,7 +562,7 @@ public class MouseUtils {
                 break;
             case IN_GUI:
                 if (previousState == State.PRESSED_WITH_BUILDING || previousState == State.PRESSED_WITH_ROAD) {
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     if (previousState == State.PRESSED_WITH_ROAD) {
                         previousState = State.ROAD;
                     } else {
@@ -588,8 +589,9 @@ public class MouseUtils {
     }
 
     private static void OnM2Pressed() {
+        Scene scene = Rome.getGame().getScene();
         MousePicker mousePicker = MousePicker.getInstance();
-        if (Game.getInstance().getGameState() == GameState.STARTED) {
+        if (Rome.getGame().getGameState() == GameState.DEFAULT) {
             switch (state) {
                 case DEFAULT:
                     //null
@@ -597,7 +599,7 @@ public class MouseUtils {
                 case IN_GUI:
                     if (previousState != null) {
                         previousState = null;
-                        scene.resetPreviewedPositions(true);
+                        scene.resetPreviewedPositions();
                         GuiSelectedItem.getInstance().setDisplayed(false);
                         GuiSelectedItem.getInstance().removeSelectedItem();
                     }
@@ -614,17 +616,17 @@ public class MouseUtils {
                 case ROAD:
                 case BUILDING:
                     state = State.DEFAULT;
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     GuiSelectedItem.getInstance().setDisplayed(false);
                     GuiSelectedItem.getInstance().removeSelectedItem();
                     break;
                 case PRESSED_WITH_BUILDING:
                     state = State.BUILDING;
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     break;
                 case PRESSED_WITH_ROAD:
                     state = State.ROAD;
-                    scene.resetPreviewedPositions(true);
+                    scene.resetPreviewedPositions();
                     break;
                 default:
                     throw new IllegalStateException("Impossible state : " + state.name());
@@ -633,7 +635,7 @@ public class MouseUtils {
     }
 
     private static void OnM2Released() {
-        if (Game.getInstance().getGameState() == GameState.STARTED) {
+        if (Rome.getGame().getGameState() == GameState.DEFAULT) {
             switch (state) {
                 case DEFAULT:
                 case IN_GUI:
@@ -654,6 +656,7 @@ public class MouseUtils {
     }
 
     private static void OnMidPressed() {
+        Scene scene = Rome.getGame().getScene();
         switch (state) {
             case DEFAULT:
             case IN_GUI:
@@ -663,7 +666,7 @@ public class MouseUtils {
                 break;
             case BUILDING:
             case PRESSED_WITH_BUILDING:
-                scene.rotatePreview(90);
+                scene.offsetPreview(new Offset(new Vector3f(), 90));
                 break;
         }
     }

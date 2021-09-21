@@ -4,7 +4,7 @@ import static guis.basics.GuiRectangle.POSITIONS_FILLED;
 import static guis.basics.GuiRectangle.POSITIONS_UNFILLED;
 import static org.lwjgl.opengl.GL11.*;
 
-import engineTester.Game;
+import engineTester.Rome;
 import guis.GuiInterface;
 import guis.GuiTexture;
 import guis.basics.GuiShape;
@@ -55,8 +55,8 @@ public class GuiRenderer {
 
         TextMaster.getInstance().removeText();
 
-        Game.getInstance().getGuiTextInputs().forEach(GuiTextInput::updateCursor);
-        Game.getInstance().getDisplayedGuis()
+        Rome.getGuiTextInputs().forEach(GuiTextInput::updateCursor);
+        Rome.getDisplayedGuis()
                 .forEach(gui -> {
                     gui.render();
                     gui.getAllComponents()

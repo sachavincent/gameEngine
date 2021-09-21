@@ -11,8 +11,8 @@ import renderEngine.structures.AttributeData.DataType;
 import renderEngine.structures.BasicVao;
 import renderEngine.structures.Data;
 import renderEngine.structures.Vao;
+import scene.components.Component;
 import scene.components.LightComponent;
-import scene.components.PositionComponent;
 import scene.components.RendererComponent;
 import scene.components.ScaleComponent;
 import scene.components.SingleModelComponent;
@@ -28,10 +28,17 @@ public class Light extends GameObject {
     }
 
     public Light(Vector3f position, Vector3f color, Vector3f attenuation) {
-        addComponent(new PositionComponent(position));
-        addComponent(new LightComponent(color, attenuation));
+        this(position, new LightComponent(color, attenuation), new RendererComponent(SunRenderer.getInstance()));
+    }
 
-        addComponent(new RendererComponent(SunRenderer.getInstance()));
+    public Light() {
+    }
+
+    protected Light(Vector3f position, Component... components) {
+        for (Component component : components)
+            addComponent(component);
+
+        placeAt(position);
     }
 
     public static class Sun extends Light {
@@ -53,18 +60,20 @@ public class Light extends GameObject {
             this(color, new Vector3f(1, 0, 0), distanceFromCenter);
         }
 
+        public Sun() {
+            super();
+        }
+
         public Sun(Vector3f color, Vector3f attenuation, float distanceFromCenter) {
-            super(new Vector3f(), color, attenuation);
+            this(color, attenuation, distanceFromCenter,
+                    new Vector3f(Game.TERRAIN_WIDTH / 2f, 0, Game.TERRAIN_DEPTH / 2f));
+        }
 
-            addComponent(new ScaleComponent(30));
-
-            Vector3f center = new Vector3f(Game.TERRAIN_WIDTH / 2f, 0, Game.TERRAIN_DEPTH / 2f);
-            addComponent(new SunComponent(center, distanceFromCenter));
-            Vector3f defaultPosition = Vector3f.add(center, Direction.
-                    toRelativeDistance(Direction.EAST, distanceFromCenter), null);
-            getComponent(PositionComponent.class).setPosition(defaultPosition);
-
-            addComponent(new SingleModelComponent(MODEL.getTexture()));
+        private Sun(Vector3f color, Vector3f attenuation, float distanceFromCenter, Vector3f center) {
+            super(Vector3f.add(center, Direction.toRelativeDistance(Direction.EAST, distanceFromCenter), null),
+                    new LightComponent(color, attenuation), new RendererComponent(SunRenderer.getInstance()),
+                    new ScaleComponent(30), new SunComponent(center, distanceFromCenter),
+                    new SingleModelComponent(MODEL.getTexture()));
         }
     }
 }

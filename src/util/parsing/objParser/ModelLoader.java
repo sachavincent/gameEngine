@@ -29,15 +29,20 @@ public class ModelLoader {
         if (!modelFile.exists())
             throw new MissingFileException(modelFile);
 
+        if (boundingBoxFile.exists()) {
+            OBJFile bbOBJFile = OBJFile.parseOBJFile(boundingBoxFile, ModelType.INSTANCED);
+            MTLFile bbMTLFile = bbOBJFile.getMTLFile();
+            Vao vao = Vao.createVao(bbMTLFile.getMeshData(), bbMTLFile.getMeshData().getVaoType());
+            BoundingBox boundingBox = new BoundingBox(vao, bbOBJFile.getData(), folder);
+            gameObjectData.setBoundingBox(boundingBox);
+        }
+
         if (modelType.isAnimated()) {
             AnimatedModel animatedTexturedModel = AnimatedModelLoader.loadAnimatedModel(modelFile, modelType);
             animatedTexturedModel.doAnimation(AnimationLoader.loadAnimation(modelFile));
 //            animatedTexturedModel.getModelTexture().setUseFakeLighting(true);
             gameObjectData.setTexture(animatedTexturedModel);
             gameObjectData.setPreviewTexture(animatedTexturedModel);
-            if (boundingBoxFile.exists()) {
-//                gameObjectData.setBoundingBox(BoundingBox.parseBoundingBox(boundingBoxFile));
-            }
             return gameObjectData;
         }
 
@@ -49,14 +54,6 @@ public class ModelLoader {
             gameObjectData.setTexture(new Model(vao, objFile));
         }
         gameObjectData.setPreviewTexture(gameObjectData.getTexture());
-        if (boundingBoxFile.exists()) {
-//            gameObjectData.setBoundingBox(BoundingBox.parseBoundingBox(boundingBoxFile));
-            OBJFile bbOBJFile = OBJFile.parseOBJFile(boundingBoxFile, ModelType.INSTANCED);
-            MTLFile bbMTLFile = bbOBJFile.getMTLFile();
-            Vao vao = Vao.createVao(bbMTLFile.getMeshData(), bbMTLFile.getMeshData().getVaoType());
-            BoundingBox boundingBox = new BoundingBox(vao, bbOBJFile.getData(), folder);
-            gameObjectData.setBoundingBox(boundingBox);
-        }
 
         return gameObjectData;
     }

@@ -3,12 +3,12 @@ package pathfinding;
 import static pathfinding.RoadGraph.FILTER;
 import static util.math.Maths.manhattanDistance;
 
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import scene.Scene;
-import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import services.ServiceManager;
 import terrain.TerrainPosition;
@@ -17,7 +17,7 @@ import util.math.Vector2f;
 
 public class PathFinder {
 
-    private static final Scene     scene = Scene.getInstance();
+    private static final Scene     scene = Rome.getGame().getScene();
     private final        RoadGraph roadGraph;
 
     private ServiceManager<?> serviceManager;
@@ -152,9 +152,9 @@ public class PathFinder {
     public Path findPath(GameObject startGameObject, Class<? extends GameObject> gameObjectClass,
             int maxPathLength, boolean bestPath) {
         Set<GameObject> possibleGameObjects = new TreeSet<>((o1, o2) -> manhattanDistance(
-                o1.getComponent(PositionComponent.class).getPosition().toTerrainPosition(),
-                o2.getComponent(PositionComponent.class).getPosition().toTerrainPosition()));
-        possibleGameObjects.addAll(scene.getGameObjectsOfType(gameObjectClass, false));
+                o1.getPosition().toTerrainPosition(),
+                o2.getPosition().toTerrainPosition()));
+        possibleGameObjects.addAll(scene.getGameObjectsOfType(gameObjectClass));
 
         Path bestPathFound = new Path();
         for (GameObject possibleGameObject : possibleGameObjects) {
@@ -186,11 +186,11 @@ public class PathFinder {
         this.blacklist.forEach(pathFinder::addBlacklistedRoad);
         List<TerrainPosition> fromRoads = scene.getNeighbors(fromGameObject, FILTER)
                 .stream()
-                .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
+                .map(gameObject -> gameObject.getPosition().toTerrainPosition())
                 .collect(Collectors.toList());
         List<TerrainPosition> toRoads = scene.getNeighbors(toGameObject, FILTER)
                 .stream()
-                .map(gameObject -> gameObject.getComponent(PositionComponent.class).getPosition().toTerrainPosition())
+                .map(gameObject -> gameObject.getPosition().toTerrainPosition())
                 .collect(Collectors.toList());
 
         Path resPath = new Path();
@@ -596,7 +596,7 @@ public class PathFinder {
 //                    System.out.println("Preparing to recurse in " + this.serviceManager.getCurrentService().getId() +
 //                            " with nCs=" + possibleNodeConnections);
                     for (NodeConnection nC : possibleNodeConnections) {
-                        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+                        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
                         if (this.serviceManager != null)
                             pathFinder.setServiceManager(this.serviceManager);
                         this.blacklist.forEach(pathFinder::addBlacklistedRoad);
@@ -825,7 +825,7 @@ public class PathFinder {
         if (startPos.getX() != endPos.getX() && startPos.getZ() != endPos.getZ())
             return path;
 
-        Set<TerrainPosition> previewItemPositions = scene.getPreviewPositions();
+        Set<TerrainPosition> previewItemPositions = scene.getPreviewedPositions();
 
         if ((scene.isPositionOccupied(startPos.getX(), startPos.getZ()) && !previewItemPositions.contains(startPos)) ||
                 (scene.isPositionOccupied(endPos.getX(), endPos.getZ()) && !previewItemPositions.contains(endPos)))
@@ -873,7 +873,7 @@ public class PathFinder {
             return pathRoads;
 
 
-        Set<TerrainPosition> previewItemPositions = scene.getPreviewPositions();
+        Set<TerrainPosition> previewItemPositions = scene.getPreviewedPositions();
 
         if ((scene.isPositionOccupied(startPos.getX(), startPos.getZ()) && !previewItemPositions.contains(startPos)) ||
                 (scene.isPositionOccupied(endPos.getX(), endPos.getZ()) && !previewItemPositions.contains(endPos)))
@@ -932,7 +932,7 @@ public class PathFinder {
 
 
 //        Set<TerrainPosition> previewItemPositions = terrain.getPreviewItemPositions();
-        Set<TerrainPosition> previewItemPositions = scene.getPreviewPositions();
+        Set<TerrainPosition> previewItemPositions = scene.getPreviewedPositions();
         if ((scene.isPositionOccupied(startPos.getX(), startPos.getZ()) && !previewItemPositions.contains(startPos)) ||
                 (scene.isPositionOccupied(endPos.getX(), endPos.getZ()) && !previewItemPositions.contains(endPos)))
             return pathRoads;

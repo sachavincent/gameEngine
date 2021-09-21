@@ -13,4 +13,5 @@ public class IconComponent extends Component {
     public Background<?> getBackground() {
         return this.background;
     }
+
 }

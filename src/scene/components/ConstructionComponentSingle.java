@@ -24,7 +24,7 @@ public class ConstructionComponentSingle extends SingleModelComponent {
     public void setCurrentTier(int currentTier) {
         this.currentTier = currentTier;
         if (currentTier < this.constructionTiers.size())
-            setModel(this.constructionTiers.get(currentTier).model.toModelEntity());
+            setModel(this.constructionTiers.get(currentTier).model);
     }
 
     public ConstructionTier getCurrentConstructionTier() {

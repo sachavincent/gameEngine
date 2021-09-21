@@ -4,7 +4,7 @@ import static renderEngine.GuiRenderer.filledQuad;
 import static util.Utils.RES_PATH;
 
 import display.Display;
-import engineTester.Game;
+import engineTester.Rome;
 import fontMeshCreator.FontType;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraintsManager;
@@ -64,7 +64,7 @@ public class Gui implements GuiInterface {
 
         this.components = new LinkedHashMap<>();
         this.displayed = true;
-        Game.getInstance().addGui(this);
+        Rome.addGui(this);
     }
 
     public void setBackground(Background<?> background) {
@@ -301,13 +301,12 @@ public class Gui implements GuiInterface {
 
         this.displayed = displayed;
 
-        Game gameInstance = Game.getInstance();
         if (displayed) {
-            gameInstance.getDisplayedGuis().add(this);
+            Rome.getDisplayedGuis().add(this);
 
             this.onOpenCallback.onOpen();
         } else {
-            gameInstance.getDisplayedGuis().remove(this);
+            Rome.getDisplayedGuis().remove(this);
 
             this.onCloseCallback.onClose();
         }

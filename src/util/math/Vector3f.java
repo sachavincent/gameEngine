@@ -1,10 +1,10 @@
 package util.math;
 
+import engineTester.Rome;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Locale;
 import java.util.Objects;
-import scene.Scene;
 import scene.components.HeightMapComponent;
 import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
@@ -231,9 +231,9 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
     }
 
     public boolean isTerrainPosition() {
-        Terrain terrain = Scene.getInstance().getTerrain();
+        Terrain terrain = Rome.getGame().getScene().getTerrain();
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
-        if (!Scene.getInstance().isPositionOnTerrain(this.x, this.z))
+        if (!Rome.getGame().getScene().isPositionOnTerrain(this.x, this.z))
             return false;
 
         TerrainPosition pos = toTerrainPosition();

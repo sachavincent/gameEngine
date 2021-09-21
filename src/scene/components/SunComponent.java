@@ -23,17 +23,16 @@ public class SunComponent extends Component {
     }
 
     private void moveSun(Light.Sun sun) {
-        if (!sun.hasComponent(PositionComponent.class))
+        if (!sun.isPlaced())
             return;
 
-        PositionComponent positionComponent = sun.getComponent(PositionComponent.class);
-        Vector3f position = positionComponent.getPosition();
+        Vector3f position = sun.getPosition();
         double angle = (-2.0 * Math.PI / ((double) DisplayManager.CURRENT_FPS *
                 (double) DayNightCycle.DAY_NIGHT_CYCLE_DURATION));
         this.movingAngle = (this.movingAngle + angle) % (2.0 * Math.PI);
         position.setY((float) (this.center.getY() + Math.cos(this.movingAngle) * this.distance));
         position.setZ((float) (this.center.getZ() + Math.sin(this.movingAngle) * this.distance));
-        positionComponent.setPosition(position);
+        sun.placeAt(position);
     }
 
     public Vector3f getCenter() {

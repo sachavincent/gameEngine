@@ -1,13 +1,12 @@
 package scene.gameObjects;
 
+import engineTester.Rome;
 import org.lwjgl.glfw.GLFW;
 import pathfinding.Road;
 import renderEngine.AnimatedBuildingRenderer;
 import resources.ResourceManager;
-import scene.Scene;
 import scene.components.*;
-import scene.components.callbacks.AddComponentCallback;
-import util.math.Vector3f;
+import scene.components.callbacks.ObjectPlacedCallback;
 
 public class Windmill extends GameObject {
 
@@ -25,10 +24,10 @@ public class Windmill extends GameObject {
 
         addComponent(new PreviewComponent(GameObjectDatas.WINDMILL.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
-        addComponent(new ConnectionsComponent<>(Road.class, new AddComponentCallback() {
+        addComponent(new ConnectionsComponent<>(Road.class, new ObjectPlacedCallback() {
             @Override
-            public void onAddComponent(GameObject gameObject, Vector3f position) {
-                Scene.getInstance().updateBuildingRequirements();
+            public void onObjPlaced(GameObject gameObject) {
+                Rome.getGame().getScene().updateBuildingRequirements();
             }
 
             @Override

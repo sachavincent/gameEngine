@@ -1,6 +1,5 @@
 package scene.gameObjects;
 
-import static scene.components.MultipleModelsComponent.Offset;
 import static scene.gameObjects.WheatField.TEXTURES;
 
 import entities.Camera.Direction;
@@ -12,6 +11,7 @@ import models.AbstractModel;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager.Resource;
 import scene.components.*;
+import util.Offset;
 import util.ShiftingList;
 import util.math.Vector3f;
 
@@ -31,17 +31,17 @@ public class WheatFarm extends GameObject {
         DirectionComponent directionComponent = new DirectionComponent(Direction.NORTH);
         addComponent(directionComponent);
         MultipleModelsComponent modelsComponent = new MultipleModelsComponent();
-        Offset offset1 = new Offset(new Vector3f(-2, 0.04f, -2), new Vector3f(0, 0, 0), 0);
-        Offset offset2 = new Offset(new Vector3f(0, 0.04f, -2), new Vector3f(0, 0, 0), 0);
-        Offset offset3 = new Offset(new Vector3f(-2, 0.04f, 0), new Vector3f(0, 0, 0), 0);
-        Offset offset4 = new Offset(new Vector3f(0, 0.04f, 0), new Vector3f(0, 0, 0), 0);
+        Offset offset1 = new Offset(new Vector3f(-2, 0.04f, -2), 0, 0);
+        Offset offset2 = new Offset(new Vector3f(0, 0.04f, -2), 0, 0);
+        Offset offset3 = new Offset(new Vector3f(-2, 0.04f, 0), 0, 0);
+        Offset offset4 = new Offset(new Vector3f(0, 0.04f, 0), 0, 0);
         modelsComponent.addConcurrentModel("FARM", GameObjectDatas.WHEAT_FARM.getTexture());
         modelsComponent.addConcurrentModel("CORNER1", TEXTURES.get(0), offset1);
         modelsComponent.addConcurrentModel("CORNER2", TEXTURES.get(0), offset2);
         modelsComponent.addConcurrentModel("CORNER3", TEXTURES.get(0), offset3);
         modelsComponent.addConcurrentModel("CORNER4", TEXTURES.get(0), offset4);
 
-        modelsComponent.setOnAddComponentCallback((gameObject, position) -> {
+        modelsComponent.setOnObjectPlacedCallback((gameObject) -> {
             this.random.setSeed(System.currentTimeMillis());
         });
         AtomicInteger waitTicks = new AtomicInteger();

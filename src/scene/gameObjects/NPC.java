@@ -1,10 +1,10 @@
 package scene.gameObjects;
 
+import engineTester.Rome;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import scene.Scene;
 import scene.components.LayerableComponent;
 import scene.components.OffsetComponent;
 import scene.components.PathComponent;
@@ -30,8 +30,8 @@ public class NPC extends GameObject {
     }
 
     public static void updatePositions() {
-        Set<GameObject> gameObjectsPathComponent = Scene.getInstance()
-                .getGameObjectsForComponent(PathComponent.class, false);
+        Set<GameObject> gameObjectsPathComponent = Rome.getGame().getScene()
+                .getGameObjectsForComponent(PathComponent.class);
         gameObjectsPathComponent.stream()
                 .filter(Objects::nonNull)
                 .filter(gameObject -> gameObject.getClass() == NPC.class)

@@ -5,21 +5,21 @@ import models.AbstractModel;
 
 public class SingleModelComponent extends Component {
 
-    protected ModelEntity modelEntity;
+    protected AbstractModel model;
 
-    public SingleModelComponent(ModelEntity modelEntity) {
-        this.modelEntity = modelEntity;
+    public SingleModelComponent(ModelEntity model) {
+        this.model = model.getModel();
     }
 
     public SingleModelComponent(AbstractModel model) {
         this(model.toModelEntity());
     }
 
-    public ModelEntity getModel() {
-        return this.modelEntity;
+    public AbstractModel getModel() {
+        return this.model;
     }
 
-    public void setModel(ModelEntity modelEntity) {
-        this.modelEntity = modelEntity;
+    public void setModel(AbstractModel modelEntity) {
+        this.model = modelEntity;
     }
 }

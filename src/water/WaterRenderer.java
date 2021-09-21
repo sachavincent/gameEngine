@@ -1,6 +1,7 @@
 package water;
 
 import display.DisplayManager;
+import engineTester.Rome;
 import java.util.List;
 import models.RawModel;
 import org.lwjgl.opengl.GL11;
@@ -9,7 +10,6 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderEngine.Loader;
 import renderEngine.shaders.WaterShader;
-import scene.Scene;
 import scene.components.SunComponent;
 import textures.ModelTexture;
 import util.math.Maths;
@@ -67,7 +67,7 @@ public class WaterRenderer {
         shader.loadMoveFactor(moveFactor);
         shader.loadPlaneValues();
         shader.loadLight(
-                Scene.getInstance().getGameObjectsForComponent(SunComponent.class, false).stream().findFirst()
+                Rome.getGame().getScene().getGameObjectsForComponent(SunComponent.class).stream().findFirst()
                         .orElse(null));
 
         GL30.glBindVertexArray(quad.getVaoID());

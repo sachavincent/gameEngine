@@ -1,5 +1,6 @@
 package scene.gameObjects;
 
+import engineTester.Rome;
 import entities.Camera;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import java.util.Collections;
@@ -12,14 +13,12 @@ import pathfinding.Road;
 import people.Person;
 import renderEngine.BuildingRenderer;
 import resources.ResourceManager;
-import scene.Scene;
 import scene.components.*;
-import scene.components.callbacks.AddComponentCallback;
+import scene.components.callbacks.ObjectPlacedCallback;
 import scene.components.requirements.BuildingRoadConnectionRequirement;
 import scene.components.requirements.Requirement;
 import scene.components.requirements.ResourceRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
-import util.math.Vector3f;
 
 public class Insula extends GameObject {
 
@@ -39,10 +38,10 @@ public class Insula extends GameObject {
         addComponent(new PreviewComponent(GameObjectDatas.INSULA.getPreviewTexture()));
         addComponent(new OffsetsComponent(Z_NEGATIVE_OFFSET, X_POSITIVE_OFFSET, Z_POSITIVE_OFFSET, X_NEGATIVE_OFFSET));
 
-        addComponent(new ConnectionsComponent<>(Road.class, new AddComponentCallback() {
+        addComponent(new ConnectionsComponent<>(Road.class, new ObjectPlacedCallback() {
             @Override
-            public void onAddComponent(GameObject gameObject, Vector3f position) {
-                Scene.getInstance().addBuildingRequirement(gameObject);
+            public void onObjPlaced(GameObject gameObject) {
+                Rome.getGame().getScene().addBuildingRequirement(gameObject);
             }
 
             @Override
@@ -66,7 +65,8 @@ public class Insula extends GameObject {
 
         ResidenceComponent residenceComponent = new ResidenceComponent(MAX_PEOPLE_CAPACITY);
         residenceComponent.setOnUpdateComponentCallback(gameObject -> {
-            Map<ResourceManager.Resource, Integer> resourcesNeeded = Person.getResourcesNeeded(residenceComponent.getPersons());
+            Map<ResourceManager.Resource, Integer> resourcesNeeded = Person.getResourcesNeeded(
+                    residenceComponent.getPersons());
             Set<Requirement<?, ?>> tier2Requirements = resourcesNeeded.entrySet().stream()
                     .map(entry -> new ResourceRequirement(entry.getKey(), entry.getValue() / 2, value -> {
                         GuiHouseDetails.getInstance().update();
@@ -78,7 +78,8 @@ public class Insula extends GameObject {
             resourceRequirementComponent.setTier2Requirements(tier2Requirements);
             resourceRequirementComponent.setTier3Requirements(tier3Requirements);
 
-            double goldProductionRate = Person.getResourcesProduced(residenceComponent.getPersons()).get(ResourceManager.Resource.GOLD);
+            double goldProductionRate = Person.getResourcesProduced(residenceComponent.getPersons())
+                    .get(ResourceManager.Resource.GOLD);
             resourceProductionComponent.setProductionRate(ResourceManager.Resource.GOLD, goldProductionRate);
 
             ResourceManager.updateRequirements();

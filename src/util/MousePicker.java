@@ -2,6 +2,7 @@ package util;
 
 import display.Display;
 import engineTester.Game;
+import engineTester.Rome;
 import entities.Camera;
 import inputs.MouseUtils;
 import java.util.AbstractMap.SimpleEntry;
@@ -12,11 +13,9 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import models.BoundingBox;
 import renderEngine.MasterRenderer;
-import scene.Scene;
 import scene.components.BoundingBoxComponent;
 import scene.components.HeightMapComponent;
 import scene.components.OffsetComponent;
-import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Terrain;
 import terrain.TerrainPosition;
@@ -72,7 +71,7 @@ public class MousePicker {
 
         final Map<GameObject, Vector3f> gameObjectIntersections = new HashMap<>();
         // Distance intersection <-> camera
-        Scene.getInstance().getGameObjects().forEach(gameObject -> {
+        Rome.getGame().getScene().getGameObjects().forEach(gameObject -> {
             Entry<GameObject, Vector3f> intersection = getIntersectionWithGameObject(gameObject);
             if (intersection != null)
                 gameObjectIntersections.put(intersection.getKey(), intersection.getValue());
@@ -93,15 +92,13 @@ public class MousePicker {
     }
 
     private Entry<GameObject, Vector3f> getIntersectionWithGameObject(GameObject gameObject) {
-        if (gameObject == null)
+        if (gameObject == null || !gameObject.isPlaced())
             return null;
         BoundingBoxComponent boundingBoxComponent = gameObject.getComponent(BoundingBoxComponent.class);
         if (boundingBoxComponent == null)
             return null;
-        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
-        if (positionComponent == null)
-            return null;
-        Vector3f position = positionComponent.getPosition();
+
+        Vector3f position = gameObject.getPosition();
         OffsetComponent offsetComponent = gameObject.getComponent(OffsetComponent.class);
         if (offsetComponent != null)
             position.add(offsetComponent.getOffset());
@@ -187,7 +184,7 @@ public class MousePicker {
     }
 
     public void getHoveredCell() {
-        Terrain terrain = Scene.getInstance().getTerrain();
+        Terrain terrain = Rome.getGame().getScene().getTerrain();
         if (terrain == null)
             return;
         this.intersectionPoint = null;
@@ -195,7 +192,7 @@ public class MousePicker {
         Vector3f currPos = new Vector3f(Camera.getInstance().getPosition());
 
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
-        while (Scene.getInstance().isPositionOnTerrain((int) currPos.getX(), (int) currPos.getZ())) {
+        while (Rome.getGame().getScene().isPositionOnTerrain((int) currPos.getX(), (int) currPos.getZ())) {
             int minX = (int) Math.floor(currPos.getX());
             int minZ = (int) Math.floor(currPos.getZ());
             int maxX = minX + 1;
@@ -209,7 +206,7 @@ public class MousePicker {
             float height = currPos.getY();
 
             if (p1.getY() >= height || p2.getY() >= height || p3.getY() >= height || p4.getY() >= height) {
-                if (Scene.getInstance().isPositionOnTerrain(p1.getX(), p1.getZ())) {
+                if (Rome.getGame().getScene().isPositionOnTerrain(p1.getX(), p1.getZ())) {
                     TerrainPosition terrainPosition = new TerrainPosition((int) Math.floor(p1.getX()), p1.getY(),
                             (int) Math.floor(p1.getZ()));
                     this.intersectionPoint = terrainPosition.toVector3f();

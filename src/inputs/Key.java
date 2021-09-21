@@ -2,8 +2,8 @@ package inputs;
 
 import static util.KeybindingsManager.parseKey;
 
-import engineTester.Game;
 import engineTester.Game.GameState;
+import engineTester.Rome;
 import entities.Camera;
 import guis.Gui;
 import guis.prefabs.GuiDebug;
@@ -18,10 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import language.Words;
 import org.lwjgl.glfw.GLFW;
-import renderEngine.AnimatedBuildingRenderer;
-import renderEngine.BuildingRenderer;
 import renderEngine.GuiRenderer;
-import renderEngine.NPCRenderer;
+import scene.Scene;
 
 public class Key {
 
@@ -120,23 +118,21 @@ public class Key {
         };
 
         Key.ESCAPE.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.NOT_STARTED)
+            if (!Rome.isGameStarted())
                 GuiMainMenu.getInstance().back();
             else {
-                final List<Gui> displayedGuis = Game.getInstance().getDisplayedGuis();
+                final List<Gui> displayedGuis = Rome.getDisplayedGuis();
                 boolean isNoGuiDisplayed = displayedGuis.isEmpty();
                 GuiEscapeMenu guiEscapeMenu = GuiEscapeMenu.getInstance();
-                switch (Game.getInstance().getGameState()) {
-                    case NOT_STARTED:
-                        break;
-                    case STARTED:
+                switch (Rome.getGame().getGameState()) {
+                    case DEFAULT:
                         if (!isNoGuiDisplayed) {
                             Gui lastGuiOpened = displayedGuis.get(displayedGuis.size() - 1);
                             lastGuiOpened.setDisplayed(false);
                             displayedGuis.remove(lastGuiOpened);
                         } else {
                             guiEscapeMenu.setDisplayed(true);
-                            Game.getInstance().pause();
+                            Rome.getGame().pause();
                         }
                         break;
                     case PAUSED:
@@ -148,49 +144,51 @@ public class Key {
                                 displayedGuis.remove(((GuiTab) lastGuiOpened).getParent());
                             }
                             displayedGuis.remove(lastGuiOpened);
-                            if (Game.getInstance().getDisplayedGuis().isEmpty())
+                            if (Rome.getDisplayedGuis().isEmpty())
                                 guiEscapeMenu.setDisplayed(true);
                         } else if (isNoGuiDisplayed ||
-                                Game.getInstance().getGameState() == GameState.PAUSED) {
+                                Rome.getGame().getGameState() == GameState.PAUSED) {
                             guiEscapeMenu.setDisplayed(false);
-                            Game.getInstance().resume();
+                            Rome.getGame().resume();
                         }
                         break;
                 }
             }
         };
         Key.DISPLAY_BOUNDING_BOXES.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED) {
-                BuildingRenderer.getInstance().switchDisplayBoundingBoxes();
-                AnimatedBuildingRenderer.getInstance().switchDisplayBoundingBoxes();
-                NPCRenderer.getInstance().switchDisplayBoundingBoxes();
+            if (Rome.isGameStarted()) {
+                Scene scene = Rome.getGame().getScene();
+                if (scene.areBoundingBoxesDisplayed())
+                    scene.disableBoundingBoxes();
+                else
+                    scene.enableBoundingBoxes();
                 System.out.println("Display BB pressed");
             }
         };
         Key.FORWARD.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Camera.getInstance().moveTo(Camera.getInstance().getYaw());
         };
         Key.BACKWARD.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Camera.getInstance().moveTo(Camera.getInstance().getYaw() + 180);
         };
         Key.LEFT.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Camera.getInstance().moveTo(Camera.getInstance().getYaw() + 270);
         };
         Key.RIGHT.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Camera.getInstance().moveTo(Camera.getInstance().getYaw() + 90);
         };
         Key.LEFT.onKeyRelease = Key.RIGHT.onKeyRelease = Key.FORWARD.onKeyRelease = Key.BACKWARD.onKeyRelease = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Camera.getInstance().resetMovement();
         };
         Key.SHOW_BORDERS.onKeyPress = GuiRenderer::switchDisplayDebugOutlines;
 
         Key.ITEM_SELECTION.onKeyPress = () -> {
-            if (Game.getInstance().getGameState() == GameState.STARTED)
+            if (Rome.getGame().getGameState() == GameState.DEFAULT)
                 Gui.toggleGui(GuiItemSelection.getItemSelectionGui());
         };
     }

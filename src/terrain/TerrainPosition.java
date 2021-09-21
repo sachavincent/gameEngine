@@ -1,7 +1,7 @@
 package terrain;
 
+import engineTester.Rome;
 import java.util.Objects;
-import scene.Scene;
 import scene.components.HeightMapComponent;
 import util.math.Vector3f;
 
@@ -20,12 +20,12 @@ public class TerrainPosition implements Comparable<TerrainPosition> {
         this.y = y;
         this.z = z;
 
-//        if (!Scene.getInstance().isPositionOnTerrain(x, z))
+//        if (!Rome.getGame().getScene().isPositionOnTerrain(x, z))
 //            throw new IllegalArgumentException("TerrainPosition " + this + " does not fit on Terrain");
     }
 
     public TerrainPosition(int x, int z) {
-        this(x, Scene.getInstance().getTerrain().getComponent(HeightMapComponent.class).getHeight(x, z), z);
+        this(x, Rome.getGame().getScene().getTerrain().getComponent(HeightMapComponent.class).getHeight(x, z), z);
     }
 
     public TerrainPosition(Vector3f vector) {

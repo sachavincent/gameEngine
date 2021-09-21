@@ -24,10 +24,9 @@ import renderEngine.MasterRenderer;
 import renderEngine.PathRenderer;
 import renderEngine.fontRendering.TextMaster;
 import renderEngine.shaders.WaterShader;
-import scene.Scene;
-import scene.components.PositionComponent;
 import scene.gameObjects.GameObjectData;
 import scene.gameObjects.GameObjectDatas;
+import scene.gameObjects.GameObjects;
 import scene.gameObjects.Light;
 import scene.gameObjects.NPC;
 import scene.gameObjects.Terrain;
@@ -127,17 +126,27 @@ public class MainGameLoop {
 
         WaterFrameBuffers buffers = new WaterFrameBuffers();
         WaterShader waterShader = new WaterShader();
+        Rome.setOnGameStarted(game -> {
+            GameObjects.init();
 
-        Terrain terrain = new Terrain();
-        terrain.addComponent(new PositionComponent(new Vector3f(0, 0, 0)));
+            Terrain terrain = new Terrain();
+            terrain.placeAt(new Vector3f(0, 0, 0));
+            NPC npc = new NPC();
+            {
+//            new Light(new Vector3f(0, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(150, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(150, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+//            new Light(new Vector3f(0, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
+            }
 
-        Game.getInstance();
+            new Light.Sun(new Vector3f(1.3f, 1.3f, 1.3f), 300f);
+        });
+
         GuiEscapeMenu.getInstance();
         GuiItemSelection.getInstance();
         PostProcessing.init();
 
         GameObjectData insulaOBJ = GameObjectDatas.INSULA; // Loading models (must be done before loop)
-        NPC npc = new NPC();
 
         GuiHouseDetails.getInstance(); // Loading GUI Instance (must be done before loop)
         GuiSelectedItem.getInstance();
@@ -145,20 +154,11 @@ public class MainGameLoop {
         GuiMainMenu.getInstance().setDisplayed(true);
         TextMaster textMaster = TextMaster.getInstance();
 
-        {
-//            new Light(new Vector3f(0, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
-//            new Light(new Vector3f(150, 12, 0), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
-//            new Light(new Vector3f(150, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
-//            new Light(new Vector3f(0, 12, 150), new Vector3f(1.3f, 1.3f, 1.3f),new Vector3f(1, 0, 0));
-        }
-
-        Scene.getInstance();
-        new Light.Sun(new Vector3f(1.3f, 1.3f, 1.3f), 300f);
         FrustumCullingFilter.updateFrustum();
         // Listeners at the end, after initializing all GUIs
         MouseUtils.setupListeners();
         KeyboardUtils.setupListeners();
-        Game.getInstance().updateGuis();
+        Rome.updateGuis();
 
         Fbo fbo = new Fbo(Display.getWindow().getWidth(), Display.getWindow().getHeight(), Fbo.DEPTH_RENDER_BUFFER);
 
@@ -186,12 +186,12 @@ public class MainGameLoop {
             int elapsedTicks = TimeSystem.getElapsedTicks();
             for (int i = 0; i < Math.min(10, elapsedTicks); i++) {
                 long start = System.nanoTime();
-                Game.getInstance().processLogic();
+                Rome.processLogic();
                 DisplayManager.MSPT = Utils.formatDoubleToNDecimals((double) (System.nanoTime() - start) / 1000000d, 2);
                 nbTicks++;
             }
 
-            Game.getInstance().processRendering(fbo);
+            Rome.processRendering(fbo);
             nbFrames++;
 
 

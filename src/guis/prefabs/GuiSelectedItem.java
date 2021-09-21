@@ -1,6 +1,7 @@
 package guis.prefabs;
 
 import display.Display;
+import engineTester.Rome;
 import guis.Gui;
 import guis.constraints.GuiConstraintHandler;
 import guis.constraints.GuiConstraints;
@@ -9,7 +10,6 @@ import guis.constraints.PixelConstraint;
 import guis.presets.Background;
 import inputs.MouseUtils;
 import java.awt.Color;
-import scene.Scene;
 import scene.components.IconComponent;
 import scene.components.TerrainComponent;
 import scene.gameObjects.GameObject;
@@ -44,18 +44,17 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void setSelectedItem(Class<? extends GameObject> gameObjectClass) {
-        Scene.getInstance().getGameObjectsForComponent(TerrainComponent.class, false)
+        Rome.getGame().getScene().getGameObjectsForComponent(TerrainComponent.class)
                 .forEach(gameObject -> gameObject.getComponent(TerrainComponent.class).update());
 
         this.currentSelectedItem = gameObjectClass;
-        GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
+        GameObject objectFromClass = GameObject.getGameObjectFromClass(gameObjectClass);
         if (objectFromClass == null)
             return;
         IconComponent iconComponent = objectFromClass.getComponent(IconComponent.class);
         if (iconComponent == null)
             return;
         setBackground(iconComponent.getBackground());
-        objectFromClass.destroy();
         Player.setSelectedGameObject(gameObjectClass);
 
         setDisplayed(true);
@@ -66,7 +65,7 @@ public class GuiSelectedItem extends Gui {
     }
 
     public void removeSelectedItem() {
-        Scene.getInstance().getGameObjectsForComponent(TerrainComponent.class, false)
+        Rome.getGame().getScene().getGameObjectsForComponent(TerrainComponent.class)
                 .forEach(gameObject -> gameObject.getComponent(TerrainComponent.class).update());
 
         Player.removeSelectedGameObject();

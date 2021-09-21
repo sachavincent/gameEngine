@@ -1,5 +1,6 @@
 package renderEngine.shaders;
 
+import engineTester.Rome;
 import entities.Camera;
 import java.util.Iterator;
 import java.util.List;
@@ -10,9 +11,7 @@ import renderEngine.shaders.structs.Biome;
 import renderEngine.shaders.structs.BiomeStruct;
 import renderEngine.shaders.structs.Material;
 import renderEngine.shaders.structs.StructLocation;
-import scene.Scene;
 import scene.components.LightComponent;
-import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import terrain.TerrainPosition;
 import util.math.Matrix4f;
@@ -122,12 +121,12 @@ public class TerrainShader extends ShaderProgram implements IGameObjectShader {
     }
 
     public void loadLights() {
-        Set<GameObject> lights = Scene.getInstance().getGameObjectsForComponent(LightComponent.class, false);
+        Set<GameObject> lights = Rome.getGame().getScene().getGameObjectsForComponent(LightComponent.class);
         Iterator<GameObject> iterator = lights.iterator();
         int i = 0;
         while (iterator.hasNext()) {
             GameObject light = iterator.next();
-            loadVector(this.location_lightPosition[i], light.getComponent(PositionComponent.class).getPosition());
+            loadVector(this.location_lightPosition[i], light.getPosition());
             LightComponent lightComponent = light.getComponent(LightComponent.class);
             loadVector(this.location_lightColor[i], lightComponent.getColor());
             loadVector(this.location_attenuation[i], lightComponent.getAttenuation());

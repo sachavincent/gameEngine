@@ -121,5 +121,4 @@ void main() {
     if (transparency >= 0) { // Set by user
         out_Color.a = transparency;
     }
-    out_Color = vec4(diffuseValue.rgb, 1.0);
 }

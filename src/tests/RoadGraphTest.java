@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 
 import display.Display;
+import engineTester.Rome;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,7 +27,7 @@ import terrain.TerrainPosition;
 
 public class RoadGraphTest {
 
-    private static final Scene scene = Scene.getInstance();
+    private static final Scene scene = Rome.getGame().getScene();
 
     @BeforeAll
     public static void init() {

@@ -3,6 +3,7 @@ package util.commands;
 import static entities.Camera.Direction.NORTH;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -13,9 +14,13 @@ import java.util.Map;
 import pathfinding.Path;
 import pathfinding.PathFinder;
 import renderEngine.PathRenderer;
-import scene.Scene;
-import scene.components.*;
+import scene.components.BoundingBoxComponent;
+import scene.components.DirectionComponent;
+import scene.components.HeightMapComponent;
+import scene.components.PathComponent;
 import scene.components.PathComponent.PathType;
+import scene.components.SelectableComponent;
+import scene.components.TransparencyComponent;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.GameObjectDatas;
 import scene.gameObjects.Terrain;
@@ -66,25 +71,24 @@ public class SpawnCommand extends Command {
 
         Class<? extends GameObject> gameObjectClass = GameObject.getClassFromName(gameObjectName);
 
-        Terrain terrain = Scene.getInstance().getTerrain();
+        Terrain terrain = Rome.getGame().getScene().getTerrain();
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
         TerrainPosition position = new TerrainPosition(xValue, heightMapComponent.getHeight(xValue, zValue), zValue);
-        if (!Scene.getInstance().canGameObjectClassBePlaced(gameObjectClass, position, direction))
+        if (!Rome.getGame().getScene().canGameObjectClassBePlaced(gameObjectClass, position, direction))
             return 4;
 
         GameObject gameObject = GameObject.newInstance(gameObjectClass, position);
         if (!gameObject.hasComponent(PathComponent.class) && (start != null || dest != null)) {
-            Scene.getInstance().removeGameObject(gameObject.getId());
+            Rome.getGame().getScene().removeGameObject(gameObject.getId());
             return 6;
         }
 
         if (gameObject.hasComponent(PathComponent.class) && dest != null) {
-            gameObject.removeComponent(PositionComponent.class);
             TerrainPosition startPos = position;
             if (start != null)
                 startPos = Utils.decodePositionCommand(start);
             TerrainPosition destPos = Utils.decodePositionCommand(dest);
-            PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+            PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
             gameObject.addComponent(new TransparencyComponent(1));
             gameObject.addComponent(new BoundingBoxComponent(GameObjectDatas.NPC.getBoundingBox()));
 

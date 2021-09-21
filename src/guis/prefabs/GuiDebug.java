@@ -1,6 +1,7 @@
 package guis.prefabs;
 
 import display.DisplayManager;
+import engineTester.Rome;
 import fontMeshCreator.Text;
 import fontMeshCreator.TextMeshCreator;
 import guis.Gui;
@@ -29,7 +30,6 @@ import java.util.stream.Collectors;
 import resources.ResourceManager;
 import resources.ResourceManager.Resource;
 import resources.ResourceManager.Stock;
-import scene.Scene;
 import scene.components.ResourceProductionComponent;
 import util.Utils;
 import util.commands.Command;
@@ -149,8 +149,8 @@ public class GuiDebug extends Gui {
 //            printErrorStream.flush();
 //            System.setOut(DisplayManager.outStream);
 //            System.setErr(DisplayManager.errStream);
-//            if (Game.getInstance().getGameState() == GameState.PAUSED)
-//                Game.getInstance().resume();
+//            if (Rome.getGame().getGameState() == GameState.PAUSED)
+//                Rome.getGame().resume();
         });
 
         GuiTextInput commandInputGui = new GuiTextInput(this, new Builder()
@@ -194,8 +194,8 @@ public class GuiDebug extends Gui {
 
             commandInputGui.focus();
             commandInputGui.clearText();
-//            if (Game.getInstance().getGameState() == GameState.STARTED)
-//                Game.getInstance().pause();
+//            if (Rome.getGame().getGameState() == GameState.STARTED)
+//                Rome.getGame().pause();
         });
 
         setDisplayed(false);
@@ -297,8 +297,8 @@ public class GuiDebug extends Gui {
         colors.set(3, Utils.getColorForMSPT(DisplayManager.MSPT));
 
         for (Resource resource : Resource.values()) {
-            Map<Resource, Double> resourceProductionRates = Scene.getInstance()
-                    .getGameObjectsForComponent(ResourceProductionComponent.class, false)
+            Map<Resource, Double> resourceProductionRates = Rome.getGame().getScene()
+                    .getGameObjectsForComponent(ResourceProductionComponent.class)
                     .stream()
                     .map(gameObject -> gameObject.getComponent(ResourceProductionComponent.class))
                     .map(ResourceProductionComponent::getProductionRates)

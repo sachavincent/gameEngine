@@ -1,6 +1,7 @@
 package scene.components;
 
 import display.DisplayManager;
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.util.List;
 import java.util.TreeSet;
@@ -11,7 +12,6 @@ import pathfinding.Path;
 import pathfinding.PathFinder;
 import pathfinding.Road;
 import pathfinding.RoadGraph;
-import scene.Scene;
 import scene.components.PedestrianComponent.Behavior;
 import scene.gameObjects.GameObject;
 import terrain.TerrainPosition;
@@ -22,14 +22,13 @@ public class PathComponent extends Component {
 
     private PedestrianComponent   pedestrianComponent;
     private TransparencyComponent transparencyComponent;
-    private PositionComponent     positionComponent;
-
+    private Vector3f              position;
     //    // Can be null if the path starts on a road
 //    private GameObject startBuilding;
 //
 //    // Can be null if the path ends on a road
 //    private GameObject endBuilding;
-    private boolean atEndBuilding;
+    private boolean               atEndBuilding;
 
     private PathType  pathType;
     private Path      path;
@@ -40,8 +39,8 @@ public class PathComponent extends Component {
     }
 
     public void createPathComponent(GameObject gameObject, Vector3f position, PathType pathType) {
-        gameObject.addComponent(this.positionComponent = new PositionComponent(position));
-
+        gameObject.placeAt(position);
+        this.position = position;
         this.direction = null;
 
         this.pedestrianComponent = gameObject.getComponent(PedestrianComponent.class);
@@ -62,10 +61,10 @@ public class PathComponent extends Component {
     }
 
     public void setPath(Path path) {
-        if (path == null || this.positionComponent.position == null)
+        if (path == null || this.position == null)
             return;
 
-        TerrainPosition terrainPosition = this.positionComponent.position.toTerrainPosition(); // Current position
+        TerrainPosition terrainPosition = this.position.toTerrainPosition(); // Current position
         Road closestRoad = path.getClosestRoad(terrainPosition);
         if (closestRoad != null) { // Found closest road
             RoadGraph roadGraph = new RoadGraph(
@@ -75,7 +74,7 @@ public class PathComponent extends Component {
             PathFinder pathFinder = new PathFinder(roadGraph);
             Path bestPath = pathFinder.findBestPath(closestRoad.getPosition(), path.getEnd().getPosition(), 0);
 
-            pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+            pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
             Path NPCToRoad = pathFinder.findBestPath(terrainPosition, closestRoad.getPosition(), 0);
 
             this.path = Path.mergePaths(NPCToRoad, bestPath);
@@ -83,11 +82,11 @@ public class PathComponent extends Component {
     }
 
     public void moveForward() {
-        if (this.path == null || this.positionComponent.position == null)
+        if (this.path == null || this.position == null)
             return;
 
         if (this.currentRoad == null)
-            this.currentRoad = this.path.getRoadAt(this.positionComponent.position.toTerrainPosition());
+            this.currentRoad = this.path.getRoadAt(this.position.toTerrainPosition());
 
         if (this.currentRoad == null)
             return;
@@ -117,7 +116,7 @@ public class PathComponent extends Component {
                 int z = this.currentRoad.getPosition().getZ();
 
                 Direction toBuildingDirection = null;
-                int[][] positions = Scene.getInstance().getPositions();
+                int[][] positions = Rome.getGame().getScene().getPositions();
                 for (Direction direction : Direction.values()) {
                     TerrainPosition d = Direction.toRelativeDistance(direction);
                     int id = positions[x + d.getX()][z + d.getZ()];
@@ -146,16 +145,16 @@ public class PathComponent extends Component {
                         .setAlpha(this.transparencyComponent.getAlpha() - speed / DisplayManager.TPS);
 
                 if (this.transparencyComponent.getAlpha() == 0) {
-                    Scene.getInstance().removeGameObject(this.idGameObject);
+                    Rome.getGame().getScene().removeGameObject(this.idGameObject);
                 }
             }
-            Vector3f diff = nextRoad.getPosition().toVector3f().sub(this.positionComponent.position);
+            Vector3f diff = nextRoad.getPosition().toVector3f().sub(this.position);
             if (diff.getX() < 0.5f && diff.getZ() < 0.5f)
                 this.pedestrianComponent.setBehavior(Behavior.WALKING); // Approches building
         } else {
             nextRoad = roadList.get(index + 1);
 
-            Vector3f vector3f = nextRoad.getPosition().toVector3f().sub(this.positionComponent.position);
+            Vector3f vector3f = nextRoad.getPosition().toVector3f().sub(this.position);
             Direction newDirection = Direction.getDirectionFromVector(new Vector2f(vector3f.getX(), vector3f.getZ()));
             if (this.direction == null)
                 this.direction = newDirection;
@@ -171,7 +170,7 @@ public class PathComponent extends Component {
             return;
         }
 
-        Vector3f totalDistanceLeft = nextRoad.getPosition().toVector3f().sub(this.positionComponent.position);
+        Vector3f totalDistanceLeft = nextRoad.getPosition().toVector3f().sub(this.position);
         Vector3f distance;
         if (DisplayManager.IS_DEBUG)
             distance = Direction.toRelativeDistance(this.direction, speed / 20);
@@ -182,7 +181,7 @@ public class PathComponent extends Component {
         distance.setZ(Math.min(distance.getZ(), totalDistanceLeft.getZ()));
 
         if (Direction.getDirectionFromVector(new Vector2f(distance.getX(), distance.getZ())) == this.direction)
-            this.positionComponent.position.add(distance);
+            this.position.add(distance);
     }
 
     public enum PathType {

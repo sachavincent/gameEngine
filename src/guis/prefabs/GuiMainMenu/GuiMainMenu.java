@@ -1,7 +1,7 @@
 package guis.prefabs.GuiMainMenu;
 
 import display.Display;
-import engineTester.Game;
+import engineTester.Rome;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.basics.GuiRectangle;
@@ -80,7 +80,7 @@ public class GuiMainMenu extends Gui {
         newGameButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
-                Game.getInstance().start();
+                Rome.startGame();
                 return true;
             }
             return false;

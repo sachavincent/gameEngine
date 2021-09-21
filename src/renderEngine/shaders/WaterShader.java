@@ -3,7 +3,6 @@ package renderEngine.shaders;
 import entities.Camera;
 import renderEngine.MasterRenderer;
 import scene.components.LightComponent;
-import scene.components.PositionComponent;
 import scene.gameObjects.GameObject;
 import util.math.Matrix4f;
 
@@ -73,7 +72,7 @@ public class WaterShader extends ShaderProgram {
             return;
 
         loadVector(this.location_lightColor, sun.getComponent(LightComponent.class).getColor());
-        loadVector(this.location_lightPosition, sun.getComponent(PositionComponent.class).getPosition());
+        loadVector(this.location_lightPosition, sun.getPosition());
     }
 
     public void loadMoveFactor(float factor) {

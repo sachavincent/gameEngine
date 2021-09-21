@@ -1,16 +1,15 @@
 package scene.gameObjects;
 
-import static java.util.Map.Entry;
-import static scene.components.MultipleModelsComponent.Offset;
-
+import engineTester.Rome;
 import entities.Camera.Direction;
 import entities.Entity;
 import entities.ModelEntity;
 import java.lang.reflect.Array;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,13 +17,14 @@ import java.util.stream.Stream;
 import models.AbstractModel;
 import scene.Scene;
 import scene.components.*;
-import scene.components.callbacks.AddComponentCallback;
+import scene.components.callbacks.ObjectPlacedCallback;
 import terrain.TerrainPosition;
+import util.Offset;
 import util.math.Vector3f;
 
 public abstract class GameObject {
 
-    private static final Set<Class<? extends GameObject>> UNIQUE_GAMEOBJECTS = new HashSet<>();
+    private static final Map<Class<? extends GameObject>, GameObject> UNIQUE_GAMEOBJECTS = new HashMap<>();
 
     private static int ID;
 
@@ -36,13 +36,19 @@ public abstract class GameObject {
 
     private boolean ignoreAddCallback;
 
+    private Vector3f position;
+
+    private boolean isPlaced;
+
     public GameObject() {
-        this.id = ++ID;
-
+        if (!UNIQUE_GAMEOBJECTS.containsKey(getClass())) {
+            UNIQUE_GAMEOBJECTS.put(getClass(), this);
+            this.id = UNIQUE_GAMEOBJECTS.size() * -1;
+        } else {
+            this.id = ++ID;
+        }
         this.components = new LinkedHashMap<>();
-        this.scene = Scene.getInstance();
-
-        UNIQUE_GAMEOBJECTS.add(this.getClass());
+        this.scene = Rome.getGame().getScene();
     }
 
     public static void reset() {
@@ -54,31 +60,33 @@ public abstract class GameObject {
         return this.id;
     }
 
+    public static GameObject getGameObjectFromClass(Class<? extends GameObject> gameObjectClass) {
+        if (gameObjectClass == null)
+            return null;
+
+        return UNIQUE_GAMEOBJECTS.get(gameObjectClass);
+    }
+
     public final void addComponent(Component component) {
         assert !hasComponent(component.getClass());
 
         component.setId(this.id);
 
         this.components.put(component.getClass().getName(), component);
-
-        if (component instanceof PositionComponent) {
-            if (Scene.getInstance().addGameObject(this)) {
-                Stream<AddComponentCallback> addComponentCallbackStream = this.components.values().stream()
-                        .map(Component::getOnAddComponentCallback).filter(Objects::nonNull);
-                if (isIgnoreAddCallback())
-                    addComponentCallbackStream = addComponentCallbackStream
-                            .filter(AddComponentCallback::isForEach);
-
-                addComponentCallbackStream.forEach(callback -> callback
-                        .onAddComponent(this, ((PositionComponent) component).getPosition()));
-            }
+        ObjectPlacedCallback objPlacedCallback;
+        if (this.isPlaced && (objPlacedCallback = component.getOnObjectPlacedCallback()) != null) {
+            objPlacedCallback.onObjPlaced(this);
         }
     }
 
-    public void onUniqueAddGameObject(Vector3f position) {
-        this.components.values().stream().map(Component::getOnAddComponentCallback).filter(Objects::nonNull)
-                .filter(addComponentCallback -> !addComponentCallback.isForEach())
-                .forEach(callback -> callback.onAddComponent(this, position));
+    public void onUniqueAddGameObject() {
+        Stream<ObjectPlacedCallback> addComponentCallbackStream = this.components.values().stream()
+                .map(Component::getOnObjectPlacedCallback).filter(Objects::nonNull);
+        if (isIgnoreAddCallback())
+            addComponentCallbackStream = addComponentCallbackStream
+                    .filter(ObjectPlacedCallback::isForEach);
+
+        addComponentCallbackStream.forEach(callback -> callback.onObjPlaced(this));
     }
 
     public Map<String, Component> getComponents() {
@@ -91,11 +99,7 @@ public abstract class GameObject {
     }
 
     public final <T extends Component> void removeComponent(Class<T> componentClass) {
-        Component removedComponent = this.components.remove(componentClass.getName());
-
-        if (removedComponent instanceof PositionComponent) {
-            Scene.getInstance().removeGameObject(this.id);
-        }
+        this.components.remove(componentClass.getName());
     }
 
     public final boolean hasComponent(Class<?> componentClass) {
@@ -106,7 +110,7 @@ public abstract class GameObject {
         return this.scene;
     }
 
-    public static <X extends GameObject> X getObjectFromClass(Class<X> objectClass) {
+    public static <X extends GameObject> X createObjectFromClass(Class<X> objectClass) {
         try {
             return objectClass.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
@@ -117,13 +121,13 @@ public abstract class GameObject {
     }
 
     public final void destroy() {
-        Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = Scene.getInstance()
+        Map<Class<? extends Component>, Set<Integer>> idGameObjectsForComponents = Rome.getGame().getScene()
                 .getIdGameObjectsForComponents();
         for (Component component : getComponents().values()) {
             Set<Integer> ids = idGameObjectsForComponents.get(component.getClass());
             ids.remove(this.id);
         }
-        Scene.getInstance().removeGameObject(this.id);
+        Rome.getGame().getScene().removeGameObject(this.id);
 //        if (this.id == ID)
 //            ID--;
     }
@@ -138,18 +142,14 @@ public abstract class GameObject {
     }
 
     public static <X extends GameObject> X newInstance(Class<X> objectClass, TerrainPosition position,
-            Direction direction,
-            boolean ignoreAddCallback) {
-        X gameObject = getObjectFromClass(objectClass);
+            Direction direction, boolean ignoreAddCallback) {
+        X gameObject = createObjectFromClass(objectClass);
         gameObject.setIgnoreAddCallback(ignoreAddCallback);
         if (gameObject.hasComponent(DirectionComponent.class))
             gameObject.getComponent(DirectionComponent.class).setDirection(direction);
         else
             gameObject.addComponent(new DirectionComponent(direction));
-        if (gameObject.hasComponent(PositionComponent.class))
-            gameObject.getComponent(PositionComponent.class).setPosition(position.toVector3f());
-        else
-            gameObject.addComponent(new PositionComponent(position));
+        gameObject.placeAt(position.toVector3f());
         return gameObject;
     }
 
@@ -162,8 +162,8 @@ public abstract class GameObject {
         for (int i = 0; i < positions.length; i++) {
             if (positions[i] == null)
                 continue;
-            X gameObject = getObjectFromClass(objectClass);
-            gameObject.addComponent(new PositionComponent(positions[i]));
+            X gameObject = createObjectFromClass(objectClass);
+            gameObject.placeAt(positions[i].toVector3f());
 
             gameObjects[i] = gameObject;
         }
@@ -171,7 +171,7 @@ public abstract class GameObject {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
@@ -180,38 +180,63 @@ public abstract class GameObject {
         return this.id == that.id;
     }
 
+    public final Vector3f getPosition() {
+        return this.position;
+    }
+
+    public final boolean isPlaced() {
+        return this.isPlaced;
+    }
+
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(this.id);
     }
 
-    public boolean isIgnoreAddCallback() {
+    public final boolean isIgnoreAddCallback() {
         return this.ignoreAddCallback;
     }
 
-    public void setIgnoreAddCallback(boolean ignoreAddCallback) {
+    public final void setIgnoreAddCallback(boolean ignoreAddCallback) {
         this.ignoreAddCallback = ignoreAddCallback;
     }
 
     public static Class<? extends GameObject> getClassFromName(String gameObjectName) {
-        return UNIQUE_GAMEOBJECTS.stream().filter(clazz -> {
+        return UNIQUE_GAMEOBJECTS.keySet().stream().filter(clazz -> {
             String simpleName = clazz.getSimpleName();
             return simpleName.equalsIgnoreCase(gameObjectName);
         }).findFirst().orElse(null);
     }
 
+    public final void placeAt(TerrainPosition position) {
+        placeAt(position.toVector3f());
+    }
+
+    /**
+     * Place this gameObject at given position,
+     * if this is the first time this object is placed,
+     * ObjectPlacedCallbacks are called.
+     *
+     * @param position at which the gameObject is placed
+     */
+    public final void placeAt(Vector3f position) {
+        this.position = position;
+
+        if (!this.isPlaced && Rome.getGame().getScene().addGameObject(this)) {
+            this.isPlaced = true;
+
+            onUniqueAddGameObject();
+        }
+    }
 
     public static Entity createEntityFromGameObject(GameObject gameObject, boolean displayBoundingBoxes) {
-        if (gameObject == null)
+        if (gameObject == null || !gameObject.isPlaced())
             return null;
 
-        if (displayBoundingBoxes && !gameObject.hasComponent(BoundingBoxComponent.class))
-            return null;
         int id = gameObject.getId();
 
-        Vector3f pos = null;
+        Vector3f pos = gameObject.getPosition();
         PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
-        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
         boolean preview = false;
         if (previewComponent != null && previewComponent.getPreviewPosition() != null) {
             TerrainPosition previewPosition = previewComponent.getPreviewPosition(); // = null if no preview
@@ -219,12 +244,11 @@ public abstract class GameObject {
                 preview = true;
                 pos = previewPosition.toVector3f();
             }
-        } else if (positionComponent != null)
-            pos = positionComponent.getPosition();
+        }
 
         if (pos == null)
             return null;
-//        pos = pos.add(new Vector3f(0, 0.005f, 0));
+
         if (gameObject.hasComponent(OffsetComponent.class))
             pos.add(gameObject.getComponent(OffsetComponent.class).getOffset());
 
@@ -237,23 +261,24 @@ public abstract class GameObject {
         Entity entity;
         if (gameObject.hasComponent(SingleModelComponent.class) ||
                 gameObject.hasComponent(AnimatedModelComponent.class) || displayBoundingBoxes) {
-            ModelEntity modelEntity;
+            AbstractModel model = null;
             if (preview)
-                modelEntity = previewComponent.getTexture();
+                model = previewComponent.getModel();
             else if (displayBoundingBoxes)
-                modelEntity = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox().toModelEntity();
-            else {
+                if (gameObject.hasComponent(BoundingBoxComponent.class))
+                    model = gameObject.getComponent(BoundingBoxComponent.class).getBoundingBox();
+
+            if (model == null) {
                 if (gameObject.hasComponent(SingleModelComponent.class))
-                    modelEntity = gameObject.getComponent(SingleModelComponent.class).getModel();
+                    model = gameObject.getComponent(SingleModelComponent.class).getModel();
                 else
-                    modelEntity = gameObject.getComponent(AnimatedModelComponent.class).getModel();
+                    model = gameObject.getComponent(AnimatedModelComponent.class).getModel();
             }
 
-            entity = new Entity(new ModelEntity(pos, direction, scale, modelEntity.getModel(), id));
+            entity = new Entity(new ModelEntity(pos, direction, scale, model, id));
         } else if (gameObject.hasComponent(MultipleModelsComponent.class)) {
             if (preview)
-                entity = new Entity(
-                        new ModelEntity(pos, direction, scale, previewComponent.getTexture().getModel(), id));
+                entity = new Entity(new ModelEntity(pos, direction, scale, previewComponent.getModel(), id));
             else {
                 Vector3f finalPos = pos;
                 MultipleModelsComponent multipleModelsComponent = gameObject
@@ -263,7 +288,7 @@ public abstract class GameObject {
                         .values().stream().map(entry -> {
                             ModelEntity modelEntity = new ModelEntity(entry.getKey().toModelEntity());
                             Vector3f offsetPosition = entry.getValue().getOffsetPosition();
-                            Vector3f offsetRotation = entry.getValue().getOffsetRotation();
+                            int offsetRotation = entry.getValue().getOffsetRotation();
                             float offsetScale = entry.getValue().getOffsetScale();
                             Vector3f modelPosition = new Vector3f();
                             switch (direction) {
@@ -287,8 +312,7 @@ public abstract class GameObject {
                             modelEntity.setPosition(newPos);
                             modelEntity.setScale(offsetScale + scale);
                             if (!entry.getValue().isFixedRotation()) {
-                                modelEntity.setRotation(
-                                        Vector3f.add(offsetRotation, new Vector3f(0, direction.getDegree(), 0), null));
+                                modelEntity.setRotation(new Vector3f(0, direction.add(offsetRotation).getDegree(), 0));
                             }
                             return modelEntity;
                         }).collect(Collectors.toList());
@@ -298,7 +322,6 @@ public abstract class GameObject {
             return null;
         }
 
-        entity.setPreview(preview);
         return entity;
     }
 }

@@ -1,13 +1,13 @@
 package pathfinding;
 
+import engineTester.Rome;
 import entities.Camera.Direction;
+import java.util.*;
+import java.util.stream.Collectors;
 import scene.Scene;
 import scene.callbacks.FilterGameObjectCallback;
 import scene.components.RoadComponent;
 import terrain.TerrainPosition;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class RoadGraph {
 
@@ -66,7 +66,7 @@ public class RoadGraph {
 
         assert currentNodeConnection.getEnd() == null;
 
-        Scene scene = Scene.getInstance();
+        Scene scene = Rome.getGame().getScene();
         for (Direction direction : directions) {
             TerrainPosition nextRoadPosition = position.add(Direction.toRelativeDistance(direction));
 
@@ -148,7 +148,7 @@ public class RoadGraph {
      * Add road to position dynamically
      */
     public void addRoad(TerrainPosition position) {
-        Direction[] connectionsToRoadItem = Scene.getInstance().getConnectedDirections(position, FILTER);
+        Direction[] connectionsToRoadItem = Rome.getGame().getScene().getConnectedDirections(position, FILTER);
         if (connectionsToRoadItem.length >= 3) { // New road is a node
             searchForNextNode(position, connectionsToRoadItem, null);
         } else {
@@ -173,7 +173,7 @@ public class RoadGraph {
             } /*else {*/
             for (Direction direction : connectionsToRoadItem) {
                 TerrainPosition newPos = position.add(Direction.toRelativeDistance(direction));
-                Direction[] directions = Scene.getInstance().getConnectedDirections(newPos, FILTER);
+                Direction[] directions = Rome.getGame().getScene().getConnectedDirections(newPos, FILTER);
                 if (directions.length == 3) { // New node created by this road
                     searchForNextNode(newPos, directions, null);
                 }

@@ -1,20 +1,18 @@
 package services;
 
+import engineTester.Rome;
+import java.awt.Color;
+import java.util.*;
+import java.util.stream.Collectors;
 import pathfinding.Path;
 import pathfinding.PathFinder;
 import pathfinding.Road;
 import renderEngine.PathRenderer;
-import scene.Scene;
 import scene.components.ConnectionsComponent;
 import scene.components.requirements.BuildingRoadConnectionRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
 import scene.gameObjects.GameObject;
 import terrain.TerrainPosition;
-
-import java.awt.*;
-import java.util.List;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class BuildingRequirementsService extends Service<Map<Path, Color>> {
 
@@ -25,7 +23,7 @@ public class BuildingRequirementsService extends Service<Map<Path, Color>> {
         super(onServiceDone);
 
         this.gameObjects = gameObjects;
-        this.pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        this.pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
     }
 
     @Override
@@ -43,7 +41,7 @@ public class BuildingRequirementsService extends Service<Map<Path, Color>> {
                     .map(Path::getAllUniqueRoads)
                     .flatMap(Collection::stream).map(Road::getPosition).collect(Collectors.toList());
             for (GameObject gameObject : this.gameObjects) {
-//                TerrainPosition position = gameObject.getComponent(PositionComponent.class).getPosition()
+//                TerrainPosition position = gameObject.getPosition()
 //                        .toTerrainPosition();
 //                if (allRoadsPositions.stream().anyMatch(roadPos -> roadPos.equals(position)))
 //                    continue;

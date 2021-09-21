@@ -1,6 +1,6 @@
 package animation;
 
-import engineTester.Game;
+import engineTester.Rome;
 import java.util.HashMap;
 import java.util.Map;
 import models.AnimatedModel;
@@ -56,8 +56,8 @@ public class Animator {
     private void increaseAnimationTime() {
 //        animationTime += DisplayManager.FPS / 600000000f;
         long currentFrameTime = TimeSystem.getTimeMillis();
-        animationTime += (currentFrameTime - Game.getInstance().prev) / 1000f;
-        Game.getInstance().prev = currentFrameTime;
+        animationTime += (currentFrameTime - Rome.prev) / 1000f;
+        Rome.prev = currentFrameTime;
         if (animationTime > currentAnimation.getLength()) {
             this.animationTime %= currentAnimation.getLength();
         }

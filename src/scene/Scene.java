@@ -3,7 +3,10 @@ package scene;
 import static pathfinding.RoadGraph.FILTER;
 
 import engineTester.Game;
+import engineTester.Rome;
 import entities.Camera.Direction;
+import entities.Entity;
+import entities.ModelEntity;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -22,10 +25,13 @@ import scene.gameObjects.GameObject;
 import scene.gameObjects.Player;
 import scene.gameObjects.Route;
 import scene.gameObjects.Terrain;
+import scene.preview.PreviewedModelsSupplier;
+import scene.preview.SinglePreviewsSupplier;
 import services.BuildingRequirementsService;
 import services.ServiceManager;
 import terrain.TerrainPosition;
 import util.DayNightCycle;
+import util.Offset;
 import util.math.Vector3f;
 
 public class Scene {
@@ -36,36 +42,33 @@ public class Scene {
 
     private final Map<Integer, GameObject> gameObjects = new HashMap<>();
 
-    private final Map<Integer, GameObject> previewedGameObjects = new HashMap<>();
+    //    private final Map<GameObjectRenderer<?>, Set<GameObject>> renderableGameObjects = new HashMap<>();
+    private final Map<GameObjectRenderer<?>, Set<Entity>> modelsToRender = new HashMap<>();
 
-    private final Map<GameObjectRenderer<?>, Set<GameObject>> renderableGameObjects = new HashMap<>();
+    private PreviewedModelsSupplier previewedModelsSupplier;
 
     private int[][] positions = new int[Game.TERRAIN_WIDTH][Game.TERRAIN_DEPTH];
 
     private final ServiceManager<BuildingRequirementsService> serviceManager = new ServiceManager<>();
 
+    private boolean boundingBoxesDisplayed;
+
     private RoadGraph roadGraph;
 
     private Terrain terrain;
 
-    private static Scene instance;
-
-    public static Scene getInstance() {
-        return instance == null ? (instance = new Scene()) : instance;
-    }
-
-    private Scene() {
+    public Scene() {
         this.roadGraph = createRoadGraph();
+        this.previewedModelsSupplier = SinglePreviewsSupplier.getInstance();
+        this.boundingBoxesDisplayed = false;
     }
 
     public boolean addGameObject(GameObject gameObject) {
         if (gameObject instanceof Terrain)
             this.terrain = (Terrain) gameObject;
 
-        PositionComponent positionComponent = gameObject.getComponent(PositionComponent.class);
-        if (positionComponent != null &&
-                positionComponent.getPosition().isTerrainPosition()) { // Objects belongs on terrain and has offset
-            return placeGameObjectOnTerrain(gameObject, positionComponent.getPosition().toTerrainPosition(), true);
+        if (gameObject.getPosition().isTerrainPosition()) { // Objects belongs on terrain and has offset
+            return placeGameObjectOnTerrain(gameObject, gameObject.getPosition().toTerrainPosition(), true);
         } else
             this.gameObjects.put(gameObject.getId(), gameObject);
 
@@ -73,6 +76,7 @@ public class Scene {
     }
 
     public void addPosition(int x, int z, int value) {
+        assert value > 0;
         try {
             this.positions[x][z] = value;
         } catch (IndexOutOfBoundsException ignored) {
@@ -90,8 +94,8 @@ public class Scene {
         if (gameObject == null)
             return;
 
-        if (gameObject.hasComponent(PositionComponent.class)) {
-            Vector3f position = gameObject.getComponent(PositionComponent.class).getPosition();
+        if (gameObject.isPlaced()) {
+            Vector3f position = gameObject.getPosition();
             if (position != null && position.isTerrainPosition()) { // Object belongs on Terrain
                 if (gameObject.hasComponent(OffsetsComponent.class)) {
                     OffsetsComponent offsetsComponent = gameObject.getComponent(OffsetsComponent.class);
@@ -110,11 +114,13 @@ public class Scene {
         return this.positions;
     }
 
-    public void addRenderableGameObject(GameObjectRenderer<?> gameObjectRenderer, GameObject gameObject) {
-        if (!this.renderableGameObjects.containsKey(gameObjectRenderer))
-            this.renderableGameObjects.put(gameObjectRenderer, new HashSet<>());
+    public void addRenderableGameObject(GameObjectRenderer<?> gameObjectRenderer, GameObject gameObject,
+            boolean displayBB) {
+        if (!this.modelsToRender.containsKey(gameObjectRenderer))
+            this.modelsToRender.put(gameObjectRenderer, new HashSet<>());
 
-        boolean added = this.renderableGameObjects.get(gameObjectRenderer).add(gameObject);
+        Entity entityFromGameObject = GameObject.createEntityFromGameObject(gameObject, displayBB);
+        this.modelsToRender.get(gameObjectRenderer).add(entityFromGameObject);
     }
 
     public void removeGameObjectFromRender(GameObject gameObject) {
@@ -123,16 +129,31 @@ public class Scene {
 
             GameObjectRenderer<?> renderer = gameObjectRenderer.getRenderer();
             renderer.removeGameObject(gameObject);
-            if (this.renderableGameObjects.containsKey(renderer))
-                this.renderableGameObjects.get(renderer).remove(gameObject);
+            if (this.modelsToRender.containsKey(renderer))
+                this.modelsToRender.get(renderer).remove(gameObject);
         }
     }
 
     public void render() {
         MasterRenderer.getInstance().prepare();
         SkyboxRenderer.getInstance().render();
-        this.renderableGameObjects.forEach((renderer, lGameObjects) -> {
-            lGameObjects.forEach(renderer::addToRender);
+
+        Map<GameObjectRenderer<?>, Set<Entity>> modelsToRender = this.modelsToRender.entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey, e -> new HashSet<>(e.getValue())));
+
+        this.previewedModelsSupplier.get().stream().map(Entity::new).forEach(entity -> {
+            GameObject previewedGameObj = GameObject.getGameObjectFromClass(Player.getSelectedGameObject());
+            if (!previewedGameObj.hasComponent(RendererComponent.class))
+                return;
+
+            GameObjectRenderer<?> renderer = previewedGameObj.getComponent(RendererComponent.class).getRenderer();
+            if (!modelsToRender.containsKey(renderer))
+                modelsToRender.put(renderer, new HashSet<>());
+            modelsToRender.get(renderer).add(entity);
+        });
+
+        modelsToRender.forEach((renderer, lEntities) -> {
+            lEntities.forEach(renderer::addToRender);
             renderer.render();
         });
         DayNightCycle.incrementCycleTime();
@@ -153,87 +174,87 @@ public class Scene {
     public GameObject getGameObjectFromId(int id) {
         if (this.gameObjects.containsKey(id))
             return this.gameObjects.get(id);
-        return this.previewedGameObjects.get(id);
+        return null;
     }
 
     /**
      * Add given position to the list of previewed positions
+     * Doesn't check if the previewed element can actually fit at terrainPoint
      *
-     * @param currTerrainPoint new position
+     * @param gameObjClass class of the previewed game object
+     * @param position position
+     * @param direction rotation
      */
-    public void addToPreview(TerrainPosition currTerrainPoint) {
-        if (!Player.hasSelectedGameObject())
-            return;
-        GameObject gameObject = GameObject.getObjectFromClass(Player.getSelectedGameObject());
+    public void addToPreview(Class<? extends GameObject> gameObjClass, TerrainPosition position,
+            Direction direction) {
+        GameObject gameObject = GameObject.getGameObjectFromClass(gameObjClass);
         if (gameObject == null)
             return;
-        if (gameObject.hasComponent(DirectionComponent.class))
-            gameObject.getComponent(DirectionComponent.class).setDirection(Player.getDirection());
-        else
-            gameObject.addComponent(new DirectionComponent(Player.getDirection()));
-        if (gameObject.hasComponent(PreviewComponent.class))
-            gameObject.getComponent(PreviewComponent.class).setPreviewPosition(currTerrainPoint);
-        addRenderableGameObject(gameObject.getComponent(RendererComponent.class).getRenderer(), gameObject);
-        this.previewedGameObjects.put(gameObject.getId(), gameObject);
+
+        if (gameObject.hasComponent(PreviewComponent.class)) {
+            PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
+            float scale = 1.0f;
+            if (gameObject.hasComponent(ScaleComponent.class))
+                scale = gameObject.getComponent(ScaleComponent.class).getScale();
+            Vector3f pos = position.toVector3f();
+            if (gameObject.hasComponent(OffsetComponent.class))
+                pos.add(gameObject.getComponent(OffsetComponent.class).getOffset());
+            this.previewedModelsSupplier = previewComponent.getPreviewSupplier();
+            this.previewedModelsSupplier.add(new ModelEntity(pos, direction, scale,
+                    previewComponent.getModel(), -1));
+        }
     }
 
     /**
-     * Change preview position, only works if only one position is previewed
+     * Applies the offset to the previewed models
      *
-     * @param newTerrainPoint the new preview position
+     * @param offset the offset applied
      */
-    public void changePreviewPosition(TerrainPosition newTerrainPoint) {
-        if (this.previewedGameObjects.size() != 1)
-            return;
-
-        GameObject previewedGameObject = this.previewedGameObjects.values().stream().findFirst().orElse(null);
-//        removeRenderableGameObject(previewedGameObject.getComponent(RendererComponent.class).getRenderer(), previewedGameObject);
-//        addRenderableGameObject(previewedGameObject.getComponent(RendererComponent.class).getRenderer(), previewedGameObject);
-        if (!previewedGameObject.hasComponent(PreviewComponent.class))
-            return;
-        previewedGameObject.getComponent(PreviewComponent.class).setPreviewPosition(newTerrainPoint);
+    public void offsetPreview(Offset offset) {
+        this.previewedModelsSupplier.offset(offset);
     }
 
     /**
      * Resets all the positions that were previously previewed
      */
-    public void resetPreviewedPositions(boolean purge) {
-        this.previewedGameObjects.values().forEach(this::removeGameObjectFromRender);
-        if (purge)
-            this.previewedGameObjects.values().forEach(GameObject::destroy);
-        this.previewedGameObjects.clear();
+    public void resetPreviewedPositions() {
+        this.previewedModelsSupplier.clear();
+    }
+
+    /**
+     * @return preview direction
+     */
+    public Direction getPreviewDirection() {
+        return this.previewedModelsSupplier.getDirection();
+    }
+
+    /**
+     * @return true is there's any position previewed
+     */
+    public boolean isAnyPreviewedPositions() {
+        return this.previewedModelsSupplier.isAny();
     }
 
     /**
      * @return the unmodifiable previewed positions
      */
-    public Set<TerrainPosition> getPreviewPositions() {
-        return this.previewedGameObjects.values().stream()
-                .map(gameObject -> gameObject.getComponent(PreviewComponent.class).getPreviewPosition())
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    public Map<Integer, GameObject> getPreviewedGameObjects() {
-        return Collections.unmodifiableMap(this.previewedGameObjects);
+    public Set<TerrainPosition> getPreviewedPositions() {
+        return this.previewedModelsSupplier.getPositions();
     }
 
     public Map<Class<? extends Component>, Set<Integer>> getIdGameObjectsForComponents() {
         return this.idGameObjectsForComponents;
     }
 
-    public Set<Integer> getIdGameObjectsForComponentClass(Class<? extends Component> clazz, boolean includePreviews) {
+    public Set<Integer> getIdGameObjectsForComponentClass(Class<? extends Component> clazz) {
         if (!this.idGameObjectsForComponents.containsKey(clazz))
             return new HashSet<>();
 
-        Set<Integer> ids = this.idGameObjectsForComponents.get(clazz);
-        if (!includePreviews)
-            ids.removeAll(this.previewedGameObjects.keySet());
-
-        return ids;
+        return this.idGameObjectsForComponents.get(clazz);
     }
 
-    public Set<GameObject> getGameObjectsForComponent(Class<? extends Component> clazz, boolean includePreviews) {
-        return getIdGameObjectsForComponentClass(clazz, includePreviews).stream()
+    public Set<GameObject> getGameObjectsForComponent(Class<? extends Component> clazz) {
+        return getIdGameObjectsForComponentClass(clazz).stream()
                 .map(this::getGameObjectFromId).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
@@ -256,26 +277,13 @@ public class Scene {
      * Place previewed items on Terrain
      */
     public void placePreviewedObjects() {
-        GameObject obj = null;
-        TerrainPosition pos = null;
-        for (GameObject gameObject : this.previewedGameObjects.values()) {
-            PreviewComponent previewComponent = gameObject.getComponent(PreviewComponent.class);
-            TerrainPosition previewPosition = previewComponent.getPreviewPosition();
-            previewComponent.setPreviewPosition(null);
-            if (previewPosition != null) { // = Was previewed
-                gameObject.destroy();
-                System.out.println("Placing at " + previewPosition);
-                Direction direction = Direction.defaultDirection();
-                if (gameObject.hasComponent(DirectionComponent.class))
-                    direction = gameObject.getComponent(DirectionComponent.class).getDirection();
-                obj = GameObject.newInstance(gameObject.getClass(), previewPosition, direction, true);
-
-                pos = previewPosition;
-            }
+        for (var preview : this.previewedModelsSupplier.get()) {
+            System.out.println("Placing at " + preview.getPosition());
+            Direction direction = Direction.getDirectionFromDegree((int) preview.getRotation().getY());
+            GameObject.newInstance(Player.getSelectedGameObject(),
+                    preview.getPosition().toTerrainPosition(), direction, true);
         }
-        if (obj != null)
-            obj.onUniqueAddGameObject(pos.toVector3f());
-        resetPreviewedPositions(false);
+        resetPreviewedPositions();
     }
 
     public int getMaxPeopleCapacity() {
@@ -285,7 +293,7 @@ public class Scene {
     }
 
     public Set<GameObject> getRoads() {
-        return new HashSet<>(getGameObjectsForComponent(RoadComponent.class, false));
+        return new HashSet<>(getGameObjectsForComponent(RoadComponent.class));
     }
 
     public boolean canGameObjectClassBePlaced(Class<? extends GameObject> gameObjectClass,
@@ -293,17 +301,17 @@ public class Scene {
         if (gameObjectClass == null)
             return false;
 
-        GameObject objectFromClass = GameObject.getObjectFromClass(gameObjectClass);
+        GameObject objectFromClass = GameObject.getGameObjectFromClass(gameObjectClass);
+        if (objectFromClass == null)
+            return false;
         if (objectFromClass.hasComponent(DirectionComponent.class))
             objectFromClass.getComponent(DirectionComponent.class).setDirection(direction);
         else
             objectFromClass.addComponent(new DirectionComponent(direction));
         if (objectFromClass.hasComponent(PreviewComponent.class))
             objectFromClass.getComponent(PreviewComponent.class).setPreviewPosition(pos);
-        boolean res = canGameObjectBePlaced(objectFromClass, pos);
-        objectFromClass.destroy();
 
-        return res;
+        return canGameObjectBePlaced(objectFromClass, pos);
     }
 
     private boolean canGameObjectBePlaced(GameObject objectToPlace, TerrainPosition pos) {
@@ -426,11 +434,39 @@ public class Scene {
         return -1;
     }
 
-//
-//    private boolean isGameObjectPreviewed(GameObject gameObject) {
-//        return gameObject.hasComponent(PositionComponent.class) && gameObject.hasComponent(PreviewComponent.class) &&
-//                gameObject.getComponent(PreviewComponent.class).getPreviewPosition() != null;
-//    }
+    public void enableBoundingBoxes() {
+        if (this.boundingBoxesDisplayed)
+            return;
+
+        this.boundingBoxesDisplayed = true;
+        this.modelsToRender.clear();
+        this.gameObjects.forEach((id, gameObject) -> {
+            if (gameObject.hasComponent(RendererComponent.class)) {
+                RendererComponent rendererComponent = gameObject.getComponent(RendererComponent.class);
+                GameObjectRenderer<?> renderer = rendererComponent.getRenderer();
+                addRenderableGameObject(renderer, gameObject, true);
+            }
+        });
+    }
+
+    public void disableBoundingBoxes() {
+        if (!this.boundingBoxesDisplayed)
+            return;
+
+        this.boundingBoxesDisplayed = false;
+        this.modelsToRender.clear();
+        this.gameObjects.forEach((id, gameObject) -> {
+            if (gameObject.hasComponent(RendererComponent.class)) {
+                RendererComponent rendererComponent = gameObject.getComponent(RendererComponent.class);
+                GameObjectRenderer<?> renderer = rendererComponent.getRenderer();
+                addRenderableGameObject(renderer, gameObject, false);
+            }
+        });
+    }
+
+    public boolean areBoundingBoxesDisplayed() {
+        return this.boundingBoxesDisplayed;
+    }
 
     private RoadGraph createRoadGraph() {
         final RoadGraph roadGraph = new RoadGraph();
@@ -438,7 +474,7 @@ public class Scene {
         Map<NodeRoad, Direction[]> nodes = new HashMap<>();
 
         getRoads().forEach(road -> {
-            TerrainPosition pos = road.getComponent(PositionComponent.class).getPosition().toTerrainPosition();
+            TerrainPosition pos = road.getPosition().toTerrainPosition();
             Direction[] directions = getConnectedDirections(pos, FILTER);
             if (directions.length >= 3)
                 nodes.put(new NodeRoad(pos), directions);
@@ -486,11 +522,10 @@ public class Scene {
      */
     public Set<GameObject> getNeighbors(GameObject gameObject, FilterGameObjectCallback filter) {
         Set<GameObject> neighbors = new HashSet<>();
-        if (!gameObject.hasComponent(PositionComponent.class) || !gameObject.hasComponent(ConnectionsComponent.class))
+        if (!gameObject.isPlaced() || !gameObject.hasComponent(ConnectionsComponent.class))
             return neighbors;
 
-        TerrainPosition fromPosition = gameObject.getComponent(PositionComponent.class).getPosition()
-                .toTerrainPosition();
+        TerrainPosition fromPosition = gameObject.getPosition().toTerrainPosition();
 
         ConnectionsComponent<?> connectionsComponent = gameObject.getComponent(ConnectionsComponent.class);
 
@@ -546,7 +581,7 @@ public class Scene {
         System.out.println("Updating everything");
         //TODO: If new road is not connected to anything, stop
         BuildingRequirementsService service = new BuildingRequirementsService(
-                Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false), result -> {
+                Rome.getGame().getScene().getGameObjectsForComponent(ResourceRequirementComponent.class), result -> {
             PathRenderer pathRenderer = PathRenderer.getInstance();
             if (result.keySet().equals(pathRenderer.getTempPathsList().keySet())) // No new paths
                 return;
@@ -568,7 +603,7 @@ public class Scene {
     }
 
     private void removePreviousHighlightedPaths() {
-        Set<GameObject> routes = getGameObjectsOfType(Route.class, false);
+        Set<GameObject> routes = getGameObjectsOfType(Route.class);
         routes.forEach(gameObject -> removeGameObject(gameObject.getId()));
     }
 
@@ -583,15 +618,9 @@ public class Scene {
         });
     }
 
-    public Set<GameObject> getGameObjectsOfType(Class<? extends GameObject> gameObjectClass, boolean includePreviews) {
-        Set<GameObject> collect = this.gameObjects.values().stream().filter(item -> item.getClass() == gameObjectClass)
-                .collect(Collectors.toSet());
-        if (includePreviews)
-            collect.addAll(
-                    this.previewedGameObjects.values().stream().filter(item -> item.getClass() == gameObjectClass)
-                            .collect(Collectors.toSet()));
-
-        return collect;
+    public Set<GameObject> getGameObjectsOfType(Class<? extends GameObject> gameObjectClass) {
+        return this.gameObjects.values().stream()
+                .filter(item -> item.getClass() == gameObjectClass).collect(Collectors.toSet());
     }
 
     /**
@@ -601,9 +630,9 @@ public class Scene {
         this.gameObjects.clear();
         GameObject.reset();
         this.idGameObjectsForComponents.clear();
-        this.renderableGameObjects.clear();
-        this.previewedGameObjects.clear();
+        this.modelsToRender.clear();
         this.serviceManager.clear();
+        this.previewedModelsSupplier.clear();
         this.positions = new int[500][500];
     }
 
@@ -616,24 +645,6 @@ public class Scene {
 
     public Terrain getTerrain() {
         return this.terrain;
-    }
-
-    /**
-     * Offsets previewed GameObjects by given amount
-     *
-     * @param rotationOffset rotation to apply to all previewed GameObjects
-     */
-    public void rotatePreview(int rotationOffset) {
-        Player.setDirection(Player.getDirection().add(rotationOffset));
-        this.previewedGameObjects.values().stream()
-                .filter(gameObject -> gameObject.hasComponent(DirectionComponent.class))
-                .map(gameObject -> gameObject.getComponent(DirectionComponent.class))
-                .forEach(directionComponent -> directionComponent
-                        .setDirection(directionComponent.getDirection().add(rotationOffset)));
-    }
-
-    public boolean isPreviewed(int idGameObject) {
-        return this.previewedGameObjects.containsKey(idGameObject);
     }
 
     /**

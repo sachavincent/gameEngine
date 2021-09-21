@@ -1,6 +1,6 @@
 package util.commands;
 
-import engineTester.Game;
+import engineTester.Rome;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class AddPeopleCommand extends Command {
 
 
         for (int i = 0; i < intAmount; i++)
-            if (!Game.getInstance().addPerson())
+            if (!Rome.getGame().addPerson())
                 return 3;
 
         return 0;

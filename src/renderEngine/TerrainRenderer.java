@@ -10,6 +10,7 @@ import static renderEngine.MasterRenderer.GREEN;
 import static renderEngine.MasterRenderer.RED;
 
 import engineTester.Game;
+import engineTester.Rome;
 import entities.ModelEntity;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import renderEngine.shaders.structs.Biome;
 import renderEngine.shaders.structs.Material;
 import renderEngine.structures.IndexBufferVao;
 import renderEngine.structures.Vao;
-import scene.Scene;
 import scene.components.HeightMapComponent;
 import scene.components.SingleModelComponent;
 import scene.components.TerrainComponent;
@@ -70,7 +70,7 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
     @Override
     protected void doRender(Set<Map.Entry<AbstractModel, List<ModelEntity>>> entrySet) {
 //        TerrainPosition hoveredCell = MousePicker.getInstance().getHoveredCell();
-        Terrain terrain = Scene.getInstance().getTerrain();
+        Terrain terrain = Rome.getGame().getScene().getTerrain();
         if (terrain == null)
             return;
 
@@ -106,7 +106,7 @@ public class TerrainRenderer extends GameObjectRenderer<TerrainShader> {
         if (singleModelComponent == null)
             return null;
 
-        AbstractModel model = singleModelComponent.getModel().getModel();
+        AbstractModel model = singleModelComponent.getModel();
         if (model == null)
             return null;
 

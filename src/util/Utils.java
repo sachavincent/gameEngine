@@ -1,5 +1,6 @@
 package util;
 
+import engineTester.Rome;
 import guis.presets.Background;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -15,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import scene.Scene;
 import scene.components.HeightMapComponent;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
@@ -263,7 +263,7 @@ public class Utils {
         String[] split = position.split(",");
         int x = Integer.parseInt(split[0].trim());
         int z = Integer.parseInt(split[1].trim());
-        Terrain terrain = Scene.getInstance().getTerrain();
+        Terrain terrain = Rome.getGame().getScene().getTerrain();
         HeightMapComponent heightMapComponent = terrain.getComponent(HeightMapComponent.class);
         return new TerrainPosition(x, heightMapComponent.getHeight(x, z), z);
     }

@@ -1,5 +1,6 @@
 package renderEngine;
 
+import engineTester.Rome;
 import entities.Entity;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -7,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
-import scene.Scene;
 import scene.components.PreviewComponent;
 import scene.gameObjects.GameObject;
 
@@ -51,7 +51,7 @@ public class Query {
             return null;
 
         int id = this.lastUpdateTimes.poll();
-        GameObject gameObjectFromId = Scene.getInstance().getGameObjectFromId(id);
+        GameObject gameObjectFromId = Rome.getGame().getScene().getGameObjectFromId(id);
         if (gameObjectFromId != null) {
             this.lastUpdateTimes.add(id);
         }

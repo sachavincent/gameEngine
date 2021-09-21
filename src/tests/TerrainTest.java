@@ -7,6 +7,7 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static pathfinding.RoadGraph.FILTER;
 
 import display.Display;
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +25,6 @@ import pathfinding.PathFinder;
 import pathfinding.RoadGraph;
 import renderEngine.PathRenderer;
 import scene.Scene;
-import scene.components.PositionComponent;
 import scene.gameObjects.DirtRoad;
 import scene.gameObjects.GameObject;
 import scene.gameObjects.Insula;
@@ -34,7 +34,7 @@ import util.Utils;
 
 class TerrainTest {
 
-    private final Scene scene = Scene.getInstance();
+    private final Scene scene = Rome.getGame().getScene();
 
     @BeforeAll
     public static void init() {
@@ -2538,16 +2538,16 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula1() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula.placeAt(new TerrainPosition(50, 0, 50));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
             positions[i - 53] = new TerrainPosition(50, 0, i);
 
         GameObject.newInstances(DirtRoad.class, positions);
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2562,9 +2562,9 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula2() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula.placeAt(new TerrainPosition(50, 0, 50));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
@@ -2588,7 +2588,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 84));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(55, 0, 85));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2603,9 +2603,9 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula3() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula.placeAt(new TerrainPosition(50, 0, 50));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
 
         TerrainPosition[] positions = new TerrainPosition[21];
         for (int i = 53; i < 74; i++)
@@ -2621,7 +2621,7 @@ class TerrainTest {
         }
         GameObject.newInstances(DirtRoad.class, connectedRoads);
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2637,9 +2637,9 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula4() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(35, 0, 50)));
+        insula.placeAt(new TerrainPosition(35, 0, 50));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(36, 0, 61)));
+        market.placeAt(new TerrainPosition(36, 0, 61));
 
         TerrainPosition[] positions = new TerrainPosition[]{
                 new TerrainPosition(33, 0, 47),
@@ -2666,7 +2666,7 @@ class TerrainTest {
 
         GameObject.newInstances(DirtRoad.class, positions);
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NodeRoad(new TerrainPosition(33, 0, 53)),
@@ -2713,7 +2713,7 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula5() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
@@ -2722,9 +2722,9 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, positions);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula.placeAt(new TerrainPosition(50, 0, 50));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2739,7 +2739,7 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula6() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[22];
         for (int i = 53; i < 75; i++)
@@ -2748,9 +2748,9 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, positions);
 
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2765,19 +2765,19 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula7() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 60)));
+        insula.placeAt(new TerrainPosition(47, 0, 60));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2793,21 +2793,21 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula8() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 61)));
+        insula.placeAt(new TerrainPosition(47, 0, 61));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
@@ -2822,14 +2822,14 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula9() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(47, 0, 61)));
+        insula.placeAt(new TerrainPosition(47, 0, 61));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 68));
@@ -2837,7 +2837,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 65));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
@@ -2852,21 +2852,21 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula10() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         for (int i = 55; i < 70; i++)
             positions[i - 55] = new TerrainPosition(50, 0, i);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(54, 0, 61)));
+        insula.placeAt(new TerrainPosition(54, 0, 61));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 55));
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 63));
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
 
@@ -2881,9 +2881,9 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula11() {
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market.placeAt(new TerrainPosition(50, 0, 50));
         Market market2 = new Market();
-        market2.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        market2.placeAt(new TerrainPosition(50, 0, 50));
 
         TerrainPosition[] positions = new TerrainPosition[15];
         TerrainPosition[] positions2 = new TerrainPosition[14];
@@ -2893,7 +2893,7 @@ class TerrainTest {
             positions2[i - 50] = new TerrainPosition(i, 0, 70);
 
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(63, 0, 75)));
+        insula.placeAt(new TerrainPosition(63, 0, 75));
 
         GameObject.newInstances(DirtRoad.class, positions);
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(51, 0, 55));
@@ -2907,7 +2907,7 @@ class TerrainTest {
         GameObject.newInstances(DirtRoad.class, positions2);
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -2939,11 +2939,11 @@ class TerrainTest {
     @Test
     void testPathfindingMarketToInsula12() {
         Insula insula = new Insula();
-        insula.addComponent(new PositionComponent(new TerrainPosition(40, 0, 47)));
+        insula.placeAt(new TerrainPosition(40, 0, 47));
         Insula insula2 = new Insula();
-        insula2.addComponent(new PositionComponent(new TerrainPosition(50, 0, 50)));
+        insula2.placeAt(new TerrainPosition(50, 0, 50));
         Market market = new Market();
-        market.addComponent(new PositionComponent(new TerrainPosition(50, 0, 80)));
+        market.placeAt(new TerrainPosition(50, 0, 80));
         for (int x = 0; x < 21; x++)
             GameObject.newInstance(DirtRoad.class, new TerrainPosition(x, 0, 0));
 
@@ -2962,7 +2962,7 @@ class TerrainTest {
         Insula extraInsula = GameObject.newInstance(Insula.class, new TerrainPosition(39, 0, 37));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(extraInsula, market, 0);
         Path expectedPath = new Path();
 
@@ -2983,7 +2983,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(31, 0, 58));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -3027,7 +3027,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(43, 0, 65));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -3069,7 +3069,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 71));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
 
         Path expectedPath = new Path();
@@ -3103,7 +3103,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(47, 0, 71));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(44, 0, 76)),
@@ -3123,7 +3123,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(49, 0, 75));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(new NormalRoad(new TerrainPosition(50, 0, 75)),
@@ -3143,7 +3143,7 @@ class TerrainTest {
         GameObject.newInstance(DirtRoad.class, new TerrainPosition(46, 0, 75));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         Path expectedPath = new Path();
         NodeConnection nodeConnection = new NodeConnection(
@@ -3187,7 +3187,7 @@ class TerrainTest {
         Insula insula = GameObject.newInstance(Insula.class, new TerrainPosition(23, 0, 24));
 
 
-        PathFinder pathFinder = new PathFinder(Scene.getInstance().getRoadGraph());
+        PathFinder pathFinder = new PathFinder(Rome.getGame().getScene().getRoadGraph());
         Path bestPath = pathFinder.findBestPath(insula, market, 0);
         System.out.println(bestPath);
         Path expectedPath = new Path();

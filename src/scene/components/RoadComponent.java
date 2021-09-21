@@ -1,10 +1,11 @@
 package scene.components;
 
-import scene.Scene;
+import engineTester.Rome;
 
 public class RoadComponent extends Component {
 
     public RoadComponent() {
-        super((gameObject, position) -> Scene.getInstance().getRoadGraph().addRoad(position.toTerrainPosition()));
+        super((gameObject) -> Rome.getGame().getScene().getRoadGraph()
+                .addRoad(gameObject.getPosition().toTerrainPosition()));
     }
 }

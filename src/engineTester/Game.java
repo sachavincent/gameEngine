@@ -1,24 +1,15 @@
 package engineTester;
 
-import entities.Camera;
-import guis.Gui;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
-import guis.presets.GuiTextInput;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import people.Farmer;
 import people.Person;
-import postProcessing.Fbo;
-import postProcessing.PostProcessing;
-import renderEngine.GuiRenderer;
-import renderEngine.fontRendering.TextMaster;
 import scene.Scene;
 import scene.components.Component;
 import scene.components.ConstructionComponentSingle;
@@ -31,35 +22,33 @@ import util.Utils;
 
 public class Game {
 
-    public static final TimeSystem COOLDOWN_BEFORE_SETTLEMENT = new TimeSystem(
+    public static final TimeSystem COOLDOWN_BEFORE_SETTLEMENT      = new TimeSystem(
             TimeSystem.TICK_RATE * 60); // 1 Minute
     public static final TimeSystem MAX_TIME_BEFORE_FULL_SETTLEMENT = new TimeSystem(
             TimeSystem.TICK_RATE * 60 * 5); // 5 Minutes
-    public static final TimeSystem TIME_BETWEEN_SETTLEMENTS = new TimeSystem(
+    public static final TimeSystem TIME_BETWEEN_SETTLEMENTS        = new TimeSystem(
             TimeSystem.TICK_RATE * 20); // 20 seconds
-    public static final int COOLDOWN_GLOBAL_MOVE_AWAY = TimeSystem.TICK_RATE * 10; // 10 seconds
+    public static final int        COOLDOWN_GLOBAL_MOVE_AWAY       = TimeSystem.TICK_RATE * 10; // 10 seconds
 
-    public static final int TERRAIN_WIDTH = 128;
-    public static final int TERRAIN_DEPTH = 128;
+    public static final int   TERRAIN_WIDTH      = 128;
+    public static final int   TERRAIN_DEPTH      = 128;
     public static final float TERRAIN_MAX_HEIGHT = 32;
 
-    private static Game instance;
+    private final Scene scene;
 
     private GameState gameState;
 
-    private final List<Gui> guis = new ArrayList<>();
-    private final List<GuiTextInput> guiTextInputs = new ArrayList<>();
-    private final List<Gui> displayedGuis = new ArrayList<>();
-
     private int lastSettlementAttemptTime = TimeSystem.getCurrentTimeTicks();
-    private int lastGlobalMovingAwayTime = TimeSystem.getCurrentTimeTicks();
+    private int lastGlobalMovingAwayTime  = TimeSystem.getCurrentTimeTicks();
 
-    private Game() {
-        this.gameState = GameState.NOT_STARTED;
+    public Game() {
+        this.gameState = GameState.DEFAULT;
+
+        this.scene = new Scene();
     }
 
-    public static Game getInstance() {
-        return instance == null ? (instance = new Game()) : instance;
+    public Scene getScene() {
+        return this.scene;
     }
 
     public boolean addPerson() {
@@ -68,7 +57,7 @@ public class Game {
         if (eligibleHouses.entrySet().isEmpty())
             return false;
 
-        GameObject house = Scene.getInstance().getGameObjectFromId(Utils.pickRandomWeightedMap(eligibleHouses));
+        GameObject house = Rome.getGame().getScene().getGameObjectFromId(Utils.pickRandomWeightedMap(eligibleHouses));
         if (house == null || !house.hasComponent(ResidenceComponent.class))
             return false;
 
@@ -90,7 +79,7 @@ public class Game {
             return false;
 
         Person selectedPerson = Utils.pickRandomWeightedMap(eligiblePersonsForMovingAway);
-        GameObject house = Scene.getInstance().getGameObjectFromId(selectedPerson.getIdHouse());
+        GameObject house = Rome.getGame().getScene().getGameObjectFromId(selectedPerson.getIdHouse());
         if (house == null || !house.hasComponent(ResidenceComponent.class))
             return false;
 
@@ -111,7 +100,7 @@ public class Game {
      * @return the list of all eligible houses with their probability
      */
     private Map<Integer, Integer> getEligibleHousesSettlement() {
-        return Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false).stream()
+        return Rome.getGame().getScene().getGameObjectsForComponent(ResourceRequirementComponent.class).stream()
                 .collect(Collectors.toMap(gameObject -> gameObject, gameObject -> {
                     ResidenceComponent residenceComponent = gameObject.getComponent(ResidenceComponent.class);
                     if (residenceComponent == null ||
@@ -188,7 +177,7 @@ public class Game {
      * @return the list of all eligible persons with their probability
      */
     private Map<Person, Integer> getEligiblePersonsForMovingAway() {
-        return Scene.getInstance().getGameObjectsForComponent(ResidenceComponent.class, false).stream()
+        return Rome.getGame().getScene().getGameObjectsForComponent(ResidenceComponent.class).stream()
                 .map(gameObject -> {
                     ResidenceComponent residenceComponent = gameObject.getComponent(ResidenceComponent.class);
                     int currentPeopleCount = residenceComponent.getCurrentPeopleCount();
@@ -218,10 +207,10 @@ public class Game {
 
                     final int finalCooldown = cooldown;
                     Person eligiblePerson = residenceComponent.getPersons().values().stream().map(
-                            people -> people.stream()
-                                    .filter(person -> TimeSystem.getCurrentTimeTicks() - person.getSettlementTime() >
-                                            finalCooldown)
-                                    .collect(Collectors.toList())).flatMap(Collection::stream)
+                                    people -> people.stream()
+                                            .filter(person -> TimeSystem.getCurrentTimeTicks() - person.getSettlementTime() >
+                                                    finalCooldown)
+                                            .collect(Collectors.toList())).flatMap(Collection::stream)
                             .findFirst().orElse(null);
                     return new SimpleEntry<>(eligiblePerson, (int) (probability * 100));
                 })
@@ -231,15 +220,8 @@ public class Game {
                 .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
     }
 
-    public void start() {
-        if (this.gameState == GameState.NOT_STARTED)
-            this.gameState = GameState.STARTED;
-        else
-            throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
-    }
-
     public void pause() {
-        if (this.gameState == GameState.STARTED)
+        if (this.gameState == GameState.DEFAULT)
             this.gameState = GameState.PAUSED;
         else
             throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
@@ -247,7 +229,7 @@ public class Game {
 
     public void resume() {
         if (this.gameState == GameState.PAUSED)
-            this.gameState = GameState.STARTED;
+            this.gameState = GameState.DEFAULT;
         else
             throw new IllegalStateException("Incorrect GameState=" + this.gameState.name());
     }
@@ -256,38 +238,15 @@ public class Game {
         return this.gameState;
     }
 
-    public List<Gui> getAllGuis() {
-        return this.guis;
-    }
-
-    public List<Gui> getDisplayedGuis() {
-        return this.displayedGuis;
-    }
-
-    public List<GuiTextInput> getGuiTextInputs() {
-        return this.guiTextInputs;
-    }
-
-    public void addGui(Gui gui) {
-        this.guis.add(gui);
-        this.displayedGuis.add(gui);
-    }
-
-    public void updateGuis() {
-        this.guis.forEach(
-                gui -> this.guiTextInputs.addAll(gui.getAllComponents().stream().filter(GuiTextInput.class::isInstance)
-                        .map(GuiTextInput.class::cast).collect(Collectors.toList())));
-    }
-
     /**
      * Called every in-game Tick
      */
-    public void processLogic() {
-        if (this.gameState == GameState.STARTED) {
+    protected void processLogic() {
+        if (this.gameState == GameState.DEFAULT) {
             TimeSystem.nextTick();
 //            EnumMap<SocialClass, Integer> peopleList = new EnumMap<>(SocialClass.class);
 //
-//            Scene.getInstance()
+//            Rome.getGame().getScene()
 //                    .getGameObjectsForComponent(ResidenceComponent.class, false).stream()
 //                    .map(gameObject -> gameObject.getComponent(ResidenceComponent.class).getPersons())
 //                    .forEach(map -> {
@@ -305,20 +264,20 @@ public class Game {
 //                });
 //            });
 
-//            Scene.getInstance().getGameObjectsForComponent(ProductionComponent.class, false).forEach(gameObject -> {
+//            Rome.getGame().getScene().getGameObjectsForComponent(ProductionComponent.class, false).forEach(gameObject -> {
 //                Map<Resource, Double> productionRates = gameObject.getComponent(ProductionComponent.class)
 //                        .getProductionRates();
 //                productionRates.forEach(ResourceManager::addToResource);
 //            });
 
-            Scene.getInstance().getGameObjects()
+            Rome.getGame().getScene().getGameObjects()
                     .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::tick));
 
 //            NPC.updatePositions();
-            Scene.getInstance().updateHighlightedPaths();
+            Rome.getGame().getScene().updateHighlightedPaths();
             int nbTicksForOneHouse = Game.TIME_BETWEEN_SETTLEMENTS.getNbTicks();
-            Scene instance = Scene.getInstance();
-            int nbHouses = instance.getIdGameObjectsForComponentClass(ResidenceComponent.class, false).size();
+            Scene instance = Rome.getGame().getScene();
+            int nbHouses = instance.getIdGameObjectsForComponentClass(ResidenceComponent.class).size();
             //TODO: Update this number when house is added/removed, not every tick
             //TODO: Also, this should be nbEligibleHouses not nbHouses
             if (nbHouses > 0) {
@@ -336,39 +295,8 @@ public class Game {
         }
     }
 
-    public float prev = TimeSystem.getTimeMillis();
-
-//    static ModelTexture texture = ModelTexture.createTexture(new ResourceFile("sun.png"));
-//    static SunRenderer sunRenderer = new SunRenderer();
-//    static Sun sun = new Sun(texture, 55);
-//    static {
-//        Vector3f lightDir = new Vector3f(0.55f, -0.34f, 1);
-//        sun.setDirection(lightDir.getX(), lightDir.y, lightDir.getZ());
-//    }
-    public void processRendering(Fbo fbo) {
-        if (Game.getInstance().getGameState() == GameState.STARTED) {
-            Camera.getInstance().move();
-            Scene.getInstance().render();
-//            sunRenderer.render(sun, Camera.getInstance());
-
-            Scene.getInstance().getGameObjects()
-                    .forEach(gameObject -> gameObject.getComponents().values().forEach(Component::render));
-        } else {
-            fbo.bindFrameBuffer();
-            Scene.getInstance().render();
-//            sunRenderer.render(sun, Camera.getInstance());
-
-            fbo.unbindFrameBuffer();
-            PostProcessing.doPostProcessing(fbo.getColourTexture());
-        }
-
-        GuiRenderer.render();
-        TextMaster.getInstance().render();
-    }
-
     public enum GameState {
-        STARTED,
-        PAUSED,
-        NOT_STARTED;
+        DEFAULT,
+        PAUSED
     }
 }

@@ -1,22 +1,21 @@
 package scene.gameObjects;
 
-import pathfinding.NodeConnection;
-import pathfinding.Road;
-import renderEngine.BuildingRenderer;
-import renderEngine.PathRenderer;
-import scene.Scene;
-import scene.components.*;
-import scene.components.callbacks.AddComponentCallback;
-import scene.components.requirements.BuildingRoadConnectionRequirement;
-import scene.components.requirements.ResourceRequirementComponent;
-import terrain.TerrainPosition;
-import util.math.Vector3f;
-
+import engineTester.Rome;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import pathfinding.NodeConnection;
+import pathfinding.Road;
+import renderEngine.BuildingRenderer;
+import renderEngine.PathRenderer;
+import scene.components.*;
+import scene.components.callbacks.ObjectPlacedCallback;
+import scene.components.requirements.BuildingRoadConnectionRequirement;
+import scene.components.requirements.ResourceRequirementComponent;
+import terrain.TerrainPosition;
+import util.math.Vector3f;
 
 public class DirtRoad extends GameObject {
 
@@ -26,20 +25,20 @@ public class DirtRoad extends GameObject {
         addComponent(new SingleModelComponent(GameObjectDatas.DIRT_ROAD.getTexture()));
 //        addComponent(new BoundingBoxComponent(OBJGameObjects.DIRT_ROAD.getBoundingBox()));
         addComponent(new PreviewComponent(GameObjectDatas.DIRT_ROAD.getPreviewTexture()));
-        addComponent(new ConnectionsComponent<>(Road.class, new AddComponentCallback() {
+        addComponent(new ConnectionsComponent<>(Road.class, new ObjectPlacedCallback() {
             @Override
-            public void onAddComponent(GameObject gameObject, Vector3f position) {
-                List<TerrainPosition> affectedRoads = Scene.getInstance().getRoadGraph().getNodeConnections()
+            public void onObjPlaced(GameObject gameObject) {
+                List<TerrainPosition> affectedRoads = Rome.getGame().getScene().getRoadGraph().getNodeConnections()
                         .stream()
                         .map(NodeConnection::getRoads)
                         .filter(roads -> roads.stream().map(Road::getPosition).collect(
-                                Collectors.toList()).contains(position.toTerrainPosition()))
+                                Collectors.toList()).contains(gameObject.getPosition().toTerrainPosition()))
                         .flatMap(Collection::stream)
                         .distinct()
                         .map(Road::getPosition)
                         .collect(Collectors.toList());
 
-                Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false).forEach(obj -> {
+                Rome.getGame().getScene().getGameObjectsForComponent(ResourceRequirementComponent.class).forEach(obj -> {
                     ResourceRequirementComponent resourceRequirementComponent = obj.getComponent(
                             ResourceRequirementComponent.class);
                     Set<BuildingRoadConnectionRequirement> buildingRoadConnectionRequirements = resourceRequirementComponent
@@ -58,13 +57,13 @@ public class DirtRoad extends GameObject {
                                 return pathRoads.stream().anyMatch(affectedRoads::contains);
                             }).forEach(buildingRoadConnectionRequirement -> {
                         PathRenderer.getInstance().removePath(buildingRoadConnectionRequirement.getPath());
-                        Scene.getInstance().addBuildingRequirement(obj);
+                        Rome.getGame().getScene().addBuildingRequirement(obj);
                         connectionFound.set(true);
                     });
                     if (!connectionFound.get() && buildingRoadConnectionRequirements.stream()
                             .anyMatch(buildingRoadConnectionRequirement -> !resourceRequirementComponent.getAllRequirements()
                                     .get(buildingRoadConnectionRequirement))) {
-                        Scene.getInstance().addBuildingRequirement(obj);
+                        Rome.getGame().getScene().addBuildingRequirement(obj);
                         connectionFound.set(true);
                     }
                 });

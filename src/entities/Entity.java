@@ -8,7 +8,6 @@ import java.util.Objects;
 public class Entity {
 
     private List<ModelEntity> modelEntities;
-    private boolean           preview;
 
     public Entity(Entity entity) {
         this(entity.modelEntities);
@@ -20,14 +19,6 @@ public class Entity {
 
     public Entity(ModelEntity modelEntity) {
         this(List.of(modelEntity));
-    }
-
-    public boolean isPreview() {
-        return this.preview;
-    }
-
-    public void setPreview(boolean preview) {
-        this.preview = preview;
     }
 
     public void setModel(ModelEntity modelEntity) {

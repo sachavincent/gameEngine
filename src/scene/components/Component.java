@@ -1,19 +1,18 @@
 package scene.components;
 
-import scene.Scene;
-import scene.components.callbacks.AddComponentCallback;
+import engineTester.Rome;
+import java.util.HashSet;
 import scene.components.callbacks.FrameRendereredCallback;
+import scene.components.callbacks.ObjectPlacedCallback;
 import scene.components.callbacks.TickElapsedCallback;
 import scene.components.callbacks.UpdateComponentCallback;
 import scene.gameObjects.GameObject;
 
-import java.util.HashSet;
-
 public abstract class Component {
 
-    protected int idGameObject;
-    private AddComponentCallback onAddComponentCallback;
-    private UpdateComponentCallback onUpdateComponentCallback;
+    protected int                     idGameObject;
+    private   ObjectPlacedCallback    onObjectPlacedCallback;
+    private   UpdateComponentCallback onUpdateComponentCallback;
 
     private TickElapsedCallback onTickElapsedCallback;
     private int nbTicksTickElapsed;
@@ -27,15 +26,15 @@ public abstract class Component {
         return this.idGameObject;
     }
 
-    public Component(AddComponentCallback onAddComponentCallback) {
+    public Component(ObjectPlacedCallback onObjectPlacedCallback) {
         this();
         this.updated = false;
-        this.onAddComponentCallback = onAddComponentCallback;
+        this.onObjectPlacedCallback = onObjectPlacedCallback;
     }
 
     public Component() {
-        if (!Scene.getInstance().getIdGameObjectsForComponents().containsKey(getClass()))
-            Scene.getInstance().getIdGameObjectsForComponents().put(getClass(), new HashSet<>());
+        if (!Rome.getGame().getScene().getIdGameObjectsForComponents().containsKey(getClass()))
+            Rome.getGame().getScene().getIdGameObjectsForComponents().put(getClass(), new HashSet<>());
 
         this.onUpdateComponentCallback = gameObject -> {
 
@@ -44,19 +43,19 @@ public abstract class Component {
 
     public void setId(int id) {
         this.idGameObject = id;
-        Scene.getInstance().getIdGameObjectsForComponents().get(getClass()).add(id);
+        Rome.getGame().getScene().getIdGameObjectsForComponents().get(getClass()).add(id);
     }
 
-    public final AddComponentCallback getOnAddComponentCallback() {
-        return this.onAddComponentCallback;
+    public final ObjectPlacedCallback getOnObjectPlacedCallback() {
+        return this.onObjectPlacedCallback;
     }
 
     public void setOnUpdateComponentCallback(UpdateComponentCallback onUpdateComponentCallback) {
         this.onUpdateComponentCallback = onUpdateComponentCallback;
     }
 
-    public void setOnAddComponentCallback(AddComponentCallback onAddComponentCallback) {
-        this.onAddComponentCallback = onAddComponentCallback;
+    public void setOnObjectPlacedCallback(ObjectPlacedCallback onObjectPlacedCallback) {
+        this.onObjectPlacedCallback = onObjectPlacedCallback;
     }
 
     public void setOnTickElapsedCallback(TickElapsedCallback onTickElapsedCallback) {
@@ -77,7 +76,7 @@ public abstract class Component {
 
     public final void update() {
         if (this.onUpdateComponentCallback != null) {
-            GameObject gameObjectFromId = Scene.getInstance().getGameObjectFromId(this.idGameObject);
+            GameObject gameObjectFromId = Rome.getGame().getScene().getGameObjectFromId(this.idGameObject);
             if (gameObjectFromId != null) {
                 this.onUpdateComponentCallback.onUpdateComponentDefault(gameObjectFromId);
                 this.onUpdateComponentCallback.onUpdateComponent(gameObjectFromId);
@@ -88,7 +87,7 @@ public abstract class Component {
     public final void tick() {
         if (this.onTickElapsedCallback != null) {
             boolean ticked = this.onTickElapsedCallback
-                    .onTickElapsed(Scene.getInstance().getGameObjectFromId(this.idGameObject),
+                    .onTickElapsed(Rome.getGame().getScene().getGameObjectFromId(this.idGameObject),
                             this.nbTicksTickElapsed++);
             if (ticked)
                 this.nbTicksTickElapsed = 0;
@@ -98,7 +97,7 @@ public abstract class Component {
     public final void render() {
         if (this.onFrameRenderedCallback != null) {
             boolean rendered = this.onFrameRenderedCallback
-                    .onFrameRendered(Scene.getInstance().getGameObjectFromId(this.idGameObject),
+                    .onFrameRendered(Rome.getGame().getScene().getGameObjectFromId(this.idGameObject),
                             this.nbFramesFrameRendered++);
             if (rendered)
                 this.nbFramesFrameRendered = 0;

@@ -1,8 +1,8 @@
 package scene.gameObjects;
 
 import static java.util.Map.Entry;
-import static scene.components.MultipleModelsComponent.Offset;
 
+import engineTester.Rome;
 import entities.Camera.Direction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +19,7 @@ import scene.Scene;
 import scene.components.*;
 import scene.components.requirements.BuildingRadiusRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
+import util.Offset;
 import util.ShiftingList;
 import util.Utils;
 import util.math.Vector3f;
@@ -61,10 +62,10 @@ public class WheatField extends GameObject {
         MultipleModelsComponent modelsComponent = new MultipleModelsComponent();
         modelsComponent.addConcurrentModel(FENCE, GameObjectDatas.WHEATFIELD_FULL_FENCE.getTexture(),
                 new Offset(new Vector3f(0, 0.04f, 0)));
-        modelsComponent.addConcurrentModel(LAND, TEXTURES.get(0), 
+        modelsComponent.addConcurrentModel(LAND, TEXTURES.get(0),
                 new Offset(new Vector3f(0, 0.04f, 0), true));
 
-        modelsComponent.setOnAddComponentCallback((gameObject, position) -> {
+        modelsComponent.setOnObjectPlacedCallback((gameObject) -> {
             this.random.setSeed(System.currentTimeMillis());
         });
         AtomicInteger waitTicks = new AtomicInteger();
@@ -96,7 +97,7 @@ public class WheatField extends GameObject {
 
         wheatFarmRequirement.setOnRequirementMetCallback(requirement -> {
             GameObject building = wheatFarmRequirement.getBuilding();
-            if (building != null && !Scene.getInstance().isPreviewed(this.id)) {
+            if (building != null) {
                 System.out
                         .println("Connected WheatField to " + building.getClass().getName() + " = " + building.getId());
                 building.getComponent(ResourceProductionComponent.class)
@@ -110,7 +111,7 @@ public class WheatField extends GameObject {
         addComponent(resourceRequirementComponent);
 
         ConnectionsComponent<WheatField> connectionsComponent = new ConnectionsComponent<>(WheatField.class,
-                (gameObject, position) -> {
+                (gameObject) -> {
 
                 });
         connectionsComponent.setOnUpdateComponentCallback(this::onUpdateConnection);
@@ -122,7 +123,7 @@ public class WheatField extends GameObject {
         if (gameObject == null)
             return;
 
-        Scene scene = Scene.getInstance();
+        Scene scene = Rome.getGame().getScene();
         MultipleModelsComponent multipleModelsComponent = gameObject.getComponent(MultipleModelsComponent.class);
         if (multipleModelsComponent == null)
             return;
@@ -245,7 +246,7 @@ public class WheatField extends GameObject {
      */
     private void updateModelAtCorner(GameObject centerGameObject, String modelName, Direction direction,
             Direction perpendicularDirection, Direction offsetDirection) {
-        Scene scene = Scene.getInstance();
+        Scene scene = Rome.getGame().getScene();
         MultipleModelsComponent multipleModelsComponent = centerGameObject.getComponent(MultipleModelsComponent.class);
         GameObject gameObjectAtCorner = scene
                 .getNeighbor(scene.getNeighbor(centerGameObject, direction, WheatField.class::isInstance),
@@ -253,7 +254,7 @@ public class WheatField extends GameObject {
         if (gameObjectAtCorner == null) {
             multipleModelsComponent
                     .addConcurrentModel(modelName, GameObjectDatas.WHEATFIELD_FENCE_POLE.getTexture());
-            multipleModelsComponent.setOffsetsRotation(modelName, new Vector3f(0, offsetDirection.getDegree(), 0));
+            multipleModelsComponent.setOffsetsRotation(modelName, offsetDirection.getDegree());
         } else {
             if (doesFenceNeedRemoval(
                     gameObjectAtCorner.getComponent(MultipleModelsComponent.class).getConcurrentModels())) {

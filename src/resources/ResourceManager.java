@@ -2,6 +2,7 @@ package resources;
 
 import static util.Utils.RES_PATH;
 
+import engineTester.Rome;
 import guis.prefabs.GuiHouseDetails.GuiHouseDetails;
 import guis.presets.Background;
 import java.io.File;
@@ -12,7 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import language.Words;
-import scene.Scene;
 import scene.components.requirements.ResourceRequirement;
 import scene.components.requirements.ResourceRequirementComponent;
 import util.math.Maths;
@@ -70,7 +70,7 @@ public class ResourceManager {
     public static void updateRequirements() {
         GuiHouseDetails.getInstance().update();
 
-        Scene.getInstance().getGameObjectsForComponent(ResourceRequirementComponent.class, false)
+        Rome.getGame().getScene().getGameObjectsForComponent(ResourceRequirementComponent.class)
                 .forEach(gameObject -> {
                     ResourceRequirementComponent resourceRequirementComponent = gameObject.getComponent(
                             ResourceRequirementComponent.class);

@@ -1,7 +1,7 @@
 package guis.prefabs;
 
 import display.Display;
-import engineTester.Game;
+import engineTester.Rome;
 import fontMeshCreator.Text;
 import guis.Gui;
 import guis.constraints.GuiConstraints;
@@ -54,7 +54,7 @@ public class GuiEscapeMenu extends Gui {
         resumeButton.setOnMousePress(button -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
                 setDisplayed(false);
-                Game.getInstance().resume();
+                Rome.getGame().resume();
                 return true;
             }
             return false;
